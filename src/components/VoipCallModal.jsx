@@ -7,7 +7,8 @@ import {
   IconButton,
   Avatar,
   Chip,
-  Button
+  Button,
+  Alert
 } from '@mui/material';
 
 import CallEndIcon from '@mui/icons-material/CallEnd';
@@ -19,7 +20,7 @@ import VolumeOffIcon from '@mui/icons-material/VolumeOff';
 import SecurityIcon from '@mui/icons-material/Security';
 import GraphicEqIcon from '@mui/icons-material/GraphicEq';
 import PhoneInTalkIcon from '@mui/icons-material/PhoneInTalk';
-import PhoneForwardedIcon from '@mui/icons-material/PhoneForwarded';
+import LockIcon from '@mui/icons-material/Lock';
 
 import { API_BASE_URL } from '../config';
 
@@ -39,21 +40,23 @@ export default function VoipCallModal({
   role = 'Customer',
   isIncoming = false
 }) {
-  const [callState, setCallState] = useState(isIncoming ? 'INCOMING' : 'RINGING'); // INCOMING | RINGING | CONNECTED | ENDED
+  const [callState, setCallState] = useState(isIncoming ? 'INCOMING' : 'RINGING'); // INCOMING | RINGING | CONNECTED | ENDED | PERMISSION_REQUIRED
   const [seconds, setSeconds] = useState(0);
   const [muted, setMuted] = useState(false);
   const [speaker, setSpeaker] = useState(true);
-  const [micActive, setMicActive] = useState(false);
+  const [micGranted, setMicGranted] = useState(false);
+  const [micRequesting, setMicRequesting] = useState(false);
   const [audioError, setAudioError] = useState(null);
 
   const pcRef = useRef(null);
   const localStreamRef = useRef(null);
   const remoteAudioRef = useRef(null);
   const processedCandidatesRef = useRef(new Set());
+  const pendingIceCandidatesQueueRef = useRef([]);
   const ringtoneOscillatorRef = useRef(null);
   const audioContextRef = useRef(null);
 
-  // Play synthesized ringtone using Web Audio API
+  // Synthesized ringtone using Web Audio API
   const startRingtone = () => {
     try {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -65,8 +68,8 @@ export default function VoipCallModal({
       const gain = ctx.createGain();
 
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(440, ctx.currentTime); // Standard 440Hz dialtone
-      gain.gain.setValueAtTime(0.05, ctx.currentTime);
+      osc.frequency.setValueAtTime(440, ctx.currentTime);
+      gain.gain.setValueAtTime(0.04, ctx.currentTime);
 
       osc.connect(gain);
       gain.connect(ctx.destination);
@@ -101,10 +104,37 @@ export default function VoipCallModal({
       pcRef.current = null;
     }
     processedCandidatesRef.current.clear();
+    pendingIceCandidatesQueueRef.current = [];
   };
 
-  // Setup WebRTC Connection & Audio Streams
-  const setupWebRtcConnection = async (isCaller) => {
+  // Request Microphone Media Stream with standard noise suppression
+  const acquireMicrophone = async () => {
+    setMicRequesting(true);
+    setAudioError(null);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        },
+        video: false
+      });
+      localStreamRef.current = stream;
+      setMicGranted(true);
+      setMicRequesting(false);
+      return stream;
+    } catch (err) {
+      console.warn('Microphone permission error:', err);
+      setMicRequesting(false);
+      setMicGranted(false);
+      setAudioError('Microphone permission was denied. Please allow microphone access in your browser to speak, or use Direct Phone Call.');
+      return null;
+    }
+  };
+
+  // Setup WebRTC Connection & Attach Audio Transceivers
+  const setupPeerConnection = async (localStream, isCaller) => {
     try {
       let iceServers = DEFAULT_ICE_SERVERS;
       try {
@@ -118,11 +148,34 @@ export default function VoipCallModal({
       const pc = new RTCPeerConnection({ iceServers });
       pcRef.current = pc;
 
-      // Handle Remote Audio Track
+      // Attach Local Microphone Tracks
+      if (localStream) {
+        localStream.getTracks().forEach(track => {
+          pc.addTrack(track, localStream);
+        });
+      }
+
+      // Ensure Bidirectional Audio Transceiver
+      try {
+        const transceivers = pc.getTransceivers();
+        const audioTrans = transceivers.find(t => t.receiver && t.receiver.track && t.receiver.track.kind === 'audio');
+        if (audioTrans) {
+          audioTrans.direction = 'sendrecv';
+        } else {
+          pc.addTransceiver('audio', { direction: 'sendrecv' });
+        }
+      } catch (tErr) {}
+
+      // Handle Inbound Remote Audio Stream
       pc.ontrack = (event) => {
-        if (event.streams && event.streams[0] && remoteAudioRef.current) {
-          remoteAudioRef.current.srcObject = event.streams[0];
-          remoteAudioRef.current.play().catch(e => console.warn('Remote audio play:', e));
+        const stream = (event.streams && event.streams[0]) ? event.streams[0] : new MediaStream([event.track]);
+        if (remoteAudioRef.current) {
+          remoteAudioRef.current.srcObject = stream;
+          remoteAudioRef.current.muted = false;
+          remoteAudioRef.current.volume = 1.0;
+          remoteAudioRef.current.play().catch(e => {
+            console.warn('Remote audio autoplay catch:', e);
+          });
         }
       };
 
@@ -141,33 +194,58 @@ export default function VoipCallModal({
         }
       };
 
-      // Request User Microphone
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-        localStreamRef.current = stream;
-        setMicActive(true);
-        stream.getTracks().forEach(track => pc.addTrack(track, stream));
-      } catch (micErr) {
-        console.warn('Microphone access note:', micErr);
-        setAudioError('Microphone not available. You can also use Direct Phone Call.');
-      }
-
-      if (isCaller) {
-        // Create & Send SDP Offer
-        const offer = await pc.createOffer({ offerToReceiveAudio: true });
-        await pc.setLocalDescription(offer);
-        await fetch(`${API_BASE_URL}/api/v1/webrtc/call/offer`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ bookingId, sdp: offer })
-        });
-      }
+      return pc;
     } catch (err) {
-      console.warn('WebRTC Setup Error:', err);
+      console.error('Failed to create RTCPeerConnection:', err);
+      return null;
     }
   };
 
-  // Lifecycle & Call Initiation
+  // Start Outbound Call Flow
+  const startOutboundCall = async () => {
+    setCallState('RINGING');
+    startRingtone();
+
+    // 1. Acquire Local Mic
+    const stream = await acquireMicrophone();
+    if (!stream) {
+      setCallState('PERMISSION_REQUIRED');
+      stopRingtone();
+      return;
+    }
+
+    // 2. Setup RTCPeerConnection with local track
+    const pc = await setupPeerConnection(stream, true);
+    if (!pc) return;
+
+    // 3. Initiate Call Signal on Backend
+    try {
+      await fetch(`${API_BASE_URL}/api/v1/webrtc/call/initiate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bookingId,
+          caller: role.toLowerCase(),
+          callerName: role === 'Customer' ? 'Customer' : 'Technician',
+          calleeName
+        })
+      });
+
+      // 4. Create and send SDP Offer (sendrecv)
+      const offer = await pc.createOffer({ offerToReceiveAudio: true });
+      await pc.setLocalDescription(offer);
+
+      await fetch(`${API_BASE_URL}/api/v1/webrtc/call/offer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookingId, sdp: offer })
+      });
+    } catch (e) {
+      console.warn('Initiate call error:', e);
+    }
+  };
+
+  // Lifecycle on modal open
   useEffect(() => {
     if (!open) {
       cleanupMedia();
@@ -180,22 +258,7 @@ export default function VoipCallModal({
     if (isIncoming) {
       setCallState('INCOMING');
     } else {
-      setCallState('RINGING');
-      startRingtone();
-
-      // Initiate Call Signal on Backend
-      fetch(`${API_BASE_URL}/api/v1/webrtc/call/initiate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          bookingId,
-          caller: role.toLowerCase(),
-          callerName: role === 'Customer' ? 'Customer' : 'Technician',
-          calleeName
-        })
-      }).catch(err => console.warn('VoIP initiate err:', err));
-
-      setupWebRtcConnection(true);
+      startOutboundCall();
     }
 
     return () => {
@@ -203,7 +266,7 @@ export default function VoipCallModal({
     };
   }, [open, isIncoming, bookingId, role, calleeName]);
 
-  // Poller for WebRTC Signaling (Status, Offer, Answer, ICE Candidates)
+  // Poller for WebRTC Signaling (Offer/Answer/Candidates)
   useEffect(() => {
     if (!open) return;
     let isMounted = true;
@@ -239,6 +302,14 @@ export default function VoipCallModal({
             await pc.setRemoteDescription(new RTCSessionDescription(ansData.answer));
             stopRingtone();
             setCallState('CONNECTED');
+
+            // Drain any pending queued candidates
+            for (const cand of pendingIceCandidatesQueueRef.current) {
+              try {
+                await pc.addIceCandidate(new RTCIceCandidate(cand));
+              } catch (e) {}
+            }
+            pendingIceCandidatesQueueRef.current = [];
           }
         }
 
@@ -249,18 +320,22 @@ export default function VoipCallModal({
         if (candData.success && candData.candidates) {
           for (const c of candData.candidates) {
             const cKey = JSON.stringify(c);
-            if (!processedCandidatesRef.current.has(cKey) && pc.remoteDescription) {
+            if (!processedCandidatesRef.current.has(cKey)) {
               processedCandidatesRef.current.add(cKey);
-              try {
-                await pc.addIceCandidate(new RTCIceCandidate(c));
-              } catch (e) {}
+              if (pc.remoteDescription && pc.remoteDescription.type) {
+                try {
+                  await pc.addIceCandidate(new RTCIceCandidate(c));
+                } catch (e) {}
+              } else {
+                pendingIceCandidatesQueueRef.current.push(c);
+              }
             }
           }
         }
       } catch (err) {}
     };
 
-    const interval = setInterval(pollSignals, 1000);
+    const interval = setInterval(pollSignals, 900);
     return () => {
       isMounted = false;
       clearInterval(interval);
@@ -282,38 +357,61 @@ export default function VoipCallModal({
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
+  // Handle Callee Accepting Call
   const handleAcceptIncoming = async () => {
     stopRingtone();
+    
+    // 1. Acquire Local Microphone
+    const stream = await acquireMicrophone();
+    if (!stream) {
+      setCallState('PERMISSION_REQUIRED');
+      return;
+    }
+
     setCallState('CONNECTED');
 
     try {
+      // 2. Notify Backend Call Accepted
       await fetch(`${API_BASE_URL}/api/v1/webrtc/call/accept`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bookingId })
       });
 
-      await setupWebRtcConnection(false);
+      // 3. Setup Callee PeerConnection
+      const pc = await setupPeerConnection(stream, false);
+      if (!pc) return;
 
-      // Fetch Caller's SDP Offer & Send SDP Answer
+      // 4. Fetch Caller's SDP Offer
       const offerRes = await fetch(`${API_BASE_URL}/api/v1/webrtc/call/offer?bookingId=${bookingId}`);
       const offerData = await offerRes.json();
-      if (offerData.success && offerData.offer && pcRef.current) {
-        await pcRef.current.setRemoteDescription(new RTCSessionDescription(offerData.offer));
-        const answer = await pcRef.current.createAnswer();
-        await pcRef.current.setLocalDescription(answer);
+      if (offerData.success && offerData.offer) {
+        await pc.setRemoteDescription(new RTCSessionDescription(offerData.offer));
+        
+        // 5. Create & Send SDP Answer
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
 
         await fetch(`${API_BASE_URL}/api/v1/webrtc/call/answer`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ bookingId, sdp: answer })
         });
+
+        // Drain pending candidates
+        for (const cand of pendingIceCandidatesQueueRef.current) {
+          try {
+            await pc.addIceCandidate(new RTCIceCandidate(cand));
+          } catch (e) {}
+        }
+        pendingIceCandidatesQueueRef.current = [];
       }
     } catch (e) {
       console.warn('Accept call error:', e);
     }
   };
 
+  // Terminate Call
   const handleEndCall = async () => {
     stopRingtone();
     setCallState('ENDED');
@@ -327,18 +425,30 @@ export default function VoipCallModal({
       });
     } catch (e) {}
 
-    setTimeout(() => onClose(), 500);
+    setTimeout(() => onClose(), 400);
   };
 
+  // Toggle Mute / Unmute
   const toggleMute = () => {
     if (localStreamRef.current) {
       const audioTracks = localStreamRef.current.getAudioTracks();
       if (audioTracks.length > 0) {
-        audioTracks[0].enabled = muted; // toggle
-        setMuted(!muted);
+        const nextState = !muted;
+        audioTracks[0].enabled = !nextState;
+        setMuted(nextState);
       }
     } else {
       setMuted(!muted);
+    }
+  };
+
+  // Toggle Speaker / Earpiece
+  const toggleSpeaker = () => {
+    if (remoteAudioRef.current) {
+      remoteAudioRef.current.muted = speaker;
+      setSpeaker(!speaker);
+    } else {
+      setSpeaker(!speaker);
     }
   };
 
@@ -353,15 +463,21 @@ export default function VoipCallModal({
           bgcolor: '#0F172A',
           color: '#FFFFFF',
           borderRadius: '24px',
-          p: 2,
+          p: 2.5,
           textAlign: 'center',
-          boxShadow: '0 20px 50px rgba(0,0,0,0.8)'
+          boxShadow: '0 25px 60px rgba(0,0,0,0.85)'
         }
       }}
     >
       <DialogContent sx={{ p: 1 }}>
-        {/* Hidden Audio element for remote audio stream */}
-        <audio ref={remoteAudioRef} autoPlay playsInline style={{ display: 'none' }} />
+        {/* Hidden Audio element for remote audio stream - NOT display:none so browser audio engine processes it */}
+        <audio
+          ref={remoteAudioRef}
+          autoPlay
+          playsInline
+          controls={false}
+          style={{ position: 'fixed', top: '-1000px', left: '-1000px', width: '1px', height: '1px', opacity: 0, pointerEvents: 'none' }}
+        />
 
         {/* Privacy Masked Badge */}
         <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
@@ -369,7 +485,7 @@ export default function VoipCallModal({
             icon={<SecurityIcon sx={{ color: '#34D399 !important', fontSize: 16 }} />}
             label="SalemSeva Masked VoIP • Zero Phone Number Leak"
             size="small"
-            sx={{ bgcolor: 'rgba(52, 211, 153, 0.15)', color: '#34D399', fontWeight: 800, fontSize: '11px' }}
+            sx={{ bgcolor: 'rgba(52, 211, 153, 0.15)', color: '#34D399', fontWeight: 700, fontSize: '11px' }}
           />
         </Box>
 
@@ -377,10 +493,10 @@ export default function VoipCallModal({
         <Box sx={{ position: 'relative', display: 'inline-block', my: 1.5 }}>
           <Avatar
             sx={{
-              width: 76,
-              height: 76,
+              width: 80,
+              height: 80,
               bgcolor: '#2563EB',
-              fontSize: '26px',
+              fontSize: '28px',
               fontWeight: 800,
               mx: 'auto',
               border: '3px solid #38BDF8',
@@ -393,7 +509,7 @@ export default function VoipCallModal({
           </Avatar>
         </Box>
 
-        <Typography variant="h6" sx={{ fontWeight: 800, color: '#FFFFFF', mb: 0.3, fontSize: '16px' }}>
+        <Typography variant="h6" sx={{ fontWeight: 800, color: '#FFFFFF', mb: 0.3, fontSize: '17px' }}>
           {calleeName}
         </Typography>
         <Typography variant="caption" sx={{ color: '#94A3B8', display: 'block', mb: 1.5, fontSize: '12px' }}>
@@ -403,19 +519,19 @@ export default function VoipCallModal({
         {/* Call State / Duration Display */}
         <Box sx={{ my: 1 }}>
           {callState === 'INCOMING' && (
-            <Typography variant="subtitle2" sx={{ color: '#34D399', fontWeight: 800, fontSize: '13.5px' }}>
+            <Typography variant="subtitle2" sx={{ color: '#34D399', fontWeight: 800, fontSize: '14px' }}>
               📲 Incoming VoIP Call (அழைப்பு வருகிறது)...
             </Typography>
           )}
           {callState === 'RINGING' && (
-            <Typography variant="subtitle2" sx={{ color: '#FCD34D', fontWeight: 800, fontSize: '13.5px' }}>
+            <Typography variant="subtitle2" sx={{ color: '#FCD34D', fontWeight: 800, fontSize: '14px' }}>
               📞 Calling & Ringing (ரிங் ஆகிறது)...
             </Typography>
           )}
           {callState === 'CONNECTED' && (
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-              <GraphicEqIcon sx={{ color: '#10B981', fontSize: 22 }} />
-              <Typography variant="h6" sx={{ color: '#10B981', fontWeight: 800, fontSize: '19px' }}>
+              <GraphicEqIcon sx={{ color: '#10B981', fontSize: 24 }} />
+              <Typography variant="h6" sx={{ color: '#10B981', fontWeight: 800, fontSize: '20px' }}>
                 {formatTime(seconds)}
               </Typography>
             </Box>
@@ -425,12 +541,45 @@ export default function VoipCallModal({
               Call Ended
             </Typography>
           )}
+          {callState === 'PERMISSION_REQUIRED' && (
+            <Typography variant="subtitle2" sx={{ color: '#FCD34D', fontWeight: 800, fontSize: '13px' }}>
+              ⚠️ Microphone Permission Needed
+            </Typography>
+          )}
         </Box>
 
-        {audioError && (
-          <Typography variant="caption" sx={{ color: '#FCD34D', display: 'block', mb: 1, fontSize: '11px' }}>
+        {/* Permission Required State Banner */}
+        {callState === 'PERMISSION_REQUIRED' && (
+          <Box sx={{ bgcolor: 'rgba(234, 179, 8, 0.12)', border: '1px solid #FCD34D', borderRadius: '12px', p: 1.5, my: 2 }}>
+            <Typography variant="body2" sx={{ color: '#FDE047', fontWeight: 600, fontSize: '12px', mb: 1.2 }}>
+              SalemSeva needs microphone access so both you and the other party can talk and hear clearly.
+            </Typography>
+            <Button
+              variant="contained"
+              fullWidth
+              startIcon={<MicIcon />}
+              onClick={isIncoming ? handleAcceptIncoming : startOutboundCall}
+              disabled={micRequesting}
+              sx={{
+                bgcolor: '#2563EB',
+                color: '#FFF',
+                fontWeight: 800,
+                borderRadius: '10px',
+                py: 1,
+                fontSize: '13px',
+                textTransform: 'none',
+                '&:hover': { bgcolor: '#1D4ED8' }
+              }}
+            >
+              {micRequesting ? 'Requesting Permission...' : '🎤 Allow Microphone & Connect'}
+            </Button>
+          </Box>
+        )}
+
+        {audioError && callState !== 'PERMISSION_REQUIRED' && (
+          <Alert severity="warning" sx={{ bgcolor: 'rgba(234, 179, 8, 0.1)', color: '#FDE047', borderRadius: '10px', fontSize: '11px', my: 1, p: 0.5 }}>
             {audioError}
-          </Typography>
+          </Alert>
         )}
 
         {/* Action Controls */}
@@ -440,6 +589,7 @@ export default function VoipCallModal({
               variant="contained"
               startIcon={<CallIcon />}
               onClick={handleAcceptIncoming}
+              disabled={micRequesting}
               sx={{
                 bgcolor: '#16A34A',
                 color: '#FFF',
@@ -447,12 +597,12 @@ export default function VoipCallModal({
                 px: 2.5,
                 py: 1.1,
                 fontWeight: 800,
-                fontSize: '13px',
+                fontSize: '13.5px',
                 textTransform: 'none',
                 '&:hover': { bgcolor: '#15803D' }
               }}
             >
-              Accept Call (பதில் கொடு)
+              {micRequesting ? 'Connecting...' : 'Accept Call (பதில் கொடு)'}
             </Button>
             <Button
               variant="contained"
@@ -473,7 +623,7 @@ export default function VoipCallModal({
               Decline
             </Button>
           </Box>
-        ) : (
+        ) : callState !== 'PERMISSION_REQUIRED' && (
           <>
             {/* Audio Controls */}
             <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2.5, my: 2 }}>
@@ -491,7 +641,7 @@ export default function VoipCallModal({
               </IconButton>
 
               <IconButton
-                onClick={() => setSpeaker(!speaker)}
+                onClick={toggleSpeaker}
                 sx={{
                   bgcolor: speaker ? '#2563EB' : 'rgba(255,255,255,0.12)',
                   color: '#FFFFFF',
