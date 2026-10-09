@@ -99,7 +99,7 @@ export default function WalletHubPage({ onOpenVoiceAgent }) {
 
   const shareWhatsApp = () => {
     const text = encodeURIComponent(
-      `வணக்கம்! சேலத்தில் நம்பகமான எலக்ட்ரீசியன், பிளம்பர், AC சர்வீஸ் பெற SalemSeva பயன்பாட்டைப் பயன்படுத்துங்கள். \n\nஎனது ரெஃபரல் கோட் *${myReferralCode}* பயன்படுத்தி முதல் புக்கிங்கில் ₹50 தள்ளுபடி பெறுங்கள்: http://localhost:3000/`
+      `வணக்கம்! சேலத்தில் நம்பகமான எலக்ட்ரீசியன், பிளம்பர், AC சர்வீஸ் பெற SalemSeva பயன்பாட்டைப் பயன்படுத்துங்கள். \n\nஎனது ரெஃபரல் கோட் *${myReferralCode}* பயன்படுத்தி முதல் புக்கிங்கில் ₹50 தள்ளுபடி பெறுங்கள்: ${window.location.origin}/`
     );
     window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
   };

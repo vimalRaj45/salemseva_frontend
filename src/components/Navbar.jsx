@@ -63,6 +63,15 @@ export default function Navbar({
   const creditsAmount = propCredits !== undefined ? propCredits : (authWalletBalance ?? user?.walletBalance ?? 150);
   const isPartnerOnline = user?.isOnline !== false;
 
+  // Responsive mobile state
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize, { passive: true });
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // States
   const [selectedLocation, setSelectedLocation] = useState(propLocation || user?.locality || 'Fairlands, Salem');
   const [isLocationOpen, setIsLocationOpen] = useState(false);
@@ -224,23 +233,24 @@ export default function Navbar({
         style={{
           maxWidth: '1200px',
           margin: '0 auto',
-          padding: '0 16px',
+          padding: isMobile ? '0 12px' : '0 16px',
           display: 'flex',
           flexDirection: 'column'
         }}
       >
-        {/* Main Desktop & Tablet Row (Height 68px) */}
+        {/* Main Header Row */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            height: '68px',
-            gap: '16px'
+            height: isMobile ? '56px' : '68px',
+            gap: isMobile ? '8px' : '16px',
+            width: '100%'
           }}
         >
           {/* ================= 1. BRAND LOGO & ROLE IDENTITY ================= */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
             <div
               onClick={() => {
                 if (isTechnician) navigate('/partner');
@@ -250,7 +260,7 @@ export default function Navbar({
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '10px',
+                gap: isMobile ? '8px' : '10px',
                 cursor: 'pointer',
                 userSelect: 'none'
               }}
@@ -258,9 +268,9 @@ export default function Navbar({
               {/* Dynamic Role-Based Gradient App Icon */}
               <div
                 style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '12px',
+                  width: isMobile ? '34px' : '40px',
+                  height: isMobile ? '34px' : '40px',
+                  borderRadius: isMobile ? '10px' : '12px',
                   background: isTechnician
                     ? 'linear-gradient(135deg, #059669 0%, #10B981 100%)'
                     : isAdmin
@@ -278,20 +288,20 @@ export default function Navbar({
                 }}
               >
                 {isTechnician ? (
-                  <Briefcase size={20} color="#FFFFFF" />
+                  <Briefcase size={isMobile ? 17 : 20} color="#FFFFFF" />
                 ) : isAdmin ? (
-                  <Activity size={20} color="#FFFFFF" />
+                  <Activity size={isMobile ? 17 : 20} color="#FFFFFF" />
                 ) : (
-                  <Wrench size={20} color="#FFFFFF" />
+                  <Wrench size={isMobile ? 17 : 20} color="#FFFFFF" />
                 )}
               </div>
 
               {/* Dynamic Wordmark and Subtitle based on Active Role */}
               <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', lineHeight: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', lineHeight: 1 }}>
                   <span
                     style={{
-                      fontSize: '21px',
+                      fontSize: isMobile ? '18px' : '21px',
                       fontWeight: 900,
                       letterSpacing: '-0.5px',
                       color: isDarkMode ? '#FFFFFF' : '#0F172A'
@@ -313,17 +323,17 @@ export default function Navbar({
                       style={{
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '4px',
-                        padding: '2px 7px',
+                        gap: '3px',
+                        padding: '2px 6px',
                         borderRadius: '999px',
-                        fontSize: '10px',
+                        fontSize: '9.5px',
                         fontWeight: 800,
                         backgroundColor: isDarkMode ? 'rgba(6, 95, 70, 0.4)' : '#ECFDF5',
                         color: '#059669',
                         border: '1px solid #10B981'
                       }}
                     >
-                      <ShieldCheck size={11} color="#059669" />
+                      <ShieldCheck size={10} color="#059669" />
                       {user?.trade?.toUpperCase() || 'AC'} PRO
                     </span>
                   ) : isAdmin ? (
@@ -331,17 +341,17 @@ export default function Navbar({
                       style={{
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '4px',
-                        padding: '2px 7px',
+                        gap: '3px',
+                        padding: '2px 6px',
                         borderRadius: '999px',
-                        fontSize: '10px',
+                        fontSize: '9.5px',
                         fontWeight: 800,
                         backgroundColor: '#FEF3C7',
                         color: '#B45309',
                         border: '1px solid #F59E0B'
                       }}
                     >
-                      <Activity size={11} color="#B45309" />
+                      <Activity size={10} color="#B45309" />
                       HQ
                     </span>
                   ) : (
@@ -349,43 +359,45 @@ export default function Navbar({
                       style={{
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '4px',
-                        padding: '2px 7px',
+                        gap: '3px',
+                        padding: '2px 6px',
                         borderRadius: '999px',
-                        fontSize: '10px',
+                        fontSize: '9.5px',
                         fontWeight: 700,
                         backgroundColor: isDarkMode ? 'rgba(6, 95, 70, 0.3)' : '#ECFDF5',
                         color: isDarkMode ? '#34D399' : '#059669',
                         border: isDarkMode ? '1px solid #065F46' : '1px solid #A7F3D0'
                       }}
                     >
-                      <ShieldCheck size={11} color={isDarkMode ? '#34D399' : '#059669'} />
+                      <ShieldCheck size={10} color={isDarkMode ? '#34D399' : '#059669'} />
                       Verified
                     </span>
                   )}
                 </div>
 
-                <span
-                  style={{
-                    fontSize: '11px',
-                    fontWeight: 500,
-                    color: isDarkMode ? '#94A3B8' : '#64748B',
-                    marginTop: '3px'
-                  }}
-                >
-                  {isTechnician
-                    ? 'Verified Specialist Hub • Salem'
-                    : isAdmin
-                    ? 'Central Dispatch Operations • Salem'
-                    : 'On-Demand Home Services • Salem'}
-                </span>
+                {!isMobile && (
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 500,
+                      color: isDarkMode ? '#94A3B8' : '#64748B',
+                      marginTop: '3px'
+                    }}
+                  >
+                    {isTechnician
+                      ? 'Verified Specialist Hub • Salem'
+                      : isAdmin
+                      ? 'Central Dispatch Operations • Salem'
+                      : 'On-Demand Home Services • Salem'}
+                  </span>
+                )}
               </div>
             </div>
           </div>
 
-          {/* ================= 2. CENTRE BAR: ROLE DYNAMIC CONTENT ================= */}
+          {/* ================= 2. CENTRE BAR: ROLE DYNAMIC CONTENT (DESKTOP ONLY) ================= */}
           {/* --- CASE A: CUSTOMER / LOGGED OUT: Location Pill + Global Search --- */}
-          {isCustomer && (
+          {isCustomer && !isMobile && (
             <div
               style={{
                 display: 'flex',
@@ -591,7 +603,7 @@ export default function Navbar({
           )}
 
           {/* --- CASE B: TECHNICIAN / PARTNER: Duty Online Toggle + Zone Pill --- */}
-          {isTechnician && (
+          {isTechnician && !isMobile && (
             <div
               style={{
                 display: 'flex',
@@ -659,7 +671,7 @@ export default function Navbar({
           )}
 
           {/* --- CASE C: ADMIN: Live Dispatch Radar Status --- */}
-          {isAdmin && (
+          {isAdmin && !isMobile && (
             <div
               style={{
                 display: 'flex',
@@ -690,10 +702,10 @@ export default function Navbar({
           )}
 
           {/* ================= 3. RIGHT ACTION ITEMS (ROLE ADAPTIVE) ================= */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '6px' : '10px', flexShrink: 0 }}>
             
-            {/* 3.1 Role Specific Action / Links */}
-            {isCustomer && (
+            {/* 3.1 Role Specific Action / Links (Desktop Only) */}
+            {isCustomer && !isMobile && (
               <>
                 {/* Voice Assist Button */}
                 <button
@@ -797,7 +809,7 @@ export default function Navbar({
               </>
             )}
 
-            {isTechnician && (
+            {isTechnician && !isMobile && (
               <>
                 {/* Active Partner Duty Radar Link */}
                 <button
@@ -846,7 +858,7 @@ export default function Navbar({
               </>
             )}
 
-            {isAdmin && (
+            {isAdmin && !isMobile && (
               <>
                 <button
                   type="button"
@@ -877,8 +889,8 @@ export default function Navbar({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: '36px',
-                height: '36px',
+                width: isMobile ? '32px' : '36px',
+                height: isMobile ? '32px' : '36px',
                 borderRadius: '10px',
                 backgroundColor: 'transparent',
                 border: 'none',
@@ -886,15 +898,15 @@ export default function Navbar({
                 cursor: 'pointer'
               }}
             >
-              <Bell size={17} />
+              <Bell size={isMobile ? 16 : 17} />
               {hasNotifications && (
                 <span
                   style={{
                     position: 'absolute',
-                    top: '8px',
-                    right: '8px',
-                    width: '7px',
-                    height: '7px',
+                    top: isMobile ? '6px' : '8px',
+                    right: isMobile ? '6px' : '8px',
+                    width: '6px',
+                    height: '6px',
                     backgroundColor: isTechnician ? '#10B981' : '#2563EB',
                     borderRadius: '50%',
                     border: isDarkMode ? '1.5px solid #0F172A' : '1.5px solid #FFFFFF'
@@ -912,8 +924,8 @@ export default function Navbar({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: '32px',
-                height: '32px',
+                width: isMobile ? '30px' : '32px',
+                height: isMobile ? '30px' : '32px',
                 borderRadius: '8px',
                 backgroundColor: 'transparent',
                 border: 'none',
@@ -921,7 +933,7 @@ export default function Navbar({
                 cursor: 'pointer'
               }}
             >
-              {isDarkMode ? <Sun size={16} color="#FBBF24" /> : <Moon size={16} color="#475569" />}
+              {isDarkMode ? <Sun size={isMobile ? 15 : 16} color="#FBBF24" /> : <Moon size={isMobile ? 15 : 16} color="#475569" />}
             </button>
 
             {/* 3.4 User Avatar & Adaptive Role Dropdown */}
@@ -932,7 +944,7 @@ export default function Navbar({
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '6px',
+                  gap: '4px',
                   padding: 0,
                   backgroundColor: 'transparent',
                   border: 'none',
@@ -942,8 +954,8 @@ export default function Navbar({
                 <div style={{ position: 'relative' }}>
                   <div
                     style={{
-                      width: '36px',
-                      height: '36px',
+                      width: isMobile ? '32px' : '36px',
+                      height: isMobile ? '32px' : '36px',
                       borderRadius: '50%',
                       background: isTechnician
                         ? 'linear-gradient(135deg, #059669 0%, #047857 100%)'
@@ -952,7 +964,7 @@ export default function Navbar({
                         : 'linear-gradient(135deg, #0F172A 0%, #334155 100%)',
                       color: '#FFFFFF',
                       fontWeight: 800,
-                      fontSize: '13px',
+                      fontSize: isMobile ? '12px' : '13px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -966,11 +978,11 @@ export default function Navbar({
                       position: 'absolute',
                       bottom: 0,
                       right: 0,
-                      width: '9px',
-                      height: '9px',
+                      width: isMobile ? '7px' : '9px',
+                      height: isMobile ? '7px' : '9px',
                       backgroundColor: isPartnerOnline ? '#10B981' : '#EF4444',
                       borderRadius: '50%',
-                      border: isDarkMode ? '2px solid #0F172A' : '2px solid #FFFFFF'
+                      border: isDarkMode ? '1.5px solid #0F172A' : '1.5px solid #FFFFFF'
                     }}
                   />
                 </div>
@@ -980,10 +992,11 @@ export default function Navbar({
               {isProfileOpen && (
                 <div
                   style={{
-                    position: 'absolute',
-                    top: 'calc(100% + 8px)',
-                    right: 0,
-                    width: '280px',
+                    position: isMobile ? 'fixed' : 'absolute',
+                    top: isMobile ? '60px' : 'calc(100% + 8px)',
+                    right: isMobile ? '12px' : 0,
+                    width: isMobile ? 'calc(100vw - 24px)' : '280px',
+                    maxWidth: '300px',
                     backgroundColor: isDarkMode ? '#0F172A' : '#FFFFFF',
                     borderRadius: '16px',
                     boxShadow: '0 12px 36px rgba(0,0,0,0.2)',
