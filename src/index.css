@@ -1,7 +1,107 @@
 @import "tailwindcss";
 
-@layer base {
-  body {
-    font-family: 'Inter', 'Plus Jakarta Sans', 'Outfit', sans-serif;
+/* Universal Box-Sizing & Mobile Viewport Constraints */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  position: relative;
+  font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #F8FAFC;
+  color: #0F172A;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+#root {
+  width: 100%;
+  max-width: 100vw;
+  min-height: 100vh;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Fluid Media & Map Container Scaling */
+img, svg, video, canvas, audio, iframe, embed, object {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+iframe {
+  width: 100% !important;
+  border: 0;
+}
+
+/* Mobile-Friendly Material-UI Overrides */
+.MuiContainer-root {
+  width: 100% !important;
+  max-width: 100vw !important;
+  box-sizing: border-box !important;
+}
+
+/* Dialogs and Modals on Mobile: Never overflow viewport width */
+.MuiDialog-paper {
+  margin: 12px !important;
+  width: calc(100% - 24px) !important;
+  max-width: 480px !important;
+  border-radius: 16px !important;
+  box-sizing: border-box !important;
+}
+
+/* Touch-friendly buttons and inputs */
+button, input, select, textarea {
+  font-family: inherit;
+}
+
+/* Smooth Touch Scrolling on iOS & Android */
+.scroll-touch {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+}
+
+/* Safe Area Insets for Modern Mobile Devices (Notch & Home Bar) */
+.safe-bottom {
+  padding-bottom: max(16px, env(safe-area-inset-bottom)) !important;
+}
+
+/* Small Screens Tweaks (< 600px) */
+@media (max-width: 600px) {
+  .MuiContainer-root {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+  
+  .MuiButton-root {
+    min-height: 42px;
+  }
+}
+
+/* Extra Small Mobile Screens (< 380px, e.g. iPhone SE) */
+@media (max-width: 380px) {
+  .MuiContainer-root {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+  
+  h4, .MuiTypography-h4 {
+    font-size: 1.35rem !important;
+  }
+  
+  h5, .MuiTypography-h5 {
+    font-size: 1.15rem !important;
+  }
+  
+  h6, .MuiTypography-h6 {
+    font-size: 0.95rem !important;
   }
 }
