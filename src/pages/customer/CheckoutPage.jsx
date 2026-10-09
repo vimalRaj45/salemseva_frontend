@@ -29,6 +29,7 @@ import GraphicEqIcon from '@mui/icons-material/GraphicEq';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import MicIcon from '@mui/icons-material/Mic';
+import SecurityIcon from '@mui/icons-material/Security';
 
 import { useAuth } from '../../context/AuthContext';
 import ProcessingBackdrop from '../../components/ProcessingBackdrop';

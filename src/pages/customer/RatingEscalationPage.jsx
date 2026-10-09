@@ -31,6 +31,7 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import CurrencyRupeeIcon from '@mui/icons-material/CurrencyRupee';
 import BuildCircleIcon from '@mui/icons-material/BuildCircle';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
+import SecurityIcon from '@mui/icons-material/Security';
 
 import { ApiService } from '../../services/api';
 import ProcessingBackdrop from '../../components/ProcessingBackdrop';

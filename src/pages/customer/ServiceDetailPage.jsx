@@ -31,6 +31,7 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import EditNoteIcon from '@mui/icons-material/EditNote';
+import SecurityIcon from '@mui/icons-material/Security';
 
 import { ApiService } from '../../services/api';
 import LocationPickerModal from '../../components/LocationPickerModal';

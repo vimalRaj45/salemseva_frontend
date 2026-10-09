@@ -43,6 +43,7 @@ import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import NavigationIcon from '@mui/icons-material/Navigation';
+import SecurityIcon from '@mui/icons-material/Security';
 import PhoneIcon from '@mui/icons-material/Phone';
 import TwoWheelerIcon from '@mui/icons-material/TwoWheeler';
 import ShieldIcon from '@mui/icons-material/Shield';
