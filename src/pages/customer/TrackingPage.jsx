@@ -37,6 +37,7 @@ import GraphicEqIcon from '@mui/icons-material/GraphicEq';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import MicIcon from '@mui/icons-material/Mic';
+import BuildIcon from '@mui/icons-material/Build';
 import EngineeringIcon from '@mui/icons-material/Engineering';
 import TwoWheelerIcon from '@mui/icons-material/TwoWheeler';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
