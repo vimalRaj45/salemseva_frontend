@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>SalemSeva — Ultra-Smooth Fluid Splash Transition</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: radial-gradient(circle at center, #1E293B 0%, #0F172A 100%);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* Mobile Frame */
+    .phone-container {
+      width: 100%;
+      max-width: 412px;
+      height: 100vh;
+      max-height: 844px;
+      background: #FFFFFF;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.12);
+      border-radius: 40px;
+    }
+
+    @media (max-width: 480px) {
+      .phone-container {
+        max-height: 100vh;
+        border-radius: 0;
+      }
+    }
+
+    /* =======================================================
+       1. HOME APP (Beneath splash, smoothly reveals)
+       ======================================================= */
+    .app-screen {
+      width: 100%;
+      height: 100%;
+      background: #F8FAFC;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      opacity: 0;
+      transform: translateY(12px) scale(0.99);
+      transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1), transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .app-screen.app-visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    /* Modern Top Navbar */
+    .app-header {
+      height: 52px;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid #E2E8F0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-logo-img {
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
+    }
+
+    .brand-text-name {
+      font-size: 19px;
+      font-weight: 900;
+      letter-spacing: -0.6px;
+      color: #0066CC;
+    }
+
+    .brand-text-name span {
+      color: #FF6600;
+    }
+
+    .location-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #EFF6FF;
+      border: 1px solid #DBEAFE;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #0066CC;
+    }
+
+    .location-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #16A34A;
+      box-shadow: 0 0 6px #16A34A;
+    }
+
+    /* App Content */
+    .app-feed {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    .hero-banner {
+      background: linear-gradient(135deg, #0066CC 0%, #004D99 100%);
+      color: #FFFFFF;
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 10px 25px -5px rgba(0, 102, 204, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-tag {
+      font-size: 10.5px;
+      font-weight: 800;
+      color: #FDE047;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      display: inline-block;
+      margin-bottom: 6px;
+    }
+
+    .hero-title {
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.25;
+      margin-bottom: 8px;
+    }
+
+    .hero-desc {
+      font-size: 12px;
+      color: #E2E8F0;
+      line-height: 1.4;
+    }
+
+    .services-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #1E293B;
+      margin-bottom: 12px;
+    }
+
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .service-card {
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+    }
+
+    .service-card strong {
+      font-size: 13px;
+      color: #0F172A;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .service-card span {
+      font-size: 11px;
+      color: #64748B;
+      font-weight: 600;
+    }
+
+    /* =======================================================
+       2. PREMIUM SPLASH SCREEN (SILKY SMOOTH MORPH TRANSITION)
+       ======================================================= */
+    .splash-view {
+      position: absolute;
+      inset: 0;
+      background: #FFFFFF;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .splash-view.splash-hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Center Brand Stage */
+    .splash-brand-stage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      transform: translateY(-16px);
+      transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease;
+    }
+
+    .splash-brand-stage.stage-glide-up {
+      transform: translateY(-50px) scale(0.92);
+      opacity: 0;
+    }
+
+    /* Main High-Res Logo with Breathing Polish */
+    .splash-main-logo {
+      width: 220px;
+      max-width: 72vw;
+      height: auto;
+      object-fit: contain;
+      filter: drop-shadow(0 14px 35px rgba(0, 102, 204, 0.14));
+      animation: splashLogoEntrance 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      margin-bottom: 22px;
+    }
+
+    @keyframes splashLogoEntrance {
+      0% {
+        opacity: 0;
+        transform: scale(0.82) translateY(24px);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    /* Smooth Left-to-Right Typewriter Quote Box */
+    .typewriter-wrapper {
+      min-height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      padding: 6px 16px;
+      border-radius: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    }
+
+    .typewriter-content {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #334155;
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+    }
+
+    .blinking-cursor {
+      display: inline-block;
+      width: 2px;
+      height: 15px;
+      background-color: #FF6600;
+      margin-left: 3px;
+      border-radius: 1px;
+      animation: cursorBlink 0.75s infinite;
+      vertical-align: middle;
+    }
+
+    @keyframes cursorBlink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    /* Salem Region Footer Tag */
+    .splash-footer-tag {
+      position: absolute;
+      bottom: 34px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 800;
+      color: #94A3B8;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      opacity: 0;
+      animation: footerTagFade 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.6s forwards;
+      transition: opacity 0.3s ease;
+    }
+
+    .splash-footer-tag.tag-hide {
+      opacity: 0;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #16A34A;
+      box-shadow: 0 0 8px #16A34A;
+    }
+
+    @keyframes footerTagFade {
+      0% { opacity: 0; transform: translateY(8px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Replay Button */
+    .replay-control {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: linear-gradient(135deg, #0066CC 0%, #004D99 100%);
+      color: #FFFFFF;
+      border: none;
+      padding: 13px 22px;
+      border-radius: 14px;
+      font-size: 13.5px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 12px 28px rgba(0, 102, 204, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 300;
+      transition: all 0.2s ease;
+    }
+
+    .replay-control:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 32px rgba(0, 102, 204, 0.5);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Replay Button -->
+  <button class="replay-control" onclick="playSplashSequence()">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+    Replay Smooth Splash
+  </button>
+
+  <div class="phone-container">
+
+    <!-- ================= 1. HOME SCREEN (BEAUTIFUL REVEAL) ================= -->
+    <div id="appScreen" class="app-screen">
+      <!-- Fixed Header with official logo and brand name -->
+      <header class="app-header">
+        <div class="brand-group">
+          <img class="brand-logo-img" src="./logo.png" alt="SalemSeva" onerror="this.src='./logo.png'" />
+          <div class="brand-text-name">Salem<span>Seva</span></div>
+        </div>
+        <div class="location-badge">
+          <span class="location-dot"></span>
+          <span>Fairlands, Salem</span>
+        </div>
+      </header>
+
+      <!-- App Body -->
+      <main class="app-feed">
+        <div class="hero-banner">
+          <span class="hero-tag">Official Doorstep Guarantee</span>
+          <h2 class="hero-title">15-Min Verified Technicians Across Salem</h2>
+          <p class="hero-desc">Zero direct calls • 100% Cashless escrow protection • 30-day warranty on all repairs.</p>
+        </div>
+
+        <div class="services-title">Popular Home Services in Salem</div>
+
+        <div class="services-grid">
+          <div class="service-card">
+            <strong>⚡ Electrician & Wiring</strong>
+            <span>From ₹99 visit charge</span>
+          </div>
+          <div class="service-card">
+            <strong>❄️ AC Repair & Gas Refill</strong>
+            <span>From ₹149 visit charge</span>
+          </div>
+          <div class="service-card">
+            <strong>🔧 Plumbing & Pipe Fix</strong>
+            <span>From ₹99 visit charge</span>
+          </div>
+          <div class="service-card">
+            <strong>🧹 House Deep Cleaning</strong>
+            <span>From ₹299 visit charge</span>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- ================= 2. ULTRA-SMOOTH SPLASH OVERLAY ================= -->
+    <div id="splashView" class="splash-view">
+      
+      <!-- Center Stage: Logo + Typewriter -->
+      <div id="brandStage" class="splash-brand-stage">
+        <img class="splash-main-logo" src="./logo.png" alt="SalemSeva Logo" onerror="this.src='./logo.png'" />
+
+        <!-- Typewriter Pill Container -->
+        <div class="typewriter-wrapper">
+          <span id="typedQuote" class="typewriter-content"></span>
+          <span class="blinking-cursor"></span>
+        </div>
+      </div>
+
+      <!-- Bottom Tag -->
+      <div id="footerTag" class="splash-footer-tag">
+        <span class="status-dot"></span>
+        <span>Salem, Tamil Nadu</span>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    const quote = "Your Local Home Services Partner";
+    let typeTimer = null;
+    let transitionTimer = null;
+    let finishTimer = null;
+
+    function playSplashSequence() {
+      const splash = document.getElementById('splashView');
+      const brandStage = document.getElementById('brandStage');
+      const typedQuote = document.getElementById('typedQuote');
+      const footerTag = document.getElementById('footerTag');
+      const appScreen = document.getElementById('appScreen');
+
+      // Clear all active timers
+      if (typeTimer) clearInterval(typeTimer);
+      if (transitionTimer) clearTimeout(transitionTimer);
+      if (finishTimer) clearTimeout(finishTimer);
+
+      // Reset initial state
+      splash.style.display = 'flex';
+      splash.classList.remove('splash-hidden');
+      brandStage.classList.remove('stage-glide-up');
+      footerTag.classList.remove('tag-hide');
+      appScreen.classList.remove('app-visible');
+      typedQuote.textContent = '';
+
+      let i = 0;
+
+      // 1. Typewriter Animation (Starts at 320ms, types at 48ms per character)
+      setTimeout(() => {
+        typeTimer = setInterval(() => {
+          if (i < quote.length) {
+            typedQuote.textContent = quote.substring(0, i + 1);
+            i++;
+          } else {
+            clearInterval(typeTimer);
+          }
+        }, 48);
+      }, 320);
+
+      // 2. AT 2.8s: Initiate ultra-smooth fluid transition into Home Screen
+      transitionTimer = setTimeout(() => {
+        // Hide bottom tag & glide brand smoothly
+        footerTag.classList.add('tag-hide');
+        brandStage.classList.add('stage-glide-up');
+        
+        // Reveal Home App underneath with smooth scale-up
+        appScreen.classList.add('app-visible');
+
+        // Fade out splash backdrop
+        splash.classList.add('splash-hidden');
+      }, 2800);
+
+      // 3. AT 3.4s: Clean up splash view from DOM interactions
+      finishTimer = setTimeout(() => {
+        splash.style.display = 'none';
+      }, 3400);
+    }
+
+    // Auto run on load
+    window.onload = playSplashSequence;
+  </script>
+</body>
+</html>

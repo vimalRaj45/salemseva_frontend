@@ -24,9 +24,13 @@ import {
   Award,
   CheckCircle2,
   PhoneCall,
-  Power
+  Power,
+  Globe,
+  Languages
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import LanguageSelectorModal from './LanguageSelectorModal';
+import { SUPPORTED_LANGUAGES, getCurrentLanguage } from '../services/languageService';
 
 export default function Navbar({
   userName: propUserName,
@@ -76,6 +80,7 @@ export default function Navbar({
   const [selectedLocation, setSelectedLocation] = useState(propLocation || user?.locality || 'Fairlands, Salem');
   const [isLocationOpen, setIsLocationOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [hasScrolled, setHasScrolled] = useState(false);
@@ -876,7 +881,33 @@ export default function Navbar({
               )}
             </button>
 
-            {/* 3.3 Dark/Light Theme Toggle */}
+            {/* 3.3 Google Translate / Language Selector Button */}
+            <button
+              type="button"
+              onClick={() => setIsLanguageModalOpen(true)}
+              title="Change Language / மொழி தேர்வு (Google Translate)"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: isMobile ? '3px 6px' : '4px 8px',
+                borderRadius: '8px',
+                backgroundColor: isDarkMode ? '#1E293B' : '#EFF6FF',
+                border: isDarkMode ? '1px solid #334155' : '1px solid #DBEAFE',
+                color: '#0066CC',
+                cursor: 'pointer',
+                fontSize: isMobile ? '11px' : '12px',
+                fontWeight: 800,
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <Globe size={isMobile ? 14 : 15} color="#0066CC" />
+              <span style={{ textTransform: 'uppercase' }}>
+                {getCurrentLanguage() === 'ta' ? 'தமிழ்' : getCurrentLanguage() === 'hi' ? 'हिन्दी' : getCurrentLanguage()}
+              </span>
+            </button>
+
+            {/* 3.4 Dark/Light Theme Toggle */}
             <button
               type="button"
               onClick={toggleDarkMode}
@@ -897,7 +928,7 @@ export default function Navbar({
               {isDarkMode ? <Sun size={isMobile ? 15 : 16} color="#FBBF24" /> : <Moon size={isMobile ? 15 : 16} color="#475569" />}
             </button>
 
-            {/* 3.4 User Avatar & Adaptive Role Dropdown */}
+            {/* 3.5 User Avatar & Adaptive Role Dropdown */}
             <div style={{ position: 'relative' }} ref={profileRef}>
               <button
                 type="button"
@@ -1210,6 +1241,32 @@ export default function Navbar({
 
                     <div
                       onClick={() => {
+                        setIsLanguageModalOpen(true);
+                        setIsProfileOpen(false);
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '8px 10px',
+                        borderRadius: '10px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        color: isDarkMode ? '#E2E8F0' : '#334155',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Globe size={15} color="#0066CC" />
+                        <span>Language / மொழி மாற்றவும்</span>
+                      </div>
+                      <span style={{ fontSize: '11px', fontWeight: 800, color: '#0066CC' }}>
+                        {SUPPORTED_LANGUAGES.find(l => l.code === getCurrentLanguage())?.nativeName || 'EN'}
+                      </span>
+                    </div>
+
+                    <div
+                      onClick={() => {
                         window.location.href = 'tel:1800-425-7253';
                         setIsProfileOpen(false);
                       }}
@@ -1291,6 +1348,13 @@ export default function Navbar({
           </div>
         </div>
       </div>
+
+      {/* Google Translate & Language Selector Modal */}
+      <LanguageSelectorModal
+        open={isLanguageModalOpen}
+        onClose={() => setIsLanguageModalOpen(false)}
+        isDarkMode={isDarkMode}
+      />
     </header>
   );
 }

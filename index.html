@@ -6,12 +6,26 @@
     <title>SalemSeva — Salem Home Services Platform (React + Material UI)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <!-- Official Razorpay Checkout JS SDK -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <!-- Google Translate Script & Handler -->
+    <script type="text/javascript">
+      function googleTranslateElementInit() {
+        if (window.google && window.google.translate) {
+          new google.translate.TranslateElement({
+            pageLanguage: 'en',
+            includedLanguages: 'en,ta,hi,te,kn,ml',
+            autoDisplay: false
+          }, 'google_translate_element');
+        }
+      }
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
   </head>
   <body style="margin: 0; padding: 0; background-color: #F8FAFC; font-family: 'Outfit', 'Inter', sans-serif; overflow-x: hidden; width: 100%;">
+    <div id="google_translate_element" style="display:none !important; position: absolute; top: -9999px; left: -9999px; opacity: 0; pointer-events: none;"></div>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
