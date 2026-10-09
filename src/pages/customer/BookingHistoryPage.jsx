@@ -56,7 +56,7 @@ import CurrencyRupeeIcon from '@mui/icons-material/CurrencyRupee';
 
 import CancelBookingModal from '../../components/CancelBookingModal';
 
-export default function BookingHistoryPage({ onOpenVoiceAgent }) {
+export default function BookingHistoryPage() {
   const navigate = useNavigate();
   const [filterTab, setFilterTab] = useState('all');
   const [bookings, setBookings] = useState([]);
@@ -721,11 +721,11 @@ export default function BookingHistoryPage({ onOpenVoiceAgent }) {
 
       {/* Bottom Navigation */}
       <Paper elevation={0} sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, bgcolor: '#FFFFFF', borderTop: '1px solid #E2E8F0', zIndex: 1000 }}>
-        <BottomNavigation showLabels value={2} sx={{ height: 54, '& .Mui-selected': { color: '#2563EB', fontWeight: 600 } }}>
+        <BottomNavigation showLabels value={1} sx={{ height: 54, '& .Mui-selected': { color: '#2563EB', fontWeight: 600 } }}>
           <BottomNavigationAction label="Services" icon={<WorkOutlineIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/')} />
-          <BottomNavigationAction label="Voice assist" icon={<MicIcon sx={{ fontSize: 20 }} />} onClick={onOpenVoiceAgent} />
           <BottomNavigationAction label="Bookings" icon={<ReceiptLongIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/history')} />
           <BottomNavigationAction label="Wallet" icon={<AccountCircleIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/wallet')} />
+          <BottomNavigationAction label="Partner Zone" icon={<SecurityIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/partner')} />
         </BottomNavigation>
       </Paper>
     </Box>

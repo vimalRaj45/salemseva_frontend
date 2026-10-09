@@ -707,41 +707,6 @@ export default function Navbar({
             {/* 3.1 Role Specific Action / Links (Desktop Only) */}
             {isCustomer && !isMobile && (
               <>
-                {/* Voice Assist Button */}
-                <button
-                  type="button"
-                  onClick={onVoiceAssist}
-                  title="SalemSeva Voice AI Assist"
-                  style={{
-                    position: 'relative',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: '38px',
-                    height: '38px',
-                    borderRadius: '12px',
-                    backgroundColor: isDarkMode ? '#1E293B' : '#EFF6FF',
-                    color: '#2563EB',
-                    border: isDarkMode ? '1px solid #334155' : '1px solid #DBEAFE',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease'
-                  }}
-                >
-                  <Mic size={17} color="#2563EB" />
-                  <span
-                    style={{
-                      position: 'absolute',
-                      top: '-2px',
-                      right: '-2px',
-                      width: '9px',
-                      height: '9px',
-                      backgroundColor: '#EF4444',
-                      borderRadius: '50%',
-                      border: isDarkMode ? '2px solid #0F172A' : '2px solid #FFFFFF'
-                    }}
-                  />
-                </button>
-
                 {/* Customer Bookings Link */}
                 <button
                   type="button"
@@ -1166,26 +1131,7 @@ export default function Navbar({
                           <span>My Bookings & Invoices</span>
                         </div>
 
-                        <div
-                          onClick={() => {
-                            onVoiceAssist();
-                            setIsProfileOpen(false);
-                          }}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            padding: '8px 10px',
-                            borderRadius: '10px',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            color: isDarkMode ? '#E2E8F0' : '#334155',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          <Mic size={15} color="#7C3AED" />
-                          <span>AI Voice Assistant</span>
-                        </div>
+                        {/* Customer Direct Links */}
                       </>
                     ) : isTechnician ? (
                       <>

@@ -55,7 +55,7 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 import ProcessingBackdrop from '../../components/ProcessingBackdrop';
 
-export default function MatchingPage({ onOpenVoiceAgent }) {
+export default function MatchingPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const urlBookingId = searchParams.get('bookingId');
@@ -1220,13 +1220,12 @@ export default function MatchingPage({ onOpenVoiceAgent }) {
       />
 
       {/* Bottom Navigation */}
-
       <Paper elevation={0} sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, bgcolor: '#FFFFFF', borderTop: '1px solid #E2E8F0', zIndex: 1000 }}>
         <BottomNavigation showLabels value={0} sx={{ height: 54, '& .Mui-selected': { color: '#2563EB', fontWeight: 600 } }}>
           <BottomNavigationAction label="Services" icon={<WorkOutlineIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/')} />
-          <BottomNavigationAction label="Voice assist" icon={<MicIcon sx={{ fontSize: 20 }} />} onClick={onOpenVoiceAgent} />
           <BottomNavigationAction label="Bookings" icon={<ReceiptLongIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/history')} />
           <BottomNavigationAction label="Wallet" icon={<AccountCircleIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/wallet')} />
+          <BottomNavigationAction label="Partner Zone" icon={<EngineeringIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/partner')} />
         </BottomNavigation>
       </Paper>
     </Box>

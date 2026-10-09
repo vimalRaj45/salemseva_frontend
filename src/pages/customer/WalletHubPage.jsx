@@ -38,7 +38,7 @@ import StarsIcon from '@mui/icons-material/Stars';
 
 import { useAuth } from '../../context/AuthContext';
 
-export default function WalletHubPage({ onOpenVoiceAgent }) {
+export default function WalletHubPage() {
   const navigate = useNavigate();
   const { walletBalance, simulateCustomerReferral, user } = useAuth();
 
@@ -463,31 +463,13 @@ export default function WalletHubPage({ onOpenVoiceAgent }) {
 
       </Container>
 
-      {/* Floating AI Voice Mic Button */}
-      <Fab
-        onClick={onOpenVoiceAgent}
-        sx={{
-          position: 'fixed',
-          bottom: 72,
-          right: { xs: 20, sm: 'calc(50% - 260px)' },
-          width: 54,
-          height: 54,
-          background: 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)',
-          color: '#FFFFFF',
-          boxShadow: '0 8px 24px rgba(2, 132, 199, 0.45)',
-          zIndex: 1050
-        }}
-      >
-        <MicIcon sx={{ fontSize: 26 }} />
-      </Fab>
-
       {/* Bottom Navigation */}
       <Paper elevation={8} sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, bgcolor: '#FFFFFF', borderTop: '1px solid #E2E8F0', zIndex: 1000 }}>
-        <BottomNavigation showLabels value={3} sx={{ height: 60, '& .Mui-selected': { color: '#0284C7', fontWeight: 800 } }}>
-          <BottomNavigationAction label="Services" icon={<WorkOutlineIcon sx={{ fontSize: 22 }} />} onClick={() => navigate('/')} />
-          <BottomNavigationAction label="AI Voice" icon={<GraphicEqIcon sx={{ fontSize: 22, color: '#0284C7' }} />} sx={{ color: '#0284C7' }} onClick={onOpenVoiceAgent} />
-          <BottomNavigationAction label="History" icon={<ReceiptLongIcon sx={{ fontSize: 22 }} />} onClick={() => navigate('/history')} />
-          <BottomNavigationAction label="Wallet & Hub" icon={<AccountCircleIcon sx={{ fontSize: 22 }} />} sx={{ color: '#0284C7' }} />
+        <BottomNavigation showLabels value={2} sx={{ height: 54, '& .Mui-selected': { color: '#0284C7', fontWeight: 700 } }}>
+          <BottomNavigationAction label="Services" icon={<WorkOutlineIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/')} />
+          <BottomNavigationAction label="Bookings" icon={<ReceiptLongIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/history')} />
+          <BottomNavigationAction label="Wallet" icon={<AccountCircleIcon sx={{ fontSize: 20 }} />} sx={{ color: '#0284C7' }} />
+          <BottomNavigationAction label="Partner Zone" icon={<StarsIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/partner')} />
         </BottomNavigation>
       </Paper>
 

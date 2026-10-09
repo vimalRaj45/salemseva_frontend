@@ -38,9 +38,9 @@ import StarsIcon from '@mui/icons-material/Stars';
 
 import { ApiService } from '../../services/api';
 import LocationPickerModal from '../../components/LocationPickerModal';
-import { useAuth } from '../../context/AuthContext';
+import StorefrontIcon from '@mui/icons-material/Storefront';
 
-export default function CustomerHomePage({ onOpenVoiceAgent }) {
+export default function CustomerHomePage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
@@ -271,17 +271,6 @@ export default function CustomerHomePage({ onOpenVoiceAgent }) {
               }
             }}
           />
-          <IconButton
-            onClick={onOpenVoiceAgent}
-            size="small"
-            sx={{
-              bgcolor: '#EFF6FF',
-              color: '#2563EB',
-              '&:hover': { bgcolor: '#DBEAFE' }
-            }}
-          >
-            <MicIcon sx={{ fontSize: 18 }} />
-          </IconButton>
         </Paper>
 
         {/* Active Connected Service Banner (Zero Interruption Lock & Seamless Resume) */}
@@ -665,26 +654,6 @@ export default function CustomerHomePage({ onOpenVoiceAgent }) {
 
       </Container>
 
-      {/* Floating Voice Assistant Button */}
-      <Fab
-        onClick={onOpenVoiceAgent}
-        size="medium"
-        sx={{
-          position: 'fixed',
-          bottom: 68,
-          right: { xs: 16, sm: 'calc(50% - 260px)' },
-          bgcolor: '#2563EB',
-          color: '#FFFFFF',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-          zIndex: 1050,
-          '&:hover': {
-            bgcolor: '#1D4ED8'
-          }
-        }}
-      >
-        <MicIcon sx={{ fontSize: 22 }} />
-      </Fab>
-
       {/* Bottom Navigation */}
       <Paper
         elevation={0}
@@ -704,9 +673,9 @@ export default function CustomerHomePage({ onOpenVoiceAgent }) {
           onChange={(event, newValue) => {
             setNavValue(newValue);
             if (newValue === 0) navigate('/');
-            if (newValue === 1) onOpenVoiceAgent();
-            if (newValue === 2) navigate('/history');
-            if (newValue === 3) navigate('/wallet');
+            if (newValue === 1) navigate('/history');
+            if (newValue === 2) navigate('/wallet');
+            if (newValue === 3) navigate('/partner');
           }}
           sx={{
             height: 54,
@@ -725,16 +694,16 @@ export default function CustomerHomePage({ onOpenVoiceAgent }) {
             icon={<WorkOutlineIcon sx={{ fontSize: 20 }} />}
           />
           <BottomNavigationAction
-            label="Voice assist"
-            icon={<MicIcon sx={{ fontSize: 20 }} />}
-          />
-          <BottomNavigationAction
             label="Bookings"
             icon={<ReceiptLongIcon sx={{ fontSize: 20 }} />}
           />
           <BottomNavigationAction
             label="Wallet"
             icon={<AccountCircleIcon sx={{ fontSize: 20 }} />}
+          />
+          <BottomNavigationAction
+            label="Partner Zone"
+            icon={<StorefrontIcon sx={{ fontSize: 20 }} />}
           />
         </BottomNavigation>
       </Paper>

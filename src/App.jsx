@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Box } from '@mui/material';
 
 import Navbar from './components/Navbar';
-import VoiceAgentModal from './components/VoiceAgentModal';
 
 // Customer Pages
 import CustomerHomePage from './pages/customer/CustomerHomePage';
@@ -89,11 +88,9 @@ function CustomerActiveJobGuard({ children }) {
 
 function AppContent() {
   const { user } = useAuth();
-  const [voiceAgentOpen, setVoiceAgentOpen] = useState(false);
   const [currentBooking, setCurrentBooking] = useState(null);
 
   const walletBalance = user?.walletBalance ?? 150;
-  const openVoiceAgent = () => setVoiceAgentOpen(true);
 
   return (
     <BrowserRouter>
@@ -102,7 +99,6 @@ function AppContent() {
           
           {/* Production Top Navbar */}
           <Navbar 
-            onOpenVoiceAgent={openVoiceAgent} 
             walletBalance={walletBalance} 
           />
 
@@ -111,16 +107,16 @@ function AppContent() {
             <Routes>
               {/* Customer Routes */}
               <Route path="/onboarding" element={<CustomerOnboardingPage onLoginSuccess={(u) => console.log('Logged in:', u)} />} />
-              <Route path="/" element={<CustomerHomePage onOpenVoiceAgent={openVoiceAgent} />} />
-              <Route path="/book/:serviceId" element={<ServiceDetailPage onStartBooking={(b) => setCurrentBooking(b)} onOpenVoiceAgent={openVoiceAgent} />} />
-              <Route path="/matching" element={<MatchingPage onOpenVoiceAgent={openVoiceAgent} />} />
-              <Route path="/track" element={<TrackingPage onOpenVoiceAgent={openVoiceAgent} />} />
+              <Route path="/" element={<CustomerHomePage />} />
+              <Route path="/book/:serviceId" element={<ServiceDetailPage onStartBooking={(b) => setCurrentBooking(b)} />} />
+              <Route path="/matching" element={<MatchingPage />} />
+              <Route path="/track" element={<TrackingPage />} />
               <Route path="/tracking" element={<Navigate to="/track" replace />} />
-              <Route path="/quote" element={<QuoteReviewPage onOpenVoiceAgent={openVoiceAgent} />} />
-              <Route path="/checkout" element={<CheckoutPage walletBalance={walletBalance} onOpenVoiceAgent={openVoiceAgent} />} />
-              <Route path="/rate" element={<RatingEscalationPage onOpenVoiceAgent={openVoiceAgent} />} />
-              <Route path="/wallet" element={<WalletHubPage walletBalance={walletBalance} onOpenVoiceAgent={openVoiceAgent} />} />
-              <Route path="/history" element={<BookingHistoryPage onOpenVoiceAgent={openVoiceAgent} />} />
+              <Route path="/quote" element={<QuoteReviewPage />} />
+              <Route path="/checkout" element={<CheckoutPage walletBalance={walletBalance} />} />
+              <Route path="/rate" element={<RatingEscalationPage />} />
+              <Route path="/wallet" element={<WalletHubPage walletBalance={walletBalance} />} />
+              <Route path="/history" element={<BookingHistoryPage />} />
 
               {/* Partner Routes */}
               <Route path="/partner/onboarding" element={<PartnerOnboardingPage />} />
@@ -136,16 +132,6 @@ function AppContent() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Box>
-
-          {/* WebRTC Voice AI Modal */}
-          <VoiceAgentModal 
-            open={voiceAgentOpen} 
-            onClose={() => setVoiceAgentOpen(false)}
-            onBookVoiceService={() => {
-              setVoiceAgentOpen(false);
-              window.location.href = '/matching';
-            }}
-          />
 
           {/* Global Platform Auth Modal (Initial login & role gateway) */}
           <AuthModal />

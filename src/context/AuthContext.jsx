@@ -1,4 +1,20 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Typography,
+  Box,
+  Avatar,
+  Paper
+} from '@mui/material';
+import DevicesIcon from '@mui/icons-material/Devices';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+
+import { API_BASE_URL } from '../config';
 
 const AuthContext = createContext(null);
 
@@ -17,12 +33,72 @@ export function AuthProvider({ children }) {
   const [dbCustomers, setDbCustomers] = useState([]);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authInitialTab, setAuthInitialTab] = useState('customer'); // 'customer' | 'technician' | 'admin'
+  const [sessionTerminatedModalOpen, setSessionTerminatedModalOpen] = useState(false);
+
+  const sessionTokenRef = useRef(localStorage.getItem('salemseva_session_token') || '');
+
+  // Register session with backend
+  const registerSessionWithBackend = async (phone, role, name, trade) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, role, name, trade })
+      });
+      const data = await res.json();
+      if (data.success && data.sessionToken) {
+        sessionTokenRef.current = data.sessionToken;
+        localStorage.setItem('salemseva_session_token', data.sessionToken);
+      }
+    } catch (err) {
+      console.warn('Session registration note:', err);
+    }
+  };
+
+  // Concurrent Session Heartbeat Poller: Detect if logged in on another device
+  useEffect(() => {
+    if (!user || !user.phone) return;
+
+    let isMounted = true;
+    const checkSession = async () => {
+      try {
+        const token = sessionTokenRef.current || localStorage.getItem('salemseva_session_token');
+        if (!token) return;
+
+        const res = await fetch(`${API_BASE_URL}/api/v1/auth/session/verify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            phone: user.phone,
+            sessionToken: token,
+            role: user.role
+          })
+        });
+        const data = await res.json();
+
+        if (isMounted && data.code === 'SESSION_TERMINATED') {
+          // Logged out because account logged in on another device!
+          setUser(null);
+          localStorage.removeItem('salemseva_user');
+          localStorage.removeItem('salemseva_session_token');
+          sessionTokenRef.current = '';
+          setSessionTerminatedModalOpen(true);
+        }
+      } catch (e) {}
+    };
+
+    const interval = setInterval(checkSession, 3000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [user]);
 
   // Fetch live technicians list from Neon PostgreSQL DB
   useEffect(() => {
     async function loadDbTechnicians() {
       try {
-        const res = await fetch('https://salemseva-backend.onrender.com/api/v1/technicians');
+        const res = await fetch(`${API_BASE_URL}/api/v1/technicians`);
         const data = await res.json();
         if (data.success && data.technicians && data.technicians.length > 0) {
           const mapped = data.technicians.map(t => {
@@ -67,7 +143,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     async function loadDbCustomers() {
       try {
-        const res = await fetch('https://salemseva-backend.onrender.com/api/v1/customers');
+        const res = await fetch(`${API_BASE_URL}/api/v1/customers`);
         const data = await res.json();
         if (data.success && data.customers && data.customers.length > 0) {
           const mapped = data.customers.map(c => ({
@@ -86,7 +162,6 @@ export function AuthProvider({ children }) {
           }));
           setDbCustomers(mapped);
 
-          // If current user is a customer, keep their wallet balance updated from DB
           setUser(prev => {
             if (prev && prev.role === 'customer') {
               const matched = mapped.find(c => c.id === prev.id || c.phone === prev.phone || c.rawPhone === prev.rawPhone);
@@ -110,15 +185,10 @@ export function AuthProvider({ children }) {
     setAuthModalOpen(false);
   };
 
-  // Trigger Auth modal on initial load if user is not logged in
-  useEffect(() => {
-    if (!user) {
-      const timer = setTimeout(() => {
-        setAuthModalOpen(true);
-      }, 350);
-      return () => clearTimeout(timer);
-    }
-  }, []);
+  const openAuth = (initialTab = 'customer') => {
+    setAuthInitialTab(initialTab);
+    setAuthModalOpen(true);
+  };
 
   const loginWithPhonePassword = async (phone, password, role = 'customer') => {
     let loggedUser = null;
@@ -164,6 +234,10 @@ export function AuthProvider({ children }) {
     setUser(loggedUser);
     localStorage.setItem('salemseva_user', JSON.stringify(loggedUser));
     setAuthModalOpen(false);
+
+    // Register active session token on backend to enforce single-device login
+    await registerSessionWithBackend(loggedUser.phone, role, loggedUser.name, loggedUser.trade);
+
     return loggedUser;
   };
 
@@ -187,6 +261,7 @@ export function AuthProvider({ children }) {
     setUser(newUser);
     localStorage.setItem('salemseva_user', JSON.stringify(newUser));
     setAuthModalOpen(false);
+    await registerSessionWithBackend(newUser.phone, 'customer', newUser.name);
     return newUser;
   };
 
@@ -223,10 +298,11 @@ export function AuthProvider({ children }) {
     setUser(newTech);
     localStorage.setItem('salemseva_user', JSON.stringify(newTech));
     setAuthModalOpen(false);
+    await registerSessionWithBackend(newTech.phone, 'technician', newTech.name, newTech.trade);
     return newTech;
   };
 
-  const loginAsPreset = (presetKey) => {
+  const loginAsPreset = async (presetKey) => {
     let preset = null;
     if (presetKey === 'customer') {
       preset = dbCustomers[0] || {
@@ -248,158 +324,138 @@ export function AuthProvider({ children }) {
         phone: '+91 94432 88901',
         trade: 'ac',
         isKycVerified: true,
-        isOnline: true
+        isOnline: true,
+        ratingAvg: 4.95,
+        ratingCount: 142,
+        jobsCompleted: 389,
+        todayEarnings: 1450,
+        serviceArea: 'Fairlands, Salem'
       };
-    } else {
+    } else if (presetKey === 'admin') {
       preset = {
         id: 'adm-ops-001',
         role: 'admin',
-        name: 'Salem Ops Central Admin',
-        phone: '+91 90030 99999',
+        name: 'Salem Central Ops Admin',
+        phone: '+91 98420 99999',
+        email: 'ops.admin@salemseva.in',
+        designation: 'Operations Command Hub Lead',
+        locality: 'Central HQ, Salem',
         isVerified: true
       };
     }
+
     setUser(preset);
     localStorage.setItem('salemseva_user', JSON.stringify(preset));
     setAuthModalOpen(false);
-    return preset;
+
+    if (preset && preset.phone) {
+      await registerSessionWithBackend(preset.phone, preset.role || 'customer', preset.name, preset.trade);
+    }
   };
 
-  const loginAsCustomer = (customerIdOrObj) => {
-    let cust = null;
-    if (typeof customerIdOrObj === 'string') {
-      cust = dbCustomers.find(c => c.id === customerIdOrObj || c.phone === customerIdOrObj || c.rawPhone === customerIdOrObj || c.name === customerIdOrObj);
-    } else if (customerIdOrObj && typeof customerIdOrObj === 'object') {
-      cust = { ...customerIdOrObj, role: 'customer' };
-    }
-    
-    if (!cust) {
-      cust = dbCustomers[0] || {
-        id: 'c0000000-0000-0000-0000-000000000001',
-        role: 'customer',
-        name: 'Vimal Raj',
-        phone: '+91 98427 11234',
-        rawPhone: '+919842711234',
-        locality: 'Fairlands, Salem',
-        address: '14/2, 5th Cross, Fairlands, Salem - 636016',
-        walletBalance: 150,
-        isVerified: true
-      };
-    }
-
+  const loginAsCustomer = (customerData) => {
+    const cust = customerData || dbCustomers[0] || {
+      id: 'usr-cust-01',
+      role: 'customer',
+      name: 'Vimal Raj',
+      phone: '+91 98427 11234',
+      locality: 'Fairlands, Salem',
+      address: 'Fairlands, Salem - 636016',
+      walletBalance: 150,
+      isVerified: true
+    };
     setUser(cust);
     localStorage.setItem('salemseva_user', JSON.stringify(cust));
     setAuthModalOpen(false);
-    return cust;
+    registerSessionWithBackend(cust.phone, 'customer', cust.name);
+  };
+
+  const loginAsTechnician = (technicianData) => {
+    const tech = technicianData || dbTechnicians[0] || {
+      id: 'tech-01',
+      role: 'technician',
+      name: 'K. Ramesh',
+      phone: '+91 94432 88901',
+      trade: 'ac',
+      isKycVerified: true,
+      isOnline: true
+    };
+    setUser(tech);
+    localStorage.setItem('salemseva_user', JSON.stringify(tech));
+    setAuthModalOpen(false);
+    registerSessionWithBackend(tech.phone, 'technician', tech.name, tech.trade);
   };
 
   const loginAsAdmin = () => {
-    const adminUser = {
+    const admin = {
       id: 'adm-ops-001',
       role: 'admin',
-      name: 'Salem Ops Central Admin',
-      phone: '+91 90030 99999',
+      name: 'Salem Central Ops Admin',
+      phone: '+91 98420 99999',
       email: 'ops.admin@salemseva.in',
       designation: 'Operations Command Hub Lead',
       locality: 'Central HQ, Salem',
       isVerified: true
     };
-    setUser(adminUser);
-    localStorage.setItem('salemseva_user', JSON.stringify(adminUser));
+    setUser(admin);
+    localStorage.setItem('salemseva_user', JSON.stringify(admin));
     setAuthModalOpen(false);
-    return adminUser;
   };
 
-  const switchRole = (role) => {
-    if (role === 'partner' || role === 'technician') {
-      return loginAsTechnician();
-    } else if (role === 'admin') {
-      return loginAsAdmin();
-    } else {
-      return loginAsCustomer();
+  const switchRole = (newRole) => {
+    if (newRole === 'customer') {
+      loginAsCustomer();
+    } else if (newRole === 'technician') {
+      loginAsTechnician();
+    } else if (newRole === 'admin') {
+      loginAsAdmin();
     }
   };
 
-  const loginAsTechnician = (techIdOrObj) => {
-    let tech = null;
-    if (typeof techIdOrObj === 'string') {
-      tech = dbTechnicians.find(t => t.id === techIdOrObj || t.trade === techIdOrObj || t.rawPhone === techIdOrObj || t.name === techIdOrObj);
-    } else if (techIdOrObj && typeof techIdOrObj === 'object') {
-      tech = techIdOrObj;
-    }
-    
-    if (!tech) {
-      tech = dbTechnicians[0] || {
-        id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
-        role: 'technician',
-        name: 'K. Ramesh',
-        phone: '+91 94432 88901',
-        trade: 'ac',
-        isKycVerified: true,
-        isOnline: true
-      };
-    }
-
-    setUser(tech);
-    localStorage.setItem('salemseva_user', JSON.stringify(tech));
-    localStorage.setItem('salemseva_partner_is_online', 'true');
-    setAuthModalOpen(false);
-    return tech;
-  };
-
-  const updateUser = (updates) => {
+  const updateUser = (fields) => {
     setUser(prev => {
-      const updated = { ...prev, ...updates };
+      if (!prev) return prev;
+      const updated = { ...prev, ...fields };
       localStorage.setItem('salemseva_user', JSON.stringify(updated));
       return updated;
     });
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      if (user && user.phone) {
+        fetch(`${API_BASE_URL}/api/v1/auth/logout`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: user.phone })
+        }).catch(() => {});
+      }
+    } catch (e) {}
+
     setUser(null);
     localStorage.removeItem('salemseva_user');
-    setAuthModalOpen(true);
+    localStorage.removeItem('salemseva_session_token');
+    sessionTokenRef.current = '';
   };
 
-  const openAuth = (tab = 'customer') => {
-    setAuthInitialTab(tab);
-    setAuthModalOpen(true);
-  };
-
-  // Customer Wallet State
+  // Wallet & Incentives state management
   const [walletBalance, setWalletBalance] = useState(() => {
-    try {
-      const saved = localStorage.getItem('salemseva_wallet_balance');
-      if (saved !== null) return parseFloat(saved);
-      const savedUser = localStorage.getItem('salemseva_user');
-      if (savedUser) {
-        const u = JSON.parse(savedUser);
-        if (typeof u.walletBalance === 'number') return u.walletBalance;
-      }
-      return 150;
-    } catch (e) {
-      return 150;
-    }
+    const saved = localStorage.getItem('salemseva_wallet_balance');
+    return saved ? parseFloat(saved) : (user?.walletBalance ?? 150);
   });
 
-  // Technician Incentives State
   const [partnerIncentives, setPartnerIncentives] = useState(() => {
-    try {
-      const saved = localStorage.getItem('salemseva_partner_incentives');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {}
-    return {
+    const saved = localStorage.getItem('salemseva_partner_incentives');
+    return saved ? JSON.parse(saved) : {
       totalIncentiveEarned: 750,
       availablePayout: 500,
       settledPayout: 250,
       starPoints: 24,
-      starPointsTarget: 30,
-      zeroCommUnlocked: false,
-      referralCode: 'TECHRAMESH'
+      totalReferralsCount: 3,
+      zeroCommUnlocked: false
     };
   });
 
-  // Keep walletBalance synchronized with user object and localStorage
   const updateWalletBalance = (newBal) => {
     const val = Math.max(0, parseFloat(newBal) || 0);
     setWalletBalance(val);
@@ -415,7 +471,7 @@ export function AuthProvider({ children }) {
     updateWalletBalance(updated);
 
     try {
-      await fetch('https://salemseva-backend.onrender.com/api/v1/wallet/customer/credit', {
+      await fetch(`${API_BASE_URL}/api/v1/wallet/customer/credit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -426,9 +482,7 @@ export function AuthProvider({ children }) {
           category
         })
       });
-    } catch (e) {
-      console.warn('Credit wallet backend sync:', e);
-    }
+    } catch (e) {}
     return updated;
   };
 
@@ -439,7 +493,7 @@ export function AuthProvider({ children }) {
     updateWalletBalance(updated);
 
     try {
-      await fetch('https://salemseva-backend.onrender.com/api/v1/wallet/customer/debit', {
+      await fetch(`${API_BASE_URL}/api/v1/wallet/customer/debit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -448,9 +502,7 @@ export function AuthProvider({ children }) {
           bookingId
         })
       });
-    } catch (e) {
-      console.warn('Debit wallet backend sync:', e);
-    }
+    } catch (e) {}
     return actualDebit;
   };
 
@@ -459,7 +511,7 @@ export function AuthProvider({ children }) {
     updateWalletBalance(updated);
 
     try {
-      await fetch('https://salemseva-backend.onrender.com/api/v1/wallet/customer/simulate-referral', {
+      await fetch(`${API_BASE_URL}/api/v1/wallet/customer/simulate-referral`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -468,13 +520,10 @@ export function AuthProvider({ children }) {
           phone: user?.phone || '+91 98427 11234'
         })
       });
-    } catch (e) {
-      console.warn('Referral simulate sync:', e);
-    }
+    } catch (e) {}
     return updated;
   };
 
-  // Technician Refer-a-Partner & Incentive Claim
   const referTechnician = async ({ name, phone, trade, locality }) => {
     const incentiveAmount = 250;
     const newStarPoints = Math.min(30, (partnerIncentives.starPoints || 24) + 3);
@@ -494,7 +543,7 @@ export function AuthProvider({ children }) {
     localStorage.setItem('salemseva_partner_incentives', JSON.stringify(updated));
 
     try {
-      await fetch('https://salemseva-backend.onrender.com/api/v1/partner/refer', {
+      await fetch(`${API_BASE_URL}/api/v1/partner/refer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -505,9 +554,7 @@ export function AuthProvider({ children }) {
           referredLocality: locality
         })
       });
-    } catch (e) {
-      console.warn('Technician referral backend sync:', e);
-    }
+    } catch (e) {}
 
     return updated;
   };
@@ -526,7 +573,7 @@ export function AuthProvider({ children }) {
     localStorage.setItem('salemseva_partner_incentives', JSON.stringify(updated));
 
     try {
-      await fetch('https://salemseva-backend.onrender.com/api/v1/partner/payout', {
+      await fetch(`${API_BASE_URL}/api/v1/partner/payout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -534,9 +581,7 @@ export function AuthProvider({ children }) {
           upiId
         })
       });
-    } catch (e) {
-      console.warn('Partner payout backend sync:', e);
-    }
+    } catch (e) {}
 
     return updated;
   };
@@ -578,6 +623,83 @@ export function AuthProvider({ children }) {
       }}
     >
       {children}
+
+      {/* ⚠️ SINGLE-DEVICE CONCURRENT LOGIN LOGOUT MODAL */}
+      <Dialog
+        open={sessionTerminatedModalOpen}
+        onClose={() => setSessionTerminatedModalOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: '20px',
+            p: 1,
+            boxShadow: '0 25px 50px rgba(15, 23, 42, 0.35)',
+            border: '1.5px solid #FCD34D'
+          }
+        }}
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.2, pb: 1 }}>
+          <Box sx={{ bgcolor: '#FEF3C7', color: '#D97706', p: 1, borderRadius: '12px', display: 'flex' }}>
+            <DevicesIcon sx={{ fontSize: 24 }} />
+          </Box>
+          <Box>
+            <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0F172A', fontSize: '16px', lineHeight: 1.2 }}>
+              Logged In on Another Device
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#D97706', fontWeight: 700, fontSize: '11px' }}>
+              மற்றொரு சாதனத்தில் உள்நுழைந்துள்ளீர்கள்
+            </Typography>
+          </Box>
+        </DialogTitle>
+
+        <DialogContent sx={{ pt: 1, pb: 2 }}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2,
+              bgcolor: '#FFFBEB',
+              border: '1px solid #FDE68A',
+              borderRadius: '12px',
+              mb: 2
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+              <WarningAmberIcon sx={{ color: '#D97706', fontSize: 20, mt: 0.2 }} />
+              <Typography variant="body2" sx={{ color: '#92400E', fontSize: '13px', lineHeight: 1.5, fontWeight: 600 }}>
+                Your SalemSeva account was accessed from a new phone/browser. To protect your data and security, you have been automatically logged out from this device.
+              </Typography>
+            </Box>
+          </Paper>
+
+          <Typography variant="caption" sx={{ color: '#64748B', fontSize: '12px', display: 'block', textAlign: 'center' }}>
+            If this was you, you can log back in on this device anytime.
+          </Typography>
+        </DialogContent>
+
+        <DialogActions sx={{ px: 2, pb: 2 }}>
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={() => {
+              setSessionTerminatedModalOpen(false);
+              setAuthModalOpen(true);
+            }}
+            sx={{
+              bgcolor: '#0F172A',
+              color: '#FFF',
+              borderRadius: '10px',
+              py: 1.2,
+              fontWeight: 800,
+              fontSize: '13px',
+              textTransform: 'none',
+              '&:hover': { bgcolor: '#1E293B' }
+            }}
+          >
+            Log In Again on This Device (மீண்டும் உள்நுழைய)
+          </Button>
+        </DialogActions>
+      </Dialog>
     </AuthContext.Provider>
   );
 }
