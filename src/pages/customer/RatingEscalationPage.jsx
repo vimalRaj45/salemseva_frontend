@@ -34,6 +34,7 @@ import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 
 import { ApiService } from '../../services/api';
 import ProcessingBackdrop from '../../components/ProcessingBackdrop';
+import { useAuth } from '../../context/AuthContext';
 
 export default function RatingEscalationPage() {
   const navigate = useNavigate();

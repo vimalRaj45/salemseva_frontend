@@ -35,6 +35,8 @@ import EditNoteIcon from '@mui/icons-material/EditNote';
 import { ApiService } from '../../services/api';
 import LocationPickerModal from '../../components/LocationPickerModal';
 import ProcessingBackdrop from '../../components/ProcessingBackdrop';
+import { useAuth } from '../../context/AuthContext';
+
 export default function ServiceDetailPage({ onStartBooking }) {
   const navigate = useNavigate();
   const { user } = useAuth();

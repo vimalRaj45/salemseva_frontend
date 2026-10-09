@@ -39,6 +39,7 @@ import StarsIcon from '@mui/icons-material/Stars';
 import { ApiService } from '../../services/api';
 import LocationPickerModal from '../../components/LocationPickerModal';
 import StorefrontIcon from '@mui/icons-material/Storefront';
+import { useAuth } from '../../context/AuthContext';
 
 export default function CustomerHomePage() {
   const navigate = useNavigate();
