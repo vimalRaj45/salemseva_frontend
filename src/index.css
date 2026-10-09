@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+:root {
+  --salem-blue: #0066CC;
+  --salem-orange: #FF6600;
+  --salem-green: #16A34A;
+  --salem-teal: #0D9488;
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+}
+
 /* Universal Box-Sizing & Mobile Viewport Constraints */
 *, *::before, *::after {
   box-sizing: border-box;
@@ -31,6 +40,19 @@ html, body {
   flex-direction: column;
 }
 
+/* Header Safe Area Clearance */
+header, .app-header {
+  padding-top: max(env(safe-area-inset-top, 0px), 0px) !important;
+}
+
+/* Fixed Bottom Navigation Safe Area Clearance */
+.MuiPaper-root[style*="position: fixed"],
+.MuiPaper-root[style*="position:fixed"],
+.mobile-bottom-bar {
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 14px) !important;
+  box-sizing: content-box !important;
+}
+
 /* Fluid Media & Map Container Scaling */
 img, svg, video, canvas, audio, iframe, embed, object {
   max-width: 100%;
@@ -47,6 +69,7 @@ iframe {
   width: 100% !important;
   max-width: 100vw !important;
   box-sizing: border-box !important;
+  padding-bottom: calc(75px + env(safe-area-inset-bottom, 16px));
 }
 
 /* Dialogs and Modals on Mobile: Never overflow viewport width */

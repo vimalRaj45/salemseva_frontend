@@ -657,7 +657,7 @@ export default function CustomerHomePage() {
 
       {/* Bottom Navigation */}
       <Paper
-        elevation={0}
+        elevation={3}
         sx={{
           position: 'fixed',
           bottom: 0,
@@ -665,7 +665,8 @@ export default function CustomerHomePage() {
           right: 0,
           bgcolor: '#FFFFFF',
           borderTop: '1px solid #E2E8F0',
-          zIndex: 1000
+          zIndex: 1000,
+          pb: 'max(env(safe-area-inset-bottom, 0px), 14px)'
         }}
       >
         <BottomNavigation
@@ -679,14 +680,14 @@ export default function CustomerHomePage() {
             if (newValue === 3) navigate('/partner');
           }}
           sx={{
-            height: 54,
+            height: 56,
             '& .Mui-selected': {
-              color: '#2563EB',
-              fontWeight: 600
+              color: '#0066CC',
+              fontWeight: 700
             },
             '& .MuiBottomNavigationAction-label': {
               fontSize: '11px',
-              fontWeight: 500
+              fontWeight: 600
             }
           }}
         >

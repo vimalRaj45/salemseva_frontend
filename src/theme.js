@@ -4,27 +4,33 @@ export const theme = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: '#2563EB', // Professional Salem Blue
-      light: '#3B82F6',
-      dark: '#1D4ED8',
+      main: '#0066CC', // Official Salem Brand Blue
+      light: '#3385D6',
+      dark: '#0052CC',
       contrastText: '#FFFFFF',
     },
     secondary: {
-      main: '#0D9488', // Teal accent
-      light: '#14B8A6',
-      dark: '#0F766E',
+      main: '#FF6600', // Official SalemSeva Vibrant Orange
+      light: '#FF8533',
+      dark: '#E65C00',
       contrastText: '#FFFFFF',
     },
     success: {
-      main: '#16A34A',
+      main: '#16A34A', // Salem Eco Green (Plumbing tile)
       light: '#22C55E',
       dark: '#15803D',
       contrastText: '#FFFFFF',
     },
     warning: {
-      main: '#D97706',
+      main: '#FF6600', // Salem Orange (Electrical tile)
       light: '#F59E0B',
-      dark: '#B45309',
+      dark: '#D97706',
+      contrastText: '#FFFFFF',
+    },
+    info: {
+      main: '#0D9488', // Salem Clean Teal (Cleaning tile)
+      light: '#14B8A6',
+      dark: '#0F766E',
       contrastText: '#FFFFFF',
     },
     error: {
@@ -45,19 +51,19 @@ export const theme = createTheme({
     divider: '#E2E8F0',
   },
   typography: {
-    fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    h1: { fontWeight: 700, fontSize: '1.875rem', letterSpacing: '-0.025em', color: '#0F172A' },
-    h2: { fontWeight: 700, fontSize: '1.5rem', letterSpacing: '-0.02em', color: '#0F172A' },
-    h3: { fontWeight: 600, fontSize: '1.25rem', letterSpacing: '-0.015em', color: '#0F172A' },
-    h4: { fontWeight: 600, fontSize: '1.125rem', letterSpacing: '-0.01em', color: '#0F172A' },
-    h5: { fontWeight: 600, fontSize: '1rem', color: '#0F172A' },
-    h6: { fontWeight: 600, fontSize: '0.875rem', color: '#0F172A' },
-    subtitle1: { fontWeight: 600, fontSize: '0.9375rem', color: '#0F172A' },
-    subtitle2: { fontWeight: 600, fontSize: '0.875rem', color: '#334155' },
-    body1: { fontSize: '0.875rem', lineHeight: 1.5, color: '#334155' },
-    body2: { fontSize: '0.8125rem', lineHeight: 1.45, color: '#64748B' },
-    caption: { fontSize: '0.75rem', lineHeight: 1.4, color: '#64748B' },
-    button: { textTransform: 'none', fontWeight: 600, fontSize: '0.875rem' },
+    fontFamily: '"Outfit", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    h1: { fontWeight: 800, fontSize: '1.35rem', letterSpacing: '-0.02em', color: '#0F172A' },
+    h2: { fontWeight: 800, fontSize: '1.2rem', letterSpacing: '-0.015em', color: '#0F172A' },
+    h3: { fontWeight: 700, fontSize: '1.05rem', letterSpacing: '-0.01em', color: '#0F172A' },
+    h4: { fontWeight: 700, fontSize: '0.95rem', letterSpacing: '-0.01em', color: '#0F172A' },
+    h5: { fontWeight: 600, fontSize: '0.875rem', color: '#0F172A' },
+    h6: { fontWeight: 600, fontSize: '0.8125rem', color: '#0F172A' },
+    subtitle1: { fontWeight: 700, fontSize: '0.85rem', color: '#0F172A' },
+    subtitle2: { fontWeight: 600, fontSize: '0.8rem', color: '#334155' },
+    body1: { fontSize: '0.8rem', lineHeight: 1.45, color: '#334155' },
+    body2: { fontSize: '0.75rem', lineHeight: 1.4, color: '#64748B' },
+    caption: { fontSize: '0.6875rem', lineHeight: 1.35, color: '#64748B' },
+    button: { textTransform: 'none', fontWeight: 700, fontSize: '0.78rem' },
   },
   shape: {
     borderRadius: 8,
@@ -67,17 +73,19 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: 8,
-          padding: '8px 16px',
-          fontWeight: 600,
+          padding: '6px 14px',
+          fontWeight: 700,
+          fontSize: '0.78rem',
+          minHeight: '34px',
           boxShadow: 'none',
           '&:hover': {
             boxShadow: 'none',
           },
         },
         containedPrimary: {
-          backgroundColor: '#2563EB',
+          backgroundColor: '#0066CC',
           '&:hover': {
-            backgroundColor: '#1D4ED8',
+            backgroundColor: '#0052CC',
           },
         },
       },
@@ -85,7 +93,7 @@ export const theme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          borderRadius: 12,
+          borderRadius: 10,
           boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
           border: '1px solid #E2E8F0',
         },
@@ -94,7 +102,7 @@ export const theme = createTheme({
     MuiPaper: {
       styleOverrides: {
         root: {
-          borderRadius: 12,
+          borderRadius: 10,
         },
         elevation0: {
           border: '1px solid #E2E8F0',
@@ -105,9 +113,9 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: 6,
-          fontWeight: 600,
-          fontSize: '0.75rem',
-          height: 24,
+          fontWeight: 700,
+          fontSize: '0.6875rem',
+          height: 22,
         },
       },
     },
@@ -119,10 +127,30 @@ export const theme = createTheme({
         },
       },
     },
+    MuiBottomNavigationAction: {
+      styleOverrides: {
+        root: {
+          padding: '4px 0',
+          minWidth: 'auto',
+          '&.Mui-selected': {
+            color: '#0066CC',
+          },
+        },
+        label: {
+          fontSize: '0.65rem !important',
+          fontWeight: 600,
+          '&.Mui-selected': {
+            fontSize: '0.68rem !important',
+            fontWeight: 800,
+          },
+        },
+      },
+    },
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
           borderRadius: 8,
+          fontSize: '0.8rem',
           '& fieldset': {
             borderColor: '#E2E8F0',
           },
@@ -130,11 +158,12 @@ export const theme = createTheme({
             borderColor: '#CBD5E1',
           },
           '&.Mui-focused fieldset': {
-            borderColor: '#2563EB',
+            borderColor: '#0066CC',
           },
         },
         input: {
-          fontSize: '0.875rem',
+          fontSize: '0.8rem',
+          padding: '8px 12px',
         },
       },
     },

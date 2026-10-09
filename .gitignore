@@ -27,3 +27,22 @@ dist-ssr
 .env
 .env.local
 .env.production
+.env.*
+
+# Mobile App & Android Builds
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+android/captures/
+android/.cxx/
+android/*.iml
+android/app/*.iml
+android/capacitor-cordova-android-plugins/
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+android/app/src/main/assets/capacitor.plugins.json
+*.apk
+*.aab
+*.dex

@@ -29,6 +29,10 @@ import AdminSettlementsPage from './pages/admin/AdminSettlementsPage';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import AuthModal from './components/AuthModal';
+import GlobalNotificationWatcher from './components/GlobalNotificationWatcher';
+import SplashScreen from './components/SplashScreen';
+import { StatusBar, Style } from '@capacitor/status-bar';
+import { Capacitor } from '@capacitor/core';
 
 function CustomerActiveJobGuard({ children }) {
   const location = useLocation();
@@ -89,21 +93,43 @@ function CustomerActiveJobGuard({ children }) {
 function AppContent() {
   const { user } = useAuth();
   const [currentBooking, setCurrentBooking] = useState(null);
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        StatusBar.setOverlaysWebView({ overlay: false });
+        StatusBar.setStyle({ style: Style.Light });
+        StatusBar.setBackgroundColor({ color: '#FFFFFF' });
+      } catch (e) {
+        console.warn('StatusBar init error:', e);
+      }
+    }
+  }, []);
 
   const walletBalance = user?.walletBalance ?? 150;
 
   return (
-    <BrowserRouter>
-      <CustomerActiveJobGuard>
-        <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', bgcolor: '#F8FAFC' }}>
-          
-          {/* Production Top Navbar */}
-          <Navbar 
-            walletBalance={walletBalance} 
-          />
+    <>
+      {/* Animated App Open Splash Screen */}
+      {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
+
+      <BrowserRouter>
+        <GlobalNotificationWatcher />
+        <CustomerActiveJobGuard>
+          <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', bgcolor: '#F8FAFC' }}>
+            
+            {/* Production Top Navbar */}
+            <Navbar 
+              walletBalance={walletBalance} 
+            />
 
           {/* Real Production URL Routes */}
-          <Box sx={{ flex: 1 }}>
+          <Box sx={{ 
+            flex: 1, 
+            pt: { xs: 'calc(48px + env(safe-area-inset-top, 0px))', md: 'calc(62px + env(safe-area-inset-top, 0px))' },
+            pb: 'calc(62px + env(safe-area-inset-bottom, 14px))'
+          }}>
             <Routes>
               {/* Customer Routes */}
               <Route path="/onboarding" element={<CustomerOnboardingPage onLoginSuccess={(u) => console.log('Logged in:', u)} />} />
@@ -139,6 +165,7 @@ function AppContent() {
         </Box>
       </CustomerActiveJobGuard>
     </BrowserRouter>
+    </>
   );
 }
 

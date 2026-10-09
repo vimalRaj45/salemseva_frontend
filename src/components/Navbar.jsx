@@ -212,8 +212,10 @@ export default function Navbar({
   return (
     <header
       style={{
-        position: 'sticky',
+        position: 'fixed',
         top: 0,
+        left: 0,
+        right: 0,
         zIndex: 1100,
         width: '100%',
         backgroundColor: isDarkMode ? '#0F172A' : '#FFFFFF',
@@ -222,10 +224,11 @@ export default function Navbar({
         borderBottom: isDarkMode ? '1px solid #1E293B' : '1px solid #E2E8F0',
         boxShadow: hasScrolled
           ? isDarkMode
-            ? '0 10px 25px -5px rgba(0, 0, 0, 0.5)'
-            : '0 4px 20px -2px rgba(15, 23, 42, 0.08)'
-          : 'none',
+            ? '0 6px 20px -5px rgba(0, 0, 0, 0.5)'
+            : '0 2px 12px -2px rgba(15, 23, 42, 0.08)'
+          : '0 1px 3px rgba(0,0,0,0.03)',
         transition: 'all 0.2s ease',
+        paddingTop: 'env(safe-area-inset-top, 0px)',
         fontFamily: "'Inter', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif"
       }}
     >
@@ -233,7 +236,7 @@ export default function Navbar({
         style={{
           maxWidth: '1200px',
           margin: '0 auto',
-          padding: isMobile ? '0 12px' : '0 16px',
+          padding: isMobile ? '0 10px' : '0 16px',
           display: 'flex',
           flexDirection: 'column'
         }}
@@ -244,8 +247,8 @@ export default function Navbar({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            height: isMobile ? '56px' : '68px',
-            gap: isMobile ? '8px' : '16px',
+            height: isMobile ? '48px' : '62px',
+            gap: isMobile ? '6px' : '14px',
             width: '100%'
           }}
         >
@@ -265,35 +268,28 @@ export default function Navbar({
                 userSelect: 'none'
               }}
             >
-              {/* Dynamic Role-Based Gradient App Icon */}
+              {/* Official SalemSeva Logo Icon */}
               <div
                 style={{
-                  width: isMobile ? '34px' : '40px',
-                  height: isMobile ? '34px' : '40px',
-                  borderRadius: isMobile ? '10px' : '12px',
-                  background: isTechnician
-                    ? 'linear-gradient(135deg, #059669 0%, #10B981 100%)'
-                    : isAdmin
-                    ? 'linear-gradient(135deg, #D97706 0%, #F59E0B 100%)'
-                    : 'linear-gradient(135deg, #2563EB 0%, #0D9488 100%)',
+                  width: isMobile ? '36px' : '42px',
+                  height: isMobile ? '36px' : '42px',
+                  borderRadius: isMobile ? '8px' : '10px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#FFFFFF',
-                  boxShadow: isTechnician
-                    ? '0 4px 14px rgba(16, 185, 129, 0.3)'
-                    : isAdmin
-                    ? '0 4px 14px rgba(245, 158, 11, 0.3)'
-                    : '0 4px 14px rgba(37, 99, 235, 0.3)'
+                  overflow: 'hidden',
+                  flexShrink: 0
                 }}
               >
-                {isTechnician ? (
-                  <Briefcase size={isMobile ? 17 : 20} color="#FFFFFF" />
-                ) : isAdmin ? (
-                  <Activity size={isMobile ? 17 : 20} color="#FFFFFF" />
-                ) : (
-                  <Wrench size={isMobile ? 17 : 20} color="#FFFFFF" />
-                )}
+                <img
+                  src="/logo.png"
+                  alt="SalemSeva Logo"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain'
+                  }}
+                />
               </div>
 
               {/* Dynamic Wordmark and Subtitle based on Active Role */}
@@ -304,13 +300,13 @@ export default function Navbar({
                       fontSize: isMobile ? '18px' : '21px',
                       fontWeight: 900,
                       letterSpacing: '-0.5px',
-                      color: isDarkMode ? '#FFFFFF' : '#0F172A'
+                      color: '#0066CC'
                     }}
                   >
                     Salem
                     <span
                       style={{
-                        color: isTechnician ? '#10B981' : isAdmin ? '#F59E0B' : '#2563EB'
+                        color: isTechnician ? '#10B981' : isAdmin ? '#F59E0B' : '#FF6600'
                       }}
                     >
                       {isTechnician ? 'Partner' : isAdmin ? 'Ops' : 'Seva'}

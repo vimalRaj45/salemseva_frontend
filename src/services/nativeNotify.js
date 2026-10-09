@@ -12,6 +12,48 @@ class NativeNotificationService {
   async init() {
     try {
       if (this.isNative) {
+        // 1. Create High-Priority Notification Channels for Android 8.0+
+        try {
+          await LocalNotifications.createChannel({
+            id: 'salemseva_urgent_calls',
+            name: 'SalemSeva VoIP Calls',
+            description: 'Urgent incoming calls from customer and technician',
+            importance: 5, // IMPORTANCE_HIGH (Heads-up alert)
+            visibility: 1, // VISIBILITY_PUBLIC
+            sound: 'default',
+            vibration: true,
+            lights: true,
+            lightColor: '#2563EB'
+          });
+
+          await LocalNotifications.createChannel({
+            id: 'salemseva_work_assigned',
+            name: 'SalemSeva Work & Dispatch',
+            description: 'New job requests and doorstep service assignments',
+            importance: 5,
+            visibility: 1,
+            sound: 'default',
+            vibration: true,
+            lights: true,
+            lightColor: '#D97706'
+          });
+
+          await LocalNotifications.createChannel({
+            id: 'salemseva_messages',
+            name: 'SalemSeva Chat Messages',
+            description: 'In-app chat messages for doorstep services',
+            importance: 4,
+            visibility: 1,
+            sound: 'default',
+            vibration: true,
+            lights: true,
+            lightColor: '#10B981'
+          });
+        } catch (chanErr) {
+          console.warn('Channel creation error:', chanErr);
+        }
+
+        // 2. Request Notification Permissions
         const check = await LocalNotifications.checkPermissions();
         if (check.display === 'granted') {
           this.hasPermission = true;
@@ -38,12 +80,12 @@ class NativeNotificationService {
       if (this.isNative) {
         await Haptics.notification({ type: NotificationType.Warning });
       } else if (typeof navigator !== 'undefined' && navigator.vibrate) {
-        navigator.vibrate([300, 200, 300, 200, 500]);
+        navigator.vibrate([400, 200, 400, 200, 600]);
       }
     } catch (e) {}
   }
 
-  // Trigger Incoming Call Alert (Native Banner & Sound/Vibration)
+  // Trigger Incoming Call Alert (High Priority Heads-Up Banner & Continuous Vibration)
   async notifyIncomingCall({ callerName, bookingId, role }) {
     this.vibrateCall();
 
@@ -55,22 +97,61 @@ class NativeNotificationService {
               id: Math.floor(Date.now() % 100000),
               title: `Incoming Call: ${callerName}`,
               body: `Tap to answer incoming VoIP call for Booking #${bookingId}`,
-              schedule: { at: new Date(Date.now() + 100) },
+              schedule: { at: new Date(Date.now() + 50) },
               sound: 'default',
+              smallIcon: 'ic_launcher',
+              iconColor: '#2563EB',
+              channelId: 'salemseva_urgent_calls',
               actionTypeId: 'OPEN_CALL',
-              extra: { bookingId, role }
+              extra: { bookingId, role, type: 'call' }
             }
           ]
         });
       } else if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
         new Notification(`Incoming Call: ${callerName}`, {
           body: `Tap to answer incoming VoIP call for Booking #${bookingId}`,
-          icon: '/favicon.ico',
+          icon: '/logo.png',
+          badge: '/logo.png',
           tag: `call-${bookingId}`
         });
       }
     } catch (e) {
       console.warn('Call notification error:', e);
+    }
+  }
+
+  // Trigger New Work / Job Assigned Notification
+  async notifyNewWorkAssigned({ serviceTitle, locality, bookingId, price }) {
+    this.vibrateCall();
+
+    try {
+      if (this.isNative) {
+        await LocalNotifications.schedule({
+          notifications: [
+            {
+              id: Math.floor(Date.now() % 100000),
+              title: `New Service Assigned: ${serviceTitle || 'Home Service'}`,
+              body: `Customer waiting in ${locality || 'Salem'}. Estimated: ₹${price || '299'}. Tap to review & accept.`,
+              schedule: { at: new Date(Date.now() + 50) },
+              sound: 'default',
+              smallIcon: 'ic_launcher',
+              iconColor: '#D97706',
+              channelId: 'salemseva_work_assigned',
+              actionTypeId: 'OPEN_JOB',
+              extra: { bookingId, type: 'new_job' }
+            }
+          ]
+        });
+      } else if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+        new Notification(`New Service Assigned: ${serviceTitle || 'Home Service'}`, {
+          body: `Customer waiting in ${locality || 'Salem'}. Estimated: ₹${price || '299'}. Tap to review & accept.`,
+          icon: '/logo.png',
+          badge: '/logo.png',
+          tag: `job-${bookingId}`
+        });
+      }
+    } catch (e) {
+      console.warn('Job assigned notification error:', e);
     }
   }
 
@@ -83,18 +164,22 @@ class NativeNotificationService {
           notifications: [
             {
               id: Math.floor(Date.now() % 100000),
-              title: `New message from ${senderName}`,
+              title: `Message from ${senderName}`,
               body: messageText,
-              schedule: { at: new Date(Date.now() + 100) },
+              schedule: { at: new Date(Date.now() + 50) },
               sound: 'default',
-              extra: { bookingId }
+              smallIcon: 'ic_launcher',
+              iconColor: '#10B981',
+              channelId: 'salemseva_messages',
+              extra: { bookingId, type: 'chat' }
             }
           ]
         });
       } else if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
         new Notification(`${senderName}`, {
           body: messageText,
-          icon: '/favicon.ico',
+          icon: '/logo.png',
+          badge: '/logo.png',
           tag: `msg-${bookingId}`
         });
       }
