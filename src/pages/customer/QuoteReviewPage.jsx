@@ -158,7 +158,7 @@ export default function QuoteReviewPage() {
           {/* Local Market Sourcing Notice */}
           <Paper elevation={0} sx={{ p: 1.2, bgcolor: '#F0F9FF', border: '1px solid #BAE6FD', borderRadius: '6px', mb: 1.5 }}>
             <Typography variant="caption" sx={{ color: '#0369A1', fontWeight: 700, display: 'block', mb: 0.3 }}>
-              🛍️ Local Market Procurement (நேரடி கொள்முதல்):
+              Local Market Procurement (நேரடி கொள்முதல்):
             </Typography>
             <Typography variant="caption" sx={{ color: '#0C4A6E', display: 'block', lineHeight: 1.4 }}>
               Parts are directly purchased by your assigned technician from authorized local Salem electrical/hardware stores with genuine dealer invoice and 30-day warranty.
@@ -427,7 +427,7 @@ export default function QuoteReviewPage() {
                     </Box>
                     {isSparePart && (
                       <Typography variant="caption" sx={{ color: '#0369A1', fontSize: '10px', pl: 3, fontWeight: 500 }}>
-                        {isOmitted ? '🛒 Sourced by customer' : '🛍️ Sourced directly by Technician from local store (with warranty bill)'}
+                        {isOmitted ? 'Sourced by customer' : 'Sourced directly by Technician from local store (with warranty bill)'}
                       </Typography>
                     )}
                   </Box>

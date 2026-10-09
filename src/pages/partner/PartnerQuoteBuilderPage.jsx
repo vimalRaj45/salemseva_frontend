@@ -215,7 +215,7 @@ export default function PartnerQuoteBuilderPage() {
               {/* Local Market Sourcing Notice for Tech */}
               <Paper elevation={0} sx={{ p: 1.2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', mb: 2 }}>
                 <Typography variant="caption" sx={{ color: '#475569', display: 'block', fontSize: '11px', lineHeight: 1.4 }}>
-                  🛍️ <strong>Direct Local Market Purchase:</strong> You source OEM parts directly from authorized Salem electrical/hardware stores. Always provide the genuine dealer bill with 30-day warranty to the customer.
+                  <strong>Direct Local Market Purchase:</strong> You source OEM parts directly from authorized Salem electrical/hardware stores. Always provide the genuine dealer bill with 30-day warranty to the customer.
                 </Typography>
               </Paper>
 

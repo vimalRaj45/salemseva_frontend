@@ -1,0 +1,22 @@
+{
+  "appId": "com.salemseva.app",
+  "appName": "SalemSeva",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  },
+  "plugins": {
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_icon_config_sample",
+      "iconColor": "#2563EB",
+      "sound": "beep.wav"
+    },
+    "Haptics": {},
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#0F172A"
+    }
+  }
+}

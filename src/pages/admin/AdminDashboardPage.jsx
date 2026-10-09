@@ -650,7 +650,7 @@ export default function AdminDashboardPage() {
         {/* ========================================================================= */}
         {activeMainTab === 'ops' && (
           <>
-            {/* 🌟 ADVANCED FILTERS TOOLBAR CARD */}
+            {/*  ADVANCED FILTERS TOOLBAR CARD */}
             <Card elevation={0} sx={{ bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '20px', p: 2.5, mb: 3.5, boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -896,7 +896,7 @@ export default function AdminDashboardPage() {
               </Box>
             </Card>
 
-            {/* 🛰️ SECTION 1: ACTIVE SALEM TECHNICIAN FLEET RADAR */}
+            {/*  SECTION 1: ACTIVE SALEM TECHNICIAN FLEET RADAR */}
             <Card elevation={0} sx={{ bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '20px', p: 2.5, mb: 3.5, boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -1107,7 +1107,7 @@ export default function AdminDashboardPage() {
               )}
             </Card>
 
-            {/* 📋 CENTRAL DISPATCH QUEUE & AUDIT TABLE */}
+            {/* CENTRAL DISPATCH QUEUE & AUDIT TABLE */}
             <Card elevation={0} sx={{ bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '20px', p: 2.5, mb: 3.5, boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -1181,7 +1181,7 @@ export default function AdminDashboardPage() {
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3 }}>
                                 <StarIcon sx={{ fontSize: 12, color: '#F59E0B' }} />
                                 <Typography variant="caption" sx={{ color: '#059669', fontWeight: 700 }}>
-                                  4.92 ★ (Verified)
+                                  4.92  (Verified)
                                 </Typography>
                               </Box>
                             </Box>
@@ -1260,7 +1260,7 @@ export default function AdminDashboardPage() {
               )}
             </Card>
 
-            {/* 🪪 SECTION 3: DIGITAL KYC QUEUE & DISPUTE ARBITRATION */}
+            {/*  SECTION 3: DIGITAL KYC QUEUE & DISPUTE ARBITRATION */}
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <Card elevation={0} sx={{ bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '20px', p: 2.5, boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
@@ -1629,7 +1629,7 @@ export default function AdminDashboardPage() {
         )}
 
         {/* ========================================================================= */}
-        {/* 👥 CUSTOMER 360 DEEP HISTORY DIALOG */}
+        {/*  CUSTOMER 360 DEEP HISTORY DIALOG */}
         {/* ========================================================================= */}
         <Dialog open={customerModalOpen} onClose={() => setCustomerModalOpen(false)} maxWidth="md" fullWidth>
           <DialogTitle sx={{ fontWeight: 900, color: '#0F172A', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1648,7 +1648,7 @@ export default function AdminDashboardPage() {
                   <Grid item xs={12} sm={4}>
                     <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700 }}>CUSTOMER NAME</Typography>
                     <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0F172A' }}>{customerDetails.customer_name}</Typography>
-                    <Typography variant="caption" sx={{ color: '#64748B' }}>📞 {customerDetails.customer_phone}</Typography>
+                    <Typography variant="caption" sx={{ color: '#64748B' }}>{customerDetails.customer_phone}</Typography>
                   </Grid>
                   <Grid item xs={12} sm={4}>
                     <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700 }}>SALEM LOCALITY</Typography>
@@ -1696,7 +1696,7 @@ export default function AdminDashboardPage() {
                       <TableCell>
                         <Typography variant="body2" sx={{ fontWeight: 700 }}>{job.technician_name || 'Unassigned'}</Typography>
                         {job.technician_rating && (
-                          <Typography variant="caption" sx={{ color: '#059669' }}>{job.technician_rating} ★</Typography>
+                          <Typography variant="caption" sx={{ color: '#059669' }}>{job.technician_rating} </Typography>
                         )}
                       </TableCell>
                       <TableCell sx={{ color: '#64748B', fontSize: '12px' }}>{new Date(job.created_at).toLocaleDateString()}</TableCell>
@@ -1714,7 +1714,7 @@ export default function AdminDashboardPage() {
         </Dialog>
 
         {/* ========================================================================= */}
-        {/* 🛠️ TECHNICIAN 360 DOSSIER & SERVICE LOGS DIALOG */}
+        {/* TECHNICIAN 360 DOSSIER & SERVICE LOGS DIALOG */}
         {/* ========================================================================= */}
         <Dialog open={techDossierModalOpen} onClose={() => setTechDossierModalOpen(false)} maxWidth="md" fullWidth>
           <DialogTitle sx={{ fontWeight: 900, color: '#0F172A', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1739,7 +1739,7 @@ export default function AdminDashboardPage() {
                     <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700 }}>PERFORMANCE RATING</Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                       <StarIcon sx={{ fontSize: 16, color: '#F59E0B' }} />
-                      <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0F172A' }}>{selectedTechDossier.rating_avg} ★</Typography>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0F172A' }}>{selectedTechDossier.rating_avg} </Typography>
                     </Box>
                     <Typography variant="caption" sx={{ color: '#64748B' }}>{selectedTechDossier.jobs_completed_count || techJobsHistory.length} Jobs Serviced</Typography>
                   </Grid>
@@ -1799,7 +1799,7 @@ export default function AdminDashboardPage() {
           </DialogActions>
         </Dialog>
 
-        {/* 🚀 MANUAL DISPATCH DIALOG */}
+        {/*  MANUAL DISPATCH DIALOG */}
         <Dialog open={dispatchDialogOpen} onClose={() => setDispatchDialogOpen(false)} maxWidth="sm" fullWidth>
           <DialogTitle sx={{ fontWeight: 900, color: '#0F172A', display: 'flex', alignItems: 'center', gap: 1 }}>
             <SendIcon sx={{ color: '#0284C7', fontSize: 22 }} />
@@ -1822,7 +1822,7 @@ export default function AdminDashboardPage() {
                   <MenuItem key={t.id} value={t.id}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <SensorsIcon sx={{ color: t.is_online ? '#10B981' : '#94A3B8', fontSize: 16 }} />
-                      <span>{t.full_name} ({getTradeLabel(t.primary_trade)}) - {t.rating_avg}★ [{t.is_online ? 'Available' : 'Offline'}]</span>
+                      <span>{t.full_name} ({getTradeLabel(t.primary_trade)}) - {t.rating_avg} [{t.is_online ? 'Available' : 'Offline'}]</span>
                     </Box>
                   </MenuItem>
                 ))}

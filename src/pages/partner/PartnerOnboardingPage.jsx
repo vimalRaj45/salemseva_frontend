@@ -196,7 +196,7 @@ export default function PartnerOnboardingPage() {
                     Aadhaar {aadhaar}
                   </Typography>
                 </Box>
-                <Chip label="Verified ✓" size="small" sx={{ bgcolor: '#10B981', color: '#FFF', fontWeight: 900, height: 20 }} />
+                <Chip label="Verified " size="small" sx={{ bgcolor: '#10B981', color: '#FFF', fontWeight: 900, height: 20 }} />
               </Paper>
             </Box>
 

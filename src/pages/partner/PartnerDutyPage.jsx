@@ -89,6 +89,7 @@ import MaskedChatModal from '../../components/MaskedChatModal';
 import VoipCallModal from '../../components/VoipCallModal';
 import ProcessingBackdrop from '../../components/ProcessingBackdrop';
 import { useAuth } from '../../context/AuthContext';
+import { NativeNotifier } from '../../services/nativeNotify';
 
 export default function PartnerDutyPage() {
   const navigate = useNavigate();
@@ -178,7 +179,7 @@ export default function PartnerDutyPage() {
     };
 
     setReferredTechsList(prev => [newEntry, ...prev]);
-    setTechToast(`🎉 Success! ${picked.name} onboarded as verified ${picked.trade}. +₹250 cash incentive credited to your wallet!`);
+    setTechToast(`Success! ${picked.name} onboarded as verified ${picked.trade}. +₹250 cash incentive credited to your wallet!`);
   };
 
   const handleClaimInstantPayout = async () => {
@@ -189,7 +190,7 @@ export default function PartnerDutyPage() {
     const amt = partnerIncentives.availablePayout;
     await claimPartnerPayout('partner.pay@okaxis');
     setReferredTechsList(prev => prev.map(t => ({ ...t, payoutStatus: 'SETTLED_TO_UPI', upiRef: `UPI-${Math.floor(1000000 + Math.random() * 9000000)}-SALEM` })));
-    setTechToast(`⚡ ₹${amt}.00 successfully disbursed directly to your UPI ID (partner.pay@okaxis)!`);
+    setTechToast(`₹${amt}.00 successfully disbursed directly to your UPI ID (partner.pay@okaxis)!`);
   };
 
   const [isOnline, setIsOnline] = useState(() => {
@@ -272,7 +273,7 @@ export default function PartnerDutyPage() {
           };
           setLiveGps(coords);
           broadcastLocation(coords.lat, coords.lng, coords.speed);
-          setTechToast('📍 Location access granted. Realtime GPS is active.');
+          setTechToast('Location access granted. Realtime GPS is active.');
           resolve(true);
         },
         (err) => {
@@ -516,6 +517,13 @@ export default function PartnerDutyPage() {
         const callData = await callRes.json();
         if (callData.success && callData.call && isMounted) {
           if (callData.call.active && callData.call.caller === 'customer' && callData.call.status === 'RINGING') {
+            if (!callOpen) {
+              NativeNotifier.notifyIncomingCall({
+                callerName: activeJob?.customerName || 'Customer',
+                bookingId: activeBookingId,
+                role: 'Technician'
+              });
+            }
             setIsIncomingCall(true);
             setCallOpen(true);
           }
@@ -532,6 +540,11 @@ export default function PartnerDutyPage() {
             const latest = msgs[msgs.length - 1];
             if (latest.sender === 'customer' && !chatOpenRef.current) {
               setIncomingMessageToast(latest.text);
+              NativeNotifier.notifyIncomingMessage({
+                senderName: activeJob?.customerName || 'Customer',
+                messageText: latest.text,
+                bookingId: activeBookingId
+              });
             }
             lastMessageCountRef.current = msgs.length;
           }
@@ -565,7 +578,7 @@ export default function PartnerDutyPage() {
       if (updateUser) {
         updateUser({ isOnline: false });
       }
-      setTechToast('🔴 Duty turned OFF. Location broadcasting stopped.');
+      setTechToast('Duty turned OFF. Location broadcasting stopped.');
     }
 
     fetch('https://salemseva-backend.onrender.com/api/v1/partner/duty/toggle', {
@@ -777,7 +790,7 @@ export default function PartnerDutyPage() {
               </Box>
 
               <Typography variant="caption" sx={{ color: '#64748B', fontSize: '10.5px', display: 'block', lineHeight: 1.3 }}>
-                💡 <strong>டெக்னீசியன் கவனத்திற்கு:</strong> வாடிக்கையாளர் OTP உறுதி செய்த பிறகே உங்கள் வங்கிக் கணக்கிற்கு உடனடி பணம் செலுத்தப்படும் (No delayed settlements).
+                <strong>டெக்னீசியன் கவனத்திற்கு:</strong> வாடிக்கையாளர் OTP உறுதி செய்த பிறகே உங்கள் வங்கிக் கணக்கிற்கு உடனடி பணம் செலுத்தப்படும் (No delayed settlements).
               </Typography>
             </Paper>
 
@@ -795,7 +808,7 @@ export default function PartnerDutyPage() {
                   border: '1px solid #BFDBFE' 
                 }}
               >
-                <strong>🔒 Active Job Locked (Zero Disconnection):</strong> You are currently servicing customer #{activeBookingId}. Finish and mark work completed to unlock new leads or duty toggle.
+                <strong>Active Job Locked (Zero Disconnection):</strong> You are currently servicing customer #{activeBookingId}. Finish and mark work completed to unlock new leads or duty toggle.
               </Alert>
             )}
 
@@ -820,7 +833,7 @@ export default function PartnerDutyPage() {
                   cursor: (step === 2 || step === 3) ? 'not-allowed' : 'pointer'
                 }}
               >
-                1. Requests {(step === 2 || step === 3) && '🔒'}
+                1. Requests {(step === 2 || step === 3) && ''}
               </Button>
               <Button
                 onClick={() => setStep(2)}
@@ -959,7 +972,7 @@ export default function PartnerDutyPage() {
                       }
                       secondary={
                         <Typography variant="caption" sx={{ color: isCurrent ? '#A7F3D0' : '#94A3B8', fontSize: '10px' }}>
-                          {tech.tradeName} • ★ {tech.ratingAvg}
+                          {tech.tradeName} •  {tech.ratingAvg}
                         </Typography>
                       }
                     />
@@ -1003,7 +1016,7 @@ export default function PartnerDutyPage() {
                     </Box>
 
                     <Chip
-                      label="🔴 தற்போது ஆஃப்லைனில் உள்ளீர்கள் • Currently Offline"
+                      label="தற்போது ஆஃப்லைனில் உள்ளீர்கள் • Currently Offline"
                       size="small"
                       sx={{ bgcolor: '#1E293B', color: '#FCA5A5', fontWeight: 700, fontSize: '11px', mb: 1.5, border: '1px solid #7F1D1D' }}
                     />
@@ -1070,7 +1083,7 @@ export default function PartnerDutyPage() {
 
                     <Paper elevation={0} sx={{ p: 1.4, bgcolor: '#1E293B', border: '1px solid #334155', borderRadius: '8px', mb: 1.5 }}>
                       <Typography variant="caption" sx={{ color: '#38BDF8', fontWeight: 700, display: 'block', mb: 0.8, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '10px' }}>
-                        🛡️ RAZORPAY ESCROW GUARANTEE FOR PARTNERS
+                        RAZORPAY ESCROW GUARANTEE FOR PARTNERS
                       </Typography>
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.6, fontSize: '12px' }}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -1085,7 +1098,7 @@ export default function PartnerDutyPage() {
                     </Paper>
 
                     <Alert severity="warning" sx={{ bgcolor: 'rgba(245, 158, 11, 0.12)', color: '#FCD34D', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '8px', fontSize: '11.5px', mb: 2, py: 0.5 }}>
-                      🔒 <strong>கவனம்:</strong> வாடிக்கையாளர் Razorpay மூலம் ₹99 செலுத்திய பின்பே அழைப்பு (Call), செய்தி (Chat), மற்றும் GPS வழித்தடம் (Navigation) திறக்கப்படும். அதுவரை பைக்கை எடுக்க வேண்டாம்.
+                      <strong>கவனம்:</strong> வாடிக்கையாளர் Razorpay மூலம் ₹99 செலுத்திய பின்பே அழைப்பு (Call), செய்தி (Chat), மற்றும் GPS வழித்தடம் (Navigation) திறக்கப்படும். அதுவரை பைக்கை எடுக்க வேண்டாம்.
                     </Alert>
 
                     {/* Locked Action Buttons with visual indicators */}
@@ -1098,7 +1111,7 @@ export default function PartnerDutyPage() {
                         startIcon={<PhoneIcon sx={{ fontSize: 16 }} />}
                         sx={{ bgcolor: '#334155 !important', color: '#94A3B8 !important', borderRadius: '6px', py: 0.8, fontSize: '11.5px', textTransform: 'none' }}
                       >
-                        Call (🔒 Locked)
+                        Call (Locked)
                       </Button>
 
                       <Button
@@ -1109,7 +1122,7 @@ export default function PartnerDutyPage() {
                         startIcon={<ChatBubbleOutlineIcon sx={{ fontSize: 16 }} />}
                         sx={{ bgcolor: '#334155 !important', color: '#94A3B8 !important', borderRadius: '6px', py: 0.8, fontSize: '11.5px', textTransform: 'none' }}
                       >
-                        Chat (🔒 Locked)
+                        Chat (Locked)
                       </Button>
                     </Box>
                   </Card>
@@ -1302,7 +1315,7 @@ export default function PartnerDutyPage() {
                     <Paper elevation={0} sx={{ p: 1.5, bgcolor: '#1E293B', borderRadius: '8px', border: '1px solid #334155', textAlign: 'left' }}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.6 }}>
                         <Typography variant="caption" sx={{ color: '#FEF08A', fontWeight: 700, fontSize: '11px' }}>
-                          🔥 High Search Traffic Zones:
+                          High Search Traffic Zones:
                         </Typography>
                         <Chip label="Surge +₹40" size="small" sx={{ bgcolor: '#334155', color: '#38BDF8', fontWeight: 700, fontSize: '10px', height: 18 }} />
                       </Box>
@@ -1451,7 +1464,7 @@ export default function PartnerDutyPage() {
                   </Typography>
 
                   <Alert severity="success" sx={{ mb: 1.5, bgcolor: '#ECFDF5', color: '#065F46', border: '1px solid #A7F3D0', borderRadius: '8px', fontSize: '11.5px', py: 0.5 }}>
-                    ✅ <strong>₹99.00 Payment Confirmed via Razorpay Gateway:</strong> 100% credited to your wallet for Salem travel & fuel allowance. Call, Message, and GPS directions are now unlocked.
+                    <strong>₹99.00 Payment Confirmed via Razorpay Gateway:</strong> 100% credited to your wallet for Salem travel & fuel allowance. Call, Message, and GPS directions are now unlocked.
                   </Alert>
 
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -1673,7 +1686,7 @@ export default function PartnerDutyPage() {
                         } catch (err) {
                           console.warn('Status update fallback:', err);
                         }
-                        setTechToast('📋 Digital quote sent to customer screen for approval!');
+                        setTechToast('Digital quote sent to customer screen for approval!');
                         setTimeout(() => {
                           setIsProcessing(false);
                         }, 500);
@@ -1710,7 +1723,7 @@ export default function PartnerDutyPage() {
                         }}
                         sx={{ borderColor: '#0284C7', color: '#0284C7', borderRadius: '6px', fontWeight: 700, fontSize: '11.5px', textTransform: 'none' }}
                       >
-                        ⚡ Simulate Customer Approved & Escrow Funded
+                        Simulate Customer Approved & Escrow Funded
                       </Button>
                     </Box>
                   )}
@@ -1721,7 +1734,7 @@ export default function PartnerDutyPage() {
                       severity="success" 
                       sx={{ borderRadius: '8px', fontSize: '12px', mb: 1.5, bgcolor: '#F0FDF4', color: '#166534', border: '1px solid #BBF7D0' }}
                     >
-                      ✅ Customer Approved & Escrow Payment Secured! Perform repair work and ask customer for final Completion OTP.
+                      Customer Approved & Escrow Payment Secured! Perform repair work and ask customer for final Completion OTP.
                     </Alert>
                   )}
 
@@ -1751,7 +1764,7 @@ export default function PartnerDutyPage() {
                       localStorage.setItem('salemseva_quote_status_' + activeBookingId, 'completed');
                       window.dispatchEvent(new CustomEvent('salemseva_status_updated', { detail: { bookingId: activeBookingId, status: 'completed' } }));
                       window.dispatchEvent(new Event('storage'));
-                      setTechToast('🎉 Service completed! Instant UPI settlement disbursed.');
+                      setTechToast('Service completed! Instant UPI settlement disbursed.');
                       setTimeout(() => {
                         setIsProcessing(false);
                         setStep(1);
@@ -1759,7 +1772,7 @@ export default function PartnerDutyPage() {
                     }}
                     sx={{ bgcolor: '#16A34A', borderRadius: '8px', py: 1.3, fontWeight: 800, fontSize: '14px', textTransform: 'none', '&:hover': { bgcolor: '#15803D' } }}
                   >
-                    Mark Work Completed & Release Instant Settlement (பணி முடிந்தது) ✓
+                    Mark Work Completed & Release Instant Settlement (பணி முடிந்தது) 
                   </Button>
                 </Card>
               </Box>
@@ -1901,8 +1914,8 @@ export default function PartnerDutyPage() {
                 }}
               >
                 {partnerIncentives?.availablePayout > 0 
-                  ? `⚡ Claim Instant ₹${partnerIncentives.availablePayout}.00 Payout to UPI`
-                  : '✓ All Referral Incentives Settled'}
+                  ? `Claim Instant ₹${partnerIncentives.availablePayout}.00 Payout to UPI`
+                  : ' All Referral Incentives Settled'}
               </Button>
             </Card>
 
@@ -1954,8 +1967,8 @@ export default function PartnerDutyPage() {
 
               <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontSize: '11px', lineHeight: 1.4 }}>
                 {partnerIncentives?.zeroCommUnlocked 
-                  ? '🎉 100% Zero Commission active! You retain 100% of all customer labor & diagnostic payouts.'
-                  : `Earn ${Math.max(0, 30 - (partnerIncentives?.starPoints || 24))} more Star Points to unlock 100% Zero Commission! (+2 pts per 5★ rating, +3 pts per referred technician).`}
+                  ? '100% Zero Commission active! You retain 100% of all customer labor & diagnostic payouts.'
+                  : `Earn ${Math.max(0, 30 - (partnerIncentives?.starPoints || 24))} more Star Points to unlock 100% Zero Commission! (+2 pts per 5 rating, +3 pts per referred technician).`}
               </Typography>
             </Card>
 
@@ -2067,7 +2080,7 @@ export default function PartnerDutyPage() {
                   '&:hover': { bgcolor: '#1E293B' }
                 }}
               >
-                ⚡ Test: Simulate Referring a Fellow Specialist (+₹250 & +3 Pts)
+                Test: Simulate Referring a Fellow Specialist (+₹250 & +3 Pts)
               </Button>
             </Card>
 
@@ -2333,7 +2346,7 @@ export default function PartnerDutyPage() {
                             </Typography>
                           </Box>
                           <Typography variant="caption" sx={{ color: '#0F172A', fontWeight: 700, display: 'block', fontSize: '11px', mb: 0.2 }}>
-                            📅 Worked On: {formatDateTime(job.completedAt || job.created_at)}
+                            Worked On: {formatDateTime(job.completedAt || job.created_at)}
                           </Typography>
                           <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontSize: '11px' }}>
                             Customer: <strong>{job.customerName}</strong> • {job.locality}
@@ -2431,7 +2444,7 @@ export default function PartnerDutyPage() {
           </Box>
         )}
 
-        {/* 🧾 DIGITAL SETTLEMENT SLIP MODAL */}
+        {/* DIGITAL SETTLEMENT SLIP MODAL */}
         <Dialog open={Boolean(selectedSlipJob)} onClose={() => setSelectedSlipJob(null)} maxWidth="xs" fullWidth>
           <DialogTitle sx={{ bgcolor: '#0F172A', color: '#FFF', p: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
@@ -2455,7 +2468,7 @@ export default function PartnerDutyPage() {
                   #{selectedSlipJob.id} • {selectedSlipJob.serviceName}
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#0F172A', fontWeight: 700, display: 'block', mt: 0.4 }}>
-                  📅 Service Date & Time: {formatDateTime(selectedSlipJob.completedAt || selectedSlipJob.created_at)}
+                  Service Date & Time: {formatDateTime(selectedSlipJob.completedAt || selectedSlipJob.created_at)}
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mt: 0.2 }}>
                   Customer: {selectedSlipJob.customerName} ({selectedSlipJob.locality})
@@ -2491,7 +2504,7 @@ export default function PartnerDutyPage() {
 
               <Paper elevation={0} sx={{ p: 1.2, bgcolor: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '8px' }}>
                 <Typography variant="caption" sx={{ color: '#166534', fontWeight: 600, display: 'block', fontSize: '11px' }}>
-                  ✅ Transfer Method: Razorpay Route Direct Transfer
+                  Transfer Method: Razorpay Route Direct Transfer
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#166534', display: 'block', fontSize: '10.5px', mt: 0.2 }}>
                   Settled into: HDFC Bank (UPI: {selectedSlipJob.settlementUpi}) • Ref: {selectedSlipJob.bankRef}
@@ -2734,7 +2747,7 @@ export default function PartnerDutyPage() {
                 {['Fairlands', 'Hasthampatti', 'Suramangalam', 'Alagapuram', 'Salem Junction', 'Ammapet', 'Meyyanur', 'Shevapet'].map((loc, idx) => (
                   <Chip
                     key={idx}
-                    label={`📍 ${loc}`}
+                    label={`${loc}`}
                     size="small"
                     sx={{ bgcolor: '#F1F5F9', color: '#334155', fontWeight: 600, fontSize: '11px' }}
                   />
@@ -3021,7 +3034,7 @@ export default function PartnerDutyPage() {
           </Typography>
           <Paper elevation={0} sx={{ p: 1.5, bgcolor: '#F0F9FF', border: '1px solid #BAE6FD', borderRadius: '10px', mb: 1 }}>
             <Typography variant="caption" sx={{ color: '#0369A1', fontWeight: 700, display: 'block' }}>
-              🔒 Privacy Guaranteed:
+              Privacy Guaranteed:
             </Typography>
             <Typography variant="caption" sx={{ color: '#0C4A6E', display: 'block' }}>
               Your location is never tracked when you go Offline. Turning duty off stops all GPS broadcasting immediately.

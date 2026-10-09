@@ -361,7 +361,7 @@ export default function AuthModal() {
           >
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
               <Typography variant="caption" sx={{ color: '#38BDF8', fontWeight: 800, fontSize: '11px', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                ⚡ 1-Click Customer Login (Select Account):
+                 1-Click Customer Login (Select Account):
               </Typography>
               <Chip label="Salem Resident" size="small" sx={{ bgcolor: '#1E3A8A', color: '#93C5FD', fontWeight: 700, fontSize: '9.5px', height: 18 }} />
             </Box>
@@ -422,7 +422,7 @@ export default function AuthModal() {
           >
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
               <Typography variant="caption" sx={{ color: '#34D399', fontWeight: 800, fontSize: '11px', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                ⚡ 1-Click Login (Select Specialist):
+                 1-Click Login (Select Specialist):
               </Typography>
               <Chip label="Salem Verified" size="small" sx={{ bgcolor: '#065F46', color: '#6EE7B7', fontWeight: 700, fontSize: '9.5px', height: 18 }} />
             </Box>
@@ -466,7 +466,7 @@ export default function AuthModal() {
                         {tech.name}
                       </Typography>
                       <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '9px', display: 'block' }}>
-                        {tech.trade.toUpperCase()} • ★ {tech.ratingAvg}
+                        {tech.trade.toUpperCase()} •  {tech.ratingAvg}
                       </Typography>
                     </Box>
                   </Button>

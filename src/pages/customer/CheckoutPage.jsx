@@ -268,7 +268,7 @@ export default function CheckoutPage() {
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
               <Typography variant="caption" sx={{ color: '#16A34A', fontWeight: 800, bgcolor: '#DCFCE7', px: 0.8, py: 0.2, borderRadius: '4px', fontSize: '10px' }}>
-                PAID UPFRONT ✓
+                PAID UPFRONT 
               </Typography>
               <Typography variant="body2" sx={{ fontWeight: 700, color: '#64748B', textDecoration: 'line-through' }}>
                 ₹{visitFee}

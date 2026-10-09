@@ -105,7 +105,7 @@ export default function RatingEscalationPage() {
     setIsProcessing(true);
     try {
       if (rating >= 4) {
-        await creditWallet(50, '+50 Service Review Reward', `Rating ${rating}★ reward for booking #${bookingId}`, 'REVIEW_REWARD');
+        await creditWallet(50, '+50 Service Review Reward', `Rating ${rating} reward for booking #${bookingId}`, 'REVIEW_REWARD');
       }
 
       await ApiService.submitReview({

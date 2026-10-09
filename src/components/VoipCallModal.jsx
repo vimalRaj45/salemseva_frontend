@@ -520,12 +520,12 @@ export default function VoipCallModal({
         <Box sx={{ my: 1 }}>
           {callState === 'INCOMING' && (
             <Typography variant="subtitle2" sx={{ color: '#34D399', fontWeight: 800, fontSize: '14px' }}>
-              📲 Incoming VoIP Call (அழைப்பு வருகிறது)...
+              Incoming VoIP Call (அழைப்பு வருகிறது)...
             </Typography>
           )}
           {callState === 'RINGING' && (
             <Typography variant="subtitle2" sx={{ color: '#FCD34D', fontWeight: 800, fontSize: '14px' }}>
-              📞 Calling & Ringing (ரிங் ஆகிறது)...
+              Calling & Ringing (ரிங் ஆகிறது)...
             </Typography>
           )}
           {callState === 'CONNECTED' && (
@@ -543,7 +543,7 @@ export default function VoipCallModal({
           )}
           {callState === 'PERMISSION_REQUIRED' && (
             <Typography variant="subtitle2" sx={{ color: '#FCD34D', fontWeight: 800, fontSize: '13px' }}>
-              ⚠️ Microphone Permission Needed
+              Microphone Permission Needed
             </Typography>
           )}
         </Box>
@@ -571,7 +571,7 @@ export default function VoipCallModal({
                 '&:hover': { bgcolor: '#1D4ED8' }
               }}
             >
-              {micRequesting ? 'Requesting Permission...' : '🎤 Allow Microphone & Connect'}
+              {micRequesting ? 'Requesting Permission...' : ' Allow Microphone & Connect'}
             </Button>
           </Box>
         )}
@@ -676,27 +676,6 @@ export default function VoipCallModal({
             >
               End Call (அழைப்பை முடி)
             </Button>
-
-            {/* Direct Phone Fallback */}
-            <Box sx={{ mt: 1.5 }}>
-              <Button
-                size="small"
-                variant="text"
-                startIcon={<PhoneInTalkIcon sx={{ fontSize: 14 }} />}
-                onClick={() => {
-                  window.location.href = `tel:${calleePhone || '0427-2448888'}`;
-                }}
-                sx={{
-                  color: '#94A3B8',
-                  fontSize: '11.5px',
-                  fontWeight: 700,
-                  textTransform: 'none',
-                  '&:hover': { color: '#38BDF8' }
-                }}
-              >
-                📞 Direct Phone Call (Fallback)
-              </Button>
-            </Box>
           </>
         )}
       </DialogContent>

@@ -58,6 +58,7 @@ import NavigationIcon from '@mui/icons-material/Navigation';
 import MaskedChatModal from '../../components/MaskedChatModal';
 import VoipCallModal from '../../components/VoipCallModal';
 import CancelBookingModal from '../../components/CancelBookingModal';
+import { NativeNotifier } from '../../services/nativeNotify';
 
 export default function TrackingPage() {
   const navigate = useNavigate();
@@ -211,6 +212,13 @@ export default function TrackingPage() {
         const callData = await callRes.json();
         if (callData.success && callData.call && isMounted) {
           if (callData.call.active && callData.call.caller === 'technician' && callData.call.status === 'RINGING') {
+            if (!callOpen) {
+              NativeNotifier.notifyIncomingCall({
+                callerName: tech?.name || 'Technician',
+                bookingId,
+                role: 'Customer'
+              });
+            }
             setIsIncomingCall(true);
             setCallOpen(true);
           }
@@ -227,6 +235,11 @@ export default function TrackingPage() {
             const latest = msgs[msgs.length - 1];
             if (latest.sender === 'technician' && !chatOpenRef.current) {
               setIncomingMessageToast(latest.text);
+              NativeNotifier.notifyIncomingMessage({
+                senderName: tech?.name || 'Technician',
+                messageText: latest.text,
+                bookingId
+              });
             }
             lastMessageCountRef.current = msgs.length;
           }
@@ -502,7 +515,7 @@ export default function TrackingPage() {
                 icon={<NotificationsActiveIcon sx={{ fontSize: 18 }} />}
                 sx={{ mb: 2, borderRadius: '8px', fontWeight: 700, bgcolor: '#EFF6FF', color: '#1E40AF', border: '1px solid #BFDBFE', fontSize: '13px' }}
               >
-                📋 Technician {tech.name} has prepared your digital estimate. Review line items and approve to authorize service.
+                Technician {tech.name} has prepared your digital estimate. Review line items and approve to authorize service.
               </Alert>
             ) : bookingStatus === 'quote_approved' ? (
               <Alert 
@@ -510,7 +523,7 @@ export default function TrackingPage() {
                 icon={<CheckCircleIcon sx={{ fontSize: 18 }} />}
                 sx={{ mb: 2, borderRadius: '8px', fontWeight: 700, bgcolor: '#F0FDF4', color: '#166534', border: '1px solid #BBF7D0', fontSize: '13px' }}
               >
-                ⚡ Quote approved & payment secured in Cashless Escrow! Technician is performing the repair.
+                Quote approved & payment secured in Cashless Escrow! Technician is performing the repair.
               </Alert>
             ) : (bookingStatus === 'inspecting' || bookingStatus === 'arrived') ? (
               <Alert 
@@ -518,7 +531,7 @@ export default function TrackingPage() {
                 icon={<NotificationsActiveIcon sx={{ fontSize: 18 }} />}
                 sx={{ mb: 2, borderRadius: '8px', fontWeight: 700, bgcolor: '#FFFBEB', color: '#92400E', border: '1px solid #FDE68A', fontSize: '13px' }}
               >
-                🔍 Technician {tech.name} has arrived and is conducting diagnostic inspection at your doorstep.
+                Technician {tech.name} has arrived and is conducting diagnostic inspection at your doorstep.
               </Alert>
             ) : (
               <Alert 
@@ -526,7 +539,7 @@ export default function TrackingPage() {
                 icon={<TwoWheelerIcon sx={{ fontSize: 18 }} />}
                 sx={{ mb: 2, borderRadius: '8px', fontWeight: 600, bgcolor: '#F0F9FF', color: '#0369A1', border: '1px solid #BAE6FD', fontSize: '12.5px' }}
               >
-                🛵 Technician {tech.name} is en route to your doorstep (ETA: {tech.eta || '8 mins'} • {tech.distanceKm || '1.8 km'}).
+                Technician {tech.name} is en route to your doorstep (ETA: {tech.eta || '8 mins'} • {tech.distanceKm || '1.8 km'}).
               </Alert>
             )}
 
@@ -585,7 +598,7 @@ export default function TrackingPage() {
                 </Paper>
               </Box>
 
-              {/* 📍 One-Tap Open in Google Maps App Button */}
+              {/* One-Tap Open in Google Maps App Button */}
               <Box sx={{ p: 1.5, bgcolor: '#F8FAFC', borderTop: '1px solid #E2E8F0', display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'stretch', sm: 'center' }, gap: 1.2 }}>
                 <Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
@@ -625,7 +638,7 @@ export default function TrackingPage() {
                     '&:hover': { bgcolor: '#EFF6FF', borderColor: '#1D4ED8' }
                   }}
                 >
-                  📍 Open Tech Location in Google Maps
+                  Open Tech Location in Google Maps
                 </Button>
               </Box>
             </Card>
@@ -719,7 +732,7 @@ export default function TrackingPage() {
                       {bookingStatus === 'quote_approved'
                         ? 'Job Completion & Escrow Release OTP'
                         : (isInspectingOrArrived
-                            ? 'Technician Verified & Allowed Entry ✓'
+                            ? 'Technician Verified & Allowed Entry '
                             : 'Doorstep Safety Verification (பாதுகாப்பு சரிபார்ப்பு)')}
                     </Typography>
                   </Box>
@@ -769,7 +782,7 @@ export default function TrackingPage() {
                 ) : (
                   <Box>
                     <Typography variant="body2" sx={{ color: '#334155', fontSize: '12px', mb: 1.2, lineHeight: 1.4 }}>
-                      🔒 <strong>For your family's safety:</strong> When the technician arrives at your door, ask them: <em>"What is your SalemSeva Verification PIN?"</em> Enter their 4-digit reply below before opening the door or letting them in.
+                      <strong>For your family's safety:</strong> When the technician arrives at your door, ask them: <em>"What is your SalemSeva Verification PIN?"</em> Enter their 4-digit reply below before opening the door or letting them in.
                     </Typography>
 
                     <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 1 }}>
@@ -815,7 +828,7 @@ export default function TrackingPage() {
                           '&:hover': { bgcolor: '#1D4ED8' }
                         }}
                       >
-                        {isVerifyingTechOtp ? 'Verifying...' : 'Verify & Let In (அனுமதி) ✓'}
+                        {isVerifyingTechOtp ? 'Verifying...' : 'Verify & Let In (அனுமதி) '}
                       </Button>
                     </Box>
 
@@ -978,7 +991,7 @@ export default function TrackingPage() {
                     textTransform: 'none'
                   }}
                 >
-                  🔍 Diagnosis in Progress • Quote arriving shortly...
+                  Diagnosis in Progress • Quote arriving shortly...
                 </Button>
               ) : bookingStatus === 'completed' ? (
                 <Button
@@ -999,7 +1012,7 @@ export default function TrackingPage() {
                     '&:hover': { bgcolor: '#1E293B' }
                   }}
                 >
-                  🎉 Work Completed! View Receipt & Warranty Slip (ரசீது) →
+                  Work Completed! View Receipt & Warranty Slip (ரசீது) →
                 </Button>
               ) : bookingStatus === 'quote_approved' ? (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -1021,7 +1034,7 @@ export default function TrackingPage() {
                       '&:hover': { bgcolor: '#15803D' }
                     }}
                   >
-                    Confirm Work Finished & Release Escrow (வேலை முடிந்தது) ✓
+                    Confirm Work Finished & Release Escrow (வேலை முடிந்தது) 
                   </Button>
                   <Typography variant="caption" sx={{ color: '#166534', textAlign: 'center', fontWeight: 600, fontSize: '11.5px' }}>
                     Click above to inspect & approve completed work and release escrow payout to technician.
@@ -1044,7 +1057,7 @@ export default function TrackingPage() {
                     textTransform: 'none'
                   }}
                 >
-                  🛵 Technician En Route • Share OTP {trackData?.booking?.customer_otp || '4892'} at Doorstep
+                  Technician En Route • Share OTP {trackData?.booking?.customer_otp || '4892'} at Doorstep
                 </Button>
               )}
 
@@ -1065,7 +1078,7 @@ export default function TrackingPage() {
                 >
                   <Box>
                     <Typography variant="caption" sx={{ fontWeight: 800, color: '#92400E', display: 'block', fontSize: '11.5px' }}>
-                      🔒 OEM Parts Purchased & Service Authorized
+                      OEM Parts Purchased & Service Authorized
                     </Typography>
                     <Typography variant="caption" sx={{ color: '#B45309', fontSize: '10.5px' }}>
                       Self-cancellation is locked to protect technician parts procurement. For emergency assistance:
@@ -1127,7 +1140,7 @@ export default function TrackingPage() {
       />
 
 
-      {/* 📅 RESCHEDULE SLOT MODAL */}
+      {/* RESCHEDULE SLOT MODAL */}
       <Dialog open={rescheduleOpen} onClose={() => setRescheduleOpen(false)} maxWidth="xs" fullWidth>
         <DialogTitle sx={{ fontWeight: 900, color: '#0F172A' }}>
           Update Preferred Inspection Time
@@ -1387,7 +1400,7 @@ export default function TrackingPage() {
           </Paper>
 
           <Typography variant="caption" sx={{ color: '#166534', bgcolor: '#F0FDF4', p: 1, borderRadius: '6px', border: '1px solid #BBF7D0', display: 'block', fontSize: '11px', mb: 1 }}>
-            🛡️ <strong>Cashless Escrow Protected:</strong> Funds are held safely and only disbursed to technician after you confirm work completion.
+            <strong>Cashless Escrow Protected:</strong> Funds are held safely and only disbursed to technician after you confirm work completion.
           </Typography>
         </DialogContent>
         <DialogActions sx={{ p: 2, pt: 0, gap: 1, flexDirection: 'column' }}>

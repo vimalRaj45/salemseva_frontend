@@ -129,7 +129,7 @@ export default function WalletHubPage() {
       creditsEarned: prev.creditsEarned + 100
     }));
 
-    setToastMessage(`🎉 Friend ${randomFriend} completed service in ${randomLocality}! +100 Seva Credits unlocked.`);
+    setToastMessage(`Friend ${randomFriend} completed service in ${randomLocality}! +100 Seva Credits unlocked.`);
   };
 
   const formatTxDate = (dateStr) => {
@@ -371,7 +371,7 @@ export default function WalletHubPage() {
               '&:hover': { bgcolor: '#059669' }
             }}
           >
-            ⚡ Test Simulation: Friend Completes 1st Service (+100 Credits)
+            Test Simulation: Friend Completes 1st Service (+100 Credits)
           </Button>
         </Card>
 

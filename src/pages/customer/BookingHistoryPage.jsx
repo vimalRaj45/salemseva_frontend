@@ -368,7 +368,7 @@ export default function BookingHistoryPage() {
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.4 }}>
                     <PersonIcon sx={{ fontSize: 15, color: '#0284C7' }} />
                     <Typography variant="caption" sx={{ color: '#334155', fontSize: '11.5px' }}>
-                      <strong>Technician:</strong> {item.technician_name || 'Assigned on Demand'} {item.tech_rating ? `(★ ${item.tech_rating})` : ''}
+                      <strong>Technician:</strong> {item.technician_name || 'Assigned on Demand'} {item.tech_rating ? `( ${item.tech_rating})` : ''}
                     </Typography>
                   </Box>
 
@@ -433,7 +433,7 @@ export default function BookingHistoryPage() {
                     <Box sx={{ mt: 1, pt: 1, borderTop: '1px dashed #E2E8F0' }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.6 }}>
                         <Typography variant="caption" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '10.5px' }}>
-                          🛠️ Products, Spares & Labour ({displayedQuoteItems.length} items):
+                          Products, Spares & Labour ({displayedQuoteItems.length} items):
                         </Typography>
                         <Chip 
                           label={item.parts_mode === 'user_buys' ? 'Customer Self-Purchase' : 'Tech Direct Local Store Purchase'} 
@@ -470,7 +470,7 @@ export default function BookingHistoryPage() {
                     
                     {/* Itemized Payments */}
                     <Typography variant="caption" sx={{ fontWeight: 800, color: '#0F172A', display: 'block', mb: 0.8, fontSize: '11px' }}>
-                      💳 Official Payment Transactions & Escrow Logs:
+                       Official Payment Transactions & Escrow Logs:
                     </Typography>
 
                     {item.payments && item.payments.length > 0 ? (
@@ -510,7 +510,7 @@ export default function BookingHistoryPage() {
                     {item.quoteItems && item.quoteItems.length > 0 && (
                       <Box sx={{ mt: 1.5 }}>
                         <Typography variant="caption" sx={{ fontWeight: 800, color: '#0F172A', display: 'block', mb: 0.5, fontSize: '11px' }}>
-                          🛠️ Itemized Diagnosis & Parts Bill:
+                          Itemized Diagnosis & Parts Bill:
                         </Typography>
                         <Table size="small" sx={{ bgcolor: '#FFFFFF', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
                           <TableHead>
@@ -536,7 +536,7 @@ export default function BookingHistoryPage() {
                     {/* Timeline Events */}
                     <Box sx={{ mt: 1.5 }}>
                       <Typography variant="caption" sx={{ fontWeight: 800, color: '#0F172A', display: 'block', mb: 0.5, fontSize: '11px' }}>
-                        🕒 Service Lifecycle Event Timestamps:
+                        Service Lifecycle Event Timestamps:
                       </Typography>
                       <Box sx={{ pl: 0.5, borderLeft: '2px solid #CBD5E1', ml: 0.5 }}>
                         <Typography variant="caption" sx={{ display: 'block', color: '#475569', fontSize: '10.5px', mb: 0.3 }}>

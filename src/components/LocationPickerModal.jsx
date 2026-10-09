@@ -163,7 +163,7 @@ export default function LocationPickerModal({
 
         {geoStatus && (
           <Typography variant="caption" sx={{ display: 'block', mb: 2, color: '#059669', fontWeight: 700, bgcolor: '#ECFDF5', p: 1, borderRadius: '8px', border: '1px solid #A7F3D0' }}>
-            ✓ {geoStatus}
+             {geoStatus}
           </Typography>
         )}
 

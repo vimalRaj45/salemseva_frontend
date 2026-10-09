@@ -112,7 +112,7 @@ export default function CustomerApp({ currentStep, setStep, activeBooking, setAc
       setEscalationDialogOpen(true);
       if (onEscalateOps) onEscalateOps();
     } else {
-      alert('🎉 Review Submitted! +50 Seva Credits Added to Wallet.');
+      alert(' Review Submitted! +50 Seva Credits Added to Wallet.');
       setStep('customer_history');
     }
   };
@@ -238,7 +238,7 @@ export default function CustomerApp({ currentStep, setStep, activeBooking, setAc
             <Card sx={{ p: 2, mb: 2, bgcolor: '#FFF7ED', border: '1px solid #F97316' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Box>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#C2410C' }}>⚡ Urgent Priority Dispatch (20 Mins)</Typography>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#C2410C' }}> Urgent Priority Dispatch (20 Mins)</Typography>
                   <Typography variant="caption" sx={{ color: '#9A3412' }}>+₹50 surge allocated directly for instant technician response</Typography>
                 </Box>
                 <Switch size="small" color="warning" />
@@ -292,7 +292,7 @@ export default function CustomerApp({ currentStep, setStep, activeBooking, setAc
             {/* Live GPS Map Simulation Card */}
             <Card sx={{ p: 2, mb: 2, bgcolor: '#0F172A', color: '#FFF' }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#38BDF8', mb: 1 }}>
-                🛵 En Route to Fairlands (ETA: 8 mins)
+                 En Route to Fairlands (ETA: 8 mins)
               </Typography>
               <Box sx={{ height: 160, bgcolor: '#1E293B', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1.5 }}>
                 <Typography variant="body2" sx={{ color: '#94A3B8' }}>[OpenStreetMap GPS Route: Hasthampatti → Fairlands]</Typography>

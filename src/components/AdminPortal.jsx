@@ -131,7 +131,7 @@ export default function AdminPortal({ onResolveTicket }) {
                   <TableCell><Chip label={t.rating} size="small" color="error" /> {t.rootCause}</TableCell>
                   <TableCell>
                     <Typography variant="body2" sx={{ color: '#34D399', fontWeight: 700 }}>
-                      ✅ {t.action}
+                       {t.action}
                     </Typography>
                   </TableCell>
                 </TableRow>

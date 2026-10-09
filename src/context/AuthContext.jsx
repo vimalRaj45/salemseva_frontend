@@ -624,7 +624,7 @@ export function AuthProvider({ children }) {
     >
       {children}
 
-      {/* ⚠️ SINGLE-DEVICE CONCURRENT LOGIN LOGOUT MODAL */}
+      {/* SINGLE-DEVICE CONCURRENT LOGIN LOGOUT MODAL */}
       <Dialog
         open={sessionTerminatedModalOpen}
         onClose={() => setSessionTerminatedModalOpen(false)}

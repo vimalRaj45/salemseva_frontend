@@ -75,7 +75,7 @@ export default function LeafletMap({
         {/* Technician Marker */}
         <Marker position={techPos} icon={customTechIcon}>
           <Popup>
-            <strong>🛵 {techName}</strong><br />
+            <strong>{techName}</strong><br />
             En Route • ETA {eta} ({distance})
           </Popup>
         </Marker>
@@ -83,7 +83,7 @@ export default function LeafletMap({
         {/* Customer Doorstep Marker */}
         <Marker position={custPos} icon={customHomeIcon}>
           <Popup>
-            <strong>📍 Your Destination</strong><br />
+            <strong>Your Destination</strong><br />
             {custAddress}
           </Popup>
         </Marker>
