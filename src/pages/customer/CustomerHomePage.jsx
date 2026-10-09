@@ -87,7 +87,7 @@ export default function CustomerHomePage({ onOpenVoiceAgent }) {
 
     const checkActiveBooking = async () => {
       try {
-        const res = await fetch(`http://localhost:8080/api/v1/bookings/${activeBookingId}/track`);
+        const res = await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${activeBookingId}/track`);
         const d = await res.json();
         if (d.success && d.booking && ['matching', 'accepted', 'en_route', 'arrived', 'inspecting', 'quote_presented', 'quote_approved', 'completed'].includes(d.booking.status)) {
           // If already completed and user dismissed/cleared, don't show, else keep active

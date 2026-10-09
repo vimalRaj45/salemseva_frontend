@@ -141,8 +141,8 @@ export default function AdminDashboardPage() {
     if (isManual) setRefreshing(true);
     try {
       const [overviewRes, customersRes] = await Promise.all([
-        fetch('http://localhost:8080/api/v1/admin/overview'),
-        fetch('http://localhost:8080/api/v1/admin/customers')
+        fetch('https://salemseva-backend.onrender.com/api/v1/admin/overview'),
+        fetch('https://salemseva-backend.onrender.com/api/v1/admin/customers')
       ]);
       const data = await overviewRes.json();
       if (data.success) {
@@ -177,7 +177,7 @@ export default function AdminDashboardPage() {
     setCustomerModalOpen(true);
     setCustomerHistoryLoading(true);
     try {
-      const res = await fetch(`http://localhost:8080/api/v1/admin/customers/${customer.customer_phone}/history`);
+      const res = await fetch(`https://salemseva-backend.onrender.com/api/v1/admin/customers/${customer.customer_phone}/history`);
       const data = await res.json();
       if (data.success && data.history) {
         setCustomerHistory(data.history);
@@ -197,7 +197,7 @@ export default function AdminDashboardPage() {
     setTechDossierModalOpen(true);
     setTechDossierLoading(true);
     try {
-      const res = await fetch(`http://localhost:8080/api/v1/admin/technicians/${tech.id}/dossier`);
+      const res = await fetch(`https://salemseva-backend.onrender.com/api/v1/admin/technicians/${tech.id}/dossier`);
       const data = await res.json();
       if (data.success) {
         setTechJobsHistory(data.jobs || []);
@@ -294,7 +294,7 @@ export default function AdminDashboardPage() {
 
   const handleToggleOnline = async (techId, currentOnline) => {
     try {
-      const res = await fetch(`http://localhost:8080/api/v1/admin/technicians/${techId}/toggle-online`, {
+      const res = await fetch(`https://salemseva-backend.onrender.com/api/v1/admin/technicians/${techId}/toggle-online`, {
         method: 'POST'
       });
       const data = await res.json();
@@ -314,7 +314,7 @@ export default function AdminDashboardPage() {
 
   const handleVerifyKyc = async (techId, techName) => {
     try {
-      const res = await fetch(`http://localhost:8080/api/v1/admin/technicians/${techId}/verify-kyc`, {
+      const res = await fetch(`https://salemseva-backend.onrender.com/api/v1/admin/technicians/${techId}/verify-kyc`, {
         method: 'POST'
       });
       const data = await res.json();
@@ -343,7 +343,7 @@ export default function AdminDashboardPage() {
     if (!targetBooking || !selectedTechForDispatch) return;
     setDispatchLoading(true);
     try {
-      const res = await fetch('http://localhost:8080/api/v1/admin/bookings/dispatch', {
+      const res = await fetch('https://salemseva-backend.onrender.com/api/v1/admin/bookings/dispatch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

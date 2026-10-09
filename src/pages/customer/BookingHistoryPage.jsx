@@ -78,7 +78,7 @@ export default function BookingHistoryPage({ onOpenVoiceAgent }) {
 
   const fetchHistory = () => {
     setIsLoading(true);
-    fetch('http://localhost:8080/api/v1/bookings/history')
+    fetch('https://salemseva-backend.onrender.com/api/v1/bookings/history')
       .then(res => res.json())
       .then(data => {
         if (data.success && data.bookings && data.bookings.length > 0) {

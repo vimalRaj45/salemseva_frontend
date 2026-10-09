@@ -108,7 +108,7 @@ export default function TrackingPage({ onOpenVoiceAgent }) {
     setTechOtpError('');
     setIsVerifyingTechOtp(true);
     try {
-      const res = await fetch(`http://localhost:8080/api/v1/bookings/${bookingId}/verify-otp`, {
+      const res = await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -151,7 +151,7 @@ export default function TrackingPage({ onOpenVoiceAgent }) {
 
     const fetchTracking = async () => {
       try {
-        const res = await fetch(`http://localhost:8080/api/v1/bookings/${bookingId}/track`);
+        const res = await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/track`);
         const data = await res.json();
         if (data.success && isMounted) {
           // If local storage has quote_presented flag, ensure status reflects it immediately
@@ -206,7 +206,7 @@ export default function TrackingPage({ onOpenVoiceAgent }) {
     const pollCommunications = async () => {
       try {
         // 1. Check for incoming VoIP calls from technician
-        const callRes = await fetch(`http://localhost:8080/api/v1/webrtc/call/status?bookingId=${bookingId}`);
+        const callRes = await fetch(`https://salemseva-backend.onrender.com/api/v1/webrtc/call/status?bookingId=${bookingId}`);
         const callData = await callRes.json();
         if (callData.success && callData.call && isMounted) {
           if (callData.call.active && callData.call.caller === 'technician' && callData.call.status === 'RINGING') {
@@ -216,7 +216,7 @@ export default function TrackingPage({ onOpenVoiceAgent }) {
         }
 
         // 2. Check for incoming chat messages from technician
-        const msgRes = await fetch(`http://localhost:8080/api/v1/bookings/${bookingId}/messages`);
+        const msgRes = await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/messages`);
         const msgData = await msgRes.json();
         if (msgData.success && msgData.messages && isMounted) {
           const msgs = msgData.messages;
@@ -244,14 +244,14 @@ export default function TrackingPage({ onOpenVoiceAgent }) {
   const handleUpdateSlot = async () => {
     setSlotUpdating(true);
     try {
-      await fetch(`http://localhost:8080/api/v1/bookings/${bookingId}/reschedule`, {
+      await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/reschedule`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ scheduledSlot: newSlot })
       });
       setRescheduleOpen(false);
       // Re-fetch
-      const res = await fetch(`http://localhost:8080/api/v1/bookings/${bookingId}/track`);
+      const res = await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/track`);
       const data = await res.json();
       if (data.success) setTrackData(data);
     } catch (e) {
@@ -1305,7 +1305,7 @@ export default function TrackingPage({ onOpenVoiceAgent }) {
               setIsReleasingEscrow(true);
               try {
                 // 1. Release escrow payment on backend
-                await fetch('http://localhost:8080/api/v1/payments/escrow/release', {
+                await fetch('https://salemseva-backend.onrender.com/api/v1/payments/escrow/release', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
@@ -1315,7 +1315,7 @@ export default function TrackingPage({ onOpenVoiceAgent }) {
                 }).catch(() => {});
 
                 // 2. Set status to completed
-                await fetch(`http://localhost:8080/api/v1/bookings/${bookingId}/status`, {
+                await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/status`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ status: 'completed' })

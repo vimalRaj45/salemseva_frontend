@@ -73,7 +73,7 @@ export default function WalletHubPage({ onOpenVoiceAgent }) {
   const myReferralCode = user?.referralCodeUsed || 'SALEM100';
 
   useEffect(() => {
-    fetch('http://localhost:8080/api/v1/wallet/customer')
+    fetch('https://salemseva-backend.onrender.com/api/v1/wallet/customer')
       .then(res => res.json())
       .then(data => {
         if (data.success) {

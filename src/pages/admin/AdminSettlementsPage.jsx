@@ -28,7 +28,7 @@ export default function AdminSettlementsPage() {
 
   useEffect(() => {
     setIsLoading(true);
-    fetch('http://localhost:8080/api/v1/admin/settlements')
+    fetch('https://salemseva-backend.onrender.com/api/v1/admin/settlements')
       .then(res => res.json())
       .then(data => {
         if (data.success && data.settlements && data.settlements.length > 0) {

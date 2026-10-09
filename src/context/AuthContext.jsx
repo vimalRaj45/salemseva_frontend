@@ -22,7 +22,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     async function loadDbTechnicians() {
       try {
-        const res = await fetch('http://localhost:8080/api/v1/technicians');
+        const res = await fetch('https://salemseva-backend.onrender.com/api/v1/technicians');
         const data = await res.json();
         if (data.success && data.technicians && data.technicians.length > 0) {
           const mapped = data.technicians.map(t => {
@@ -67,7 +67,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     async function loadDbCustomers() {
       try {
-        const res = await fetch('http://localhost:8080/api/v1/customers');
+        const res = await fetch('https://salemseva-backend.onrender.com/api/v1/customers');
         const data = await res.json();
         if (data.success && data.customers && data.customers.length > 0) {
           const mapped = data.customers.map(c => ({
@@ -415,7 +415,7 @@ export function AuthProvider({ children }) {
     updateWalletBalance(updated);
 
     try {
-      await fetch('http://localhost:8080/api/v1/wallet/customer/credit', {
+      await fetch('https://salemseva-backend.onrender.com/api/v1/wallet/customer/credit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -439,7 +439,7 @@ export function AuthProvider({ children }) {
     updateWalletBalance(updated);
 
     try {
-      await fetch('http://localhost:8080/api/v1/wallet/customer/debit', {
+      await fetch('https://salemseva-backend.onrender.com/api/v1/wallet/customer/debit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -459,7 +459,7 @@ export function AuthProvider({ children }) {
     updateWalletBalance(updated);
 
     try {
-      await fetch('http://localhost:8080/api/v1/wallet/customer/simulate-referral', {
+      await fetch('https://salemseva-backend.onrender.com/api/v1/wallet/customer/simulate-referral', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -494,7 +494,7 @@ export function AuthProvider({ children }) {
     localStorage.setItem('salemseva_partner_incentives', JSON.stringify(updated));
 
     try {
-      await fetch('http://localhost:8080/api/v1/partner/refer', {
+      await fetch('https://salemseva-backend.onrender.com/api/v1/partner/refer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -526,7 +526,7 @@ export function AuthProvider({ children }) {
     localStorage.setItem('salemseva_partner_incentives', JSON.stringify(updated));
 
     try {
-      await fetch('http://localhost:8080/api/v1/partner/payout', {
+      await fetch('https://salemseva-backend.onrender.com/api/v1/partner/payout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

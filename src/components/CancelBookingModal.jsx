@@ -54,7 +54,7 @@ export default function CancelBookingModal({
     setErrorMessage('');
     try {
       const selectedObj = CANCEL_REASONS.find(r => r.id === selectedReason);
-      const res = await fetch(`http://localhost:8080/api/v1/bookings/${bookingId}/cancel`, {
+      const res = await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/cancel`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

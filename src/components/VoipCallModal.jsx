@@ -42,7 +42,7 @@ export default function VoipCallModal({
       setCallState('RINGING');
       setSeconds(0);
       // Post call initiate to backend
-      fetch('http://localhost:8080/api/v1/webrtc/call/initiate', {
+      fetch('https://salemseva-backend.onrender.com/api/v1/webrtc/call/initiate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -69,7 +69,7 @@ export default function VoipCallModal({
 
     const pollCall = async () => {
       try {
-        const res = await fetch(`http://localhost:8080/api/v1/webrtc/call/status?bookingId=${bookingId}`);
+        const res = await fetch(`https://salemseva-backend.onrender.com/api/v1/webrtc/call/status?bookingId=${bookingId}`);
         const d = await res.json();
         if (d.success && d.call && isMounted) {
           if (d.call.status === 'CONNECTED' && callState === 'RINGING') {
@@ -109,7 +109,7 @@ export default function VoipCallModal({
   const handleAcceptIncoming = async () => {
     setCallState('CONNECTED');
     try {
-      await fetch('http://localhost:8080/api/v1/webrtc/call/accept', {
+      await fetch('https://salemseva-backend.onrender.com/api/v1/webrtc/call/accept', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bookingId })
@@ -120,7 +120,7 @@ export default function VoipCallModal({
   const handleEndCall = async () => {
     setCallState('ENDED');
     try {
-      await fetch('http://localhost:8080/api/v1/webrtc/call/end', {
+      await fetch('https://salemseva-backend.onrender.com/api/v1/webrtc/call/end', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bookingId })

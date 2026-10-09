@@ -239,7 +239,7 @@ export default function PartnerDutyPage() {
   const broadcastLocation = async (lat, lng, speed = 25) => {
     try {
       const phone = user?.phone || '+919443288901';
-      await fetch('http://localhost:8080/api/v1/partner/duty/location', {
+      await fetch('https://salemseva-backend.onrender.com/api/v1/partner/duty/location', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -358,7 +358,7 @@ export default function PartnerDutyPage() {
 
   const fetchPartnerHistory = () => {
     setJobsLoading(true);
-    fetch('http://localhost:8080/api/v1/partner/jobs/history')
+    fetch('https://salemseva-backend.onrender.com/api/v1/partner/jobs/history')
       .then(res => res.json())
       .then(data => {
         if (data.success && data.jobs) {
@@ -417,7 +417,7 @@ export default function PartnerDutyPage() {
     const fetchDuty = async () => {
       try {
         const phone = user?.phone || '+919443288901';
-        const res = await fetch(`http://localhost:8080/api/v1/partner/duty?phone=${encodeURIComponent(phone)}`);
+        const res = await fetch(`https://salemseva-backend.onrender.com/api/v1/partner/duty?phone=${encodeURIComponent(phone)}`);
         const data = await res.json();
         if (data.success && isMounted) {
           if (data.technician && typeof data.technician.is_online === 'boolean') {
@@ -494,7 +494,7 @@ export default function PartnerDutyPage() {
 
   useEffect(() => {
     if (step === 3 && activeBookingId) {
-      fetch(`http://localhost:8080/api/v1/bookings/${activeBookingId}/quote`)
+      fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${activeBookingId}/quote`)
         .then(res => res.json())
         .then(data => {
           if (data.success) {
@@ -512,7 +512,7 @@ export default function PartnerDutyPage() {
     const pollPartnerCommunications = async () => {
       try {
         // 1. Check for incoming VoIP calls from customer
-        const callRes = await fetch(`http://localhost:8080/api/v1/webrtc/call/status?bookingId=${activeBookingId}`);
+        const callRes = await fetch(`https://salemseva-backend.onrender.com/api/v1/webrtc/call/status?bookingId=${activeBookingId}`);
         const callData = await callRes.json();
         if (callData.success && callData.call && isMounted) {
           if (callData.call.active && callData.call.caller === 'customer' && callData.call.status === 'RINGING') {
@@ -522,7 +522,7 @@ export default function PartnerDutyPage() {
         }
 
         // 2. Check for incoming chat messages from customer
-        const msgRes = await fetch(`http://localhost:8080/api/v1/bookings/${activeBookingId}/messages`);
+        const msgRes = await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${activeBookingId}/messages`);
         const msgData = await msgRes.json();
         if (msgData.success && msgData.messages && isMounted) {
           const msgs = msgData.messages;
@@ -568,7 +568,7 @@ export default function PartnerDutyPage() {
       setTechToast('🔴 Duty turned OFF. Location broadcasting stopped.');
     }
 
-    fetch('http://localhost:8080/api/v1/partner/duty/toggle', {
+    fetch('https://salemseva-backend.onrender.com/api/v1/partner/duty/toggle', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ isOnline: checked, phone: user?.phone || '+919443288901' })
@@ -1202,7 +1202,7 @@ export default function PartnerDutyPage() {
                             });
                             setIsProcessing(true);
                             try {
-                              await fetch(`http://localhost:8080/api/v1/bookings/${activeJob.id}/status`, {
+                              await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${activeJob.id}/status`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
@@ -1636,7 +1636,7 @@ export default function PartnerDutyPage() {
                           // Fetch latest database quote items if not in state
                           let quoteItemsPayload = step3Quote?.items || [];
                           if (quoteItemsPayload.length === 0) {
-                            const qRes = await fetch(`http://localhost:8080/api/v1/bookings/${activeBookingId}/quote`);
+                            const qRes = await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${activeBookingId}/quote`);
                             const qData = await qRes.json();
                             if (qData.success && qData.items?.length > 0) {
                               quoteItemsPayload = qData.items;
@@ -1644,7 +1644,7 @@ export default function PartnerDutyPage() {
                           }
 
                           // 1. Submit quote items to DB
-                          await fetch('http://localhost:8080/api/v1/partner/quote/create', {
+                          await fetch('https://salemseva-backend.onrender.com/api/v1/partner/quote/create', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
@@ -1655,7 +1655,7 @@ export default function PartnerDutyPage() {
                           });
 
                           // 2. Update status to quote_presented
-                          await fetch(`http://localhost:8080/api/v1/bookings/${activeBookingId}/status`, {
+                          await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${activeBookingId}/status`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ status: 'quote_presented' })
@@ -1699,7 +1699,7 @@ export default function PartnerDutyPage() {
                         size="small"
                         onClick={async () => {
                           try {
-                            await fetch(`http://localhost:8080/api/v1/bookings/${activeBookingId}/status`, {
+                            await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${activeBookingId}/status`, {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ status: 'quote_approved' })
@@ -1738,7 +1738,7 @@ export default function PartnerDutyPage() {
                       });
                       setIsProcessing(true);
                       try {
-                        await fetch(`http://localhost:8080/api/v1/bookings/${activeBookingId}/status`, {
+                        await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${activeBookingId}/status`, {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ status: 'completed' })

@@ -63,8 +63,8 @@ export default function PartnerQuoteBuilderPage() {
     const fetchBookingDetails = async () => {
       try {
         const [trackRes, quoteRes] = await Promise.all([
-          fetch(`http://localhost:8080/api/v1/bookings/${resolvedId}/track`).then(r => r.json()).catch(() => null),
-          fetch(`http://localhost:8080/api/v1/bookings/${resolvedId}/quote`).then(r => r.json()).catch(() => null)
+          fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${resolvedId}/track`).then(r => r.json()).catch(() => null),
+          fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${resolvedId}/quote`).then(r => r.json()).catch(() => null)
         ]);
 
         if (isMounted) {
@@ -91,7 +91,7 @@ export default function PartnerQuoteBuilderPage() {
 
           // Fetch real spares catalog for this service trade from DB
           try {
-            const catRes = await fetch(`http://localhost:8080/api/v1/services/${serviceId}/spares`);
+            const catRes = await fetch(`https://salemseva-backend.onrender.com/api/v1/services/${serviceId}/spares`);
             const catData = await catRes.json();
             if (catData.success && catData.items) {
               setCatalogSpares(catData.items);
@@ -148,7 +148,7 @@ export default function PartnerQuoteBuilderPage() {
   const handleSendToCustomer = async () => {
     setIsProcessing(true);
     try {
-      await fetch('http://localhost:8080/api/v1/partner/quote/create', {
+      await fetch('https://salemseva-backend.onrender.com/api/v1/partner/quote/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -158,7 +158,7 @@ export default function PartnerQuoteBuilderPage() {
         })
       });
 
-      await fetch(`http://localhost:8080/api/v1/bookings/${bookingId}/status`, {
+      await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'quote_presented' })

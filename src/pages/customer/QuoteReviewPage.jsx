@@ -63,7 +63,7 @@ export default function QuoteReviewPage({ onOpenVoiceAgent }) {
       localStorage.setItem('salemseva_active_booking', bookingId);
     }
     setIsLoading(true);
-    fetch(`http://localhost:8080/api/v1/bookings/${bookingId}/quote`)
+    fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/quote`)
       .then(res => res.json())
       .then(data => {
         if (data.success) {
@@ -94,7 +94,7 @@ export default function QuoteReviewPage({ onOpenVoiceAgent }) {
   const handleApprove = async () => {
     setIsProcessing(true);
     try {
-      await fetch(`http://localhost:8080/api/v1/bookings/${bookingId}/status`, {
+      await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

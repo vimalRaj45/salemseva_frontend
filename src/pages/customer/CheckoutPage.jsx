@@ -62,7 +62,7 @@ export default function CheckoutPage({ onOpenVoiceAgent }) {
     if (bookingId) {
       localStorage.setItem('salemseva_active_booking', bookingId);
     }
-    fetch(`http://localhost:8080/api/v1/bookings/${bookingId}/quote`)
+    fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/quote`)
       .then(res => res.json())
       .then(data => {
         if (data.success && data.subtotal) {
@@ -96,7 +96,7 @@ export default function CheckoutPage({ onOpenVoiceAgent }) {
       let keyId = 'rzp_test_Tjo8HdYyapYlnO';
 
       try {
-        const orderRes = await fetch('http://localhost:8080/api/v1/payments/create-order', {
+        const orderRes = await fetch('https://salemseva-backend.onrender.com/api/v1/payments/create-order', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -129,7 +129,7 @@ export default function CheckoutPage({ onOpenVoiceAgent }) {
         handler: async function (response) {
           try {
             // Verify payment on backend
-            await fetch('http://localhost:8080/api/v1/payments/verify', {
+            await fetch('https://salemseva-backend.onrender.com/api/v1/payments/verify', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -142,7 +142,7 @@ export default function CheckoutPage({ onOpenVoiceAgent }) {
             });
 
             // Update booking status
-            await fetch(`http://localhost:8080/api/v1/bookings/${bookingId}/status`, {
+            await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/status`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ status: 'quote_approved' })
@@ -184,7 +184,7 @@ export default function CheckoutPage({ onOpenVoiceAgent }) {
         rzp.open();
       } else {
         // Fallback for demo mode
-        await fetch(`http://localhost:8080/api/v1/bookings/${bookingId}/status`, {
+        await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/status`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: 'quote_approved' })

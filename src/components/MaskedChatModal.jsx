@@ -38,7 +38,7 @@ export default function MaskedChatModal({
 
     const fetchMessages = async () => {
       try {
-        const res = await fetch(`http://localhost:8080/api/v1/bookings/${bookingId}/messages`);
+        const res = await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/messages`);
         const data = await res.json();
         if (data.success && isMounted) {
           setMessages(data.messages || []);
@@ -85,7 +85,7 @@ export default function MaskedChatModal({
     setMessages((prev) => [...prev, tempMsg]);
 
     try {
-      await fetch(`http://localhost:8080/api/v1/bookings/${bookingId}/messages`, {
+      await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -95,7 +95,7 @@ export default function MaskedChatModal({
         })
       });
       // Re-fetch instantly
-      const res = await fetch(`http://localhost:8080/api/v1/bookings/${bookingId}/messages`);
+      const res = await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/messages`);
       const data = await res.json();
       if (data.success) {
         setMessages(data.messages || []);

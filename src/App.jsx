@@ -46,7 +46,7 @@ function CustomerActiveJobGuard({ children }) {
     if (!activeBookingId) return;
 
     let isMounted = true;
-    fetch(`http://localhost:8080/api/v1/bookings/${activeBookingId}/track`)
+    fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${activeBookingId}/track`)
       .then(r => r.json())
       .then(d => {
         if (!isMounted) return;

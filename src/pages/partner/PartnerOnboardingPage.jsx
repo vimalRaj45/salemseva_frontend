@@ -36,7 +36,7 @@ export default function PartnerOnboardingPage() {
   const handleSubmit = (e) => {
     e.preventDefault();
     setIsProcessing(true);
-    fetch('http://localhost:8080/api/v1/partner/onboard', {
+    fetch('https://salemseva-backend.onrender.com/api/v1/partner/onboard', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

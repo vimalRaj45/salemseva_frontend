@@ -203,7 +203,7 @@ export default function MatchingPage({ onOpenVoiceAgent }) {
     let isMounted = true;
     const fetchBookingDetails = async () => {
       try {
-        const res = await fetch(`http://localhost:8080/api/v1/bookings/${bookingId}/track`);
+        const res = await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/track`);
         const data = await res.json();
         if (data.success && isMounted) {
           setTrackData(data);
@@ -287,7 +287,7 @@ export default function MatchingPage({ onOpenVoiceAgent }) {
   const handleSimulateAccept = async () => {
     setIsProcessing(true);
     try {
-      await fetch(`http://localhost:8080/api/v1/bookings/${bookingId}/status`, {
+      await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -314,7 +314,7 @@ export default function MatchingPage({ onOpenVoiceAgent }) {
       let keyId = 'rzp_test_Tjo8HdYyapYlnO';
 
       try {
-        const orderRes = await fetch('http://localhost:8080/api/v1/payments/create-order', {
+        const orderRes = await fetch('https://salemseva-backend.onrender.com/api/v1/payments/create-order', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -389,7 +389,7 @@ export default function MatchingPage({ onOpenVoiceAgent }) {
   const finalizePayment = async (paymentId, orderId, signature) => {
     try {
       // 1. Record Part 1 Payment in Neon Payments Escrow Ledger
-      await fetch(`http://localhost:8080/api/v1/payments/verify`, {
+      await fetch(`https://salemseva-backend.onrender.com/api/v1/payments/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -403,7 +403,7 @@ export default function MatchingPage({ onOpenVoiceAgent }) {
       });
 
       // 2. Advance booking status to 'en_route' (Technician unlocked to start ride)
-      await fetch(`http://localhost:8080/api/v1/bookings/${bookingId}/status`, {
+      await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -434,7 +434,7 @@ export default function MatchingPage({ onOpenVoiceAgent }) {
   const handleConfirmSchedule = async () => {
     setIsProcessing(true);
     try {
-      await fetch(`http://localhost:8080/api/v1/bookings/${bookingId}/reschedule`, {
+      await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/reschedule`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -455,7 +455,7 @@ export default function MatchingPage({ onOpenVoiceAgent }) {
   const handleDirectCancel = async () => {
     setIsCancelling(true);
     try {
-      await fetch(`http://localhost:8080/api/v1/bookings/${bookingId}/cancel`, {
+      await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/cancel`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

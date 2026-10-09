@@ -22,7 +22,7 @@ export default function AdminTraceabilityPage() {
   const [logs, setLogs] = useState([]);
 
   useEffect(() => {
-    fetch('http://localhost:8080/api/v1/admin/traceability')
+    fetch('https://salemseva-backend.onrender.com/api/v1/admin/traceability')
       .then(res => res.json())
       .then(data => {
         if (data.success && data.logs && data.logs.length > 0) {

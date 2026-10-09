@@ -72,7 +72,7 @@ export default function ServiceDetailPage({ onStartBooking, onOpenVoiceAgent }) 
       setIsLoadingIssues(true);
       try {
         // Fetch Service Info from DB
-        const svcRes = await fetch(`http://localhost:8080/api/v1/services/${serviceId || 'ac'}`);
+        const svcRes = await fetch(`https://salemseva-backend.onrender.com/api/v1/services/${serviceId || 'ac'}`);
         const svcData = await svcRes.json();
         if (svcData.success && svcData.service) {
           setServiceInfo(svcData.service);
@@ -158,7 +158,7 @@ export default function ServiceDetailPage({ onStartBooking, onOpenVoiceAgent }) 
   const handleProceed = async () => {
     setIsProcessing(true);
     try {
-      const res = await fetch('http://localhost:8080/api/v1/bookings/create', {
+      const res = await fetch('https://salemseva-backend.onrender.com/api/v1/bookings/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
