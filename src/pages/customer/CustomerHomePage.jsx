@@ -666,7 +666,7 @@ export default function CustomerHomePage() {
           bgcolor: '#FFFFFF',
           borderTop: '1px solid #E2E8F0',
           zIndex: 1000,
-          pb: 'max(env(safe-area-inset-bottom, 0px), 14px)'
+          pb: 'calc(6px + env(safe-area-inset-bottom, 16px))'
         }}
       >
         <BottomNavigation

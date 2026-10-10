@@ -127,6 +127,14 @@ export const theme = createTheme({
         },
       },
     },
+    MuiBottomNavigation: {
+      styleOverrides: {
+        root: {
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+          boxSizing: 'content-box',
+        },
+      },
+    },
     MuiBottomNavigationAction: {
       styleOverrides: {
         root: {

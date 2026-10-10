@@ -125,19 +125,19 @@ export default function SideNavbar({
           flexDirection: 'column',
           zIndex: 1301,
           animation: 'slideInLeft 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-          overflowY: 'auto',
-          WebkitOverflowScrolling: 'touch'
+          overflow: 'hidden'
         }}
       >
-        {/* Drawer Header */}
+        {/* Drawer Header with Native Safe-Area Top Padding */}
         <div
           style={{
-            padding: '16px 18px',
+            padding: 'calc(16px + env(safe-area-inset-top, 24px)) 18px 16px 18px',
             borderBottom: isDarkMode ? '1px solid #1E293B' : '1px solid #E2E8F0',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            backgroundColor: isDarkMode ? '#131D31' : '#F8FAFC'
+            backgroundColor: isDarkMode ? '#131D31' : '#F8FAFC',
+            flexShrink: 0
           }}
         >
           {/* Logo & Title */}
@@ -198,8 +198,18 @@ export default function SideNavbar({
           </button>
         </div>
 
-        {/* User Identity Profile Card */}
-        <div style={{ padding: '16px 18px 12px 18px' }}>
+        {/* Scrollable Middle Body */}
+        <div
+          style={{
+            flex: 1,
+            overflowY: 'auto',
+            WebkitOverflowScrolling: 'touch',
+            display: 'flex',
+            flexDirection: 'column'
+          }}
+        >
+          {/* User Identity Profile Card */}
+          <div style={{ padding: '16px 18px 12px 18px' }}>
           <div
             style={{
               padding: '14px',
@@ -539,13 +549,15 @@ export default function SideNavbar({
           </div>
 
         </div>
+        </div>
 
-        {/* Drawer Bottom Actions */}
+        {/* Drawer Bottom Actions with Safe-Area Bottom Padding */}
         <div
           style={{
-            padding: '14px 18px',
+            padding: '14px 18px calc(24px + env(safe-area-inset-bottom, 24px)) 18px',
             borderTop: isDarkMode ? '1px solid #1E293B' : '1px solid #E2E8F0',
-            backgroundColor: isDarkMode ? '#131D31' : '#F8FAFC'
+            backgroundColor: isDarkMode ? '#131D31' : '#F8FAFC',
+            flexShrink: 0
           }}
         >
           {user ? (

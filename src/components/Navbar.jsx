@@ -59,11 +59,18 @@ export default function Navbar({
     updateUser
   } = useAuth();
 
-  // Role detection: prioritize logged-in user role, with route fallback
-  const userRole = user?.role || (currentPath.startsWith('/partner') ? 'technician' : currentPath.startsWith('/admin') ? 'admin' : 'customer');
-  const isCustomer = userRole === 'customer';
-  const isTechnician = userRole === 'technician' || userRole === 'partner';
-  const isAdmin = userRole === 'admin';
+  // Portal route mode: Determines which platform portal is currently being viewed
+  const isPartnerPortal = currentPath.startsWith('/partner');
+  const isAdminPortal = currentPath.startsWith('/admin');
+  const isCustomerPortal = !isPartnerPortal && !isAdminPortal;
+
+  // Active portal role for header branding & UI context
+  const portalRole = isPartnerPortal ? 'technician' : isAdminPortal ? 'admin' : 'customer';
+  const isCustomer = portalRole === 'customer';
+  const isTechnician = portalRole === 'technician';
+  const isAdmin = portalRole === 'admin';
+  const userRole = user?.role || portalRole;
+
 
   // Dynamic user data
   const displayName = propUserName || user?.name || (isTechnician ? 'K. Ramesh' : isAdmin ? 'Salem Ops Admin' : 'Vimal Raj');
@@ -258,7 +265,7 @@ export default function Navbar({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            height: isMobile ? '48px' : '62px',
+            height: isMobile ? '52px' : '62px',
             gap: isMobile ? '6px' : '14px',
             width: '100%'
           }}
@@ -936,43 +943,43 @@ export default function Navbar({
               <span style={{ display: isMobile ? 'none' : 'inline' }}>Feedback</span>
             </button>
 
-            {/* 3.3 Google Translate / Language Selector Button */}
+            {/* 3.3 Google Translate / Language Selector Button (Desktop only; in hamburger drawer on mobile) */}
             <button
               type="button"
               onClick={() => setIsLanguageModalOpen(true)}
               title="Change Language / மொழி தேர்வு (Google Translate)"
               style={{
-                display: 'flex',
+                display: isMobile ? 'none' : 'flex',
                 alignItems: 'center',
                 gap: '4px',
-                padding: isMobile ? '3px 6px' : '4px 8px',
+                padding: '4px 8px',
                 borderRadius: '8px',
                 backgroundColor: isDarkMode ? '#1E293B' : '#EFF6FF',
                 border: isDarkMode ? '1px solid #334155' : '1px solid #DBEAFE',
                 color: '#0066CC',
                 cursor: 'pointer',
-                fontSize: isMobile ? '11px' : '12px',
+                fontSize: '12px',
                 fontWeight: 800,
                 transition: 'all 0.15s ease'
               }}
             >
-              <Globe size={isMobile ? 14 : 15} color="#0066CC" />
+              <Globe size={15} color="#0066CC" />
               <span style={{ textTransform: 'uppercase' }}>
                 {getCurrentLanguage() === 'ta' ? 'தமிழ்' : getCurrentLanguage() === 'hi' ? 'हिन्दी' : getCurrentLanguage()}
               </span>
             </button>
 
-            {/* 3.4 Dark/Light Theme Toggle */}
+            {/* 3.4 Dark/Light Theme Toggle (Desktop only; in hamburger drawer on mobile) */}
             <button
               type="button"
               onClick={toggleDarkMode}
               title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
               style={{
-                display: 'flex',
+                display: isMobile ? 'none' : 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: isMobile ? '30px' : '32px',
-                height: isMobile ? '30px' : '32px',
+                width: '32px',
+                height: '32px',
                 borderRadius: '8px',
                 backgroundColor: 'transparent',
                 border: 'none',
@@ -980,7 +987,7 @@ export default function Navbar({
                 cursor: 'pointer'
               }}
             >
-              {isDarkMode ? <Sun size={isMobile ? 15 : 16} color="#FBBF24" /> : <Moon size={isMobile ? 15 : 16} color="#475569" />}
+              {isDarkMode ? <Sun size={16} color="#FBBF24" /> : <Moon size={16} color="#475569" />}
             </button>
 
             {/* 3.5 User Avatar & Adaptive Role Dropdown */}

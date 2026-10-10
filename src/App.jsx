@@ -127,8 +127,8 @@ function AppContent() {
           {/* Real Production URL Routes */}
           <Box sx={{ 
             flex: 1, 
-            pt: { xs: 'calc(48px + env(safe-area-inset-top, 0px))', md: 'calc(62px + env(safe-area-inset-top, 0px))' },
-            pb: 'calc(62px + env(safe-area-inset-bottom, 14px))'
+            pt: { xs: 'calc(58px + env(safe-area-inset-top, 0px))', md: 'calc(68px + env(safe-area-inset-top, 0px))' },
+            pb: 'calc(74px + env(safe-area-inset-bottom, 16px))'
           }}>
             <Routes>
               {/* Customer Routes */}
