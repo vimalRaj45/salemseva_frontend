@@ -1343,6 +1343,18 @@ export default function AdminDashboardPage() {
                         </TableCell>
                         <TableCell align="center">
                           {getStatusChip(job.status)}
+                          {job.parts_bill_url && (
+                            <Box sx={{ mt: 0.5 }}>
+                              <Chip
+                                icon={<ReceiptLongIcon sx={{ fontSize: '11px !important', color: '#0369A1 !important' }} />}
+                                label="Parts Bill"
+                                size="small"
+                                clickable
+                                onClick={() => window.open(job.parts_bill_url, '_blank')}
+                                sx={{ bgcolor: '#E0F2FE', color: '#0369A1', fontWeight: 800, fontSize: '9px', height: 18 }}
+                              />
+                            </Box>
+                          )}
                         </TableCell>
                         <TableCell align="right" sx={{ fontWeight: 900, color: '#0F172A', fontSize: '14px' }}>
                           ₹{job.final_amount || job.total_price || '299.00'}

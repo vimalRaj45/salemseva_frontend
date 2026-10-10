@@ -54,6 +54,8 @@ import EditCalendarIcon from '@mui/icons-material/EditCalendar';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import MapIcon from '@mui/icons-material/Map';
 import NavigationIcon from '@mui/icons-material/Navigation';
+import CloseIcon from '@mui/icons-material/Close';
+import ZoomInIcon from '@mui/icons-material/ZoomIn';
 
 import MaskedChatModal from '../../components/MaskedChatModal';
 import VoipCallModal from '../../components/VoipCallModal';
@@ -86,6 +88,8 @@ export default function TrackingPage() {
   const [reviewComment, setReviewComment] = useState('');
   const [isReleasingEscrow, setIsReleasingEscrow] = useState(false);
   const [completionSuccessToast, setCompletionSuccessToast] = useState(false);
+  const [billDetails, setBillDetails] = useState(null);
+  const [viewBillModalOpen, setViewBillModalOpen] = useState(false);
 
   // Quote Arrival Interactive Modal State
   const [quoteAlertModalOpen, setQuoteAlertModalOpen] = useState(false);
@@ -278,6 +282,28 @@ export default function TrackingPage() {
   const bookingStatus = trackData?.booking?.status || 'matching';
   const hasOnlineTech = trackData?.hasOnlineTech && trackData?.technician;
   const tech = trackData?.technician;
+
+  // Poll uploaded store bill & dynamic settlement when quote is approved or completed
+  useEffect(() => {
+    let isMounted = true;
+    if (bookingId && ['quote_approved', 'completed'].includes(bookingStatus)) {
+      const fetchBill = async () => {
+        try {
+          const res = await fetch(`https://salemseva-backend.onrender.com/api/v1/partner/bookings/${bookingId}/bill`);
+          const data = await res.json();
+          if (data.success && isMounted) {
+            setBillDetails(data);
+          }
+        } catch (_) {}
+      };
+      fetchBill();
+      const interval = setInterval(fetchBill, 2500);
+      return () => {
+        isMounted = false;
+        clearInterval(interval);
+      };
+    }
+  }, [bookingId, bookingStatus]);
 
   const isInspectingOrArrived = ['arrived', 'inspecting', 'quote_presented', 'quote_approved', 'completed'].includes(bookingStatus) || techOtpSuccess;
   const techArrived = ['arrived', 'inspecting', 'quote_presented', 'quote_approved', 'completed'].includes(bookingStatus);
@@ -951,6 +977,220 @@ export default function TrackingPage() {
               </Box>
             </Card>
 
+            {/* Store Bill & Transparent Pricing Breakdown Card */}
+            {['quote_approved', 'completed'].includes(bookingStatus) && (
+              <Card
+                elevation={0}
+                sx={{
+                  bgcolor: '#FFFFFF',
+                  border: '1.5px solid #E2E8F0',
+                  borderRadius: '10px',
+                  p: 2,
+                  mb: 2,
+                  boxShadow: '0 2px 10px rgba(15, 23, 42, 0.05)'
+                }}
+              >
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                    <ReceiptLongIcon sx={{ color: '#0284C7', fontSize: 20 }} />
+                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '13.5px' }}>
+                      உதிரிபாகங்கள் கடை பில் & கட்டண விபரம் (Parts Bill & Settlement)
+                    </Typography>
+                  </Box>
+                  <Chip
+                    label={
+                      billDetails?.partsMode === 'user_buys'
+                        ? 'வாடிக்கையாளர் வாங்குதல்'
+                        : billDetails?.hasBill
+                          ? '✓ பில் சரிபார்க்கப்பட்டது'
+                          : 'கடை பில் காத்திருப்பு'
+                    }
+                    size="small"
+                    sx={{
+                      bgcolor: billDetails?.partsMode === 'user_buys' ? '#FEF3C7' : (billDetails?.hasBill ? '#DCFCE7' : '#EFF6FF'),
+                      color: billDetails?.partsMode === 'user_buys' ? '#92400E' : (billDetails?.hasBill ? '#166534' : '#1D4ED8'),
+                      fontWeight: 800,
+                      fontSize: '10px',
+                      borderRadius: '4px'
+                    }}
+                  />
+                </Box>
+
+                {/* Case 1: Tech Buys & Uploaded Receipt Photo */}
+                {billDetails?.hasBill && billDetails?.partsMode !== 'user_buys' ? (
+                  <Box>
+                    <Paper
+                      elevation={0}
+                      onClick={() => setViewBillModalOpen(true)}
+                      sx={{
+                        p: 1.2,
+                        mb: 1.5,
+                        bgcolor: '#F8FAFC',
+                        border: '1px solid #CBD5E1',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        '&:hover': { bgcolor: '#F1F5F9', borderColor: '#94A3B8' }
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                        {billDetails?.billUrl && (
+                          <Box
+                            component="img"
+                            src={billDetails.billUrl}
+                            alt="Receipt Preview"
+                            sx={{ width: 44, height: 44, borderRadius: '6px', objectFit: 'cover', border: '1px solid #E2E8F0' }}
+                          />
+                        )}
+                        <Box>
+                          <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '12px' }}>
+                            அசல் கடை பில் / ரசீது (Store Receipt)
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: '#0284C7', fontWeight: 600, fontSize: '10.5px' }}>
+                            தொகை: ₹{parseFloat(billDetails?.billAmount || 0).toFixed(2)} • பெரிதாக்க கிளிக் செய்க (Click to Zoom)
+                          </Typography>
+                        </Box>
+                      </Box>
+                      <Button
+                        size="small"
+                        startIcon={<ZoomInIcon sx={{ fontSize: 16 }} />}
+                        sx={{ fontSize: '11px', fontWeight: 700, color: '#0284C7', textTransform: 'none' }}
+                      >
+                        View Bill
+                      </Button>
+                    </Paper>
+
+                    {/* 3-Part Pricing Calculation Breakdown */}
+                    <Box sx={{ bgcolor: '#F8FAFC', p: 1.4, borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
+                        <Typography variant="body2" sx={{ color: '#475569', fontSize: '12.5px' }}>
+                          1. அசல் கடை பில் (Store Purchase Bill):
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '12.5px' }}>
+                          ₹{parseFloat(billDetails?.billAmount || 0).toFixed(2)}
+                        </Typography>
+                      </Box>
+
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
+                        <Typography variant="body2" sx={{ color: '#475569', fontSize: '12.5px' }}>
+                          2. தொழிலாளர் கட்டணம் (Labour Charge):
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '12.5px' }}>
+                          ₹{parseFloat(billDetails?.laborCost || 250).toFixed(2)}
+                        </Typography>
+                      </Box>
+
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <ShieldIcon sx={{ color: '#2563EB', fontSize: 14 }} />
+                          <Typography variant="body2" sx={{ color: '#2563EB', fontSize: '12px', fontWeight: 600 }}>
+                            3. சேலம்சேவா தள கட்டணம் (Platform Fee 5%):
+                          </Typography>
+                        </Box>
+                        <Typography variant="body2" sx={{ fontWeight: 700, color: '#2563EB', fontSize: '12.5px' }}>
+                          +₹{parseFloat(billDetails?.platformFee || ((parseFloat(billDetails?.billAmount || 0) + parseFloat(billDetails?.laborCost || 250)) * 0.05)).toFixed(2)}
+                        </Typography>
+                      </Box>
+
+                      <Divider sx={{ my: 1 }} />
+
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '13.5px' }}>
+                          மொத்த கட்டணம் (Total Payable):
+                        </Typography>
+                        <Typography variant="h6" sx={{ fontWeight: 900, color: '#16A34A', fontSize: '17px' }}>
+                          ₹{parseFloat(billDetails?.totalAmount || (parseFloat(billDetails?.billAmount || 0) + parseFloat(billDetails?.laborCost || 250) + parseFloat(billDetails?.platformFee || 0))).toFixed(2)}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Box>
+                ) : billDetails?.partsMode === 'user_buys' ? (
+                  /* Case 2: Customer Buys Directly */
+                  <Box>
+                    <Box sx={{ bgcolor: '#F0FDF4', p: 1.2, borderRadius: '6px', border: '1px solid #BBF7D0', mb: 1.5 }}>
+                      <Typography variant="caption" sx={{ color: '#166534', fontWeight: 600, display: 'block' }}>
+                        ✅ நீங்கள் பாகங்களை வாங்கியுள்ளீர்கள். தொழிலாளர் கட்டணம் + 5% தள கட்டணம் மட்டுமே கணக்கிடப்பட்டுள்ளது.
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ bgcolor: '#F8FAFC', p: 1.4, borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
+                        <Typography variant="body2" sx={{ color: '#475569', fontSize: '12.5px' }}>
+                          1. உதிரிபாகங்கள் (Spare Parts):
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 700, color: '#64748B', fontSize: '12.5px' }}>
+                          ₹0.00 (Customer Sourced)
+                        </Typography>
+                      </Box>
+
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
+                        <Typography variant="body2" sx={{ color: '#475569', fontSize: '12.5px' }}>
+                          2. தொழிலாளர் கட்டணம் (Labour Charge):
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '12.5px' }}>
+                          ₹{parseFloat(billDetails?.laborCost || 250).toFixed(2)}
+                        </Typography>
+                      </Box>
+
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <ShieldIcon sx={{ color: '#2563EB', fontSize: 14 }} />
+                          <Typography variant="body2" sx={{ color: '#2563EB', fontSize: '12px', fontWeight: 600 }}>
+                            3. சேலம்சேவா தள கட்டணம் (Platform Fee 5%):
+                          </Typography>
+                        </Box>
+                        <Typography variant="body2" sx={{ fontWeight: 700, color: '#2563EB', fontSize: '12.5px' }}>
+                          +₹{parseFloat(billDetails?.platformFee || (parseFloat(billDetails?.laborCost || 250) * 0.05)).toFixed(2)}
+                        </Typography>
+                      </Box>
+
+                      <Divider sx={{ my: 1 }} />
+
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '13.5px' }}>
+                          மொத்த கட்டணம் (Total Payable):
+                        </Typography>
+                        <Typography variant="h6" sx={{ fontWeight: 900, color: '#16A34A', fontSize: '17px' }}>
+                          ₹{parseFloat(billDetails?.totalAmount || (parseFloat(billDetails?.laborCost || 250) * 1.05)).toFixed(2)}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Box>
+                ) : (
+                  /* Case 3: Tech buying parts, awaiting shop receipt upload */
+                  <Box>
+                    <Paper elevation={0} sx={{ p: 1.2, mb: 1.2, bgcolor: '#F0F9FF', border: '1px solid #BAE6FD', borderRadius: '6px' }}>
+                      <Typography variant="caption" sx={{ color: '#0369A1', fontWeight: 700, display: 'block', mb: 0.3 }}>
+                        டெக்னீஷியன் கடைக்குச் சென்று பாகங்களை வாங்குகிறார் (Purchasing from local Salem store):
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: '#0C4A6E', display: 'block', lineHeight: 1.4 }}>
+                        டெக்னீஷியன் கடை ரசீதை புகைப்படமாக பதிவேற்றியதும், அசல் கடை பில் தொகை மற்றும் 5% தள கட்டணம் இங்கே நேரடியாக காண்பிக்கப்படும்.
+                      </Typography>
+                    </Paper>
+
+                    <Box sx={{ bgcolor: '#F8FAFC', p: 1.4, borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
+                        <Typography variant="body2" sx={{ color: '#475569', fontSize: '12.5px' }}>
+                          தொழிலாளர் கட்டணம் (Labour Charge):
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '12.5px' }}>
+                          ₹{parseFloat(billDetails?.laborCost || 250).toFixed(2)}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography variant="body2" sx={{ color: '#475569', fontSize: '12.5px' }}>
+                          உதிரிபாகங்கள் (Spare Parts):
+                        </Typography>
+                        <Chip label="கடை பில்படி (Pending Upload)" size="small" sx={{ bgcolor: '#EFF6FF', color: '#1D4ED8', fontWeight: 700, fontSize: '9.5px', height: 18 }} />
+                      </Box>
+                    </Box>
+                  </Box>
+                )}
+              </Card>
+            )}
+
             {/* 3. Dynamic Action Button based on Lifecycle Stage */}
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
               {bookingStatus === 'quote_presented' ? (
@@ -1276,16 +1516,49 @@ export default function TrackingPage() {
           </Typography>
 
           <Paper elevation={0} sx={{ p: 1.5, bgcolor: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '10px', mb: 1 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
               <Typography variant="caption" sx={{ color: '#166534', fontWeight: 800 }}>
-                Instant Escrow Payout:
+                Escrow Settlement Breakdown:
               </Typography>
-              <Typography variant="subtitle2" sx={{ color: '#166534', fontWeight: 900 }}>
-                ₹{trackData?.booking?.quote_subtotal ? parseFloat(trackData.booking.quote_subtotal).toFixed(2) : '900.00'}
+              <Typography variant="subtitle2" sx={{ color: '#166534', fontWeight: 900, fontSize: '15px' }}>
+                ₹{parseFloat(billDetails?.totalAmount || trackData?.booking?.final_amount || 262.50).toFixed(2)}
               </Typography>
             </Box>
-            <Typography variant="caption" sx={{ color: '#15803D', display: 'block', fontSize: '11px' }}>
-              Releases funds to technician's UPI and activates your <strong>30-day warranty</strong>.
+
+            {billDetails?.partsMode !== 'user_buys' && billDetails?.billAmount ? (
+              <Box sx={{ pl: 0.5, mb: 0.8, fontSize: '11px', color: '#166534', display: 'flex', flexDirection: 'column', gap: 0.2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>• கடை பில் (Store Receipt):</span>
+                  <strong>₹{parseFloat(billDetails.billAmount).toFixed(2)}</strong>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>• தொழிலாளர் கட்டணம் (Labour):</span>
+                  <strong>₹{parseFloat(billDetails.laborCost || 250).toFixed(2)}</strong>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>• தள கட்டணம் (5% Platform Fee):</span>
+                  <strong>+₹{parseFloat(billDetails.platformFee || 0).toFixed(2)}</strong>
+                </Box>
+              </Box>
+            ) : (
+              <Box sx={{ pl: 0.5, mb: 0.8, fontSize: '11px', color: '#166534', display: 'flex', flexDirection: 'column', gap: 0.2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>• பாகங்கள் (Customer Sourced):</span>
+                  <strong>₹0.00</strong>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>• தொழிலாளர் கட்டணம் (Labour):</span>
+                  <strong>₹{parseFloat(billDetails?.laborCost || 250).toFixed(2)}</strong>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>• தள கட்டணம் (5% Platform Fee):</span>
+                  <strong>+₹{parseFloat(billDetails?.platformFee || 12.50).toFixed(2)}</strong>
+                </Box>
+              </Box>
+            )}
+
+            <Typography variant="caption" sx={{ color: '#15803D', display: 'block', fontSize: '10.5px' }}>
+              Releases payment directly to technician's verified UPI and activates your <strong>30-day SalemSeva warranty</strong>.
             </Typography>
           </Paper>
         </DialogContent>
@@ -1353,6 +1626,52 @@ export default function TrackingPage() {
             {isReleasingEscrow ? 'Releasing Escrow...' : 'Yes, Finished • Release & Rate →'}
           </Button>
         </DialogActions>
+      </Dialog>
+
+      {/* High-Resolution Store Bill Viewer Modal */}
+      <Dialog
+        open={viewBillModalOpen}
+        onClose={() => setViewBillModalOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: '14px', p: 1 } }}
+      >
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <ReceiptLongIcon sx={{ color: '#0284C7', fontSize: 22 }} />
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A' }}>
+              அசல் கடை ரசீது (Original Store Receipt)
+            </Typography>
+          </Box>
+          <IconButton size="small" onClick={() => setViewBillModalOpen(false)}>
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ textAlign: 'center', pt: 1 }}>
+          {billDetails?.billUrl && (
+            <Box
+              component="img"
+              src={billDetails.billUrl}
+              alt="Store Bill"
+              sx={{
+                width: '100%',
+                maxHeight: '65vh',
+                objectFit: 'contain',
+                borderRadius: '8px',
+                border: '1px solid #E2E8F0',
+                bgcolor: '#0F172A'
+              }}
+            />
+          )}
+          <Box sx={{ mt: 1.5, p: 1.2, bgcolor: '#F0F9FF', borderRadius: '8px', border: '1px solid #BAE6FD', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="body2" sx={{ fontWeight: 700, color: '#0369A1' }}>
+              ரசீது பில் தொகை (Store Bill):
+            </Typography>
+            <Typography variant="h6" sx={{ fontWeight: 900, color: '#0284C7' }}>
+              ₹{parseFloat(billDetails?.billAmount || 0).toFixed(2)}
+            </Typography>
+          </Box>
+        </DialogContent>
       </Dialog>
 
       {/* Digital Quote Arrival Instant Popup Modal */}

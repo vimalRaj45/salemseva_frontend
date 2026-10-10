@@ -22,7 +22,8 @@ import {
   Menu,
   MenuItem,
   ListItemIcon,
-  ListItemText
+  ListItemText,
+  TextField
 } from '@mui/material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -508,37 +509,67 @@ export default function PartnerDutyPage() {
   }, [step, activeBookingId]);
 
   const [partsBillUrl, setPartsBillUrl] = useState(activeJob?.partsBillUrl || null);
+  const [partsBillAmount, setPartsBillAmount] = useState(activeJob?.partsBillAmount ? String(activeJob.partsBillAmount) : '');
 
   useEffect(() => {
     if (activeJob?.partsBillUrl) {
       setPartsBillUrl(activeJob.partsBillUrl);
+      if (activeJob.partsBillAmount) setPartsBillAmount(String(activeJob.partsBillAmount));
     } else if (activeBookingId) {
       fetch(`https://salemseva-backend.onrender.com/api/v1/partner/bookings/${activeBookingId}/bill`)
         .then(res => res.json())
         .then(data => {
-          if (data.success && data.billUrl) {
-            setPartsBillUrl(data.billUrl);
+          if (data.success) {
+            if (data.billUrl) setPartsBillUrl(data.billUrl);
+            if (data.billAmount) setPartsBillAmount(String(data.billAmount));
           }
         })
         .catch(() => {});
     }
-  }, [activeJob?.partsBillUrl, activeBookingId]);
+  }, [activeJob?.partsBillUrl, activeJob?.partsBillAmount, activeBookingId]);
 
   const handleBillUploadSuccess = async (url) => {
     setPartsBillUrl(url);
+    const amt = parseFloat(partsBillAmount) || (step3Quote?.subtotal || 650);
     try {
       await fetch(`https://salemseva-backend.onrender.com/api/v1/partner/bookings/${activeBookingId}/upload-bill`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           fileData: url,
-          billAmount: step3Quote?.subtotal || 0,
+          billAmount: amt,
           fileName: `parts_bill_${activeBookingId}.jpg`
         })
       });
-      setTechToast('உதிரிபாகங்கள் கடை பில் வெற்றிகரமாக பதிவேற்றப்பட்டது! (Parts bill uploaded & attached)');
+      setTechToast(`உதிரிபாகங்கள் கடை பில் (₹${amt}) வெற்றிகரமாக பதிவேற்றப்பட்டது! (Parts bill uploaded & attached)`);
     } catch (e) {
       console.warn('Bill sync note:', e);
+    }
+  };
+
+  const handleUpdateBillAmount = async () => {
+    if (!partsBillUrl) {
+      setTechToast('⚠️ தயவுசெய்து முதலில் கடை ரசீது புகைப்படத்தை பதிவேற்றவும் (Please upload bill receipt photo first).');
+      return;
+    }
+    const amt = parseFloat(partsBillAmount) || 0;
+    if (amt <= 0) {
+      setTechToast('⚠️ சரியான கடை பில் தொகையை உள்ளிடவும் (Please enter valid bill amount in ₹).');
+      return;
+    }
+    try {
+      await fetch(`https://salemseva-backend.onrender.com/api/v1/partner/bookings/${activeBookingId}/upload-bill`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fileData: partsBillUrl,
+          billAmount: amt,
+          fileName: `parts_bill_${activeBookingId}.jpg`
+        })
+      });
+      setTechToast(`கடை பில் தொகை ₹${amt} சேமிக்கப்பட்டது! வாடிக்கையாளருக்கு பில் + 5% கட்டணம் காண்பிக்கப்படும்.`);
+    } catch (e) {
+      console.warn('Bill amount update error:', e);
     }
   };
 
@@ -1806,8 +1837,55 @@ export default function PartnerDutyPage() {
                         </Box>
 
                         <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 1.5, lineHeight: 1.4 }}>
-                          நீங்கள் கடையில் உதிரிபாகங்கள் வாங்கிய பில்/ரசீதை கேமரா மூலம் படம் எடுத்து அல்லது கோப்பாக பதிவேற்றவும் (அதிகபட்சம் 5 MB). S3 கிளவுடில் சேமிக்கப்படும்.
+                          நீங்கள் கடையில் உதிரிபாகங்கள் வாங்கிய பில்/ரசீதை கேமரா மூலம் படம் எடுத்து அல்லது கோப்பாக பதிவேற்றவும் (அதிகபட்சம் 5 MB). வாடிக்கையாளர் இந்த பில் தொகை + 5% தள கட்டணத்தை காண்பார்.
                         </Typography>
+
+                        {/* Paper Receipt Bill Amount Input */}
+                        <Box sx={{ mb: 1.8, p: 1.5, bgcolor: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                          <Typography variant="caption" sx={{ fontWeight: 700, color: '#0F172A', display: 'block', mb: 0.6 }}>
+                            கடை பில் தொகை (Actual Paper Receipt Bill Amount ₹):
+                          </Typography>
+                          <Box sx={{ display: 'flex', gap: 1 }}>
+                            <TextField
+                              size="small"
+                              type="number"
+                              placeholder="உதா: 650"
+                              value={partsBillAmount}
+                              onChange={(e) => setPartsBillAmount(e.target.value)}
+                              fullWidth
+                              InputProps={{
+                                startAdornment: <Typography sx={{ mr: 0.5, fontWeight: 700, color: '#64748B', fontSize: '13px' }}>₹</Typography>
+                              }}
+                              sx={{
+                                bgcolor: '#FFFFFF',
+                                '& .MuiOutlinedInput-root': { borderRadius: '6px', fontSize: '13px' }
+                              }}
+                            />
+                            {partsBillUrl && (
+                              <Button
+                                size="small"
+                                variant="contained"
+                                onClick={handleUpdateBillAmount}
+                                sx={{
+                                  bgcolor: '#0284C7',
+                                  color: '#FFF',
+                                  fontSize: '11px',
+                                  fontWeight: 700,
+                                  whiteSpace: 'nowrap',
+                                  borderRadius: '6px',
+                                  textTransform: 'none',
+                                  px: 1.5,
+                                  '&:hover': { bgcolor: '#0369A1' }
+                                }}
+                              >
+                                Save Amount
+                              </Button>
+                            )}
+                          </Box>
+                          <Typography variant="caption" sx={{ color: '#0284C7', display: 'block', mt: 0.5, fontSize: '10.5px', fontWeight: 500 }}>
+                            * வாடிக்கையாளருக்கு நீங்கள் பதிவேற்றும் இந்த அசல் பில் தொகையுடன் 5% தள கட்டணம் மட்டுமே சேர்க்கப்படும்.
+                          </Typography>
+                        </Box>
 
                         <DocumentUploadControl
                           label="கடை பில் / ரசீது புகைப்படம் (Physical Shop Receipt)"
@@ -1831,10 +1909,15 @@ export default function PartnerDutyPage() {
                     size="large"
                     startIcon={<CheckCircleIcon sx={{ fontSize: 18 }} />}
                     onClick={async () => {
-                      // Check if bill upload is required when parts are bought
+                      // Check if bill upload and amount are required when parts are bought
                       const hasSpareParts = step3Quote?.items?.some(i => i.type === 'Spare Part');
                       if (!partsBillUrl && (activeJob?.partsMode === 'tech_buys' || hasSpareParts)) {
                         setTechToast('⚠️ தயவுசெய்து உதிரிபாகங்கள் வாங்கிய கடை பில் படத்தை பதிவேற்றவும் (Please upload spare parts bill first).');
+                        return;
+                      }
+
+                      if ((activeJob?.partsMode === 'tech_buys' || hasSpareParts) && (!partsBillAmount || parseFloat(partsBillAmount) <= 0)) {
+                        setTechToast('⚠️ தயவுசெய்து கடை ரசீதில் உள்ள சரியான பில் தொகையை உள்ளிடவும் (Please enter valid store bill amount in ₹).');
                         return;
                       }
 

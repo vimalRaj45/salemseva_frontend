@@ -66,8 +66,14 @@ export default function CheckoutPage() {
     fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/quote`)
       .then(res => res.json())
       .then(data => {
-        if (data.success && data.subtotal) {
-          setPartsAndLabor(parseFloat(data.subtotal));
+        if (data.success) {
+          const items = data.items || [];
+          const rawLaborCost = items
+            .filter(i => i.type !== 'Spare Part')
+            .reduce((s, i) => s + (parseFloat(i.price) || 0) * (parseInt(i.qty, 10) || 1), 0);
+          const laborCost = rawLaborCost > 0 ? rawLaborCost : 250;
+          const fee = Math.round(laborCost * 0.05 * 100) / 100;
+          setPartsAndLabor(laborCost + fee);
           if (data.booking?.visit_fee) {
             setVisitFee(parseFloat(data.booking.visit_fee));
           }
@@ -276,12 +282,17 @@ export default function CheckoutPage() {
             </Box>
           </Box>
 
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
-            <Typography variant="body2" sx={{ color: '#0F172A', fontSize: '13px', fontWeight: 700 }}>
-              Approved Diagnostic Estimate (Parts & Labor)
-            </Typography>
-            <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '13.5px' }}>
-              ₹{partsAndLabor.toFixed(2)}
+          <Box sx={{ mb: 1.5 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="body2" sx={{ color: '#0F172A', fontSize: '13px', fontWeight: 700 }}>
+                தொழிலாளர் கட்டணம் + 5% தள கட்டணம் (Labour & Platform Fee)
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '13.5px' }}>
+                ₹{partsAndLabor.toFixed(2)}
+              </Typography>
+            </Box>
+            <Typography variant="caption" sx={{ color: '#0284C7', fontSize: '11px', display: 'block', mt: 0.3 }}>
+              * கடை பில்படி: டெக்னீஷியன் அசல் கடை ரசீதை பதிவேற்றியவுடன் அந்த பில் தொகை + 5% தள கட்டணம் நேரடியாக சேர்க்கப்படும்.
             </Typography>
           </Box>
 

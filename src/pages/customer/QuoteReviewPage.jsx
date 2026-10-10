@@ -79,18 +79,15 @@ export default function QuoteReviewPage() {
   const items = quoteData?.items || [];
 
   // Calculate breakdown
-  const partsCost = items
-    .filter(i => i.type === 'Spare Part')
-    .reduce((s, i) => s + (parseFloat(i.price) || 0) * (parseInt(i.qty, 10) || 1), 0);
-
-  const laborCost = items
+  const rawLaborCost = items
     .filter(i => i.type !== 'Spare Part')
     .reduce((s, i) => s + (parseFloat(i.price) || 0) * (parseInt(i.qty, 10) || 1), 0);
+  const laborCost = rawLaborCost > 0 ? rawLaborCost : 250;
 
-  // 5% Platform Fee visible on customer quote
-  const serviceSubtotal = procureOption === 'user_buys' ? laborCost : (partsCost + laborCost);
-  const platformFee = serviceSubtotal * 0.05;
-  const finalTotal = serviceSubtotal + platformFee;
+  // Dynamic Quote Rule: Upfront authorization covers labour + 5% platform fee.
+  // No fixed amount is shown or charged upfront for spare parts.
+  const platformFee = Math.round(laborCost * 0.05 * 100) / 100;
+  const finalTotal = laborCost + platformFee;
 
   const handleApprove = async () => {
     setIsProcessing(true);
@@ -158,10 +155,10 @@ export default function QuoteReviewPage() {
           {/* Local Market Sourcing Notice */}
           <Paper elevation={0} sx={{ p: 1.2, bgcolor: '#F0F9FF', border: '1px solid #BAE6FD', borderRadius: '6px', mb: 1.5 }}>
             <Typography variant="caption" sx={{ color: '#0369A1', fontWeight: 700, display: 'block', mb: 0.3 }}>
-              Local Market Procurement (நேரடி கொள்முதல்):
+              Transparent Store Bill Guarantee (வெளிப்படையான கடை பில் உறுதி):
             </Typography>
             <Typography variant="caption" sx={{ color: '#0C4A6E', display: 'block', lineHeight: 1.4 }}>
-              Parts are directly purchased by your assigned technician from authorized local Salem electrical/hardware stores with genuine dealer invoice and 30-day warranty.
+              உதிரிபாகங்களுக்கு உத்தேச விலை ஏதும் நிர்ணயிக்கப்படாது. டெக்னீஷியன் அசல் கடை ரசீதை வாங்கி புகைப்படமாக பதிவேற்றுவார். அசல் பில் தொகையும் 5% தள கட்டணமும் மட்டுமே சேர்க்கப்படும்.
             </Typography>
           </Paper>
 
@@ -187,17 +184,17 @@ export default function QuoteReviewPage() {
                   sx={{ p: 0, '&.Mui-checked': { color: '#2563EB' } }}
                 />
                 <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#0F172A', fontSize: '13px' }}>
-                  Technician purchases from local store (டெக்னீஷியன் வாங்கித் தருவார்)
+                  டெக்னீஷியன் வாங்கி பில் பகிர்வார் (Tech buys & shares bill with you)
                 </Typography>
               </Box>
               <Chip
-                label="Direct Market Purchase"
+                label="Direct Market Bill"
                 size="small"
                 sx={{ bgcolor: '#DBEAFE', color: '#1E40AF', fontWeight: 700, fontSize: '9.5px', height: 20, borderRadius: '4px' }}
               />
             </Box>
             <Typography variant="caption" sx={{ color: '#64748B', pl: 3.2, display: 'block', fontSize: '11.5px' }}>
-              Technician purchases genuine OEM parts directly from nearby Salem market store with original bill and fits them today.
+              டெக்னீஷியன் அருகிலுள்ள கடையில் வாங்கி அசல் பில் படத்தை பதிவேற்றுவார். பில் தொகை + 5% தள கட்டணம் பின்னர் சேர்க்கப்படும்.
             </Typography>
           </Paper>
 
@@ -426,22 +423,30 @@ export default function QuoteReviewPage() {
                       </Typography>
                     </Box>
                     {isSparePart && (
-                      <Typography variant="caption" sx={{ color: '#0369A1', fontSize: '10px', pl: 3, fontWeight: 500 }}>
-                        {isOmitted ? 'Sourced by customer' : 'Sourced directly by Technician from local store (with warranty bill)'}
+                      <Typography variant="caption" sx={{ color: isOmitted ? '#64748B' : '#0369A1', fontSize: '10px', pl: 3, fontWeight: 500 }}>
+                        {isOmitted
+                          ? 'வாடிக்கையாளர் நேரடியாக வாங்குவார் (Sourced by customer)'
+                          : 'கடை பில்படி மட்டுமே வசூலிக்கப்படும் (No estimate markup - original bill shared after purchase)'}
                       </Typography>
                     )}
                   </Box>
 
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Chip
-                      label={isOmitted ? 'Customer Buying' : item.type || 'Service'}
+                      label={
+                        isOmitted
+                          ? 'Customer Buying'
+                          : isSparePart
+                            ? 'கடை பில்படி (Store Bill)'
+                            : (item.type || 'Labor')
+                      }
                       size="small"
                       sx={{
-                        bgcolor: isOmitted ? '#FEF3C7' : '#F1F5F9',
-                        color: isOmitted ? '#92400E' : '#475569',
-                        fontWeight: 600,
+                        bgcolor: isOmitted ? '#FEF3C7' : isSparePart ? '#EFF6FF' : '#F1F5F9',
+                        color: isOmitted ? '#92400E' : isSparePart ? '#1E40AF' : '#475569',
+                        fontWeight: 700,
                         fontSize: '10px',
-                        height: 18,
+                        height: 20,
                         borderRadius: '4px'
                       }}
                     />
@@ -450,14 +455,14 @@ export default function QuoteReviewPage() {
                       variant="body2"
                       sx={{
                         fontWeight: 700,
-                        color: isOmitted ? '#94A3B8' : '#0F172A',
-                        fontSize: '12.5px',
+                        color: isOmitted ? '#94A3B8' : isSparePart ? '#2563EB' : '#0F172A',
+                        fontSize: isSparePart ? '11px' : '12.5px',
                         fontVariantNumeric: 'tabular-nums',
                         minWidth: '55px',
                         textAlign: 'right'
                       }}
                     >
-                      {isOmitted ? '₹0.00' : `₹${parseFloat(item.price).toFixed(2)}`}
+                      {isOmitted ? '₹0.00' : isSparePart ? 'கடை பில்படி' : `₹${parseFloat(item.price).toFixed(2)}`}
                     </Typography>
                   </Box>
                 </Box>
@@ -467,12 +472,29 @@ export default function QuoteReviewPage() {
 
           <Divider sx={{ borderStyle: 'dashed', my: 1.5 }} />
 
+          {/* Upfront Breakdown */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
             <Typography variant="body2" sx={{ color: '#475569', fontSize: '13px' }}>
-              Service Quote (Labor & Spares):
+              தொழிலாளர் கட்டணம் (Labour Charge):
             </Typography>
             <Typography variant="body2" sx={{ fontWeight: 600, color: '#0F172A', fontSize: '13px' }}>
-              ₹{serviceSubtotal.toFixed(2)}
+              ₹{laborCost.toFixed(2)}
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
+            <Typography variant="body2" sx={{ color: '#475569', fontSize: '13px' }}>
+              உதிரிபாகங்கள் (Spare Parts):
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: 600,
+                color: procureOption === 'user_buys' ? '#64748B' : '#2563EB',
+                fontSize: '12px'
+              }}
+            >
+              {procureOption === 'user_buys' ? '₹0.00 (Customer Buys)' : '+ அசல் கடை பில் (பதிவேற்றப்படும்)'}
             </Typography>
           </Box>
 
@@ -488,15 +510,33 @@ export default function QuoteReviewPage() {
             </Typography>
           </Box>
 
+          {/* Informational guarantee card */}
+          <Paper
+            elevation={0}
+            sx={{
+              p: 1.2,
+              mb: 1.5,
+              borderRadius: '6px',
+              bgcolor: procureOption === 'tech_buys' ? '#EFF6FF' : '#F0FDF4',
+              border: `1px solid ${procureOption === 'tech_buys' ? '#BFDBFE' : '#BBF7D0'}`
+            }}
+          >
+            <Typography variant="caption" sx={{ color: procureOption === 'tech_buys' ? '#1E40AF' : '#166534', fontWeight: 600, display: 'block' }}>
+              {procureOption === 'tech_buys'
+                ? 'ℹ️ ஆரம்ப அனுமதி: தொழிலாளர் கட்டணம் + 5% தள கட்டணம் மட்டுமே. டெக்னீஷியன் அசல் கடை பில்லை பதிவேற்றியவுடன் அந்த பில் தொகை + 5% தள கட்டணம் இதனுடன் நேரடியாக சேர்க்கப்பட்டு வெளிப்படையாக காட்டப்படும்.'
+                : '✅ நீங்கள் பாகங்களை நேரடியாக வாங்குவதால், தொழிலாளர் கட்டணம் (₹' + laborCost.toFixed(0) + ') + 5% தள கட்டணம் மட்டுமே வசூலிக்கப்படும். கூடுதல் கட்டணம் ஏதுமில்லை.'}
+            </Typography>
+          </Paper>
+
           <Divider sx={{ my: 1 }} />
 
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Box>
               <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '14px' }}>
-                Total Payable Amount:
+                {procureOption === 'tech_buys' ? 'ஆரம்ப அனுமதித் தொகை (Upfront Approval):' : 'மொத்த கட்டணம் (Total Payable):'}
               </Typography>
               <Typography variant="caption" sx={{ color: '#16A34A', fontWeight: 600, display: 'block' }}>
-                Quote + 5% Platform Fee (Escrow Protected)
+                {procureOption === 'tech_buys' ? 'Labour + 5% Fee (கடை பில் வாங்கிய பின் சேர்க்கப்படும்)' : 'Labour + 5% Platform Fee Only'}
               </Typography>
             </Box>
 
@@ -525,7 +565,9 @@ export default function QuoteReviewPage() {
               '&:hover': { bgcolor: '#1E293B' }
             }}
           >
-            {procureOption === 'user_buys' ? 'Confirm Reschedule & Pay Labor (₹' + finalTotal.toFixed(0) + ')' : 'Approve Quote & Proceed to Final Bill'}
+            {procureOption === 'user_buys'
+              ? `Confirm Reschedule & Pay Labour (₹${finalTotal.toFixed(0)})`
+              : `Approve Labour (₹${finalTotal.toFixed(0)}) & Request Parts Purchase`}
           </Button>
 
           <Button
