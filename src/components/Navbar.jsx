@@ -262,18 +262,18 @@ export default function Navbar({
         >
           {/* ================= 1. BRAND LOGO & ROLE IDENTITY ================= */}
           <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '6px' : '10px', flexShrink: 0 }}>
-            {/* Hamburger Button for Slide-Out Side Navigation */}
+            {/* Hamburger Button for Slide-Out Side Navigation (Mobile Only, hidden on laptop/desktop) */}
             <button
               type="button"
               onClick={() => setIsSideNavOpen(true)}
               aria-label="Open Side Navigation Menu"
               title="Menu / வழிசெலுத்தல்"
               style={{
-                display: 'flex',
+                display: isMobile ? 'flex' : 'none',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: isMobile ? '34px' : '38px',
-                height: isMobile ? '34px' : '38px',
+                width: '34px',
+                height: '34px',
                 borderRadius: '10px',
                 backgroundColor: isDarkMode ? '#1E293B' : '#F1F5F9',
                 border: isDarkMode ? '1px solid #334155' : '1px solid #E2E8F0',
@@ -283,7 +283,7 @@ export default function Navbar({
                 flexShrink: 0
               }}
             >
-              <Menu size={isMobile ? 18 : 20} />
+              <Menu size={18} />
             </button>
 
             <div

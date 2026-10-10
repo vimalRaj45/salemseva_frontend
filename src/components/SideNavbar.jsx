@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   X,
@@ -79,7 +80,7 @@ export default function SideNavbar({
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div
       style={{
         position: 'fixed',
@@ -87,7 +88,7 @@ export default function SideNavbar({
         left: 0,
         right: 0,
         bottom: 0,
-        zIndex: 1300,
+        zIndex: 99999,
         display: 'flex',
         fontFamily: "'Inter', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif"
       }}
@@ -614,7 +615,8 @@ export default function SideNavbar({
           }
         }
       `}</style>
-    </div>
+    </div>,
+    document.body
   );
 }
 

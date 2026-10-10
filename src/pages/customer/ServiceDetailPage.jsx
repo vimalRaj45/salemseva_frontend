@@ -71,16 +71,45 @@ export default function ServiceDetailPage({ onStartBooking }) {
   const [locationPickerOpen, setLocationPickerOpen] = useState(false);
 
   // Booking Mode: 'instant' (Search Tech Now) vs 'scheduled' (Choose Date & Slot)
+  const todayISO = new Date().toISOString().split('T')[0];
   const [bookingMode, setBookingMode] = useState('instant');
-  const [scheduledDateOption, setScheduledDateOption] = useState('tomorrow');
-  const [customDate, setCustomDate] = useState(() => {
+  const [selectedDateISO, setSelectedDateISO] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() + 1);
     return d.toISOString().split('T')[0];
   });
   const [selectedSlot, setSelectedSlot] = useState('10:00 AM – 12:00 PM');
+  const [customTime, setCustomTime] = useState('');
+  const [isCustomTimeActive, setIsCustomTimeActive] = useState(false);
   const [scheduledSuccessModalOpen, setScheduledSuccessModalOpen] = useState(false);
   const [confirmedBooking, setConfirmedBooking] = useState(null);
+  const dateInputRef = React.useRef(null);
+
+  // Generate 14-day consecutive date window
+  const availableDates = Array.from({ length: 14 }).map((_, i) => {
+    const date = new Date();
+    date.setDate(date.getDate() + i);
+    const iso = date.toISOString().split('T')[0];
+    const isToday = i === 0;
+    const isTomorrow = i === 1;
+    const dayName = isToday ? 'TODAY' : isTomorrow ? 'TOM' : date.toLocaleDateString('en-IN', { weekday: 'short' }).toUpperCase();
+    const dayNumber = date.getDate();
+    const monthName = date.toLocaleDateString('en-IN', { month: 'short' });
+    const fullDateText = isToday
+      ? `Today, ${dayNumber} ${monthName}`
+      : isTomorrow
+      ? `Tomorrow, ${dayNumber} ${monthName}`
+      : `${date.toLocaleDateString('en-IN', { weekday: 'short' })}, ${dayNumber} ${monthName}`;
+
+    return {
+      offset: i,
+      iso,
+      dayName,
+      dayNumber,
+      monthName,
+      fullDateText
+    };
+  });
 
   const [userLocation, setUserLocation] = useState(() => {
     const saved = localStorage.getItem('salemseva_user_location');
@@ -182,22 +211,22 @@ export default function ServiceDetailPage({ onStartBooking }) {
   };
 
   const getFormattedDateString = () => {
-    const today = new Date();
-    if (scheduledDateOption === 'today') {
-      return `Today, ${today.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`;
-    } else if (scheduledDateOption === 'tomorrow') {
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      return `Tomorrow, ${tomorrow.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`;
-    } else if (scheduledDateOption === 'day_after') {
-      const nextDay = new Date(today);
-      nextDay.setDate(nextDay.getDate() + 2);
-      return `${nextDay.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}`;
-    } else {
-      if (!customDate) return 'Selected Date';
-      const cDate = new Date(customDate);
-      return cDate.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
+    if (!selectedDateISO) return 'Selected Date';
+    const found = availableDates.find(d => d.iso === selectedDateISO);
+    if (found) return found.fullDateText;
+    const d = new Date(selectedDateISO);
+    return d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+  };
+
+  const getEffectiveSlot = () => {
+    if (isCustomTimeActive && customTime) {
+      const [h, m] = customTime.split(':');
+      const hour = parseInt(h, 10);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const formattedHour = hour % 12 || 12;
+      return `${String(formattedHour).padStart(2, '0')}:${m} ${ampm} (Custom Time)`;
     }
+    return selectedSlot;
   };
 
   const timeSlots = [
@@ -212,7 +241,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
   const handleProceed = async () => {
     setIsProcessing(true);
     const isInstant = bookingMode === 'instant';
-    const finalSlot = isInstant ? 'instant_now' : `${getFormattedDateString()} • ${selectedSlot}`;
+    const finalSlot = isInstant ? 'instant_now' : `${getFormattedDateString()} • ${getEffectiveSlot()}`;
 
     try {
       const res = await fetch('https://salemseva-backend.onrender.com/api/v1/bookings/create', {
@@ -679,51 +708,163 @@ export default function ServiceDetailPage({ onStartBooking }) {
                 border: '1px solid #BAE6FD'
               }}
             >
-              {/* Step 1: Date Chips */}
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#0369A1', display: 'block', mb: 1, textTransform: 'uppercase' }}>
-                1. Select Service Date:
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
-                {[
-                  { key: 'today', label: 'Today', desc: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) },
-                  { key: 'tomorrow', label: 'Tomorrow', desc: new Date(Date.now() + 86400000).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) },
-                  { key: 'day_after', label: 'Day After', desc: new Date(Date.now() + 86400000 * 2).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) }
-                ].map(d => (
-                  <Button
-                    key={d.key}
-                    variant={scheduledDateOption === d.key ? 'contained' : 'outlined'}
-                    size="small"
-                    onClick={() => setScheduledDateOption(d.key)}
-                    sx={{
-                      borderRadius: '8px',
-                      textTransform: 'none',
-                      fontSize: '11.5px',
-                      fontWeight: 700,
-                      py: 0.5,
-                      px: 1.5,
-                      bgcolor: scheduledDateOption === d.key ? '#0284C7' : '#FFFFFF',
-                      color: scheduledDateOption === d.key ? '#FFFFFF' : '#475569',
-                      borderColor: scheduledDateOption === d.key ? '#0284C7' : '#CBD5E1',
-                      '&:hover': { bgcolor: scheduledDateOption === d.key ? '#0369A1' : '#F1F5F9' }
-                    }}
-                  >
-                    {d.label} ({d.desc})
-                  </Button>
-                ))}
+              {/* Step 1: 14-Day Horizontal Scroller + Calendar Picker */}
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: '#0369A1', textTransform: 'uppercase' }}>
+                  1. Select Service Date:
+                </Typography>
+                <Button
+                  size="small"
+                  variant="text"
+                  startIcon={<CalendarMonthIcon sx={{ fontSize: 15 }} />}
+                  onClick={() => dateInputRef.current && (dateInputRef.current.showPicker ? dateInputRef.current.showPicker() : dateInputRef.current.click())}
+                  sx={{
+                    color: '#0284C7',
+                    fontWeight: 800,
+                    fontSize: '11px',
+                    textTransform: 'none',
+                    p: 0,
+                    minWidth: 0
+                  }}
+                >
+                  Pick from Calendar
+                </Button>
+                <input
+                  type="date"
+                  ref={dateInputRef}
+                  min={todayISO}
+                  value={selectedDateISO}
+                  onChange={(e) => {
+                    if (e.target.value) setSelectedDateISO(e.target.value);
+                  }}
+                  style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0 }}
+                />
               </Box>
 
-              {/* Step 2: Time Slots */}
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#0369A1', display: 'block', mb: 1, textTransform: 'uppercase' }}>
-                2. Select 2-Hour Convenient Window:
-              </Typography>
-              <Grid container spacing={1} sx={{ mb: 2 }}>
+              {/* Horizontal Scrollable 14-Day Date Strip */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 1,
+                  overflowX: 'auto',
+                  pb: 1,
+                  mb: 1.5,
+                  '::-webkit-scrollbar': { height: '4px' },
+                  '::-webkit-scrollbar-thumb': { bgcolor: '#CBD5E1', borderRadius: '4px' }
+                }}
+              >
+                {availableDates.map((d) => {
+                  const isSelected = selectedDateISO === d.iso;
+                  return (
+                    <Paper
+                      key={d.iso}
+                      elevation={0}
+                      onClick={() => setSelectedDateISO(d.iso)}
+                      sx={{
+                        minWidth: '68px',
+                        p: '8px 6px',
+                        borderRadius: '10px',
+                        cursor: 'pointer',
+                        textAlign: 'center',
+                        flexShrink: 0,
+                        border: isSelected ? '2px solid #0284C7' : '1px solid #E2E8F0',
+                        bgcolor: isSelected ? '#0284C7' : '#FFFFFF',
+                        color: isSelected ? '#FFFFFF' : '#0F172A',
+                        transition: 'all 0.15s ease',
+                        boxShadow: isSelected ? '0 4px 12px rgba(2, 132, 199, 0.25)' : 'none',
+                        '&:hover': {
+                          borderColor: '#0284C7',
+                          bgcolor: isSelected ? '#0284C7' : '#F0F9FF'
+                        }
+                      }}
+                    >
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          display: 'block',
+                          fontSize: '9.5px',
+                          fontWeight: 800,
+                          letterSpacing: '0.3px',
+                          color: isSelected ? '#E0F2FE' : '#64748B'
+                        }}
+                      >
+                        {d.dayName}
+                      </Typography>
+                      <Typography
+                        variant="subtitle1"
+                        sx={{
+                          fontWeight: 900,
+                          fontSize: '18px',
+                          lineHeight: 1.2,
+                          my: 0.2,
+                          color: isSelected ? '#FFFFFF' : '#0F172A'
+                        }}
+                      >
+                        {d.dayNumber}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          display: 'block',
+                          fontSize: '10px',
+                          fontWeight: 700,
+                          color: isSelected ? '#E0F2FE' : '#94A3B8'
+                        }}
+                      >
+                        {d.monthName}
+                      </Typography>
+                    </Paper>
+                  );
+                })}
+              </Box>
+
+              {/* Selected Date Indicator Banner */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  p: '6px 10px',
+                  bgcolor: '#EFF6FF',
+                  borderRadius: '8px',
+                  border: '1px solid #BFDBFE',
+                  mb: 2
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
+                  <EventIcon sx={{ color: '#0284C7', fontSize: 16 }} />
+                  <Typography variant="caption" sx={{ color: '#0369A1', fontWeight: 800, fontSize: '11.5px' }}>
+                    Selected Date: <strong>{getFormattedDateString()}</strong>
+                  </Typography>
+                </Box>
+                <Button
+                  size="small"
+                  variant="text"
+                  onClick={() => dateInputRef.current && (dateInputRef.current.showPicker ? dateInputRef.current.showPicker() : dateInputRef.current.click())}
+                  sx={{ p: 0, minWidth: 0, fontSize: '10.5px', fontWeight: 700, color: '#0284C7', textTransform: 'none' }}
+                >
+                  Change Date
+                </Button>
+              </Box>
+
+              {/* Step 2: Time Slots + Custom Time */}
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: '#0369A1', textTransform: 'uppercase' }}>
+                  2. Select Time Window or Custom Time:
+                </Typography>
+              </Box>
+
+              <Grid container spacing={1} sx={{ mb: 1.5 }}>
                 {timeSlots.map(slot => {
-                  const isSlotActive = selectedSlot === slot.label;
+                  const isSlotActive = !isCustomTimeActive && selectedSlot === slot.label;
                   return (
                     <Grid item xs={6} key={slot.id}>
                       <Paper
                         elevation={0}
-                        onClick={() => setSelectedSlot(slot.label)}
+                        onClick={() => {
+                          setIsCustomTimeActive(false);
+                          setSelectedSlot(slot.label);
+                        }}
                         sx={{
                           p: 1,
                           borderRadius: '8px',
@@ -750,6 +891,55 @@ export default function ServiceDetailPage({ onStartBooking }) {
                   );
                 })}
               </Grid>
+
+              {/* Custom Specific Time Picker Input */}
+              <Paper
+                elevation={0}
+                onClick={() => setIsCustomTimeActive(true)}
+                sx={{
+                  p: 1.2,
+                  borderRadius: '8px',
+                  border: isCustomTimeActive ? '1.5px solid #0284C7' : '1px solid #E2E8F0',
+                  bgcolor: isCustomTimeActive ? '#E0F2FE' : '#FFFFFF',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  mb: 2,
+                  cursor: 'pointer'
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                  <AccessTimeIcon sx={{ color: isCustomTimeActive ? '#0284C7' : '#64748B', fontSize: 18 }} />
+                  <Box>
+                    <Typography variant="caption" sx={{ fontWeight: 800, color: isCustomTimeActive ? '#0369A1' : '#0F172A', fontSize: '11.5px', display: 'block' }}>
+                      Specify Exact Custom Time (Optional)
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#64748B', fontSize: '10.5px' }}>
+                      {customTime ? `Chosen: ${getEffectiveSlot()}` : 'Pick an exact arrival time'}
+                    </Typography>
+                  </Box>
+                </Box>
+
+                <input
+                  type="time"
+                  value={customTime}
+                  onFocus={() => setIsCustomTimeActive(true)}
+                  onChange={(e) => {
+                    setCustomTime(e.target.value);
+                    setIsCustomTimeActive(true);
+                  }}
+                  style={{
+                    padding: '4px 8px',
+                    borderRadius: '6px',
+                    border: '1px solid #CBD5E1',
+                    fontSize: '12px',
+                    fontWeight: '700',
+                    color: '#0F172A',
+                    backgroundColor: '#F8FAFC',
+                    cursor: 'pointer'
+                  }}
+                />
+              </Paper>
 
               {/* Admin Dispatch Notice */}
               <Paper
@@ -799,7 +989,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
           </Typography>
           <Typography variant="caption" sx={{ color: bookingMode === 'scheduled' ? '#0284C7' : couponApplied ? '#16A34A' : '#64748B', fontSize: '11px', fontWeight: 600 }}>
             {bookingMode === 'scheduled'
-              ? `📅 ${getFormattedDateString()} • ${selectedSlot.split('–')[0]}`
+              ? `📅 ${getFormattedDateString()} • ${getEffectiveSlot().split('–')[0].trim()}`
               : couponApplied ? `₹${couponDiscount} discount applied` : `Service in ${userLocation.locality || 'Fairlands, Salem'}`}
           </Typography>
         </Box>
