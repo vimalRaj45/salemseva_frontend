@@ -234,6 +234,7 @@ export default function AdminDashboardPage() {
       }
       if (selectedStatus !== 'all' && job.status !== selectedStatus) return false;
       if (quickFilter === 'urgent' && job.status !== 'matching') return false;
+      if (quickFilter === 'scheduled' && (!job.scheduled_slot || job.scheduled_slot === 'instant_now' || job.scheduled_slot === 'priority_12h')) return false;
       if (quickFilter === 'en_route' && job.status !== 'en_route' && job.status !== 'arrived') return false;
       if (quickFilter === 'quote' && job.status !== 'quote_presented') return false;
       if (quickFilter === 'completed' && job.status !== 'completed') return false;
@@ -867,6 +868,7 @@ export default function AdminDashboardPage() {
                 {[
                   { key: 'all', label: 'All Records', icon: <FilterListIcon sx={{ fontSize: 15 }} /> },
                   { key: 'urgent', label: 'Immediate Dispatch Needed', icon: <BoltIcon sx={{ fontSize: 15 }} /> },
+                  { key: 'scheduled', label: 'Scheduled Appointments', icon: <EventIcon sx={{ fontSize: 15 }} /> },
                   { key: 'en_route', label: 'Techs En Route', icon: <DirectionsBikeIcon sx={{ fontSize: 15 }} /> },
                   { key: 'quote', label: 'Quote Review Stage', icon: <ReceiptLongIcon sx={{ fontSize: 15 }} /> },
                   { key: 'completed', label: 'Completed', icon: <TaskAltIcon sx={{ fontSize: 15 }} /> }
@@ -1137,6 +1139,7 @@ export default function AdminDashboardPage() {
                       <TableCell>Booking ID</TableCell>
                       <TableCell>Customer & Locality</TableCell>
                       <TableCell>Service</TableCell>
+                      <TableCell>Scheduled Slot / Window</TableCell>
                       <TableCell>Assigned Technician</TableCell>
                       <TableCell align="center">Live Stage</TableCell>
                       <TableCell align="right">Amount</TableCell>
@@ -1171,6 +1174,28 @@ export default function AdminDashboardPage() {
                               {job.service_id?.toUpperCase() || 'GENERAL'}
                             </Typography>
                           </Box>
+                        </TableCell>
+                        <TableCell>
+                          {job.scheduled_slot && job.scheduled_slot !== 'instant_now' && job.scheduled_slot !== 'priority_12h' ? (
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.3 }}>
+                              <Chip
+                                icon={<EventIcon sx={{ fontSize: '12px !important', color: '#1E40AF !important' }} />}
+                                label="SCHEDULED"
+                                size="small"
+                                sx={{ bgcolor: '#DBEAFE', color: '#1E40AF', fontWeight: 800, fontSize: '9.5px', height: 20, width: 'fit-content' }}
+                              />
+                              <Typography variant="caption" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '11px' }}>
+                                {job.scheduled_slot}
+                              </Typography>
+                            </Box>
+                          ) : (
+                            <Chip
+                              icon={<BoltIcon sx={{ fontSize: '12px !important', color: '#B45309 !important' }} />}
+                              label="Instant (15-25 min)"
+                              size="small"
+                              sx={{ bgcolor: '#FEF3C7', color: '#B45309', fontWeight: 800, fontSize: '10px', height: 20 }}
+                            />
+                          )}
                         </TableCell>
                         <TableCell>
                           {job.technician_name ? (
@@ -1806,6 +1831,20 @@ export default function AdminDashboardPage() {
             Dispatch Technician to Booking #{targetBooking?.id}
           </DialogTitle>
           <DialogContent>
+            {targetBooking?.scheduled_slot && targetBooking.scheduled_slot !== 'instant_now' && (
+              <Paper elevation={0} sx={{ p: 1.5, mb: 2, bgcolor: '#EFF6FF', border: '1.5px solid #93C5FD', borderRadius: '10px' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <EventIcon sx={{ color: '#0284C7', fontSize: 18 }} />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0369A1', fontSize: '12.5px' }}>
+                    Customer Scheduled Window: {targetBooking.scheduled_slot}
+                  </Typography>
+                </Box>
+                <Typography variant="caption" sx={{ color: '#0284C7', display: 'block', mt: 0.5 }}>
+                  Assigning this technician reserves their duty schedule and connects the customer with the partner.
+                </Typography>
+              </Paper>
+            )}
+
             <Typography variant="body2" sx={{ color: '#64748B', mb: 2 }}>
               Customer: <strong>{targetBooking?.customer_name}</strong> • Locality: <strong>{targetBooking?.locality}</strong> • Service: <strong>{targetBooking?.service_id}</strong>
             </Typography>
