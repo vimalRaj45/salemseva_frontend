@@ -27,11 +27,13 @@ import {
   Power,
   Globe,
   Languages,
-  Menu
+  Menu,
+  MessageSquarePlus
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import LanguageSelectorModal from './LanguageSelectorModal';
 import SideNavbar from './SideNavbar';
+import FeedbackModal from './FeedbackModal';
 import { SUPPORTED_LANGUAGES, getCurrentLanguage } from '../services/languageService';
 
 export default function Navbar({
@@ -84,6 +86,7 @@ export default function Navbar({
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSideNavOpen, setIsSideNavOpen] = useState(false);
   const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [hasScrolled, setHasScrolled] = useState(false);
@@ -908,6 +911,31 @@ export default function Navbar({
               )}
             </button>
 
+            {/* Platform Feedback & Bug Reports (Customer & Technician) */}
+            <button
+              type="button"
+              onClick={() => setIsFeedbackModalOpen(true)}
+              title="Report Platform Issue or Feedback / பின்னூட்டம்"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: isMobile ? '4px 7px' : '5px 10px',
+                borderRadius: '8px',
+                backgroundColor: isDarkMode ? 'rgba(13, 148, 136, 0.18)' : '#F0FDFA',
+                border: isDarkMode ? '1px solid #14B8A6' : '1px solid #99F6E4',
+                color: isDarkMode ? '#2DD4BF' : '#0F766E',
+                cursor: 'pointer',
+                fontSize: isMobile ? '11px' : '12px',
+                fontWeight: 800,
+                transition: 'all 0.15s ease',
+                flexShrink: 0
+              }}
+            >
+              <MessageSquarePlus size={isMobile ? 14 : 15} color={isDarkMode ? '#2DD4BF' : '#0D9488'} />
+              <span style={{ display: isMobile ? 'none' : 'inline' }}>Feedback</span>
+            </button>
+
             {/* 3.3 Google Translate / Language Selector Button */}
             <button
               type="button"
@@ -1312,6 +1340,27 @@ export default function Navbar({
                       <HelpCircle size={15} color="#0D9488" />
                       <span>Help & Support (Salem 24/7)</span>
                     </div>
+
+                    <div
+                      onClick={() => {
+                        setIsFeedbackModalOpen(true);
+                        setIsProfileOpen(false);
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '8px 10px',
+                        borderRadius: '10px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        color: isDarkMode ? '#E2E8F0' : '#334155',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <MessageSquarePlus size={15} color="#0D9488" />
+                      <span>Send Platform Feedback & Issues</span>
+                    </div>
                   </div>
 
                   <div style={{ height: '1px', backgroundColor: isDarkMode ? '#1E293B' : '#F1F5F9', margin: '6px 0' }} />
@@ -1383,6 +1432,14 @@ export default function Navbar({
         isDarkMode={isDarkMode}
       />
 
+      {/* Platform Feedback & Issue Reporting Modal (Customer & Tech) */}
+      <FeedbackModal
+        open={isFeedbackModalOpen}
+        onClose={() => setIsFeedbackModalOpen(false)}
+        user={user}
+        userRole={userRole}
+      />
+
       {/* Slide-out Side Navbar Drawer */}
       <SideNavbar
         isOpen={isSideNavOpen}
@@ -1392,6 +1449,7 @@ export default function Navbar({
         isDarkMode={isDarkMode}
         toggleDarkMode={toggleDarkMode}
         onOpenLanguageModal={() => setIsLanguageModalOpen(true)}
+        onOpenFeedbackModal={() => setIsFeedbackModalOpen(true)}
         onOpenAuthModal={openAuthModal}
         logout={logout}
       />

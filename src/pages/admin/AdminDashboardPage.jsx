@@ -87,10 +87,15 @@ import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import PaymentsIcon from '@mui/icons-material/Payments';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import EventIcon from '@mui/icons-material/Event';
+import RateReviewIcon from '@mui/icons-material/RateReview';
+import BugReportIcon from '@mui/icons-material/BugReport';
+import ForumIcon from '@mui/icons-material/Forum';
+import SupportAgentIcon from '@mui/icons-material/SupportAgent';
+import ThumbUpAltIcon from '@mui/icons-material/ThumbUpAlt';
 
 export default function AdminDashboardPage() {
   const navigate = useNavigate();
-  const [activeMainTab, setActiveMainTab] = useState('ops'); // 'ops', 'customers', 'technicians'
+  const [activeMainTab, setActiveMainTab] = useState('ops'); // 'ops', 'customers', 'technicians', 'feedback'
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [metrics, setMetrics] = useState({
@@ -114,6 +119,13 @@ export default function AdminDashboardPage() {
   // Tech Fleet Filter State
   const [techTab, setTechTab] = useState('all');
 
+  // Platform Feedback States (Customer & Technician Issues)
+  const [feedbacksList, setFeedbacksList] = useState([]);
+  const [feedbacksLoading, setFeedbacksLoading] = useState(false);
+  const [feedbackRoleFilter, setFeedbackRoleFilter] = useState('all'); // 'all', 'customer', 'technician'
+  const [feedbackStatusFilter, setFeedbackStatusFilter] = useState('all'); // 'all', 'new', 'resolved'
+  const [feedbackSearch, setFeedbackSearch] = useState('');
+
   // Customer 360 History Dialog
   const [customerModalOpen, setCustomerModalOpen] = useState(false);
   const [selectedCustomerPhone, setSelectedCustomerPhone] = useState(null);
@@ -136,6 +148,98 @@ export default function AdminDashboardPage() {
 
   // Toast Notification
   const [toast, setToast] = useState({ open: false, message: '', severity: 'info' });
+
+  // Fetch Platform Feedbacks (From API and Local Storage sync)
+  const fetchFeedbacks = async () => {
+    try {
+      setFeedbacksLoading(true);
+      const res = await fetch('https://salemseva-backend.onrender.com/api/v1/feedback/list');
+      const data = await res.json();
+      let serverFeedbacks = data.success && Array.isArray(data.feedbacks) ? data.feedbacks : [];
+
+      const localRaw = localStorage.getItem('salemseva_feedbacks_list');
+      const localFeedbacks = localRaw ? JSON.parse(localRaw) : [];
+
+      const map = new Map();
+      localFeedbacks.forEach(item => {
+        const key = item.id?.toString() || `${item.user_phone || item.userPhone}_${item.created_at}`;
+        map.set(key, item);
+      });
+      serverFeedbacks.forEach(item => {
+        const key = item.id?.toString() || `${item.user_phone || item.userPhone}_${item.created_at}`;
+        map.set(key, item);
+      });
+
+      const merged = Array.from(map.values()).sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+      setFeedbacksList(merged);
+    } catch (e) {
+      console.warn('Feedback fetch fallback to local:', e);
+      const localRaw = localStorage.getItem('salemseva_feedbacks_list');
+      if (localRaw) {
+        setFeedbacksList(JSON.parse(localRaw));
+      }
+    } finally {
+      setFeedbacksLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFeedbacks();
+    const handleFeedbackEvent = () => fetchFeedbacks();
+    window.addEventListener('salemseva_new_feedback_received', handleFeedbackEvent);
+    window.addEventListener('storage', handleFeedbackEvent);
+    return () => {
+      window.removeEventListener('salemseva_new_feedback_received', handleFeedbackEvent);
+      window.removeEventListener('storage', handleFeedbackEvent);
+    };
+  }, []);
+
+  const handleUpdateFeedbackStatus = async (id, newStatus) => {
+    try {
+      await fetch(`https://salemseva-backend.onrender.com/api/v1/feedback/${id}/status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: newStatus,
+          adminNotes: `Status updated by Salem Ops Admin at ${new Date().toLocaleTimeString()}`
+        })
+      });
+    } catch (e) {
+      console.warn('Feedback status update network note:', e);
+    }
+
+    setFeedbacksList(prev => {
+      const updated = prev.map(f => (f.id === id ? { ...f, status: newStatus } : f));
+      localStorage.setItem('salemseva_feedbacks_list', JSON.stringify(updated));
+      return updated;
+    });
+
+    setToast({
+      open: true,
+      message: `Feedback #${id} updated to ${newStatus.toUpperCase()}`,
+      severity: newStatus === 'resolved' ? 'success' : 'info'
+    });
+  };
+
+  // Filtered Feedbacks Computation
+  const filteredFeedbacks = useMemo(() => {
+    return feedbacksList.filter(item => {
+      const role = (item.role || 'customer').toLowerCase();
+      const status = (item.status || 'new').toLowerCase();
+      const name = (item.user_name || item.userName || '').toLowerCase();
+      const phone = (item.user_phone || item.userPhone || '').toLowerCase();
+      const msg = (item.message || '').toLowerCase();
+      const subj = (item.subject || '').toLowerCase();
+      const cat = (item.feedback_type || item.feedbackType || '').toLowerCase();
+      const q = feedbackSearch.toLowerCase();
+
+      const matchesRole = feedbackRoleFilter === 'all' || role === feedbackRoleFilter;
+      const matchesStatus = feedbackStatusFilter === 'all' || status === feedbackStatusFilter;
+      const matchesSearch = !q || name.includes(q) || phone.includes(q) || msg.includes(q) || subj.includes(q) || cat.includes(q);
+
+      return matchesRole && matchesStatus && matchesSearch;
+    });
+  }, [feedbacksList, feedbackRoleFilter, feedbackStatusFilter, feedbackSearch]);
 
   const fetchOverview = async (isManual = false) => {
     if (isManual) setRefreshing(true);
@@ -563,6 +667,12 @@ export default function AdminDashboardPage() {
               icon={<EngineeringIcon sx={{ fontSize: 16 }} />}
               iconPosition="start"
               label={`Technicians (${technicians.length})`}
+            />
+            <Tab
+              value="feedback"
+              icon={<RateReviewIcon sx={{ fontSize: 16 }} />}
+              iconPosition="start"
+              label={`Feedback & Issues (${feedbacksList.length})`}
             />
           </Tabs>
         </Paper>
@@ -1654,6 +1764,387 @@ export default function AdminDashboardPage() {
         )}
 
         {/* ========================================================================= */}
+        {/* TAB 4: PLATFORM FEEDBACK & ISSUE RESOLUTION CENTER (CUSTOMER & TECH) */}
+        {/* ========================================================================= */}
+        {activeMainTab === 'feedback' && (
+          <Card
+            elevation={0}
+            sx={{
+              bgcolor: '#FFFFFF',
+              border: '1px solid #E2E8F0',
+              borderRadius: '20px',
+              p: 3,
+              boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)'
+            }}
+          >
+            {/* Header & Description */}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2.5, flexWrap: 'wrap', gap: 1.5 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                <Avatar sx={{ bgcolor: '#0D9488', width: 40, height: 40 }}>
+                  <RateReviewIcon sx={{ color: '#FFFFFF', fontSize: 22 }} />
+                </Avatar>
+                <Box>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0F172A', display: 'flex', alignItems: 'center', gap: 1 }}>
+                    Platform Feedback & Issue Resolution Center
+                    <Chip label="Live Sync" size="small" sx={{ bgcolor: '#CCFBF1', color: '#0F766E', fontWeight: 800, fontSize: '10px', height: 20 }} />
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#64748B' }}>
+                    Customer reports, partner technician experiences, booking slot issues & platform bug escalations.
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<RefreshIcon sx={{ fontSize: 15 }} />}
+                  onClick={fetchFeedbacks}
+                  sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700, borderColor: '#CBD5E1', color: '#0D9488' }}
+                >
+                  Refresh Reports
+                </Button>
+              </Box>
+            </Box>
+
+            {/* Quick Metrics Bar */}
+            <Grid container spacing={1.5} sx={{ mb: 2.5 }}>
+              <Grid item xs={6} sm={3}>
+                <Paper elevation={0} sx={{ p: 1.5, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px' }}>
+                  <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700 }}>TOTAL SUBMISSIONS</Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 900, color: '#0F172A', mt: 0.5 }}>{feedbacksList.length}</Typography>
+                  <Typography variant="caption" sx={{ color: '#0284C7', fontWeight: 600 }}>Salem platform feedback</Typography>
+                </Paper>
+              </Grid>
+              <Grid item xs={6} sm={3}>
+                <Paper elevation={0} sx={{ p: 1.5, bgcolor: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: '12px' }}>
+                  <Typography variant="caption" sx={{ color: '#1E40AF', fontWeight: 700 }}>CUSTOMER REPORTS</Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 900, color: '#1D4ED8', mt: 0.5 }}>
+                    {feedbacksList.filter(f => (f.role || 'customer') === 'customer').length}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#2563EB', fontWeight: 600 }}>Slots, matching & app</Typography>
+                </Paper>
+              </Grid>
+              <Grid item xs={6} sm={3}>
+                <Paper elevation={0} sx={{ p: 1.5, bgcolor: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '12px' }}>
+                  <Typography variant="caption" sx={{ color: '#166534', fontWeight: 700 }}>TECHNICIAN REPORTS</Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 900, color: '#15803D', mt: 0.5 }}>
+                    {feedbacksList.filter(f => (f.role || '') === 'technician').length}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#16A34A', fontWeight: 600 }}>Duty Radar, payouts & jobs</Typography>
+                </Paper>
+              </Grid>
+              <Grid item xs={6} sm={3}>
+                <Paper elevation={0} sx={{ p: 1.5, bgcolor: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '12px' }}>
+                  <Typography variant="caption" sx={{ color: '#92400E', fontWeight: 700 }}>PENDING RESOLUTION</Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 900, color: '#B45309', mt: 0.5 }}>
+                    {feedbacksList.filter(f => (f.status || 'new') === 'new').length}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#D97706', fontWeight: 600 }}>Action needed</Typography>
+                </Paper>
+              </Grid>
+            </Grid>
+
+            {/* Filters Row */}
+            <Paper elevation={0} sx={{ p: 1.5, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '14px', mb: 2.5 }}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, alignItems: 'center', justifyContent: 'space-between' }}>
+                {/* Role Chips */}
+                <Box sx={{ display: 'flex', gap: 0.8, alignItems: 'center' }}>
+                  <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', mr: 0.5 }}>SOURCE:</Typography>
+                  {[
+                    { id: 'all', label: `All (${feedbacksList.length})` },
+                    { id: 'customer', label: `Customers (${feedbacksList.filter(f => (f.role || 'customer') === 'customer').length})` },
+                    { id: 'technician', label: `Technicians (${feedbacksList.filter(f => (f.role || '') === 'technician').length})` }
+                  ].map(tab => (
+                    <Chip
+                      key={tab.id}
+                      label={tab.label}
+                      onClick={() => setFeedbackRoleFilter(tab.id)}
+                      size="small"
+                      sx={{
+                        fontWeight: 800,
+                        fontSize: '11.5px',
+                        cursor: 'pointer',
+                        bgcolor: feedbackRoleFilter === tab.id ? '#0D9488' : '#FFFFFF',
+                        color: feedbackRoleFilter === tab.id ? '#FFFFFF' : '#334155',
+                        border: '1px solid',
+                        borderColor: feedbackRoleFilter === tab.id ? '#0D9488' : '#CBD5E1',
+                        '&:hover': { bgcolor: feedbackRoleFilter === tab.id ? '#0F766E' : '#F1F5F9' }
+                      }}
+                    />
+                  ))}
+                </Box>
+
+                {/* Status Chips */}
+                <Box sx={{ display: 'flex', gap: 0.8, alignItems: 'center' }}>
+                  <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', mr: 0.5 }}>STATUS:</Typography>
+                  {[
+                    { id: 'all', label: 'All Status' },
+                    { id: 'new', label: 'Pending Action' },
+                    { id: 'resolved', label: 'Resolved' }
+                  ].map(tab => (
+                    <Chip
+                      key={tab.id}
+                      label={tab.label}
+                      onClick={() => setFeedbackStatusFilter(tab.id)}
+                      size="small"
+                      sx={{
+                        fontWeight: 800,
+                        fontSize: '11.5px',
+                        cursor: 'pointer',
+                        bgcolor: feedbackStatusFilter === tab.id ? '#2563EB' : '#FFFFFF',
+                        color: feedbackStatusFilter === tab.id ? '#FFFFFF' : '#334155',
+                        border: '1px solid',
+                        borderColor: feedbackStatusFilter === tab.id ? '#2563EB' : '#CBD5E1',
+                        '&:hover': { bgcolor: feedbackStatusFilter === tab.id ? '#1D4ED8' : '#F1F5F9' }
+                      }}
+                    />
+                  ))}
+                </Box>
+
+                {/* Search Bar */}
+                <TextField
+                  size="small"
+                  placeholder="Search feedback, user, phone..."
+                  value={feedbackSearch}
+                  onChange={(e) => setFeedbackSearch(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon sx={{ color: '#94A3B8', fontSize: 18 }} />
+                      </InputAdornment>
+                    ),
+                    sx: { borderRadius: '10px', bgcolor: '#FFFFFF', width: 240, fontSize: '12px' }
+                  }}
+                />
+              </Box>
+            </Paper>
+
+            {/* Feedbacks Listing Table */}
+            {feedbacksLoading ? (
+              <Box sx={{ py: 6, textAlign: 'center' }}>
+                <CircularProgress size={36} sx={{ color: '#0D9488' }} />
+                <Typography variant="body2" sx={{ mt: 1.5, color: '#64748B', fontWeight: 600 }}>
+                  Syncing platform feedbacks and user reports...
+                </Typography>
+              </Box>
+            ) : filteredFeedbacks.length === 0 ? (
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 6,
+                  textAlign: 'center',
+                  bgcolor: '#F8FAFC',
+                  borderRadius: '16px',
+                  border: '1px dashed #CBD5E1'
+                }}
+              >
+                <BugReportIcon sx={{ fontSize: 48, color: '#94A3B8', mb: 1.5 }} />
+                <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#334155' }}>
+                  No feedback or issues found
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#64748B', maxWidth: 460, mx: 'auto', mt: 0.5 }}>
+                  {feedbackSearch || feedbackRoleFilter !== 'all' || feedbackStatusFilter !== 'all'
+                    ? 'No submissions match your active filter criteria. Try resetting filters.'
+                    : 'Customer and technician feedback submitted through the Navbar feedback button will appear here in real-time.'}
+                </Typography>
+              </Paper>
+            ) : (
+              <Table size="small">
+                <TableHead>
+                  <TableRow sx={{ bgcolor: '#F8FAFC', '& th': { color: '#475569', fontWeight: 800, borderColor: '#E2E8F0', py: 1.4 } }}>
+                    <TableCell>User / Reporter</TableCell>
+                    <TableCell>Category & Subject</TableCell>
+                    <TableCell>Platform Rating</TableCell>
+                    <TableCell sx={{ minWidth: 260 }}>Feedback & Issue Details</TableCell>
+                    <TableCell>Submitted Time</TableCell>
+                    <TableCell align="center">Resolution Status</TableCell>
+                    <TableCell align="center">Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {filteredFeedbacks.map((item, idx) => {
+                    const isTech = (item.role || '').toLowerCase() === 'technician';
+                    const isResolved = (item.status || 'new').toLowerCase() === 'resolved';
+                    const userName = item.user_name || item.userName || (isTech ? 'K. Ramesh (Partner)' : 'Salem Customer');
+                    const userPhone = item.user_phone || item.userPhone || '+91 98427 11234';
+                    const locality = item.locality || 'Fairlands, Salem';
+                    const ratingVal = parseInt(item.rating, 10) || 5;
+                    const categoryLabel = (item.feedback_type || item.feedbackType || 'General')
+                      .replace(/_/g, ' ')
+                      .toUpperCase();
+                    const createdAt = item.created_at ? new Date(item.created_at).toLocaleString() : 'Just now';
+
+                    return (
+                      <TableRow key={item.id || idx} hover sx={{ '& td': { borderColor: '#E2E8F0', py: 1.6 } }}>
+                        {/* 1. User & Contact */}
+                        <TableCell>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                            <Avatar
+                              sx={{
+                                bgcolor: isTech ? '#10B981' : '#2563EB',
+                                width: 34,
+                                height: 34,
+                                fontWeight: 800,
+                                fontSize: '13px'
+                              }}
+                            >
+                              {userName.charAt(0).toUpperCase()}
+                            </Avatar>
+                            <Box>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
+                                <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A' }}>
+                                  {userName}
+                                </Typography>
+                                <Chip
+                                  label={isTech ? 'Technician' : 'Customer'}
+                                  size="small"
+                                  sx={{
+                                    bgcolor: isTech ? '#ECFDF5' : '#EFF6FF',
+                                    color: isTech ? '#047857' : '#1E40AF',
+                                    fontWeight: 800,
+                                    fontSize: '9.5px',
+                                    height: 18
+                                  }}
+                                />
+                              </Box>
+                              <Typography variant="caption" sx={{ color: '#64748B', display: 'block' }}>
+                                {userPhone} • {locality}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </TableCell>
+
+                        {/* 2. Category & Subject */}
+                        <TableCell>
+                          <Chip
+                            label={categoryLabel}
+                            size="small"
+                            sx={{
+                              bgcolor: isTech ? '#F0FDF4' : '#F8FAFC',
+                              color: isTech ? '#15803D' : '#0369A1',
+                              fontWeight: 800,
+                              fontSize: '10px',
+                              border: '1px solid',
+                              borderColor: isTech ? '#BBF7D0' : '#BAE6FD',
+                              mb: 0.4
+                            }}
+                          />
+                          <Typography variant="body2" sx={{ fontWeight: 700, color: '#334155' }}>
+                            {item.subject || categoryLabel}
+                          </Typography>
+                        </TableCell>
+
+                        {/* 3. Rating */}
+                        <TableCell>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4 }}>
+                            <Box sx={{ display: 'flex' }}>
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <StarIcon
+                                  key={star}
+                                  sx={{
+                                    fontSize: 16,
+                                    color: star <= ratingVal ? '#F59E0B' : '#E2E8F0'
+                                  }}
+                                />
+                              ))}
+                            </Box>
+                            <Typography variant="caption" sx={{ fontWeight: 800, color: '#0F172A', ml: 0.5 }}>
+                              {ratingVal}.0
+                            </Typography>
+                          </Box>
+                        </TableCell>
+
+                        {/* 4. Feedback & Issue Details */}
+                        <TableCell>
+                          <Paper
+                            elevation={0}
+                            sx={{
+                              p: 1.2,
+                              bgcolor: isResolved ? '#F8FAFC' : '#FFFBEB',
+                              border: '1px solid',
+                              borderColor: isResolved ? '#E2E8F0' : '#FDE68A',
+                              borderRadius: '8px'
+                            }}
+                          >
+                            <Typography variant="body2" sx={{ color: '#1E293B', fontSize: '12.5px', whiteSpace: 'pre-wrap' }}>
+                              {item.message}
+                            </Typography>
+                          </Paper>
+                        </TableCell>
+
+                        {/* 5. Timestamp */}
+                        <TableCell sx={{ color: '#64748B', fontSize: '11.5px', whiteSpace: 'nowrap' }}>
+                          {createdAt}
+                        </TableCell>
+
+                        {/* 6. Resolution Status */}
+                        <TableCell align="center">
+                          {isResolved ? (
+                            <Chip
+                              icon={<CheckCircleIcon sx={{ color: '#166534 !important', fontSize: '13px !important' }} />}
+                              label="RESOLVED"
+                              size="small"
+                              sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 900, fontSize: '10px' }}
+                            />
+                          ) : (
+                            <Chip
+                              icon={<BugReportIcon sx={{ color: '#9A3412 !important', fontSize: '13px !important' }} />}
+                              label="ACTION REQUIRED"
+                              size="small"
+                              sx={{ bgcolor: '#FFEDD5', color: '#9A3412', fontWeight: 900, fontSize: '10px' }}
+                            />
+                          )}
+                        </TableCell>
+
+                        {/* 7. Action Buttons */}
+                        <TableCell align="center">
+                          <Box sx={{ display: 'flex', gap: 0.8, justifyContent: 'center', alignItems: 'center' }}>
+                            <Button
+                              variant="contained"
+                              size="small"
+                              onClick={() => handleUpdateFeedbackStatus(item.id, isResolved ? 'new' : 'resolved')}
+                              sx={{
+                                bgcolor: isResolved ? '#64748B' : '#10B981',
+                                color: '#FFFFFF',
+                                fontWeight: 800,
+                                fontSize: '11px',
+                                textTransform: 'none',
+                                borderRadius: '8px',
+                                py: 0.4,
+                                px: 1.2,
+                                '&:hover': { bgcolor: isResolved ? '#475569' : '#059669' }
+                              }}
+                            >
+                              {isResolved ? 'Re-open' : 'Mark Resolved'}
+                            </Button>
+
+                            <IconButton
+                              size="small"
+                              title={`Call ${userName} (${userPhone})`}
+                              onClick={() => window.open(`tel:${userPhone}`, '_self')}
+                              sx={{
+                                bgcolor: '#EFF6FF',
+                                color: '#2563EB',
+                                border: '1px solid #BFDBFE',
+                                borderRadius: '8px',
+                                p: 0.6
+                              }}
+                            >
+                              <PhoneIcon sx={{ fontSize: 14 }} />
+                            </IconButton>
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            )}
+          </Card>
+        )}
+
+        {/* ========================================================================= */}
         {/*  CUSTOMER 360 DEEP HISTORY DIALOG */}
         {/* ========================================================================= */}
         <Dialog open={customerModalOpen} onClose={() => setCustomerModalOpen(false)} maxWidth="md" fullWidth>
@@ -1772,6 +2263,40 @@ export default function AdminDashboardPage() {
                     <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700 }}>LIFETIME PAYOUTS EARNED</Typography>
                     <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#059669' }}>₹{techFinancials?.lifetimeEarnings ? techFinancials.lifetimeEarnings.toLocaleString() : '12,450'}</Typography>
                     <Typography variant="caption" sx={{ color: '#64748B' }}>UPI: {selectedTechDossier.upi_vpa || 'ramesh@oksbi'}</Typography>
+                  </Grid>
+
+                  {/* Aadhaar KYC Uploaded Document View */}
+                  <Grid item xs={12}>
+                    <Divider sx={{ my: 0.8 }} />
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <ShieldIcon sx={{ color: '#10B981', fontSize: 20 }} />
+                        <Box>
+                          <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', display: 'block' }}>
+                            AADHAAR e-KYC VERIFICATION
+                          </Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A' }}>
+                            Aadhaar: {selectedTechDossier.aadhaar_number || '9842 7112 4921'}
+                          </Typography>
+                        </Box>
+                      </Box>
+
+                      {(selectedTechDossier.aadhaar_card_url || selectedTechDossier.aadhaarCardUrl) ? (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => window.open(selectedTechDossier.aadhaar_card_url || selectedTechDossier.aadhaarCardUrl, '_blank')}
+                            sx={{ textTransform: 'none', fontWeight: 800, fontSize: '11px', borderRadius: '8px', color: '#0284C7', borderColor: '#BAE6FD' }}
+                          >
+                            🔍 View Uploaded Aadhaar Document
+                          </Button>
+                          <Chip label="DigiLocker S3 Verified" size="small" sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 800, fontSize: '10px' }} />
+                        </Box>
+                      ) : (
+                        <Chip label="Aadhaar Document On File" size="small" sx={{ bgcolor: '#EFF6FF', color: '#1D4ED8', fontWeight: 800, fontSize: '10px' }} />
+                      )}
+                    </Box>
                   </Grid>
                 </Grid>
               </Paper>

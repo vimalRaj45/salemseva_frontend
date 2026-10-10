@@ -23,7 +23,8 @@ import {
   ChevronRight,
   Briefcase,
   HelpCircle,
-  Clock
+  Clock,
+  MessageSquarePlus
 } from 'lucide-react';
 import { getCurrentLanguage, SUPPORTED_LANGUAGES } from '../services/languageService';
 
@@ -36,6 +37,7 @@ export default function SideNavbar({
   toggleDarkMode,
   onOpenLanguageModal,
   onOpenAuthModal,
+  onOpenFeedbackModal,
   logout
 }) {
   const navigate = useNavigate();
@@ -511,6 +513,18 @@ export default function SideNavbar({
                 label={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
                 isDark={isDarkMode}
                 onClick={toggleDarkMode}
+              />
+              <SideNavItem
+                icon={<MessageSquarePlus size={18} color="#0D9488" />}
+                label="Platform Feedback & Issues"
+                sublabel="Report platform bugs or ideas"
+                badge="Ops Direct"
+                badgeColor="#0D9488"
+                isDark={isDarkMode}
+                onClick={() => {
+                  onClose();
+                  if (onOpenFeedbackModal) onOpenFeedbackModal();
+                }}
               />
               <SideNavItem
                 icon={<PhoneCall size={18} />}

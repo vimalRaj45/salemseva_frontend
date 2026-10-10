@@ -88,6 +88,7 @@ import CampaignIcon from '@mui/icons-material/Campaign';
 import MaskedChatModal from '../../components/MaskedChatModal';
 import VoipCallModal from '../../components/VoipCallModal';
 import ProcessingBackdrop from '../../components/ProcessingBackdrop';
+import DocumentUploadControl from '../../components/DocumentUploadControl';
 import { useAuth } from '../../context/AuthContext';
 import { NativeNotifier } from '../../services/nativeNotify';
 
@@ -505,6 +506,41 @@ export default function PartnerDutyPage() {
         .catch(err => console.warn('Step 3 quote fetch note:', err));
     }
   }, [step, activeBookingId]);
+
+  const [partsBillUrl, setPartsBillUrl] = useState(activeJob?.partsBillUrl || null);
+
+  useEffect(() => {
+    if (activeJob?.partsBillUrl) {
+      setPartsBillUrl(activeJob.partsBillUrl);
+    } else if (activeBookingId) {
+      fetch(`https://salemseva-backend.onrender.com/api/v1/partner/bookings/${activeBookingId}/bill`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.billUrl) {
+            setPartsBillUrl(data.billUrl);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [activeJob?.partsBillUrl, activeBookingId]);
+
+  const handleBillUploadSuccess = async (url) => {
+    setPartsBillUrl(url);
+    try {
+      await fetch(`https://salemseva-backend.onrender.com/api/v1/partner/bookings/${activeBookingId}/upload-bill`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fileData: url,
+          billAmount: step3Quote?.subtotal || 0,
+          fileName: `parts_bill_${activeBookingId}.jpg`
+        })
+      });
+      setTechToast('உதிரிபாகங்கள் கடை பில் வெற்றிகரமாக பதிவேற்றப்பட்டது! (Parts bill uploaded & attached)');
+    } catch (e) {
+      console.warn('Bill sync note:', e);
+    }
+  };
 
   // Real-time VoIP Call & Chat Notification Poller from Customer
   useEffect(() => {
@@ -1728,14 +1764,64 @@ export default function PartnerDutyPage() {
                     </Box>
                   )}
 
-                  {/* STAGE C: CUSTOMER APPROVED -> REPAIR COMPLETE & OTP SETTLEMENT */}
+                  {/* STAGE C: CUSTOMER APPROVED -> PARTS BILL UPLOAD (IF TECH BUYS) */}
                   {(activeJob?.status === 'quote_approved') && (
-                    <Alert 
-                      severity="success" 
-                      sx={{ borderRadius: '8px', fontSize: '12px', mb: 1.5, bgcolor: '#F0FDF4', color: '#166534', border: '1px solid #BBF7D0' }}
-                    >
-                      Customer Approved & Escrow Payment Secured! Perform repair work and ask customer for final Completion OTP.
-                    </Alert>
+                    <Box sx={{ mb: 2 }}>
+                      <Alert 
+                        severity="success" 
+                        sx={{ borderRadius: '8px', fontSize: '12px', mb: 1.5, bgcolor: '#F0FDF4', color: '#166534', border: '1px solid #BBF7D0' }}
+                      >
+                        வாடிக்கையாளர் ஒப்புதல் அளித்தார்! (Customer Approved & Escrow Payment Secured). நீங்கள் உதிரிபாகங்கள் வாங்கியிருந்தால், கடையின் பில் படத்தை பதிவேற்றவும்.
+                      </Alert>
+
+                      {/* Spare Parts Purchase Bill Upload Section */}
+                      <Card
+                        elevation={0}
+                        sx={{
+                          p: 2,
+                          mb: 1.5,
+                          bgcolor: '#FFFFFF',
+                          border: '1.5px solid #0284C7',
+                          borderRadius: '12px',
+                          boxShadow: '0 2px 10px rgba(2, 132, 199, 0.08)'
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                            <ReceiptLongIcon sx={{ color: '#0284C7', fontSize: 20 }} />
+                            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A' }}>
+                              உதிரிபாகங்கள் கடை பில் (Store Purchase Bill)
+                            </Typography>
+                          </Box>
+                          <Chip
+                            label={partsBillUrl ? '✓ Bill Verified' : 'Bill Required'}
+                            size="small"
+                            sx={{
+                              bgcolor: partsBillUrl ? '#DCFCE7' : '#FEF3C7',
+                              color: partsBillUrl ? '#166534' : '#92400E',
+                              fontWeight: 800,
+                              fontSize: '10px'
+                            }}
+                          />
+                        </Box>
+
+                        <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 1.5, lineHeight: 1.4 }}>
+                          நீங்கள் கடையில் உதிரிபாகங்கள் வாங்கிய பில்/ரசீதை கேமரா மூலம் படம் எடுத்து அல்லது கோப்பாக பதிவேற்றவும் (அதிகபட்சம் 5 MB). S3 கிளவுடில் சேமிக்கப்படும்.
+                        </Typography>
+
+                        <DocumentUploadControl
+                          label="கடை பில் / ரசீது புகைப்படம் (Physical Shop Receipt)"
+                          sublabel="கேமரா படம் அல்லது 5 MB-க்குள் கோப்பு (Take Photo or Upload File <= 5MB)"
+                          folder="bills"
+                          referenceId={activeBookingId}
+                          existingUrl={partsBillUrl}
+                          onUploadSuccess={handleBillUploadSuccess}
+                          onRemove={() => setPartsBillUrl(null)}
+                          maxSizeMb={5}
+                          required
+                        />
+                      </Card>
+                    </Box>
                   )}
 
                   {/* Direct Job Completion & Payout Release Action */}
@@ -1745,6 +1831,13 @@ export default function PartnerDutyPage() {
                     size="large"
                     startIcon={<CheckCircleIcon sx={{ fontSize: 18 }} />}
                     onClick={async () => {
+                      // Check if bill upload is required when parts are bought
+                      const hasSpareParts = step3Quote?.items?.some(i => i.type === 'Spare Part');
+                      if (!partsBillUrl && (activeJob?.partsMode === 'tech_buys' || hasSpareParts)) {
+                        setTechToast('⚠️ தயவுசெய்து உதிரிபாகங்கள் வாங்கிய கடை பில் படத்தை பதிவேற்றவும் (Please upload spare parts bill first).');
+                        return;
+                      }
+
                       setLoadingMsg({
                         title: 'Completing job & settling payment...',
                         subtitle: 'Settlement calculation: 100% Visit Fee (₹99) + 95% Labor/Parts to your UPI'

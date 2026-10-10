@@ -22,13 +22,15 @@ import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import FlagIcon from '@mui/icons-material/Flag';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import ProcessingBackdrop from '../../components/ProcessingBackdrop';
+import DocumentUploadControl from '../../components/DocumentUploadControl';
 
 export default function PartnerOnboardingPage() {
   const navigate = useNavigate();
   const [mobile, setMobile] = useState('94432 88901');
   const [name, setName] = useState('K. Ramesh');
   const [trade, setTrade] = useState('ac');
-  const [aadhaar, setAadhaar] = useState('XXXX-XXXX-4921');
+  const [aadhaar, setAadhaar] = useState('9842 7112 4921');
+  const [aadhaarCardUrl, setAadhaarCardUrl] = useState(null);
   const [upiId, setUpiId] = useState('ramesh.tech@oksbi');
   const [referralCode, setReferralCode] = useState('TECHRAMESH');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -45,7 +47,8 @@ export default function PartnerOnboardingPage() {
         trade,
         aadhaar,
         upiId,
-        referralCode
+        referralCode,
+        aadhaarCardUrl
       })
     })
       .then(() => {
@@ -173,31 +176,34 @@ export default function PartnerOnboardingPage() {
               </FormControl>
             </Box>
 
-            {/* Aadhaar e-KYC Verification */}
-            <Box>
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#64748B', display: 'block', mb: 0.6 }}>
-                ஆதார் e-KYC சரிபார்ப்பு (DIGILOCKER)
-              </Typography>
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 1.2,
-                  bgcolor: '#ECFDF5',
-                  border: '1.5px solid #10B981',
-                  borderRadius: '12px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between'
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <VerifiedUserIcon sx={{ color: '#059669', fontSize: 20 }} />
-                  <Typography variant="caption" sx={{ fontWeight: 800, color: '#065F46' }}>
-                    Aadhaar {aadhaar}
-                  </Typography>
-                </Box>
-                <Chip label="Verified " size="small" sx={{ bgcolor: '#10B981', color: '#FFF', fontWeight: 900, height: 20 }} />
-              </Paper>
+            {/* Aadhaar e-KYC Verification & Document Upload */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2 }}>
+              <Box>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: '#64748B', display: 'block', mb: 0.6 }}>
+                  ஆதார் எண் (12-DIGIT AADHAAR NUMBER) *
+                </Typography>
+                <TextField
+                  fullWidth
+                  size="small"
+                  value={aadhaar}
+                  onChange={(e) => setAadhaar(e.target.value)}
+                  placeholder="e.g. 9842 7112 4921"
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', fontWeight: 700 } }}
+                />
+              </Box>
+
+              {/* Aadhaar Photo / Document Upload with 5MB Cap & Camera Option */}
+              <DocumentUploadControl
+                label="ஆதார் அட்டை அசல் புகைப்படம் (Aadhaar Card Photo)"
+                sublabel="நேரடி கேமரா மூலம் படம் எடுக்கவும் அல்லது 5 MB-க்குள் கோப்பை பதிவேற்றவும் (Take Camera Photo or Upload File <= 5MB)"
+                folder="aadhaar"
+                referenceId={mobile}
+                existingUrl={aadhaarCardUrl}
+                onUploadSuccess={(url) => setAadhaarCardUrl(url)}
+                onRemove={() => setAadhaarCardUrl(null)}
+                maxSizeMb={5}
+                required
+              />
             </Box>
 
             {/* Bank UPI for 85% Split */}
