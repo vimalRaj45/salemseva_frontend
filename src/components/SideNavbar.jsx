@@ -322,81 +322,7 @@ export default function SideNavbar({
           </div>
         </div>
 
-        {/* Quick Role Switcher Chips */}
-        <div style={{ padding: '0 18px 12px 18px' }}>
-          <span style={{ fontSize: '10.5px', fontWeight: 800, color: isDarkMode ? '#94A3B8' : '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '8px' }}>
-            Switch Platform Portal
-          </span>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
-            <button
-              type="button"
-              onClick={() => handleNav('/')}
-              style={{
-                padding: '7px 4px',
-                borderRadius: '10px',
-                fontSize: '11px',
-                fontWeight: 800,
-                backgroundColor: currentPath === '/' || currentPath.startsWith('/book') || currentPath.startsWith('/history')
-                  ? '#2563EB'
-                  : isDarkMode ? '#1E293B' : '#F1F5F9',
-                color: currentPath === '/' || currentPath.startsWith('/book') || currentPath.startsWith('/history')
-                  ? '#FFFFFF'
-                  : isDarkMode ? '#CBD5E1' : '#475569',
-                border: 'none',
-                cursor: 'pointer',
-                textAlign: 'center'
-              }}
-            >
-              Customer
-            </button>
 
-            <button
-              type="button"
-              onClick={() => handleNav('/partner')}
-              style={{
-                padding: '7px 4px',
-                borderRadius: '10px',
-                fontSize: '11px',
-                fontWeight: 800,
-                backgroundColor: currentPath.startsWith('/partner')
-                  ? '#059669'
-                  : isDarkMode ? '#1E293B' : '#F1F5F9',
-                color: currentPath.startsWith('/partner')
-                  ? '#FFFFFF'
-                  : isDarkMode ? '#CBD5E1' : '#475569',
-                border: 'none',
-                cursor: 'pointer',
-                textAlign: 'center'
-              }}
-            >
-              Partner Pro
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleNav('/admin')}
-              style={{
-                padding: '7px 4px',
-                borderRadius: '10px',
-                fontSize: '11px',
-                fontWeight: 800,
-                backgroundColor: currentPath.startsWith('/admin')
-                  ? '#D97706'
-                  : isDarkMode ? '#1E293B' : '#F1F5F9',
-                color: currentPath.startsWith('/admin')
-                  ? '#FFFFFF'
-                  : isDarkMode ? '#CBD5E1' : '#475569',
-                border: 'none',
-                cursor: 'pointer',
-                textAlign: 'center'
-              }}
-            >
-              Central Ops
-            </button>
-          </div>
-        </div>
-
-        <div style={{ height: '1px', backgroundColor: isDarkMode ? '#1E293B' : '#F1F5F9', margin: '4px 0' }} />
 
         {/* Navigation Link Groups */}
         <div style={{ flex: 1, padding: '8px 14px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -587,32 +513,54 @@ export default function SideNavbar({
               <span>Sign Out of Account</span>
             </button>
           ) : (
-            <button
-              type="button"
-              onClick={() => {
-                onClose();
-                onOpenAuthModal();
-              }}
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                padding: '10px 14px',
-                borderRadius: '12px',
-                fontSize: '13px',
-                fontWeight: 800,
-                color: '#FFFFFF',
-                backgroundColor: '#2563EB',
-                border: 'none',
-                cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)'
-              }}
-            >
-              <User size={16} />
-              <span>Login / Register Customer</span>
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => handleNav('/login')}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  padding: '10px 14px',
+                  borderRadius: '12px',
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  color: '#FFFFFF',
+                  backgroundColor: '#0066CC',
+                  border: 'none',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(0, 102, 204, 0.25)'
+                }}
+              >
+                <User size={16} />
+                <span>Sign In / Create Account</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleNav('/register?role=partner')}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  padding: '8px 12px',
+                  borderRadius: '10px',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  color: '#059669',
+                  backgroundColor: isDarkMode ? 'rgba(5, 150, 105, 0.15)' : '#ECFDF5',
+                  border: '1px solid #10B981',
+                  cursor: 'pointer'
+                }}
+              >
+                <Briefcase size={14} />
+                <span>Join as Partner Pro (Onboarding)</span>
+              </button>
+            </div>
           )}
 
           <div style={{ textAlign: 'center', marginTop: '10px' }}>

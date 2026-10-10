@@ -28,7 +28,7 @@ import AdminSettlementsPage from './pages/admin/AdminSettlementsPage';
 
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import AuthModal from './components/AuthModal';
+import AuthPage from './pages/auth/AuthPage';
 import GlobalNotificationWatcher from './components/GlobalNotificationWatcher';
 import SplashScreen from './components/SplashScreen';
 import { StatusBar, Style } from '@capacitor/status-bar';
@@ -154,14 +154,14 @@ function AppContent() {
               <Route path="/admin/traceability" element={<AdminTraceabilityPage />} />
               <Route path="/admin/settlements" element={<AdminSettlementsPage />} />
 
+              {/* Dedicated Authentication Routes */}
+              <Route path="/login" element={<AuthPage initialMode="login" />} />
+              <Route path="/register" element={<AuthPage initialMode="register" />} />
+
               {/* Fallback */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Box>
-
-          {/* Global Platform Auth Modal (Initial login & role gateway) */}
-          <AuthModal />
-
         </Box>
       </CustomerActiveJobGuard>
     </BrowserRouter>

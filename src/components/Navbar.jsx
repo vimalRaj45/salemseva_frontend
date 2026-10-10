@@ -1112,64 +1112,7 @@ export default function Navbar({
                     </div>
                   </div>
 
-                  {/* Mode / View Switchers */}
-                  <div style={{ padding: '4px 6px' }}>
-                    <div style={{ fontSize: '10px', fontWeight: 800, color: '#94A3B8', textTransform: 'uppercase', marginBottom: '6px' }}>
-                      Switch User Mode
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          loginAsCustomer();
-                          navigate('/');
-                          setIsProfileOpen(false);
-                        }}
-                        style={{
-                          padding: '6px 8px',
-                          borderRadius: '8px',
-                          fontSize: '11px',
-                          fontWeight: 700,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '4px',
-                          border: 'none',
-                          backgroundColor: isCustomer ? '#2563EB' : isDarkMode ? '#1E293B' : '#F1F5F9',
-                          color: isCustomer ? '#FFFFFF' : isDarkMode ? '#E2E8F0' : '#475569',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        <User size={12} /> Customer
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          loginAsTechnician();
-                          navigate('/partner');
-                          setIsProfileOpen(false);
-                        }}
-                        style={{
-                          padding: '6px 8px',
-                          borderRadius: '8px',
-                          fontSize: '11px',
-                          fontWeight: 700,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '4px',
-                          border: 'none',
-                          backgroundColor: isTechnician ? '#059669' : isDarkMode ? '#1E293B' : '#F1F5F9',
-                          color: isTechnician ? '#FFFFFF' : isDarkMode ? '#E2E8F0' : '#475569',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        <Briefcase size={12} /> Partner
-                      </button>
-                    </div>
-                  </div>
 
-                  <div style={{ height: '1px', backgroundColor: isDarkMode ? '#1E293B' : '#F1F5F9', margin: '6px 0' }} />
 
                   {/* Role Specific Nav Links */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
@@ -1402,7 +1345,7 @@ export default function Navbar({
                     <button
                       type="button"
                       onClick={() => {
-                        openAuthModal();
+                        navigate('/login');
                         setIsProfileOpen(false);
                       }}
                       style={{

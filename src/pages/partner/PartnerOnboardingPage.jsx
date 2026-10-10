@@ -13,7 +13,7 @@ import {
   Select,
   FormControl
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 import EngineeringIcon from '@mui/icons-material/Engineering';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -26,9 +26,11 @@ import DocumentUploadControl from '../../components/DocumentUploadControl';
 
 export default function PartnerOnboardingPage() {
   const navigate = useNavigate();
-  const [mobile, setMobile] = useState('94432 88901');
-  const [name, setName] = useState('K. Ramesh');
-  const [trade, setTrade] = useState('ac');
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const [mobile, setMobile] = useState(() => searchParams.get('phone') || '94432 88901');
+  const [name, setName] = useState(() => searchParams.get('name') || 'K. Ramesh');
+  const [trade, setTrade] = useState(() => searchParams.get('trade') || 'ac');
   const [aadhaar, setAadhaar] = useState('9842 7112 4921');
   const [aadhaarCardUrl, setAadhaarCardUrl] = useState(null);
   const [upiId, setUpiId] = useState('ramesh.tech@oksbi');
