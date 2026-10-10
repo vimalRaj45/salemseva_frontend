@@ -85,6 +85,7 @@ import GroupAddIcon from '@mui/icons-material/GroupAdd';
 import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
 import ShareIcon from '@mui/icons-material/Share';
 import CampaignIcon from '@mui/icons-material/Campaign';
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 import MaskedChatModal from '../../components/MaskedChatModal';
 import VoipCallModal from '../../components/VoipCallModal';
@@ -92,6 +93,7 @@ import ProcessingBackdrop from '../../components/ProcessingBackdrop';
 import DocumentUploadControl from '../../components/DocumentUploadControl';
 import { useAuth } from '../../context/AuthContext';
 import { NativeNotifier } from '../../services/nativeNotify';
+import { API_V1_URL } from '../../config';
 
 export default function PartnerDutyPage() {
   const navigate = useNavigate();
@@ -195,12 +197,25 @@ export default function PartnerDutyPage() {
     setTechToast(`₹${amt}.00 successfully disbursed directly to your UPI ID (partner.pay@okaxis)!`);
   };
 
+  const isKycLocked = !user?.isKycVerified || user?.status === 'Pending Verification' || user?.is_kyc_verified === false;
+
   const [isOnline, setIsOnline] = useState(() => {
+    if (user && (!user.isKycVerified || user.status === 'Pending Verification' || user.is_kyc_verified === false)) {
+      return false;
+    }
     const saved = localStorage.getItem('salemseva_partner_is_online');
     if (saved !== null) return saved === 'true';
     if (user && typeof user.isOnline === 'boolean') return user.isOnline;
-    return true;
+    return false;
   });
+
+  // Strict KYC Duty Lock: unverified partners are barred from going online
+  useEffect(() => {
+    if (isKycLocked && isOnline) {
+      setIsOnline(false);
+      localStorage.setItem('salemseva_partner_is_online', 'false');
+    }
+  }, [isKycLocked, isOnline]);
   const [step, setStep] = useState(() => {
     const saved = localStorage.getItem('salemseva_partner_step');
     return saved ? parseInt(saved, 10) : 1;
@@ -628,6 +643,12 @@ export default function PartnerDutyPage() {
   }, [activeBookingId]);
 
   const handleToggleOnline = async (checked) => {
+    if (checked && (!user?.isKycVerified || user?.status === 'Pending Verification')) {
+      setTechToast('⚠️ ஆதார் KYC இன்னும் அங்கீகரிக்கப்படவில்லை. நிர்வாகி ஒப்புதல் அளித்த பிறகே Online செல்ல முடியும். (Aadhaar KYC pending admin verification).');
+      setIsOnline(false);
+      return;
+    }
+
     if (checked) {
       // 1. Ask device location permission when technician goes online
       setIsOnline(true);
@@ -732,45 +753,100 @@ export default function PartnerDutyPage() {
         {/* ===================== TAB 0: DUTY (வேலை) ===================== */}
         {bottomNav === 0 && (
           <Box>
-            {/* Pending Verification Notice Banner */}
-            {user?.status === 'Pending Verification' && (
+            {/* Real Production KYC Gate Warning Card */}
+            {(user?.status === 'Pending Verification' || user?.isKycVerified === false || user?.is_kyc_verified === false) && (
               <Paper
                 elevation={0}
                 sx={{
-                  p: 1.5,
-                  mb: 1.5,
-                  borderRadius: '8px',
+                  p: 2,
+                  mb: 2,
+                  borderRadius: '12px',
                   bgcolor: '#FFFBEB',
-                  border: '1px solid #FCD34D'
+                  border: '1.5px solid #F59E0B',
+                  boxShadow: '0 4px 12px rgba(245, 158, 11, 0.12)'
                 }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.5 }}>
-                  <BadgeIcon sx={{ color: '#D97706', fontSize: 18 }} />
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#92400E', fontSize: '13px' }}>
-                    Application status: Pending hub verification
-                  </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1, flexWrap: 'wrap', gap: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                    <ShieldIcon sx={{ color: '#D97706', fontSize: 20 }} />
+                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#92400E', fontSize: '13.5px' }}>
+                      ஆதார் KYC சரிபார்ப்பு நிலுவையில் உள்ளது (Aadhaar KYC Under Review)
+                    </Typography>
+                  </Box>
+                  <Chip
+                    icon={<HourglassTopIcon sx={{ fontSize: '13px !important', color: '#B45309 !important' }} />}
+                    label="APPROVAL PENDING"
+                    size="small"
+                    sx={{ bgcolor: '#FEF3C7', color: '#92400E', fontWeight: 900, fontSize: '10px' }}
+                  />
                 </Box>
-                <Typography variant="body2" sx={{ color: '#78350F', fontSize: '12px', mb: 1, lineHeight: 1.4 }}>
-                  Please attend your in-person skill validation and ID check at the Salem Hub (Fairlands Main Rd) to start accepting customer bookings.
+                <Typography variant="body2" sx={{ color: '#78350F', fontSize: '12px', mb: 1.5, lineHeight: 1.5 }}>
+                  உங்கள் ஆதார் அட்டை மற்றும் தொழில் விவரங்கள் சேலம் நிர்வாக அலுவலகத்திற்கு (Salem Central Operations Desk) சரிபார்ப்புக்கு அனுப்பப்பட்டுள்ளது. நிர்வாகி ஒப்புதல் அளித்தவுடன் உங்களது Duty Radar தானாகவே இயங்கும்.
                 </Typography>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  onClick={() => {
-                    updateUser({ status: 'Verified', isKycVerified: true, isOnline: true });
-                  }}
-                  sx={{
-                    borderColor: '#D97706',
-                    color: '#92400E',
-                    fontWeight: 600,
-                    fontSize: '11px',
-                    borderRadius: '6px',
-                    textTransform: 'none',
-                    py: 0.3
-                  }}
-                >
-                  Verify profile (demo bypass)
-                </Button>
+                <Typography variant="caption" sx={{ color: '#92400E', fontSize: '11px', display: 'block', mb: 1.5 }}>
+                  * For security reasons, partner duty dispatch is locked until your Aadhaar document is verified by Salem Central Ops.
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  {(user?.aadhaarCardUrl || user?.aadhaar_card_url) && (
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      startIcon={<ReceiptLongIcon sx={{ fontSize: 14 }} />}
+                      onClick={() => window.open(user.aadhaarCardUrl || user.aadhaar_card_url, '_blank')}
+                      sx={{
+                        borderColor: '#D97706',
+                        color: '#92400E',
+                        fontWeight: 700,
+                        fontSize: '11px',
+                        borderRadius: '8px',
+                        textTransform: 'none',
+                        py: 0.4
+                      }}
+                    >
+                      Uploaded Aadhaar Preview
+                    </Button>
+                  )}
+                  <Button
+                    size="small"
+                    variant="contained"
+                    startIcon={<RefreshIcon sx={{ fontSize: 14 }} />}
+                    onClick={async () => {
+                      try {
+                        const phone = user?.phone || '+919443288901';
+                        const res = await fetch(`https://salemseva-backend.onrender.com/api/v1/partner/duty?phone=${encodeURIComponent(phone)}`);
+                        const data = await res.json();
+                        if (data.success && data.technician) {
+                          const isVerified = Boolean(data.technician.is_kyc_verified);
+                          updateUser({
+                            status: isVerified ? 'Verified' : 'Pending Verification',
+                            isKycVerified: isVerified,
+                            isOnline: data.technician.is_online
+                          });
+                          setIsOnline(data.technician.is_online);
+                          if (isVerified) {
+                            setTechToast('🎉 வாழ்த்துகள்! உங்கள் ஆதார் KYC அங்கீகரிக்கப்பட்டது. நீங்கள் இப்போது பணியைத் தொடங்கலாம்!');
+                          } else {
+                            setTechToast('ஆதார் KYC இன்னும் நிர்வாகியின் ஒப்புதலுக்காக காத்திருக்கிறது (Still pending admin approval).');
+                          }
+                        }
+                      } catch (e) {
+                        setTechToast('Could not reach server to check KYC status.');
+                      }
+                    }}
+                    sx={{
+                      bgcolor: '#D97706',
+                      color: '#FFFFFF',
+                      fontWeight: 800,
+                      fontSize: '11px',
+                      borderRadius: '8px',
+                      textTransform: 'none',
+                      py: 0.4,
+                      '&:hover': { bgcolor: '#B45309' }
+                    }}
+                  >
+                    Check Status Now
+                  </Button>
+                </Box>
               </Paper>
             )}
 
@@ -789,10 +865,12 @@ export default function PartnerDutyPage() {
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: (isOnline && user?.status !== 'Pending Verification') ? '#16A34A' : '#DC2626' }} />
+                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: (isOnline && user?.isKycVerified && user?.status !== 'Pending Verification') ? '#16A34A' : '#DC2626' }} />
                 <Box>
                   <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#0F172A', fontSize: '13px' }}>
-                    {(isOnline && user?.status !== 'Pending Verification') ? 'Online • Ready for jobs' : 'Offline'}
+                    {(!user?.isKycVerified || user?.status === 'Pending Verification') 
+                      ? 'Duty Locked • Complete KYC to Go Online'
+                      : (isOnline ? 'Online • Ready for jobs' : 'Offline')}
                   </Typography>
                   <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontSize: '11px' }}>
                     Zone: {user?.serviceArea || 'Fairlands & Hasthampatti'}
@@ -800,8 +878,8 @@ export default function PartnerDutyPage() {
                 </Box>
               </Box>
               <Switch 
-                disabled={user?.status === 'Pending Verification' || step === 2 || step === 3}
-                checked={isOnline && user?.status !== 'Pending Verification'} 
+                disabled={!user?.isKycVerified || user?.status === 'Pending Verification' || step === 2 || step === 3}
+                checked={Boolean(isOnline && user?.isKycVerified && user?.status !== 'Pending Verification')} 
                 onChange={(e) => {
                   if (step === 2 || step === 3) return;
                   handleToggleOnline(e.target.checked);
@@ -1051,7 +1129,121 @@ export default function PartnerDutyPage() {
             {/* STEP 1: INCOMING LEADS FEED / RADAR SCANNING / OFFLINE */}
             {step === 1 && (
               <Box>
-                {!isOnline ? (
+                {isKycLocked ? (
+                  /* Dedicated KYC Verification Pending Locked State (Partner cannot start work before KYC approved) */
+                  <Card
+                    elevation={0}
+                    sx={{
+                      bgcolor: '#0F172A',
+                      color: '#FFFFFF',
+                      borderRadius: '16px',
+                      p: 3.5,
+                      mb: 2,
+                      border: '2px solid #F59E0B',
+                      boxShadow: '0 8px 32px rgba(245, 158, 11, 0.18)',
+                      textAlign: 'center'
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 72,
+                        height: 72,
+                        borderRadius: '50%',
+                        bgcolor: 'rgba(245, 158, 11, 0.15)',
+                        border: '2px dashed #F59E0B',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        mx: 'auto',
+                        mb: 2
+                      }}
+                    >
+                      <ShieldIcon sx={{ color: '#FBBF24', fontSize: 38 }} />
+                    </Box>
+
+                    <Chip
+                      icon={<HourglassTopIcon sx={{ fontSize: '13px !important', color: '#92400E !important' }} />}
+                      label="ஆதார் KYC சரிபார்ப்பு நிலுவையில் உள்ளது • APPROVAL PENDING"
+                      size="small"
+                      sx={{ bgcolor: '#FEF3C7', color: '#92400E', fontWeight: 900, fontSize: '11px', mb: 1.5, py: 0.5, px: 1 }}
+                    />
+
+                    <Typography variant="h6" sx={{ fontWeight: 900, color: '#FFFFFF', fontSize: '16px', mb: 0.8 }}>
+                      பணி தொடங்குவதற்கு முன் KYC சரிபார்ப்பு அவசியம் (Duty Access Locked)
+                    </Typography>
+
+                    <Typography variant="body2" sx={{ color: '#CBD5E1', fontSize: '12.5px', maxWidth: 440, mx: 'auto', mb: 2.5, lineHeight: 1.6 }}>
+                      சேலம் தலைமை நிர்வாக அலுவலகம் (Salem Central Operations) உங்கள் ஆதார் அட்டை மற்றும் தொழில் விவரங்களை சரிபார்த்த பிறகு உங்கள் Duty Dashboard திறக்கப்படும். அதுவரை வேலை கோரிக்கைகள் அனுப்பப்படாது.
+                    </Typography>
+
+                    <Box sx={{ display: 'flex', gap: 1.2, justifyContent: 'center', flexWrap: 'wrap' }}>
+                      {(user?.aadhaarCardUrl || user?.aadhaar_card_url) && (
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          startIcon={<ReceiptLongIcon sx={{ fontSize: 15 }} />}
+                          onClick={() => window.open(user.aadhaarCardUrl || user.aadhaar_card_url, '_blank')}
+                          sx={{
+                            borderColor: '#F59E0B',
+                            color: '#FDE68A',
+                            fontWeight: 800,
+                            fontSize: '11.5px',
+                            borderRadius: '8px',
+                            textTransform: 'none',
+                            px: 1.8,
+                            py: 0.6
+                          }}
+                        >
+                          View Uploaded Aadhaar
+                        </Button>
+                      )}
+
+                      <Button
+                        variant="contained"
+                        size="small"
+                        startIcon={<RefreshIcon sx={{ fontSize: 15 }} />}
+                        onClick={async () => {
+                          try {
+                            const phone = user?.phone || '+919443288901';
+                            const res = await fetch(`${API_V1_URL}/partner/duty?phone=${encodeURIComponent(phone)}`);
+                            const data = await res.json();
+                            if (data.success && data.technician) {
+                              const isVerified = Boolean(data.technician.is_kyc_verified);
+                              updateUser({
+                                status: isVerified ? 'Verified' : 'Pending Verification',
+                                isKycVerified: isVerified,
+                                is_kyc_verified: isVerified,
+                                isOnline: data.technician.is_online
+                              });
+                              setIsOnline(data.technician.is_online);
+                              if (isVerified) {
+                                setTechToast('🎉 வாழ்த்துகள்! உங்கள் ஆதார் KYC அங்கீகரிக்கப்பட்டது. நீங்கள் இப்போது பணியைத் தொடங்கலாம்!');
+                              } else {
+                                setTechToast('ஆதார் KYC இன்னும் நிர்வாகியின் ஒப்புதலுக்காக காத்திருக்கிறது (Still pending admin approval).');
+                              }
+                            }
+                          } catch (e) {
+                            setTechToast('Could not reach server to check KYC status.');
+                          }
+                        }}
+                        sx={{
+                          bgcolor: '#D97706',
+                          color: '#FFFFFF',
+                          fontWeight: 900,
+                          fontSize: '11.5px',
+                          borderRadius: '8px',
+                          textTransform: 'none',
+                          px: 2.2,
+                          py: 0.6,
+                          boxShadow: '0 4px 14px rgba(217, 119, 6, 0.4)',
+                          '&:hover': { bgcolor: '#B45309' }
+                        }}
+                      >
+                        Check Approval Status Now
+                      </Button>
+                    </Box>
+                  </Card>
+                ) : !isOnline ? (
                   /* Dedicated Offline Duty State */
                   <Card
                     elevation={0}
