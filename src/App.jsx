@@ -29,6 +29,7 @@ import AdminSettlementsPage from './pages/admin/AdminSettlementsPage';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import AuthPage from './pages/auth/AuthPage';
+import { Toaster } from 'react-hot-toast';
 import GlobalNotificationWatcher from './components/GlobalNotificationWatcher';
 import SplashScreen from './components/SplashScreen';
 import { StatusBar, Style } from '@capacitor/status-bar';
@@ -164,6 +165,37 @@ function AppContent() {
           </Box>
         </Box>
       </CustomerActiveJobGuard>
+
+      {/* Global React Hot Toast Notifier */}
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          duration: 3500,
+          style: {
+            background: '#0F172A',
+            color: '#FFFFFF',
+            fontSize: '13px',
+            fontWeight: 600,
+            borderRadius: '12px',
+            padding: '10px 16px',
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)',
+            marginTop: 'calc(10px + env(safe-area-inset-top, 0px))',
+            border: '1px solid #334155'
+          },
+          success: {
+            iconTheme: {
+              primary: '#10B981',
+              secondary: '#FFFFFF',
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: '#EF4444',
+              secondary: '#FFFFFF',
+            },
+          },
+        }}
+      />
     </BrowserRouter>
     </>
   );

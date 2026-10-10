@@ -31,6 +31,7 @@ import StarsIcon from '@mui/icons-material/Stars';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 import { useAuth } from '../../context/AuthContext';
+import toast from 'react-hot-toast';
 
 const SALEM_LOCALITIES = [
   'Fairlands, Salem',
@@ -116,6 +117,7 @@ export default function AuthPage({ initialMode = 'login' }) {
     try {
       const loggedUser = await loginWithCredentials({ identifier, password });
       setIsLoading(false);
+      toast.success(`Welcome back, ${loggedUser.name}!`);
       // Role-based auto navigation
       if (loggedUser.role === 'technician' || loggedUser.role === 'partner') {
         navigate('/partner');
@@ -126,7 +128,9 @@ export default function AuthPage({ initialMode = 'login' }) {
       }
     } catch (err) {
       setIsLoading(false);
-      setErrorMessage(err.message || 'Login failed. Please verify credentials.');
+      const msg = err.message || 'Login failed. Please verify credentials.';
+      setErrorMessage(msg);
+      toast.error(msg);
     }
   };
 
@@ -161,10 +165,13 @@ export default function AuthPage({ initialMode = 'login' }) {
         referralCode
       });
       setIsLoading(false);
+      toast.success('Account created successfully! ₹100 Credits added.');
       navigate('/');
     } catch (err) {
       setIsLoading(false);
-      setErrorMessage(err.message || 'Registration failed. Please try again.');
+      const msg = err.message || 'Registration failed. Please try again.';
+      setErrorMessage(msg);
+      toast.error(msg);
     }
   };
 

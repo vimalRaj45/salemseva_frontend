@@ -37,6 +37,7 @@ import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import StarsIcon from '@mui/icons-material/Stars';
 
 import { useAuth } from '../../context/AuthContext';
+import toast from 'react-hot-toast';
 
 export default function WalletHubPage() {
   const navigate = useNavigate();
@@ -93,7 +94,7 @@ export default function WalletHubPage() {
   const copyCode = () => {
     navigator.clipboard.writeText(myReferralCode);
     setCopied(true);
-    setToastMessage(`Referral code ${myReferralCode} copied to clipboard!`);
+    toast.success(`Referral code ${myReferralCode} copied to clipboard!`);
     setTimeout(() => setCopied(false), 2500);
   };
 
@@ -129,7 +130,7 @@ export default function WalletHubPage() {
       creditsEarned: prev.creditsEarned + 100
     }));
 
-    setToastMessage(`Friend ${randomFriend} completed service in ${randomLocality}! +100 Seva Credits unlocked.`);
+    toast.success(`Friend ${randomFriend} completed service in ${randomLocality}! +100 Credits added.`);
   };
 
   const formatTxDate = (dateStr) => {
@@ -473,17 +474,7 @@ export default function WalletHubPage() {
         </BottomNavigation>
       </Paper>
 
-      {/* Toast Notification */}
-      <Snackbar
-        open={Boolean(toastMessage)}
-        autoHideDuration={4000}
-        onClose={() => setToastMessage(null)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert severity="success" onClose={() => setToastMessage(null)} sx={{ borderRadius: '10px', fontWeight: 700 }}>
-          {toastMessage}
-        </Alert>
-      </Snackbar>
+
 
     </Box>
   );

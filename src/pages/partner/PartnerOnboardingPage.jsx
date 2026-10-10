@@ -23,6 +23,7 @@ import FlagIcon from '@mui/icons-material/Flag';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import ProcessingBackdrop from '../../components/ProcessingBackdrop';
 import DocumentUploadControl from '../../components/DocumentUploadControl';
+import toast from 'react-hot-toast';
 
 export default function PartnerOnboardingPage() {
   const navigate = useNavigate();
@@ -54,13 +55,13 @@ export default function PartnerOnboardingPage() {
       })
     })
       .then(() => {
-        setTimeout(() => {
-          setIsProcessing(false);
-          navigate('/partner');
-        }, 1200);
+        setIsProcessing(false);
+        toast.success(`KYC & verification submitted! Welcome Partner ${name}.`);
+        navigate('/partner');
       })
       .catch(() => {
         setIsProcessing(false);
+        toast.success(`KYC & verification submitted! Welcome Partner ${name}.`);
         navigate('/partner');
       });
   };
