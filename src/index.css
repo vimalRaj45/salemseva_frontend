@@ -21,7 +21,7 @@ html, body {
   max-width: 100vw;
   overflow-x: hidden;
   position: relative;
-  font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Outfit', 'Inter', 'Noto Sans Tamil', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background-color: #F8FAFC;
   color: #0F172A;
   -webkit-font-smoothing: antialiased;
@@ -132,31 +132,63 @@ button, input, select, textarea {
 /* ========================================================
    GOOGLE TRANSLATE CUSTOM STYLING (CLEAN NATIVE UI)
    ======================================================== */
-.goog-te-banner-frame.skiptranslate,
 .goog-te-banner-frame,
+.goog-te-banner-frame.skiptranslate,
 iframe.goog-te-banner-frame,
-.goog-te-balloon-frame,
+iframe[class*="goog-te-banner-frame"],
+iframe.VIpgJd-ZVi9od-ORHb-OEVmcd,
+iframe.VIpgJd-ZVi9od-ORHb-OEVmcd.skiptranslate,
+.VIpgJd-ZVi9od-aZ2wEe-wOHMyf,
+.VIpgJd-ZVi9od-xl07Ob-OEVmcd,
+iframe[id*=":1.container"],
+iframe[id*=":2.container"],
+iframe[id*="container"],
 #goog-gt-tt,
+.goog-te-balloon-frame,
 .goog-tooltip,
-.goog-tooltip:hover {
+.goog-tooltip:hover,
+.goog-te-spinner-pos {
   display: none !important;
   visibility: hidden !important;
-  height: 0 !important;
-  width: 0 !important;
+  height: 0px !important;
+  width: 0px !important;
   opacity: 0 !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  top: -9999px !important;
+  left: -9999px !important;
+  z-index: -9999 !important;
 }
 
-body {
+html,
+body,
+html.translated-ltr,
+html.translated-rtl,
+body.translated-ltr,
+body.translated-rtl {
   top: 0px !important;
+  margin-top: 0px !important;
+  padding-top: 0px !important;
   position: static !important;
 }
 
+font, font[style] {
+  vertical-align: baseline !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
 .goog-text-highlight {
-  background: none !important;
+  background: transparent !important;
   box-shadow: none !important;
 }
 
 #google_translate_element {
   display: none !important;
+  position: absolute !important;
+  top: -9999px !important;
+  left: -9999px !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 

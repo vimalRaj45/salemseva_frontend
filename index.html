@@ -6,10 +6,77 @@
     <title>SalemSeva — Salem Home Services Platform (React + Material UI)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <!-- Official Razorpay Checkout JS SDK -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <!-- Google Translate Anti-Shift & Anti-Banner Shield -->
+    <style>
+      /* 1. COMPLETELY HIDE the Google Translate top banner iframe & all its class variants */
+      .goog-te-banner-frame,
+      .goog-te-banner-frame.skiptranslate,
+      iframe.goog-te-banner-frame,
+      iframe[class*="goog-te-banner-frame"],
+      iframe.VIpgJd-ZVi9od-ORHb-OEVmcd,
+      iframe.VIpgJd-ZVi9od-ORHb-OEVmcd.skiptranslate,
+      .VIpgJd-ZVi9od-aZ2wEe-wOHMyf,
+      .VIpgJd-ZVi9od-xl07Ob-OEVmcd,
+      iframe[id*=":1.container"],
+      iframe[id*=":2.container"],
+      iframe[id*="container"],
+      #goog-gt-tt,
+      .goog-te-balloon-frame,
+      .goog-tooltip,
+      .goog-tooltip:hover,
+      .goog-te-spinner-pos {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0px !important;
+        width: 0px !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        position: absolute !important;
+        top: -9999px !important;
+        left: -9999px !important;
+        z-index: -9999 !important;
+      }
+
+      /* 2. PREVENT Google Translate from adding margin/top to body or html */
+      html,
+      body,
+      html.translated-ltr,
+      html.translated-rtl,
+      body.translated-ltr,
+      body.translated-rtl {
+        top: 0px !important;
+        margin-top: 0px !important;
+        padding-top: 0px !important;
+        position: static !important;
+      }
+
+      /* 3. Strip Google font highlighting and fix line-heights */
+      font, font[style] {
+        vertical-align: baseline !important;
+        background: transparent !important;
+        box-shadow: none !important;
+      }
+
+      .goog-text-highlight {
+        background: transparent !important;
+        box-shadow: none !important;
+      }
+
+      #google_translate_element {
+        display: none !important;
+        position: absolute !important;
+        top: -9999px !important;
+        left: -9999px !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+      }
+    </style>
+
     <!-- Google Translate Script & Handler -->
     <script type="text/javascript">
       function googleTranslateElementInit() {
@@ -17,14 +84,52 @@
           new google.translate.TranslateElement({
             pageLanguage: 'en',
             includedLanguages: 'en,ta,hi,te,kn,ml',
-            autoDisplay: false
+            autoDisplay: false,
+            layout: google.translate.TranslateElement.InlineLayout.HORIZONTAL
           }, 'google_translate_element');
         }
       }
+
+      // Neutralize Google Translate's body top-shift & banner in DOM
+      (function() {
+        function sanitizeTranslate() {
+          if (document.body) {
+            if (document.body.style.top && document.body.style.top !== '0px') {
+              document.body.style.setProperty('top', '0px', 'important');
+            }
+            if (document.body.style.position === 'relative') {
+              document.body.style.position = 'static';
+            }
+          }
+          if (document.documentElement && document.documentElement.style.marginTop) {
+            document.documentElement.style.setProperty('margin-top', '0px', 'important');
+          }
+          var frames = document.querySelectorAll('.goog-te-banner-frame, iframe[id*="container"], iframe.VIpgJd-ZVi9od-ORHb-OEVmcd');
+          for (var i = 0; i < frames.length; i++) {
+            frames[i].style.setProperty('display', 'none', 'important');
+            frames[i].style.setProperty('visibility', 'hidden', 'important');
+            frames[i].style.setProperty('height', '0px', 'important');
+          }
+        }
+
+        if (typeof MutationObserver !== 'undefined') {
+          var obs = new MutationObserver(function() {
+            sanitizeTranslate();
+          });
+          obs.observe(document.documentElement, { attributes: true, attributeFilter: ['style', 'class'] });
+          document.addEventListener('DOMContentLoaded', function() {
+            if (document.body) {
+              obs.observe(document.body, { attributes: true, attributeFilter: ['style', 'class'] });
+              sanitizeTranslate();
+            }
+          });
+        }
+        window.addEventListener('load', sanitizeTranslate);
+      })();
     </script>
     <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
   </head>
-  <body style="margin: 0; padding: 0; background-color: #F8FAFC; font-family: 'Outfit', 'Inter', sans-serif; overflow-x: hidden; width: 100%;">
+  <body style="margin: 0; padding: 0; background-color: #F8FAFC; font-family: 'Outfit', 'Inter', 'Noto Sans Tamil', sans-serif; overflow-x: hidden; width: 100%;">
     <div id="google_translate_element" style="display:none !important; position: absolute; top: -9999px; left: -9999px; opacity: 0; pointer-events: none;"></div>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
