@@ -26,10 +26,12 @@ import {
   PhoneCall,
   Power,
   Globe,
-  Languages
+  Languages,
+  Menu
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import LanguageSelectorModal from './LanguageSelectorModal';
+import SideNavbar from './SideNavbar';
 import { SUPPORTED_LANGUAGES, getCurrentLanguage } from '../services/languageService';
 
 export default function Navbar({
@@ -80,6 +82,7 @@ export default function Navbar({
   const [selectedLocation, setSelectedLocation] = useState(propLocation || user?.locality || 'Fairlands, Salem');
   const [isLocationOpen, setIsLocationOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isSideNavOpen, setIsSideNavOpen] = useState(false);
   const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -258,7 +261,31 @@ export default function Navbar({
           }}
         >
           {/* ================= 1. BRAND LOGO & ROLE IDENTITY ================= */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '6px' : '10px', flexShrink: 0 }}>
+            {/* Hamburger Button for Slide-Out Side Navigation */}
+            <button
+              type="button"
+              onClick={() => setIsSideNavOpen(true)}
+              aria-label="Open Side Navigation Menu"
+              title="Menu / வழிசெலுத்தல்"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: isMobile ? '34px' : '38px',
+                height: isMobile ? '34px' : '38px',
+                borderRadius: '10px',
+                backgroundColor: isDarkMode ? '#1E293B' : '#F1F5F9',
+                border: isDarkMode ? '1px solid #334155' : '1px solid #E2E8F0',
+                color: isDarkMode ? '#F8FAFC' : '#0F172A',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                flexShrink: 0
+              }}
+            >
+              <Menu size={isMobile ? 18 : 20} />
+            </button>
+
             <div
               onClick={() => {
                 if (isTechnician) navigate('/partner');
@@ -1354,6 +1381,19 @@ export default function Navbar({
         open={isLanguageModalOpen}
         onClose={() => setIsLanguageModalOpen(false)}
         isDarkMode={isDarkMode}
+      />
+
+      {/* Slide-out Side Navbar Drawer */}
+      <SideNavbar
+        isOpen={isSideNavOpen}
+        onClose={() => setIsSideNavOpen(false)}
+        user={user}
+        creditsAmount={creditsAmount}
+        isDarkMode={isDarkMode}
+        toggleDarkMode={toggleDarkMode}
+        onOpenLanguageModal={() => setIsLanguageModalOpen(true)}
+        onOpenAuthModal={openAuthModal}
+        logout={logout}
       />
     </header>
   );
