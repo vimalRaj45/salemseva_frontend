@@ -38,12 +38,12 @@ export default function GlobalNotificationWatcher() {
     const pollGlobalEvents = async () => {
       try {
         const isPartnerOnline = localStorage.getItem('salemseva_partner_is_online') === 'true';
-        const partnerPhone = user?.phone || localStorage.getItem('salemseva_partner_phone') || '+919443288901';
+        const partnerPhone = user?.phone || localStorage.getItem('salemseva_partner_phone') || '';
         const activeBookingId = localStorage.getItem('salemseva_active_booking') || localStorage.getItem('salemseva_partner_active_job');
         const userRole = user?.role === 'technician' ? 'technician' : 'customer';
 
         // A. Technician: Check for New Assigned Job if Online
-        if (isPartnerOnline) {
+        if (isPartnerOnline && partnerPhone) {
           try {
             const cleanPhone = partnerPhone.replace(/[\s\-\(\)]/g, '');
             const syncRes = await fetch(`${API_BASE_URL}/api/v1/partner/duty/sync?phone=${encodeURIComponent(cleanPhone)}`);

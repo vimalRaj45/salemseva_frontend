@@ -1,11 +1,11 @@
 // SalemSeva Multi-Language & Google Translate Service
 export const SUPPORTED_LANGUAGES = [
-  { code: 'en', label: 'English', nativeName: 'English', flag: '🇬🇧', region: 'Default' },
-  { code: 'ta', label: 'Tamil', nativeName: 'தமிழ்', flag: '🇮🇳', region: 'சேலம் & தமிழ்நாடு' },
-  { code: 'hi', label: 'Hindi', nativeName: 'हिन्दी', flag: '🇮🇳', region: 'National' },
-  { code: 'te', label: 'Telugu', nativeName: 'తెలుగు', flag: '🇮🇳', region: 'South' },
-  { code: 'kn', label: 'Kannada', nativeName: 'ಕನ್ನಡ', flag: '🇮🇳', region: 'South' },
-  { code: 'ml', label: 'Malayalam', nativeName: 'മലയാളം', flag: '🇮🇳', region: 'South' }
+  { code: 'en', label: 'English', nativeName: 'English', badge: 'EN', region: 'Default' },
+  { code: 'ta', label: 'Tamil', nativeName: 'தமிழ்', badge: 'TA', region: 'சேலம் & தமிழ்நாடு' },
+  { code: 'hi', label: 'Hindi', nativeName: 'हिन्दी', badge: 'HI', region: 'National' },
+  { code: 'te', label: 'Telugu', nativeName: 'తెలుగు', badge: 'TE', region: 'South' },
+  { code: 'kn', label: 'Kannada', nativeName: 'ಕನ್ನಡ', badge: 'KN', region: 'South' },
+  { code: 'ml', label: 'Malayalam', nativeName: 'മലയാളം', badge: 'ML', region: 'South' }
 ];
 
 export function getCurrentLanguage() {

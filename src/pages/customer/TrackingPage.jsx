@@ -1,3 +1,4 @@
+import { API_V1_URL } from '../../config';
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Container,
@@ -60,6 +61,8 @@ import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import MaskedChatModal from '../../components/MaskedChatModal';
 import VoipCallModal from '../../components/VoipCallModal';
 import CancelBookingModal from '../../components/CancelBookingModal';
+import SalemLottie from '../../components/SalemLottie';
+import SalemSeamlessLoader from '../../components/SalemSeamlessLoader';
 import { NativeNotifier } from '../../services/nativeNotify';
 
 export default function TrackingPage() {
@@ -67,7 +70,7 @@ export default function TrackingPage() {
   const [searchParams] = useSearchParams();
   const urlBookingId = searchParams.get('bookingId');
   const storedBookingId = localStorage.getItem('salemseva_active_booking');
-  const bookingId = urlBookingId || storedBookingId || 'SLM-84920';
+  const bookingId = urlBookingId || storedBookingId || '';
 
   const [chatOpen, setChatOpen] = useState(false);
   const [callOpen, setCallOpen] = useState(false);
@@ -114,7 +117,7 @@ export default function TrackingPage() {
     setTechOtpError('');
     setIsVerifyingTechOtp(true);
     try {
-      const res = await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/verify-otp`, {
+      const res = await fetch(`${API_V1_URL}/bookings/${bookingId}/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -150,14 +153,16 @@ export default function TrackingPage() {
 
   // Poll real database status from backend every 1.2 seconds & listen to instant quote events
   useEffect(() => {
-    if (bookingId) {
-      localStorage.setItem('salemseva_active_booking', bookingId);
+    if (!bookingId) {
+      navigate('/', { replace: true });
+      return;
     }
+    localStorage.setItem('salemseva_active_booking', bookingId);
     let isMounted = true;
 
     const fetchTracking = async () => {
       try {
-        const res = await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/track`);
+        const res = await fetch(`${API_V1_URL}/bookings/${bookingId}/track`);
         const data = await res.json();
         if (data.success && isMounted) {
           // If local storage has quote_presented flag, ensure status reflects it immediately
@@ -212,7 +217,7 @@ export default function TrackingPage() {
     const pollCommunications = async () => {
       try {
         // 1. Check for incoming VoIP calls from technician
-        const callRes = await fetch(`https://salemseva-backend.onrender.com/api/v1/webrtc/call/status?bookingId=${bookingId}`);
+        const callRes = await fetch(`${API_V1_URL}/webrtc/call/status?bookingId=${bookingId}`);
         const callData = await callRes.json();
         if (callData.success && callData.call && isMounted) {
           if (callData.call.active && callData.call.caller === 'technician' && callData.call.status === 'RINGING') {
@@ -229,7 +234,7 @@ export default function TrackingPage() {
         }
 
         // 2. Check for incoming chat messages from technician
-        const msgRes = await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/messages`);
+        const msgRes = await fetch(`${API_V1_URL}/bookings/${bookingId}/messages`);
         const msgData = await msgRes.json();
         if (msgData.success && msgData.messages && isMounted) {
           const msgs = msgData.messages;
@@ -262,14 +267,14 @@ export default function TrackingPage() {
   const handleUpdateSlot = async () => {
     setSlotUpdating(true);
     try {
-      await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/reschedule`, {
+      await fetch(`${API_V1_URL}/bookings/${bookingId}/reschedule`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ scheduledSlot: newSlot })
       });
       setRescheduleOpen(false);
       // Re-fetch
-      const res = await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/track`);
+      const res = await fetch(`${API_V1_URL}/bookings/${bookingId}/track`);
       const data = await res.json();
       if (data.success) setTrackData(data);
     } catch (e) {
@@ -289,7 +294,7 @@ export default function TrackingPage() {
     if (bookingId && ['quote_approved', 'completed'].includes(bookingStatus)) {
       const fetchBill = async () => {
         try {
-          const res = await fetch(`https://salemseva-backend.onrender.com/api/v1/partner/bookings/${bookingId}/bill`);
+          const res = await fetch(`${API_V1_URL}/partner/bookings/${bookingId}/bill`);
           const data = await res.json();
           if (data.success && isMounted) {
             setBillDetails(data);
@@ -323,14 +328,7 @@ export default function TrackingPage() {
   };
 
   if (isLoading && !trackData) {
-    return (
-      <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', p: 3 }}>
-        <Container maxWidth="sm">
-          <Skeleton variant="rounded" height={270} sx={{ borderRadius: '20px', mb: 2 }} />
-          <Skeleton variant="rounded" height={140} sx={{ borderRadius: '20px', mb: 2 }} />
-        </Container>
-      </Box>
-    );
+    return <SalemSeamlessLoader mode="dispatch" />;
   }
 
   return (
@@ -345,10 +343,13 @@ export default function TrackingPage() {
             {/* Top Status Alert */}
             <Alert 
               severity="info" 
-              icon={<HourglassTopIcon sx={{ fontSize: 22 }} />}
+              icon={<ScheduleIcon sx={{ fontSize: 22 }} />}
               sx={{ mb: 2, borderRadius: '16px', fontWeight: 800, bgcolor: '#E0F2FE', color: '#0369A1', border: '1px solid #7DD3FC' }}
             >
-              ⏳ Booking #{bookingId} is confirmed and placed in Salem Central Ops queue.
+              {(trackData?.booking?.booking_type === 'scheduled' || (!trackData?.booking?.is_urgent_dispatch && trackData?.booking?.scheduled_slot && trackData?.booking?.scheduled_slot !== 'instant_now'))
+                ? `Booking #${bookingId} Confirmed & Paid: Salem Central Operations is allocating a verified specialist for your scheduled window.`
+                : `Booking #${bookingId} is confirmed and placed in Salem Central Ops queue.`
+              }
             </Alert>
 
             {/* Central Dispatch Radar Map */}
@@ -394,13 +395,13 @@ export default function TrackingPage() {
                 >
                   <HubIcon sx={{ color: '#38BDF8', fontSize: 18 }} />
                   <Typography variant="caption" sx={{ fontWeight: 900, fontSize: '12px' }}>
-                    Salem Central Ops • Priority Radar Active
+                    Salem Central Ops • Priority Allocation Active
                   </Typography>
                 </Paper>
               </Box>
             </Card>
 
-            {/* Central Ops Assurance & 12h Guarantee Card */}
+            {/* Central Ops Assurance & Allocation Card */}
             <Card
               elevation={0}
               sx={{
@@ -416,7 +417,9 @@ export default function TrackingPage() {
                 <ShieldIcon sx={{ color: '#0284C7', fontSize: 24 }} />
                 <Box>
                   <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0F172A', lineHeight: 1.2 }}>
-                    Central Ops Assignment Guarantee
+                    {(trackData?.booking?.booking_type === 'scheduled' || (!trackData?.booking?.is_urgent_dispatch && trackData?.booking?.scheduled_slot && trackData?.booking?.scheduled_slot !== 'instant_now'))
+                      ? 'Salem Central Operations Allocation Desk'
+                      : 'Central Ops Assignment Guarantee'}
                   </Typography>
                   <Typography variant="caption" sx={{ color: '#64748B' }}>
                     Fairlands & Salem City Jurisdiction
@@ -426,12 +429,30 @@ export default function TrackingPage() {
 
               <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '14px', mb: 2 }}>
                 <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A', mb: 0.5 }}>
-                  Notice: All verified technicians are currently offline or busy.
+                  {(trackData?.booking?.booking_type === 'scheduled' || (!trackData?.booking?.is_urgent_dispatch && trackData?.booking?.scheduled_slot && trackData?.booking?.scheduled_slot !== 'instant_now'))
+                    ? 'Salem Central Operations team is allocating your specialist'
+                    : 'Notice: All verified technicians are currently offline or busy.'}
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#475569', lineHeight: 1.5, display: 'block' }}>
-                  Your service request is actively monitored by Central Ops. A certified partner will be assigned within our <strong>12-hour guarantee window</strong> or at your chosen scheduled slot.
+                  {(trackData?.booking?.booking_type === 'scheduled' || (!trackData?.booking?.is_urgent_dispatch && trackData?.booking?.scheduled_slot && trackData?.booking?.scheduled_slot !== 'instant_now'))
+                    ? 'Your appointment is confirmed and your visit fee is paid. Central Operations is allocating the highest-rated verified technician in your Salem zone. As soon as your technician starts travelling to your home, you will receive an automatic notification and live GPS tracking will activate.'
+                    : 'Your service request is actively monitored by Central Ops. A certified partner will be assigned within our 12-hour guarantee window or at your chosen scheduled slot.'}
                 </Typography>
               </Paper>
+
+              {(trackData?.booking?.booking_type === 'scheduled' || (!trackData?.booking?.is_urgent_dispatch && trackData?.booking?.scheduled_slot && trackData?.booking?.scheduled_slot !== 'instant_now')) && (
+                <Paper elevation={0} sx={{ p: 1.5, bgcolor: '#ECFDF5', border: '1px solid #A7F3D0', borderRadius: '12px', mb: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <NotificationsActiveIcon sx={{ color: '#059669', fontSize: 20 }} />
+                    <Typography variant="caption" sx={{ color: '#065F46', fontWeight: 800, fontSize: '12px' }}>
+                      Automatic Journey Notification
+                    </Typography>
+                  </Box>
+                  <Typography variant="caption" sx={{ color: '#047857', display: 'block', mt: 0.5 }}>
+                    When your assigned technician starts travelling to your doorstep, you will receive an instant notification and live GPS tracking will activate automatically.
+                  </Typography>
+                </Paper>
+              )}
 
               {/* Current Scheduled Slot */}
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: '#F0F9FF', p: 1.5, borderRadius: '12px', border: '1px solid #BAE6FD', mb: 2 }}>
@@ -560,13 +581,23 @@ export default function TrackingPage() {
                 Technician {tech.name} has arrived and is conducting diagnostic inspection at your doorstep.
               </Alert>
             ) : (
-              <Alert 
-                severity="info" 
-                icon={<TwoWheelerIcon sx={{ fontSize: 18 }} />}
-                sx={{ mb: 2, borderRadius: '8px', fontWeight: 600, bgcolor: '#F0F9FF', color: '#0369A1', border: '1px solid #BAE6FD', fontSize: '12.5px' }}
-              >
-                Technician {tech.name} is en route to your doorstep (ETA: {tech.eta || '8 mins'} • {tech.distanceKm || '1.8 km'}).
-              </Alert>
+              <Box sx={{ mb: 2 }}>
+                {/* LottieFiles Technician En Route Motorbike Animation */}
+                <SalemLottie
+                  name="bike"
+                  width={180}
+                  height={100}
+                  ariaLabel="Technician traveling to your doorstep in Salem"
+                  style={{ mb: 1 }}
+                />
+                <Alert 
+                  severity="info" 
+                  icon={<TwoWheelerIcon sx={{ fontSize: 18 }} />}
+                  sx={{ borderRadius: '8px', fontWeight: 600, bgcolor: '#F0F9FF', color: '#0369A1', border: '1px solid #BAE6FD', fontSize: '12.5px' }}
+                >
+                  Technician {tech.name} has started journey and is on the way to your home (ETA: {tech.eta || '8 mins'} • {tech.distanceKm || '1.8 km'}).
+                </Alert>
+              </Box>
             )}
 
             {/* 1. Map Card with Live Route, Google Maps Integration & Dynamic ETA */}
@@ -977,7 +1008,7 @@ export default function TrackingPage() {
               </Box>
             </Card>
 
-            {/* Store Bill & Transparent Pricing Breakdown Card */}
+            {/* Transparent Work Charge & Settlement Breakdown Card */}
             {['quote_approved', 'completed'].includes(bookingStatus) && (
               <Card
                 elevation={0}
@@ -994,21 +1025,15 @@ export default function TrackingPage() {
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
                     <ReceiptLongIcon sx={{ color: '#0284C7', fontSize: 20 }} />
                     <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '13.5px' }}>
-                      உதிரிபாகங்கள் கடை பில் & கட்டண விபரம் (Parts Bill & Settlement)
+                      வேலைக் கட்டண விபரம் (Technician Work Charge)
                     </Typography>
                   </Box>
                   <Chip
-                    label={
-                      billDetails?.partsMode === 'user_buys'
-                        ? 'வாடிக்கையாளர் வாங்குதல்'
-                        : billDetails?.hasBill
-                          ? '✓ பில் சரிபார்க்கப்பட்டது'
-                          : 'கடை பில் காத்திருப்பு'
-                    }
+                    label="Labor Escrow"
                     size="small"
                     sx={{
-                      bgcolor: billDetails?.partsMode === 'user_buys' ? '#FEF3C7' : (billDetails?.hasBill ? '#DCFCE7' : '#EFF6FF'),
-                      color: billDetails?.partsMode === 'user_buys' ? '#92400E' : (billDetails?.hasBill ? '#166534' : '#1D4ED8'),
+                      bgcolor: '#DCFCE7',
+                      color: '#166534',
                       fontWeight: 800,
                       fontSize: '10px',
                       borderRadius: '4px'
@@ -1016,178 +1041,46 @@ export default function TrackingPage() {
                   />
                 </Box>
 
-                {/* Case 1: Tech Buys & Uploaded Receipt Photo */}
-                {billDetails?.hasBill && billDetails?.partsMode !== 'user_buys' ? (
-                  <Box>
-                    <Paper
-                      elevation={0}
-                      onClick={() => setViewBillModalOpen(true)}
-                      sx={{
-                        p: 1.2,
-                        mb: 1.5,
-                        bgcolor: '#F8FAFC',
-                        border: '1px solid #CBD5E1',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        '&:hover': { bgcolor: '#F1F5F9', borderColor: '#94A3B8' }
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
-                        {billDetails?.billUrl && (
-                          <Box
-                            component="img"
-                            src={billDetails.billUrl}
-                            alt="Receipt Preview"
-                            sx={{ width: 44, height: 44, borderRadius: '6px', objectFit: 'cover', border: '1px solid #E2E8F0' }}
-                          />
-                        )}
-                        <Box>
-                          <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '12px' }}>
-                            அசல் கடை பில் / ரசீது (Store Receipt)
-                          </Typography>
-                          <Typography variant="caption" sx={{ color: '#0284C7', fontWeight: 600, fontSize: '10.5px' }}>
-                            தொகை: ₹{parseFloat(billDetails?.billAmount || 0).toFixed(2)} • பெரிதாக்க கிளிக் செய்க (Click to Zoom)
-                          </Typography>
-                        </Box>
-                      </Box>
-                      <Button
-                        size="small"
-                        startIcon={<ZoomInIcon sx={{ fontSize: 16 }} />}
-                        sx={{ fontSize: '11px', fontWeight: 700, color: '#0284C7', textTransform: 'none' }}
-                      >
-                        View Bill
-                      </Button>
-                    </Paper>
+                <Box sx={{ bgcolor: '#F0FDF4', p: 1.2, borderRadius: '6px', border: '1px solid #BBF7D0', mb: 1.5, display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                  <ShieldIcon sx={{ fontSize: 16, color: '#166534', flexShrink: 0 }} />
+                  <Typography variant="caption" sx={{ color: '#166534', fontWeight: 600, display: 'block' }}>
+                    சேலம்சேவா தளம் உதிரிபாகங்களை விற்பனை செய்வதில்லை. 5% தள கட்டணம் தொழிலாளர் <strong>வேலைக் கட்டணத்திற்கு மட்டுமே</strong>.
+                  </Typography>
+                </Box>
 
-                    {/* 3-Part Pricing Calculation Breakdown */}
-                    <Box sx={{ bgcolor: '#F8FAFC', p: 1.4, borderRadius: '8px', border: '1px solid #E2E8F0' }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
-                        <Typography variant="body2" sx={{ color: '#475569', fontSize: '12.5px' }}>
-                          1. அசல் கடை பில் (Store Purchase Bill):
-                        </Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '12.5px' }}>
-                          ₹{parseFloat(billDetails?.billAmount || 0).toFixed(2)}
-                        </Typography>
-                      </Box>
-
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
-                        <Typography variant="body2" sx={{ color: '#475569', fontSize: '12.5px' }}>
-                          2. தொழிலாளர் கட்டணம் (Labour Charge):
-                        </Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '12.5px' }}>
-                          ₹{parseFloat(billDetails?.laborCost || 250).toFixed(2)}
-                        </Typography>
-                      </Box>
-
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                          <ShieldIcon sx={{ color: '#2563EB', fontSize: 14 }} />
-                          <Typography variant="body2" sx={{ color: '#2563EB', fontSize: '12px', fontWeight: 600 }}>
-                            3. சேலம்சேவா தள கட்டணம் (Platform Fee 5%):
-                          </Typography>
-                        </Box>
-                        <Typography variant="body2" sx={{ fontWeight: 700, color: '#2563EB', fontSize: '12.5px' }}>
-                          +₹{parseFloat(billDetails?.platformFee || ((parseFloat(billDetails?.billAmount || 0) + parseFloat(billDetails?.laborCost || 250)) * 0.05)).toFixed(2)}
-                        </Typography>
-                      </Box>
-
-                      <Divider sx={{ my: 1 }} />
-
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '13.5px' }}>
-                          மொத்த கட்டணம் (Total Payable):
-                        </Typography>
-                        <Typography variant="h6" sx={{ fontWeight: 900, color: '#16A34A', fontSize: '17px' }}>
-                          ₹{parseFloat(billDetails?.totalAmount || (parseFloat(billDetails?.billAmount || 0) + parseFloat(billDetails?.laborCost || 250) + parseFloat(billDetails?.platformFee || 0))).toFixed(2)}
-                        </Typography>
-                      </Box>
-                    </Box>
+                <Box sx={{ bgcolor: '#F8FAFC', p: 1.4, borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
+                    <Typography variant="body2" sx={{ color: '#475569', fontSize: '12.5px' }}>
+                      1. தொழிலாளர் வேலைக் கட்டணம் (Labour Charge):
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '12.5px' }}>
+                      ₹{parseFloat(billDetails?.laborCost || 250).toFixed(2)}
+                    </Typography>
                   </Box>
-                ) : billDetails?.partsMode === 'user_buys' ? (
-                  /* Case 2: Customer Buys Directly */
-                  <Box>
-                    <Box sx={{ bgcolor: '#F0FDF4', p: 1.2, borderRadius: '6px', border: '1px solid #BBF7D0', mb: 1.5 }}>
-                      <Typography variant="caption" sx={{ color: '#166534', fontWeight: 600, display: 'block' }}>
-                        ✅ நீங்கள் பாகங்களை வாங்கியுள்ளீர்கள். தொழிலாளர் கட்டணம் + 5% தள கட்டணம் மட்டுமே கணக்கிடப்பட்டுள்ளது.
+
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <ShieldIcon sx={{ color: '#2563EB', fontSize: 14 }} />
+                      <Typography variant="body2" sx={{ color: '#2563EB', fontSize: '12px', fontWeight: 600 }}>
+                        2. சேலம்சேவா தள கட்டணம் (Platform Fee 5% on Labor):
                       </Typography>
                     </Box>
-
-                    <Box sx={{ bgcolor: '#F8FAFC', p: 1.4, borderRadius: '8px', border: '1px solid #E2E8F0' }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
-                        <Typography variant="body2" sx={{ color: '#475569', fontSize: '12.5px' }}>
-                          1. உதிரிபாகங்கள் (Spare Parts):
-                        </Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 700, color: '#64748B', fontSize: '12.5px' }}>
-                          ₹0.00 (Customer Sourced)
-                        </Typography>
-                      </Box>
-
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
-                        <Typography variant="body2" sx={{ color: '#475569', fontSize: '12.5px' }}>
-                          2. தொழிலாளர் கட்டணம் (Labour Charge):
-                        </Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '12.5px' }}>
-                          ₹{parseFloat(billDetails?.laborCost || 250).toFixed(2)}
-                        </Typography>
-                      </Box>
-
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                          <ShieldIcon sx={{ color: '#2563EB', fontSize: 14 }} />
-                          <Typography variant="body2" sx={{ color: '#2563EB', fontSize: '12px', fontWeight: 600 }}>
-                            3. சேலம்சேவா தள கட்டணம் (Platform Fee 5%):
-                          </Typography>
-                        </Box>
-                        <Typography variant="body2" sx={{ fontWeight: 700, color: '#2563EB', fontSize: '12.5px' }}>
-                          +₹{parseFloat(billDetails?.platformFee || (parseFloat(billDetails?.laborCost || 250) * 0.05)).toFixed(2)}
-                        </Typography>
-                      </Box>
-
-                      <Divider sx={{ my: 1 }} />
-
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '13.5px' }}>
-                          மொத்த கட்டணம் (Total Payable):
-                        </Typography>
-                        <Typography variant="h6" sx={{ fontWeight: 900, color: '#16A34A', fontSize: '17px' }}>
-                          ₹{parseFloat(billDetails?.totalAmount || (parseFloat(billDetails?.laborCost || 250) * 1.05)).toFixed(2)}
-                        </Typography>
-                      </Box>
-                    </Box>
+                    <Typography variant="body2" sx={{ fontWeight: 700, color: '#2563EB', fontSize: '12.5px' }}>
+                      +₹{parseFloat(billDetails?.platformFee || (parseFloat(billDetails?.laborCost || 250) * 0.05)).toFixed(2)}
+                    </Typography>
                   </Box>
-                ) : (
-                  /* Case 3: Tech buying parts, awaiting shop receipt upload */
-                  <Box>
-                    <Paper elevation={0} sx={{ p: 1.2, mb: 1.2, bgcolor: '#F0F9FF', border: '1px solid #BAE6FD', borderRadius: '6px' }}>
-                      <Typography variant="caption" sx={{ color: '#0369A1', fontWeight: 700, display: 'block', mb: 0.3 }}>
-                        டெக்னீஷியன் கடைக்குச் சென்று பாகங்களை வாங்குகிறார் (Purchasing from local Salem store):
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: '#0C4A6E', display: 'block', lineHeight: 1.4 }}>
-                        டெக்னீஷியன் கடை ரசீதை புகைப்படமாக பதிவேற்றியதும், அசல் கடை பில் தொகை மற்றும் 5% தள கட்டணம் இங்கே நேரடியாக காண்பிக்கப்படும்.
-                      </Typography>
-                    </Paper>
 
-                    <Box sx={{ bgcolor: '#F8FAFC', p: 1.4, borderRadius: '8px', border: '1px solid #E2E8F0' }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
-                        <Typography variant="body2" sx={{ color: '#475569', fontSize: '12.5px' }}>
-                          தொழிலாளர் கட்டணம் (Labour Charge):
-                        </Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '12.5px' }}>
-                          ₹{parseFloat(billDetails?.laborCost || 250).toFixed(2)}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="body2" sx={{ color: '#475569', fontSize: '12.5px' }}>
-                          உதிரிபாகங்கள் (Spare Parts):
-                        </Typography>
-                        <Chip label="கடை பில்படி (Pending Upload)" size="small" sx={{ bgcolor: '#EFF6FF', color: '#1D4ED8', fontWeight: 700, fontSize: '9.5px', height: 18 }} />
-                      </Box>
-                    </Box>
+                  <Divider sx={{ my: 1 }} />
+
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '13.5px' }}>
+                      மொத்த கட்டணம் (Total Payable):
+                    </Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 900, color: '#16A34A', fontSize: '17px' }}>
+                      ₹{parseFloat(billDetails?.totalAmount || (parseFloat(billDetails?.laborCost || 250) * 1.05)).toFixed(2)}
+                    </Typography>
                   </Box>
-                )}
+                </Box>
               </Card>
             )}
 
@@ -1444,7 +1337,7 @@ export default function TrackingPage() {
         onClose={() => setChatOpen(false)} 
         bookingId={bookingId}
         userRole="customer"
-        peerName={tech?.name || 'K. Ramesh'} 
+        peerName={tech?.name || 'Assigned Partner'} 
       />
 
       {/* Secure Masked VoIP Calling Modal */}
@@ -1455,7 +1348,7 @@ export default function TrackingPage() {
           setIsIncomingCall(false);
         }} 
         bookingId={bookingId}
-        calleeName={tech?.name || 'K. Ramesh (Technician)'} 
+        calleeName={tech?.name ? `${tech.name} (Technician)` : 'Assigned Technician'} 
         role="Customer" 
         isIncoming={isIncomingCall}
       />
@@ -1492,7 +1385,7 @@ export default function TrackingPage() {
             alignItems: 'center'
           }}
         >
-          <strong>{tech?.name || 'K. Ramesh'}:</strong> {incomingMessageToast}
+          <strong>{tech?.name || 'Assigned Partner'}:</strong> {incomingMessageToast}
         </Alert>
       </Snackbar>
 
@@ -1512,7 +1405,7 @@ export default function TrackingPage() {
         </DialogTitle>
         <DialogContent>
           <Typography variant="body2" sx={{ color: '#475569', mb: 2, fontSize: '13px', lineHeight: 1.5 }}>
-            Did technician <strong>{tech?.name || 'K. Ramesh'}</strong> complete the service and demonstrate the working unit properly?
+            Did technician <strong>{tech?.name || 'the assigned partner'}</strong> complete the service and demonstrate the working unit properly?
           </Typography>
 
           <Paper elevation={0} sx={{ p: 1.5, bgcolor: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '10px', mb: 1 }}>
@@ -1576,7 +1469,7 @@ export default function TrackingPage() {
               setIsReleasingEscrow(true);
               try {
                 // 1. Release escrow payment on backend
-                await fetch('https://salemseva-backend.onrender.com/api/v1/payments/escrow/release', {
+                await fetch(`${API_V1_URL}/payments/escrow/release`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
@@ -1586,7 +1479,7 @@ export default function TrackingPage() {
                 }).catch(() => {});
 
                 // 2. Set status to completed
-                await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/status`, {
+                await fetch(`${API_V1_URL}/bookings/${bookingId}/status`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ status: 'completed' })
@@ -1714,7 +1607,7 @@ export default function TrackingPage() {
               </Typography>
             </Box>
             <Typography variant="caption" sx={{ color: '#475569', display: 'block', lineHeight: 1.4 }}>
-              Technician <strong>{tech?.name || 'K. Ramesh'}</strong> has completed doorstep diagnosis and prepared an itemized breakdown with genuine warranty parts.
+              Technician <strong>{tech?.name || 'Assigned Partner'}</strong> has completed doorstep diagnosis and prepared an itemized breakdown with genuine warranty parts.
             </Typography>
           </Paper>
 

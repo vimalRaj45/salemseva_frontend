@@ -112,9 +112,23 @@ export default function LanguageSelectorModal({ open, onClose, isDarkMode = fals
                 }}
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <Typography sx={{ fontSize: '20px' }}>
-                    {lang.flag}
-                  </Typography>
+                  <Box
+                    sx={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: '6px',
+                      bgcolor: isSelected ? '#EFF6FF' : isDarkMode ? '#334155' : '#F1F5F9',
+                      color: isSelected ? '#0066CC' : isDarkMode ? '#94A3B8' : '#475569',
+                      fontWeight: 800,
+                      fontSize: '11px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: `1px solid ${isSelected ? '#93C5FD' : isDarkMode ? '#475569' : '#CBD5E1'}`
+                    }}
+                  >
+                    {lang.badge || lang.code.toUpperCase()}
+                  </Box>
                   <Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
                       <Typography

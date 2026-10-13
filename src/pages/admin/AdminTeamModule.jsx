@@ -1,0 +1,574 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Box,
+  Typography,
+  Card,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  Chip,
+  Button,
+  IconButton,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Alert,
+  Tooltip,
+  Paper,
+  Grid,
+  Avatar,
+  CircularProgress
+} from '@mui/material';
+import GroupIcon from '@mui/icons-material/Group';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import SecurityIcon from '@mui/icons-material/Security';
+import HubIcon from '@mui/icons-material/Hub';
+import SupportAgentIcon from '@mui/icons-material/SupportAgent';
+import PaymentsIcon from '@mui/icons-material/Payments';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import LockIcon from '@mui/icons-material/Lock';
+import ShieldIcon from '@mui/icons-material/Shield';
+import { ILLUSTRATIONS } from '../../constants/visualAssets';
+import { API_V1_URL } from '../../config';
+
+const roleMeta = {
+  super_admin: {
+    label: 'Super Admin',
+    desc: 'Full root access to entire system: pricing, team, dispatch, payouts & KYC approval.',
+    color: '#7C3AED',
+    bg: '#F3E8FF',
+    icon: SecurityIcon
+  },
+  ops_dispatcher: {
+    label: 'Ops Dispatcher',
+    desc: 'Live booking queue, smart technician assignment, real-time tracking console.',
+    color: '#0284C7',
+    bg: '#E0F2FE',
+    icon: HubIcon
+  },
+  support_quality: {
+    label: 'Support & Quality',
+    desc: 'Customer CRM 360, feedback desk, reviews dispute arbitration & customer escalation.',
+    color: '#D97706',
+    bg: '#FEF3C7',
+    icon: SupportAgentIcon
+  },
+  finance_officer: {
+    label: 'Finance Officer',
+    desc: 'Escrow settlements, Razorpay payouts, platform commission splits, coupons & reward budget.',
+    color: '#059669',
+    bg: '#ECFDF5',
+    icon: PaymentsIcon
+  }
+};
+
+export default function AdminTeamModule({ currentRole = 'super_admin', onToast = () => {} }) {
+  const [team, setTeam] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingMember, setEditingMember] = useState(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    role: 'ops_dispatcher',
+    hub_locality: 'Salem Central HQ',
+    status: 'active'
+  });
+  const [saving, setSaving] = useState(false);
+
+  const canManageTeam = currentRole === 'super_admin';
+
+  const fetchTeam = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_V1_URL}/admin/team`);
+      const data = await res.json();
+      if (data.success && Array.isArray(data.team)) {
+        setTeam(data.team);
+      }
+    } catch (err) {
+      console.warn('Failed to fetch team:', err);
+      onToast('Failed to load team members from server', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTeam();
+  }, []);
+
+  const handleOpenAdd = () => {
+    setEditingMember(null);
+    setFormData({
+      name: '',
+      email: '',
+      phone: '',
+      role: 'ops_dispatcher',
+      hub_locality: 'Salem Central HQ',
+      status: 'active'
+    });
+    setDialogOpen(true);
+  };
+
+  const handleOpenEdit = (m) => {
+    setEditingMember(m);
+    setFormData({
+      name: m.name,
+      email: m.email,
+      phone: m.phone || '',
+      role: m.role,
+      hub_locality: m.hub_locality || 'Salem Central HQ',
+      status: m.status || 'active'
+    });
+    setDialogOpen(true);
+  };
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    if (!formData.name || !formData.email) {
+      onToast('Name and email are required', 'warning');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const url = editingMember
+        ? `${API_V1_URL}/admin/team/${editingMember.id}`
+        : `${API_V1_URL}/admin/team`;
+      const method = editingMember ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      const data = await res.json();
+      if (data.success) {
+        onToast(editingMember ? 'Team member updated' : 'Team member added', 'success');
+        setDialogOpen(false);
+        fetchTeam();
+      } else {
+        onToast(data.error || 'Operation failed', 'error');
+      }
+    } catch (err) {
+      onToast(err.message, 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (id, name) => {
+    if (!window.confirm(`Are you sure you want to remove ${name} from internal team?`)) return;
+    try {
+      const res = await fetch(`${API_V1_URL}/admin/team/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        onToast('Member removed from team', 'info');
+        setTeam(prev => prev.filter(m => m.id !== id));
+      } else {
+        onToast(data.error || 'Failed to remove member', 'error');
+      }
+    } catch (err) {
+      onToast(err.message, 'error');
+    }
+  };
+
+  return (
+    <Box>
+      {!canManageTeam && (
+        <Alert
+          severity="info"
+          icon={<LockIcon sx={{ fontSize: 18 }} />}
+          sx={{ mb: 2.5, borderRadius: '12px', fontWeight: 700 }}
+        >
+          View-Only RBAC: You are operating as {currentRole}. Modifying team access permissions requires Super Admin authority.
+        </Alert>
+      )}
+
+      {/* Role Definitions Cards */}
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        {Object.entries(roleMeta).map(([roleKey, meta]) => {
+          const RoleIcon = meta.icon;
+          const count = team.filter(m => m.role === roleKey).length;
+
+          return (
+            <Grid item xs={12} sm={6} md={3} key={roleKey}>
+              <Card
+                elevation={0}
+                sx={{
+                  p: 2,
+                  bgcolor: '#FFFFFF',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '14px',
+                  boxShadow: '0 2px 8px rgba(15, 23, 42, 0.03)'
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                  <Box
+                    sx={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: '8px',
+                      bgcolor: meta.bg,
+                      color: meta.color,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    <RoleIcon sx={{ fontSize: 18 }} />
+                  </Box>
+                  <Chip
+                    label={`${count} Staff`}
+                    size="small"
+                    sx={{ bgcolor: meta.bg, color: meta.color, fontWeight: 900, fontSize: '10px', height: 20 }}
+                  />
+                </Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', mb: 0.5 }}>
+                  {meta.label}
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#64748B', display: 'block', lineHeight: 1.3, fontSize: '11px' }}>
+                  {meta.desc}
+                </Typography>
+              </Card>
+            </Grid>
+          );
+        })}
+      </Grid>
+
+      {/* Team Directory Card */}
+      <Card
+        elevation={0}
+        sx={{
+          bgcolor: '#FFFFFF',
+          border: '1px solid #E2E8F0',
+          borderRadius: '16px',
+          overflow: 'hidden',
+          boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)'
+        }}
+      >
+        <Box sx={{ p: 2.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Box
+              component="img"
+              src={ILLUSTRATIONS.connectingTeams}
+              alt="Connecting operations and field teams"
+              sx={{ width: 44, height: 36, objectFit: 'contain' }}
+            />
+            <Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0F172A', lineHeight: 1.2 }}>
+                Salem Operations Staff & RBAC Directory
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#64748B' }}>
+                Internal governance and access delegation across Salem Control Hubs.
+              </Typography>
+            </Box>
+            <Chip
+              label={`${team.length} Members`}
+              size="small"
+              sx={{ bgcolor: '#F1F5F9', color: '#475569', fontWeight: 800, fontSize: '11px', ml: 1 }}
+            />
+          </Box>
+
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Tooltip title="Refresh Team">
+              <IconButton onClick={fetchTeam} disabled={loading} sx={{ border: '1px solid #CBD5E1', borderRadius: '8px' }}>
+                <RefreshIcon sx={{ fontSize: 18, color: '#0284C7' }} />
+              </IconButton>
+            </Tooltip>
+            {canManageTeam && (
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<AddIcon sx={{ fontSize: 16 }} />}
+                onClick={handleOpenAdd}
+                sx={{
+                  bgcolor: '#0284C7',
+                  color: '#FFFFFF',
+                  fontWeight: 800,
+                  fontSize: '12px',
+                  borderRadius: '8px',
+                  textTransform: 'none',
+                  px: 2,
+                  '&:hover': { bgcolor: '#0369A1' }
+                }}
+              >
+                Add Staff Member
+              </Button>
+            )}
+          </Box>
+        </Box>
+
+        {loading ? (
+          <Box sx={{ p: 6, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1.5 }}>
+            <CircularProgress size={24} sx={{ color: '#0284C7' }} />
+            <Typography variant="body2" sx={{ color: '#64748B', fontWeight: 700 }}>
+              Loading operational team...
+            </Typography>
+          </Box>
+        ) : team.length === 0 ? (
+          <Box sx={{ p: 6, textAlign: 'center' }}>
+            <Typography variant="body2" sx={{ color: '#64748B', fontWeight: 700 }}>
+              No team members registered yet.
+            </Typography>
+          </Box>
+        ) : (
+          <Table size="small">
+            <TableHead>
+              <TableRow sx={{ bgcolor: '#F8FAFC', '& th': { color: '#475569', fontWeight: 800, fontSize: '12px', py: 1.5 } }}>
+                <TableCell>Member Name</TableCell>
+                <TableCell>Role & Privileges</TableCell>
+                <TableCell>Assigned Hub / Locality</TableCell>
+                <TableCell>Contact Details</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell align="right">Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {team.map((member) => {
+                const meta = roleMeta[member.role] || roleMeta.ops_dispatcher;
+                const RoleIcon = meta.icon;
+
+                return (
+                  <TableRow
+                    key={member.id}
+                    sx={{
+                      '&:hover': { bgcolor: '#F8FAFC' },
+                      '& td': { borderColor: '#E2E8F0', py: 1.4 }
+                    }}
+                  >
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                        <Avatar
+                          sx={{
+                            width: 34,
+                            height: 34,
+                            bgcolor: meta.color,
+                            fontSize: '13px',
+                            fontWeight: 900
+                          }}
+                        >
+                          {member.name?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'ST'}
+                        </Avatar>
+                        <Box>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '13px' }}>
+                            {member.name}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11px' }}>
+                            ID: {member.id}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </TableCell>
+
+                    <TableCell>
+                      <Chip
+                        icon={<RoleIcon sx={{ fontSize: '13px !important', color: `${meta.color} !important` }} />}
+                        label={meta.label}
+                        size="small"
+                        sx={{
+                          bgcolor: meta.bg,
+                          color: meta.color,
+                          fontWeight: 900,
+                          fontSize: '11px',
+                          height: 22
+                        }}
+                      />
+                    </TableCell>
+
+                    <TableCell>
+                      <Typography variant="body2" sx={{ fontWeight: 700, color: '#334155', fontSize: '12.5px' }}>
+                        {member.hub_locality || 'Salem Central HQ'}
+                      </Typography>
+                    </TableCell>
+
+                    <TableCell>
+                      <Typography variant="caption" sx={{ fontWeight: 700, color: '#0F172A', display: 'block' }}>
+                        {member.email}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: '#64748B' }}>
+                        {member.phone || 'Phone not set'}
+                      </Typography>
+                    </TableCell>
+
+                    <TableCell>
+                      <Chip
+                        icon={<CheckCircleIcon sx={{ fontSize: '12px !important', color: '#166534 !important' }} />}
+                        label={member.status?.toUpperCase() || 'ACTIVE'}
+                        size="small"
+                        sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 800, fontSize: '9.5px', height: 20 }}
+                      />
+                    </TableCell>
+
+                    <TableCell align="right">
+                      {canManageTeam ? (
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5 }}>
+                          <Tooltip title="Edit Member Role">
+                            <IconButton
+                              size="small"
+                              onClick={() => handleOpenEdit(member)}
+                              sx={{ color: '#0284C7', border: '1px solid #E2E8F0', borderRadius: '6px' }}
+                            >
+                              <EditIcon sx={{ fontSize: 15 }} />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Remove Member">
+                            <IconButton
+                              size="small"
+                              onClick={() => handleDelete(member.id, member.name)}
+                              sx={{ color: '#DC2626', border: '1px solid #E2E8F0', borderRadius: '6px' }}
+                            >
+                              <DeleteIcon sx={{ fontSize: 15 }} />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      ) : (
+                        <Chip
+                          icon={<LockIcon sx={{ fontSize: '11px !important' }} />}
+                          label="Locked"
+                          size="small"
+                          sx={{ height: 20, fontSize: '9.5px', color: '#94A3B8' }}
+                        />
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        )}
+      </Card>
+
+      {/* Add / Edit Staff Modal */}
+      <Dialog
+        open={dialogOpen}
+        onClose={() => !saving && setDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: '16px', p: 1 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 900, color: '#0F172A', pb: 0.5 }}>
+          {editingMember ? `Edit Staff Member: ${editingMember.name}` : 'Add Operations Staff Member'}
+        </DialogTitle>
+        <form onSubmit={handleSave}>
+          <DialogContent>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Full Name"
+                  placeholder="e.g. Anand M."
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  required
+                  InputProps={{ sx: { borderRadius: '10px' } }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Official Email"
+                  type="email"
+                  placeholder="e.g. anand@salemseva.in"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  required
+                  InputProps={{ sx: { borderRadius: '10px' } }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Phone Number"
+                  placeholder="+91 98421 00000"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  InputProps={{ sx: { borderRadius: '10px' } }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Operational Role</InputLabel>
+                  {/* ds-allow-native-select */}
+                  <Select
+                    value={formData.role}
+                    label="Operational Role"
+                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                    sx={{ borderRadius: '10px' }}
+                  >
+                    <MenuItem value="super_admin">Super Admin (Root)</MenuItem>
+                    <MenuItem value="ops_dispatcher">Ops Dispatcher</MenuItem>
+                    <MenuItem value="support_quality">Support & Quality</MenuItem>
+                    <MenuItem value="finance_officer">Finance Officer</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Hub / Locality"
+                  value={formData.hub_locality}
+                  onChange={(e) => setFormData({ ...formData, hub_locality: e.target.value })}
+                  InputProps={{ sx: { borderRadius: '10px' } }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Status</InputLabel>
+                  {/* ds-allow-native-select */}
+                  <Select
+                    value={formData.status}
+                    label="Status"
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                    sx={{ borderRadius: '10px' }}
+                  >
+                    <MenuItem value="active">Active</MenuItem>
+                    <MenuItem value="suspended">Suspended</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+            </Grid>
+          </DialogContent>
+          <DialogActions sx={{ p: 2, pt: 0 }}>
+            <Button
+              onClick={() => setDialogOpen(false)}
+              disabled={saving}
+              sx={{ fontWeight: 700, color: '#64748B', textTransform: 'none' }}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={saving}
+              sx={{
+                bgcolor: '#0284C7',
+                color: '#FFFFFF',
+                fontWeight: 800,
+                borderRadius: '8px',
+                textTransform: 'none',
+                px: 2.5,
+                '&:hover': { bgcolor: '#0369A1' }
+              }}
+            >
+              {saving ? 'Saving...' : editingMember ? 'Update Staff Member' : 'Save Staff Member'}
+            </Button>
+          </DialogActions>
+        </form>
+      </Dialog>
+    </Box>
+  );
+}

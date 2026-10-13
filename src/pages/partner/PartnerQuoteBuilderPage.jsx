@@ -1,3 +1,4 @@
+import { API_V1_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
 import {
   Container,
@@ -24,6 +25,7 @@ import SendIcon from '@mui/icons-material/Send';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import ShieldIcon from '@mui/icons-material/Shield';
 
 import ProcessingBackdrop from '../../components/ProcessingBackdrop';
 
@@ -38,22 +40,26 @@ export default function PartnerQuoteBuilderPage() {
   
   const resolvedId = (rawParam && rawParam !== 'null' && rawParam !== 'undefined')
     ? rawParam
-    : (storedJobId || storedCustId || 'SLM-84920');
+    : (storedJobId || storedCustId || '');
 
   const [bookingId, setBookingId] = useState(resolvedId);
   const [customerData, setCustomerData] = useState({
-    name: 'Vimal Raj',
-    locality: 'Fairlands, Salem',
-    issue: 'AC Doorstep Inspection & Service'
+    name: 'Customer',
+    locality: 'Salem',
+    issue: 'Service Diagnostics & Inspection'
   });
   const [isLoading, setIsLoading] = useState(true);
 
   const [items, setItems] = useState([]);
-  const [catalogSpares, setCatalogSpares] = useState([]);
+  const [standardWorkTasks, setStandardWorkTasks] = useState([
+    { id: 'w1', name: 'Diagnostics & Issue Inspection Labor', price: 150, type: 'Labor' },
+    { id: 'w2', name: 'Basic Servicing & Maintenance Labor', price: 250, type: 'Labor' },
+    { id: 'w3', name: 'Component Repair & Fitting Labor', price: 350, type: 'Labor' },
+    { id: 'w4', name: 'Full Unit Overhaul & Deep Service Labor', price: 550, type: 'Labor' }
+  ]);
 
   const [customName, setCustomName] = useState('');
   const [customPrice, setCustomPrice] = useState('');
-  const [customType, setCustomType] = useState('Spare Part');
   const [isProcessing, setIsProcessing] = useState(false);
   const [successToast, setSuccessToast] = useState(false);
 
@@ -63,12 +69,11 @@ export default function PartnerQuoteBuilderPage() {
     const fetchBookingDetails = async () => {
       try {
         const [trackRes, quoteRes] = await Promise.all([
-          fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${resolvedId}/track`).then(r => r.json()).catch(() => null),
-          fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${resolvedId}/quote`).then(r => r.json()).catch(() => null)
+          fetch(`${API_V1_URL}/bookings/${resolvedId}/track`).then(r => r.json()).catch(() => null),
+          fetch(`${API_V1_URL}/bookings/${resolvedId}/quote`).then(r => r.json()).catch(() => null)
         ]);
 
         if (isMounted) {
-          const serviceId = trackRes?.booking?.service_id || 'ac';
           if (trackRes?.booking) {
             setBookingId(trackRes.booking.id);
             setCustomerData({
@@ -82,31 +87,22 @@ export default function PartnerQuoteBuilderPage() {
             setItems(quoteRes.items.map(i => ({
               id: i.id || Date.now() + Math.random(),
               name: i.name,
-              type: i.type || 'Spare Part',
+              type: 'Labor',
               price: parseFloat(i.price) || 0,
-              isOem: Boolean(i.isOem),
               qty: i.qty || 1
             })));
-          }
-
-          // Fetch real spares catalog for this service trade from DB
-          try {
-            const catRes = await fetch(`https://salemseva-backend.onrender.com/api/v1/services/${serviceId}/spares`);
-            const catData = await catRes.json();
-            if (catData.success && catData.items) {
-              setCatalogSpares(catData.items);
-              if (!quoteRes?.items || quoteRes.items.length === 0) {
-                setItems(catData.items.slice(0, 3).map(i => ({
-                  id: i.id,
-                  name: i.name,
-                  type: i.type,
-                  price: parseFloat(i.price),
-                  isOem: Boolean(i.isOem),
-                  qty: 1
-                })));
+          } else {
+            // Default initial labor task
+            setItems([
+              {
+                id: 'init_labor',
+                name: 'Doorstep Diagnostics & Repair Labor',
+                type: 'Labor',
+                price: 250,
+                qty: 1
               }
-            }
-          } catch (e) {}
+            ]);
+          }
         }
       } catch (err) {
         console.warn('Quote builder fetch note:', err);
@@ -120,8 +116,8 @@ export default function PartnerQuoteBuilderPage() {
   }, [resolvedId]);
 
   const totalGross = items.reduce((sum, item) => sum + ((parseFloat(item.price) || 0) * (parseInt(item.qty, 10) || 1)), 0);
-  const platformShare = totalGross * 0.05; // 5% SalemSeva Platform Fee
-  const techShare = totalGross; // Partner receives full service quote amount
+  const platformShare = Math.round(totalGross * 0.05 * 100) / 100; // 5% Platform Fee on Labor ONLY
+  const techShare = totalGross; // Partner receives full quoted work charge amount
   const totalCustomerBill = totalGross + platformShare;
 
   const handleAddItem = () => {
@@ -131,9 +127,8 @@ export default function PartnerQuoteBuilderPage() {
       {
         id: Date.now(),
         name: customName.trim(),
-        type: customType || 'Custom Spare / Labor',
+        type: 'Labor',
         price: parseFloat(customPrice),
-        isOem: customType === 'Spare Part',
         qty: 1
       }
     ]);
@@ -148,20 +143,20 @@ export default function PartnerQuoteBuilderPage() {
   const handleSendToCustomer = async () => {
     setIsProcessing(true);
     try {
-      await fetch('https://salemseva-backend.onrender.com/api/v1/partner/quote/create', {
+      await fetch(`${API_V1_URL}/partner/quote/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           bookingId: bookingId,
-          items: items,
-          partsMode: 'tech_buys'
+          items: items.map(i => ({ ...i, type: 'Labor' })),
+          partsMode: 'none'
         })
       });
 
-      await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/status`, {
+      await fetch(`${API_V1_URL}/bookings/${bookingId}/status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'quote_presented' })
+        body: JSON.stringify({ status: 'quote_presented', partsMode: 'none' })
       });
 
       localStorage.setItem('salemseva_quote_status_' + bookingId, 'quote_presented');
@@ -193,7 +188,7 @@ export default function PartnerQuoteBuilderPage() {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, mb: 0.5 }}>
           <AssignmentTurnedInIcon sx={{ color: '#0284C7', fontSize: 28 }} />
           <Typography variant="h5" sx={{ fontWeight: 900, color: '#0F172A', letterSpacing: -0.5 }}>
-            On-Site Digital Quote Creator
+            Work & Labor Charge Card (வேலைக் கட்டணம் உள்ளீடு)
           </Typography>
         </Box>
         <Typography variant="body2" sx={{ color: '#64748B', mb: 3 }}>
@@ -202,20 +197,21 @@ export default function PartnerQuoteBuilderPage() {
 
         <Grid container spacing={3}>
           
-          {/* Left Column: Line Items */}
+          {/* Left Column: Work Tasks */}
           <Grid item xs={12} md={7}>
             <Card elevation={0} sx={{ bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '20px', p: 3, boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0284C7' }}>
-                  Bill Items & Spare Parts
+                  Technician Work & Labor Tasks
                 </Typography>
-                <Chip label="Local Store Purchase" size="small" sx={{ bgcolor: '#EFF6FF', color: '#0284C7', fontWeight: 700, fontSize: '10px' }} />
+                <Chip label="Workmanship Only" size="small" sx={{ bgcolor: '#EFF6FF', color: '#0284C7', fontWeight: 700, fontSize: '10px' }} />
               </Box>
 
-              {/* Local Market Sourcing Notice for Tech */}
-              <Paper elevation={0} sx={{ p: 1.2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', mb: 2 }}>
-                <Typography variant="caption" sx={{ color: '#475569', display: 'block', fontSize: '11px', lineHeight: 1.4 }}>
-                  <strong>Direct Local Market Purchase:</strong> You source OEM parts directly from authorized Salem electrical/hardware stores. Always provide the genuine dealer bill with 30-day warranty to the customer.
+              {/* No Products Notice */}
+              <Paper elevation={0} sx={{ p: 1.4, bgcolor: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '10px', mb: 2.5, display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                <ShieldIcon sx={{ fontSize: 18, color: '#166534', mt: 0.2, flexShrink: 0 }} />
+                <Typography variant="caption" sx={{ color: '#166534', display: 'block', fontSize: '11.5px', lineHeight: 1.45, fontWeight: 600 }}>
+                  <strong>உதிரிபாகங்கள் தளம் மூலம் விற்கப்படுவதில்லை (No Product Sales):</strong> உதிரிபாகங்கள் தேவைப்பட்டால், வாடிக்கையாளர் நேரடியாகவோ அல்லது நீங்கள் உள்ளூர் கடையிலிருந்தோ வாங்கிக் கொள்ளலாம். சேலம்சேவா தளத்தின் 5% கட்டணம் உங்கள் <strong>வேலைக் கட்டணத்திற்கு மட்டுமே</strong> பொருந்தும்.
                 </Typography>
               </Paper>
 
@@ -224,8 +220,7 @@ export default function PartnerQuoteBuilderPage() {
                   <Box>
                     <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A' }}>{item.name}</Typography>
                     <Box sx={{ display: 'flex', gap: 0.8, alignItems: 'center', mt: 0.3 }}>
-                      <Chip label={item.type} size="small" sx={{ bgcolor: '#E0F2FE', color: '#0284C7', fontSize: '10px', height: 18, fontWeight: 700 }} />
-                      {item.isOem && <Chip label="OEM Genuine" size="small" sx={{ bgcolor: '#DCFCE7', color: '#166534', fontSize: '9px', height: 16, fontWeight: 700 }} />}
+                      <Chip label="Service Labor" size="small" sx={{ bgcolor: '#E0F2FE', color: '#0284C7', fontSize: '10px', height: 18, fontWeight: 700 }} />
                     </Box>
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -237,45 +232,42 @@ export default function PartnerQuoteBuilderPage() {
                 </Paper>
               ))}
 
-              {/* Quick Add from Available Trade Catalog */}
-              {catalogSpares.length > 0 && (
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700, display: 'block', mb: 0.6 }}>
-                    QUICK ADD FROM SALEM SPARES CATALOG:
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.8 }}>
-                    {catalogSpares.map(sp => (
-                      <Chip
-                        key={sp.id}
-                        label={`+ ${sp.name} (₹${sp.price})`}
-                        size="small"
-                        onClick={() => {
-                          setItems(prev => [...prev, {
-                            id: Date.now() + Math.random(),
-                            name: sp.name,
-                            type: sp.type,
-                            price: sp.price,
-                            isOem: sp.isOem,
-                            qty: 1
-                          }]);
-                        }}
-                        sx={{ bgcolor: '#F1F5F9', color: '#334155', fontWeight: 600, fontSize: '11px', cursor: 'pointer', '&:hover': { bgcolor: '#E0F2FE', color: '#0284C7' } }}
-                      />
-                    ))}
-                  </Box>
+              {/* Quick Add Standard Work Tasks */}
+              <Box sx={{ mb: 2, mt: 1 }}>
+                <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700, display: 'block', mb: 0.6 }}>
+                  QUICK ADD STANDARD WORK CHARGES:
+                </Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.8 }}>
+                  {standardWorkTasks.map(sp => (
+                    <Chip
+                      key={sp.id}
+                      label={`+ ${sp.name} (₹${sp.price})`}
+                      size="small"
+                      onClick={() => {
+                        setItems(prev => [...prev, {
+                          id: Date.now() + Math.random(),
+                          name: sp.name,
+                          type: 'Labor',
+                          price: sp.price,
+                          qty: 1
+                        }]);
+                      }}
+                      sx={{ bgcolor: '#F1F5F9', color: '#334155', fontWeight: 600, fontSize: '11px', cursor: 'pointer', '&:hover': { bgcolor: '#E0F2FE', color: '#0284C7' } }}
+                    />
+                  ))}
                 </Box>
-              )}
+              </Box>
 
               <Divider sx={{ my: 2, borderColor: '#E2E8F0' }} />
 
-              {/* Add Custom Item */}
+              {/* Add Custom Labor Task */}
               <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 800, display: 'block', mb: 1 }}>
-                ADD CUSTOM SPARE PART / LABOR TASK:
+                ADD CUSTOM WORK / LABOR TASK:
               </Typography>
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <TextField 
                   size="small" 
-                  placeholder="Item Name (e.g. Copper Flare Nut)"
+                  placeholder="Task Description (e.g. Fan Motor Bearing Repair)"
                   value={customName}
                   onChange={(e) => setCustomName(e.target.value)}
                   sx={{ flex: 2, '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
@@ -283,7 +275,7 @@ export default function PartnerQuoteBuilderPage() {
                 <TextField 
                   size="small" 
                   type="number"
-                  placeholder="Price (₹)"
+                  placeholder="Labor Charge (₹)"
                   value={customPrice}
                   onChange={(e) => setCustomPrice(e.target.value)}
                   sx={{ flex: 1, '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
@@ -299,16 +291,16 @@ export default function PartnerQuoteBuilderPage() {
           <Grid item xs={12} md={5}>
             <Card elevation={0} sx={{ bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '20px', p: 3, boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
               <Typography variant="h6" sx={{ fontWeight: 900, color: '#0F172A', mb: 2 }}>
-                Earnings & Split Breakdown
+                Earnings & Commission Breakdown
               </Typography>
 
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="body2" sx={{ color: '#64748B' }}>Your Service Quote (Labor & Spares)</Typography>
+                <Typography variant="body2" sx={{ color: '#64748B' }}>Your Work / Labor Charge</Typography>
                 <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A' }}>₹{totalGross.toFixed(2)}</Typography>
               </Box>
 
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1, color: '#2563EB' }}>
-                <Typography variant="body2" sx={{ fontWeight: 700 }}>SalemSeva Platform Fee (5%)</Typography>
+                <Typography variant="body2" sx={{ fontWeight: 700 }}>SalemSeva Platform Fee (5% on Labor)</Typography>
                 <Typography variant="body2" sx={{ fontWeight: 800 }}>+₹{platformShare.toFixed(2)}</Typography>
               </Box>
 
@@ -326,7 +318,7 @@ export default function PartnerQuoteBuilderPage() {
                   <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#10B981' }}>
                     Your Guaranteed Payout
                   </Typography>
-                  <Typography variant="caption" sx={{ color: '#64748B' }}>100% of Quoted Service • Direct IMPS</Typography>
+                  <Typography variant="caption" sx={{ color: '#64748B' }}>100% of Quoted Labor • Direct IMPS</Typography>
                 </Box>
                 <Typography variant="h4" sx={{ fontWeight: 900, color: '#10B981' }}>
                   ₹{techShare.toFixed(2)}
@@ -350,7 +342,7 @@ export default function PartnerQuoteBuilderPage() {
                   '&:hover': { bgcolor: '#059669' }
                 }}
               >
-                Send Quote to Customer App
+                Send Work Charge to Customer
               </Button>
             </Card>
           </Grid>
@@ -361,8 +353,8 @@ export default function PartnerQuoteBuilderPage() {
       {/* Processing Loader */}
       <ProcessingBackdrop
         open={isProcessing}
-        title="Sending Digital Estimate..."
-        subtitle="Broadcasting OEM parts & labor job card to Customer Vimal Raj for 1-Click Approval"
+        title="Sending Work Charge Estimate..."
+        subtitle="Broadcasting verified labor estimate to Customer for 1-Click Approval"
         badge="Live WebSync Active"
       />
 

@@ -1,3 +1,4 @@
+import { API_V1_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
 import {
   Container,
@@ -22,7 +23,7 @@ export default function AdminTraceabilityPage() {
   const [logs, setLogs] = useState([]);
 
   useEffect(() => {
-    fetch('https://salemseva-backend.onrender.com/api/v1/admin/traceability')
+    fetch(`${API_V1_URL}/admin/traceability`)
       .then(res => res.json())
       .then(data => {
         if (data.success && data.logs && data.logs.length > 0) {
@@ -31,16 +32,6 @@ export default function AdminTraceabilityPage() {
       })
       .catch(err => console.warn('Using live logs:', err));
   }, []);
-
-  const defaultEvents = [
-    { time: '09:30:15 AM', title: 'Customer Booking Created', desc: 'Priya Sundaram booked AC Inspection in Fairlands. Diagnostic Deposit ₹49.00 held in Razorpay Escrow.' },
-    { time: '09:31:40 AM', title: 'Technician Dispatched', desc: 'SalemSeva automated radar assigned K. Ramesh (Hasthampatti). Distance: 1.8 km.' },
-    { time: '09:39:10 AM', title: 'Technician Arrived at Doorstep', desc: 'GPS geofence confirmed arrival at Plot 42, 5th Cross, Fairlands.' },
-    { time: '09:48:22 AM', title: 'Digital Quotation Generated', desc: 'Technician built quote for OEM 45uF Capacitor (₹450) + Wiring (₹300) + Testing (₹150). Total ₹900.00.' },
-    { time: '09:50:05 AM', title: 'Customer OTP Verification', desc: 'Customer Priya authorized repair with OTP 8492.' },
-    { time: '10:14:50 AM', title: 'Repair Completed & Razorpay Settlement', desc: 'Final balance settled. Held in escrow.' },
-    { time: '10:18:10 AM', title: 'Customer Rating & Quality Log', desc: 'Customer rated 5 Stars. +50 Seva Credits awarded. Escrow released to technician.' }
-  ];
 
   return (
     <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', py: 4 }}>
@@ -60,7 +51,7 @@ export default function AdminTraceabilityPage() {
           </Typography>
         </Box>
         <Typography variant="body2" sx={{ color: '#64748B', mb: 3 }}>
-          Forensic chronological timestamp log for Job <strong>SLM-84920</strong> recorded in Neon PostgreSQL.
+          Forensic chronological audit trail of dispatched jobs and verification events recorded in database.
         </Typography>
 
         <Card elevation={0} sx={{ bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '20px', p: 3, boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>

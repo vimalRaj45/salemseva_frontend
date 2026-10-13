@@ -1,3 +1,4 @@
+import { API_V1_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
 import {
   Container,
@@ -28,7 +29,7 @@ export default function AdminSettlementsPage() {
 
   useEffect(() => {
     setIsLoading(true);
-    fetch('https://salemseva-backend.onrender.com/api/v1/admin/settlements')
+    fetch(`${API_V1_URL}/admin/settlements`)
       .then(res => res.json())
       .then(data => {
         if (data.success && data.settlements && data.settlements.length > 0) {
@@ -39,13 +40,7 @@ export default function AdminSettlementsPage() {
       .finally(() => setIsLoading(false));
   }, []);
 
-  const defaultSettlements = [
-    { id: 'SETTLE-84920', booking_id: 'SLM-84920', customer_name: 'Priya Sundaram', technician_name: 'K. Ramesh', amount_total: 899.00, tech_payout_amount: 779.00, platform_commission: 120.00, status: 'settled' },
-    { id: 'SETTLE-84912', booking_id: 'SLM-84912', customer_name: 'Vimal Raj', technician_name: 'T. Kumar', amount_total: 549.00, tech_payout_amount: 481.50, platform_commission: 67.50, status: 'settled' },
-    { id: 'SETTLE-84890', booking_id: 'SLM-84890', customer_name: 'Saravanan', technician_name: 'S. Anbarasan', amount_total: 99.00, tech_payout_amount: 99.00, platform_commission: 0.00, status: 'settled' }
-  ];
-
-  const displayList = settlements.length > 0 ? settlements : defaultSettlements;
+  const displayList = settlements;
 
   return (
     <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', py: 4 }}>
@@ -61,11 +56,11 @@ export default function AdminSettlementsPage() {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
           <AccountBalanceWalletIcon sx={{ color: '#0284C7', fontSize: 32 }} />
           <Typography variant="h5" sx={{ fontWeight: 900, color: '#0F172A', letterSpacing: -0.5 }}>
-            Razorpay Escrow 85/15 Financial Settlement Inspector
+            Platform Labor & Escrow Financial Settlement Inspector
           </Typography>
         </Box>
         <Typography variant="body2" sx={{ color: '#64748B', mb: 3 }}>
-          Live settlement split ledger ensuring transparent 85% partner payouts and 15% platform commissions.
+          Live settlement split ledger ensuring transparent 95% technician labor payouts and 5% platform service commission (0% fee on offline spare parts).
         </Typography>
 
         <Card elevation={0} sx={{ bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '20px', p: 3, boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
@@ -74,9 +69,9 @@ export default function AdminSettlementsPage() {
               <TableRow sx={{ bgcolor: '#F8FAFC', '& th': { color: '#475569', borderColor: '#E2E8F0', fontWeight: 800 } }}>
                 <TableCell>Booking ID</TableCell>
                 <TableCell>Customer & Tech</TableCell>
-                <TableCell>Gross Customer Paid</TableCell>
-                <TableCell>Technician Payout (85%)</TableCell>
-                <TableCell>SalemSeva Cut (15%)</TableCell>
+                <TableCell>Gross Escrow</TableCell>
+                <TableCell>Technician Payout (95% Labor + Visit)</TableCell>
+                <TableCell>SalemSeva Cut (5% Labor)</TableCell>
                 <TableCell>Transfer Status</TableCell>
               </TableRow>
             </TableHead>

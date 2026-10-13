@@ -1,3 +1,4 @@
+import { API_V1_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
 import {
   Container,
@@ -79,7 +80,7 @@ export default function BookingHistoryPage() {
 
   const fetchHistory = () => {
     setIsLoading(true);
-    fetch('https://salemseva-backend.onrender.com/api/v1/bookings/history')
+    fetch(`${API_V1_URL}/bookings/history`)
       .then(res => res.json())
       .then(data => {
         if (data.success && data.bookings && data.bookings.length > 0) {
@@ -420,7 +421,7 @@ export default function BookingHistoryPage() {
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
                       <BuildIcon sx={{ fontSize: 15, color: '#D97706' }} />
                       <Typography variant="caption" sx={{ color: '#0F172A', fontWeight: 600, fontSize: '11.5px' }}>
-                        Part 2 (Repair Labour & Spares):
+                        Part 2 (Repair Work & Labour Charge):
                       </Typography>
                     </Box>
                     <Typography variant="caption" sx={{ fontWeight: 700, color: item.status === 'completed' ? '#16A34A' : '#64748B' }}>
@@ -428,15 +429,15 @@ export default function BookingHistoryPage() {
                     </Typography>
                   </Box>
 
-                  {/* Prominent Spares & Products Breakdown */}
+                  {/* Prominent Labor Tasks Breakdown */}
                   {displayedQuoteItems.length > 0 && (
                     <Box sx={{ mt: 1, pt: 1, borderTop: '1px dashed #E2E8F0' }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.6 }}>
                         <Typography variant="caption" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '10.5px' }}>
-                          Products, Spares & Labour ({displayedQuoteItems.length} items):
+                          Service Work Tasks & Labour ({displayedQuoteItems.length} tasks):
                         </Typography>
                         <Chip 
-                          label={item.parts_mode === 'user_buys' ? 'Customer Self-Purchase' : 'Tech Direct Local Store Purchase'} 
+                          label="Workmanship Only • 0% Product Markup" 
                           size="small" 
                           sx={{ bgcolor: '#EFF6FF', color: '#0284C7', fontWeight: 800, fontSize: '8.5px', height: 16 }} 
                         />
@@ -449,9 +450,9 @@ export default function BookingHistoryPage() {
                                 • {qi.name || qi.item_name}
                               </Typography>
                               <Chip 
-                                label={qi.type === 'Spare Part' ? 'Tech Sourced' : (qi.type || 'Labor')} 
+                                label="Labor Task" 
                                 size="small" 
-                                sx={{ bgcolor: qi.type === 'Spare Part' ? '#DCFCE7' : '#F1F5F9', color: qi.type === 'Spare Part' ? '#166534' : '#475569', fontSize: '8px', height: 14, fontWeight: 700 }} 
+                                sx={{ bgcolor: '#E0F2FE', color: '#0369A1', fontSize: '8px', height: 14, fontWeight: 700 }} 
                               />
                             </Box>
                             <Typography variant="caption" sx={{ color: '#0F172A', fontWeight: 800, fontSize: '10.5px' }}>

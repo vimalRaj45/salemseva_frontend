@@ -80,32 +80,12 @@ export default function AuthModal() {
   useEffect(() => {
     if (authInitialTab) {
       setActiveTab(authInitialTab);
-      if (authInitialTab === 'customer') {
-        setPhone('98427 11234');
-        setName('Vimal Raj');
-      } else if (authInitialTab === 'technician') {
-        setPhone('94432 88901');
-        setName('K. Ramesh');
-      } else if (authInitialTab === 'admin') {
-        setPhone('90030 99999');
-        setName('Salem Ops Admin');
-      }
     }
   }, [authInitialTab, authModalOpen]);
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
     setStatusMessage(null);
-    if (newValue === 'customer') {
-      setPhone('98427 11234');
-      setName('Vimal Raj');
-    } else if (newValue === 'technician') {
-      setPhone('94432 88901');
-      setName('K. Ramesh');
-    } else if (newValue === 'admin') {
-      setPhone('90030 99999');
-      setName('Salem Ops Admin');
-    }
   };
 
   const handleAuthSubmit = async (e) => {

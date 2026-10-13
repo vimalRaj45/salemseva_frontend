@@ -91,13 +91,17 @@ import MaskedChatModal from '../../components/MaskedChatModal';
 import VoipCallModal from '../../components/VoipCallModal';
 import ProcessingBackdrop from '../../components/ProcessingBackdrop';
 import DocumentUploadControl from '../../components/DocumentUploadControl';
+import LeadAudioPlayer from '../../components/LeadAudioPlayer';
+import SalemLottie from '../../components/SalemLottie';
 import { useAuth } from '../../context/AuthContext';
 import { NativeNotifier } from '../../services/nativeNotify';
 import { API_V1_URL } from '../../config';
 
 export default function PartnerDutyPage() {
   const navigate = useNavigate();
-  const { user, updateUser, loginAsTechnician, partnerIncentives, referTechnician, claimPartnerPayout, dbTechnicians } = useAuth();
+  const { user, updateUser, loginAsTechnician, partnerIncentives, referTechnician, claimPartnerPayout, dbTechnicians, rewardSettings } = useAuth();
+  const partnerIncentiveAmount = parseFloat(rewardSettings?.partner_referral_incentive || 100);
+  const partnerWelcomeBonus = parseFloat(rewardSettings?.partner_welcome_bonus || 50);
   const VERIFIED_TECHNICIANS = dbTechnicians || [];
   const [searchParams] = useSearchParams();
   const paramBookingId = searchParams.get('bookingId');
@@ -106,44 +110,9 @@ export default function PartnerDutyPage() {
   const [copiedTechCode, setCopiedTechCode] = useState(false);
   const [techToast, setTechToast] = useState(null);
 
-  const [referredTechsList, setReferredTechsList] = useState([
-    {
-      id: 'ref-tech-01',
-      name: 'Murugan S.',
-      phone: '+91 98421 66720',
-      trade: 'HVAC & Refrigeration',
-      locality: 'Hasthampatti, Salem',
-      status: 'Verified & Active',
-      onboardedAt: 'Oct 02, 2026',
-      incentiveAmount: 250,
-      payoutStatus: 'SETTLED_TO_UPI',
-      upiRef: 'UPI-7749201-OKAXIS'
-    },
-    {
-      id: 'ref-tech-02',
-      name: 'S. Senthil Kumar',
-      phone: '+91 98421 44551',
-      trade: 'Senior Electrician',
-      locality: 'Suramangalam, Salem',
-      status: 'Verified & Active',
-      onboardedAt: 'Oct 05, 2026',
-      incentiveAmount: 250,
-      payoutStatus: 'AVAILABLE_FOR_PAYOUT'
-    },
-    {
-      id: 'ref-tech-03',
-      name: 'P. Velumani',
-      phone: '+91 97890 33442',
-      trade: 'Master Plumber',
-      locality: 'Shevapet, Salem',
-      status: 'Verified & Active',
-      onboardedAt: 'Oct 07, 2026',
-      incentiveAmount: 250,
-      payoutStatus: 'AVAILABLE_FOR_PAYOUT'
-    }
-  ]);
+  const [referredTechsList, setReferredTechsList] = useState(partnerIncentives?.referredTechs || []);
 
-  const techReferralCode = partnerIncentives?.referralCode || `TECH${(user?.name || 'RAMESH').replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 8)}`;
+  const techReferralCode = partnerIncentives?.referralCode || `TECH${(user?.name || 'PARTNER').replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 8)}`;
 
   const handleCopyTechCode = () => {
     navigator.clipboard.writeText(techReferralCode);
@@ -154,36 +123,9 @@ export default function PartnerDutyPage() {
 
   const handleShareTechWhatsApp = () => {
     const text = encodeURIComponent(
-      `வணக்கம் நண்பா! சேலத்தில் தினசரி ₹1,500+ சம்பாதிக்க SalemSeva-வில் டெக்னீசியனாக இணையுங்கள். \n\nஎனது ரெஃபரல் கோட் *${techReferralCode}* பயன்படுத்தி இணையும்போது உங்களுக்கு ₹100 டூல் கிட் போனஸ் கிடைக்கும்: ${window.location.origin}/partner/onboarding`
+      `வணக்கம் நண்பா! சேலத்தில் தினசரி ₹1,500+ சம்பாதிக்க SalemSeva-வில் டெக்னீசியனாக இணையுங்கள். \n\nஎனது ரெஃபரல் கோட் *${techReferralCode}* பயன்படுத்தி இணையும்போது உங்களுக்கு ₹${partnerWelcomeBonus} டூல் கிட் போனஸ் கிடைக்கும்: ${window.location.origin}/partner/onboarding`
     );
     window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
-  };
-
-  const handleSimulateReferral = async () => {
-    const mockTechs = [
-      { name: 'A. Manikandan', phone: '+91 94420 77884', trade: 'AC & Refrigeration Pro', locality: 'Alagapuram, Salem' },
-      { name: 'D. Priya', phone: '+91 98432 66115', trade: 'Elite Sanitization Lead', locality: 'Hasthampatti, Salem' },
-      { name: 'M. Karthik', phone: '+91 94431 88220', trade: 'Wiring & Safety Specialist', locality: 'Ammapet, Salem' },
-      { name: 'R. Selvam', phone: '+91 98425 11993', trade: 'Concealed Drainage Expert', locality: 'Gugai, Salem' }
-    ];
-    const picked = mockTechs[Math.floor(Math.random() * mockTechs.length)];
-
-    await referTechnician(picked);
-
-    const newEntry = {
-      id: `ref-tech-${Date.now()}`,
-      name: picked.name,
-      phone: picked.phone,
-      trade: picked.trade,
-      locality: picked.locality,
-      status: 'Verified & Active',
-      onboardedAt: 'Today',
-      incentiveAmount: 250,
-      payoutStatus: 'AVAILABLE_FOR_PAYOUT'
-    };
-
-    setReferredTechsList(prev => [newEntry, ...prev]);
-    setTechToast(`Success! ${picked.name} onboarded as verified ${picked.trade}. +₹250 cash incentive credited to your wallet!`);
   };
 
   const handleClaimInstantPayout = async () => {
@@ -256,8 +198,9 @@ export default function PartnerDutyPage() {
   // Helper to send coordinates to SalemSeva backend
   const broadcastLocation = async (lat, lng, speed = 25) => {
     try {
-      const phone = user?.phone || '+919443288901';
-      await fetch('https://salemseva-backend.onrender.com/api/v1/partner/duty/location', {
+      const phone = user?.phone || '';
+      if (!phone) return;
+      await fetch(`${API_V1_URL}/partner/duty/location`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -376,7 +319,7 @@ export default function PartnerDutyPage() {
 
   const fetchPartnerHistory = () => {
     setJobsLoading(true);
-    fetch('https://salemseva-backend.onrender.com/api/v1/partner/jobs/history')
+    fetch(`${API_V1_URL}/partner/jobs/history`)
       .then(res => res.json())
       .then(data => {
         if (data.success && data.jobs) {
@@ -434,8 +377,9 @@ export default function PartnerDutyPage() {
 
     const fetchDuty = async () => {
       try {
-        const phone = user?.phone || '+919443288901';
-        const res = await fetch(`https://salemseva-backend.onrender.com/api/v1/partner/duty?phone=${encodeURIComponent(phone)}`);
+        const phone = user?.phone || '';
+        if (!phone) return;
+        const res = await fetch(`${API_V1_URL}/partner/duty?phone=${encodeURIComponent(phone)}`);
         const data = await res.json();
         if (data.success && isMounted) {
           if (data.technician && typeof data.technician.is_online === 'boolean') {
@@ -512,7 +456,7 @@ export default function PartnerDutyPage() {
 
   useEffect(() => {
     if (step === 3 && activeBookingId) {
-      fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${activeBookingId}/quote`)
+      fetch(`${API_V1_URL}/bookings/${activeBookingId}/quote`)
         .then(res => res.json())
         .then(data => {
           if (data.success) {
@@ -531,7 +475,7 @@ export default function PartnerDutyPage() {
       setPartsBillUrl(activeJob.partsBillUrl);
       if (activeJob.partsBillAmount) setPartsBillAmount(String(activeJob.partsBillAmount));
     } else if (activeBookingId) {
-      fetch(`https://salemseva-backend.onrender.com/api/v1/partner/bookings/${activeBookingId}/bill`)
+      fetch(`${API_V1_URL}/partner/bookings/${activeBookingId}/bill`)
         .then(res => res.json())
         .then(data => {
           if (data.success) {
@@ -547,7 +491,7 @@ export default function PartnerDutyPage() {
     setPartsBillUrl(url);
     const amt = parseFloat(partsBillAmount) || (step3Quote?.subtotal || 650);
     try {
-      await fetch(`https://salemseva-backend.onrender.com/api/v1/partner/bookings/${activeBookingId}/upload-bill`, {
+      await fetch(`${API_V1_URL}/partner/bookings/${activeBookingId}/upload-bill`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -564,16 +508,16 @@ export default function PartnerDutyPage() {
 
   const handleUpdateBillAmount = async () => {
     if (!partsBillUrl) {
-      setTechToast('⚠️ தயவுசெய்து முதலில் கடை ரசீது புகைப்படத்தை பதிவேற்றவும் (Please upload bill receipt photo first).');
+      setTechToast('தயவுசெய்து முதலில் கடை ரசீது புகைப்படத்தை பதிவேற்றவும் (Please upload bill receipt photo first).');
       return;
     }
     const amt = parseFloat(partsBillAmount) || 0;
     if (amt <= 0) {
-      setTechToast('⚠️ சரியான கடை பில் தொகையை உள்ளிடவும் (Please enter valid bill amount in ₹).');
+      setTechToast('சரியான கடை பில் தொகையை உள்ளிடவும் (Please enter valid bill amount in ₹).');
       return;
     }
     try {
-      await fetch(`https://salemseva-backend.onrender.com/api/v1/partner/bookings/${activeBookingId}/upload-bill`, {
+      await fetch(`${API_V1_URL}/partner/bookings/${activeBookingId}/upload-bill`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -595,7 +539,7 @@ export default function PartnerDutyPage() {
     const pollPartnerCommunications = async () => {
       try {
         // 1. Check for incoming VoIP calls from customer
-        const callRes = await fetch(`https://salemseva-backend.onrender.com/api/v1/webrtc/call/status?bookingId=${activeBookingId}`);
+        const callRes = await fetch(`${API_V1_URL}/webrtc/call/status?bookingId=${activeBookingId}`);
         const callData = await callRes.json();
         if (callData.success && callData.call && isMounted) {
           if (callData.call.active && callData.call.caller === 'customer' && callData.call.status === 'RINGING') {
@@ -612,7 +556,7 @@ export default function PartnerDutyPage() {
         }
 
         // 2. Check for incoming chat messages from customer
-        const msgRes = await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${activeBookingId}/messages`);
+        const msgRes = await fetch(`${API_V1_URL}/bookings/${activeBookingId}/messages`);
         const msgData = await msgRes.json();
         if (msgData.success && msgData.messages && isMounted) {
           const msgs = msgData.messages;
@@ -644,7 +588,7 @@ export default function PartnerDutyPage() {
 
   const handleToggleOnline = async (checked) => {
     if (checked && (!user?.isKycVerified || user?.status === 'Pending Verification')) {
-      setTechToast('⚠️ ஆதார் KYC இன்னும் அங்கீகரிக்கப்படவில்லை. நிர்வாகி ஒப்புதல் அளித்த பிறகே Online செல்ல முடியும். (Aadhaar KYC pending admin verification).');
+      setTechToast('ஆதார் KYC இன்னும் அங்கீகரிக்கப்படவில்லை. நிர்வாகி ஒப்புதல் அளித்த பிறகே Online செல்ல முடியும். (Aadhaar KYC pending admin verification).');
       setIsOnline(false);
       return;
     }
@@ -669,11 +613,13 @@ export default function PartnerDutyPage() {
       setTechToast('Duty turned OFF. Location broadcasting stopped.');
     }
 
-    fetch('https://salemseva-backend.onrender.com/api/v1/partner/duty/toggle', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ isOnline: checked, phone: user?.phone || '+919443288901' })
-    }).catch(err => console.warn('Duty toggle synced'));
+    if (user?.phone) {
+      fetch(`${API_V1_URL}/partner/duty/toggle`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isOnline: checked, phone: user.phone })
+      }).catch(err => console.warn('Duty toggle synced'));
+    }
   };
 
   return (
@@ -812,8 +758,9 @@ export default function PartnerDutyPage() {
                     startIcon={<RefreshIcon sx={{ fontSize: 14 }} />}
                     onClick={async () => {
                       try {
-                        const phone = user?.phone || '+919443288901';
-                        const res = await fetch(`https://salemseva-backend.onrender.com/api/v1/partner/duty?phone=${encodeURIComponent(phone)}`);
+                        const phone = user?.phone || '';
+                        if (!phone) return;
+                        const res = await fetch(`${API_V1_URL}/partner/duty?phone=${encodeURIComponent(phone)}`);
                         const data = await res.json();
                         if (data.success && data.technician) {
                           const isVerified = Boolean(data.technician.is_kyc_verified);
@@ -824,7 +771,7 @@ export default function PartnerDutyPage() {
                           });
                           setIsOnline(data.technician.is_online);
                           if (isVerified) {
-                            setTechToast('🎉 வாழ்த்துகள்! உங்கள் ஆதார் KYC அங்கீகரிக்கப்பட்டது. நீங்கள் இப்போது பணியைத் தொடங்கலாம்!');
+                            setTechToast('வாழ்த்துகள்! உங்கள் ஆதார் KYC அங்கீகரிக்கப்பட்டது. நீங்கள் இப்போது பணியைத் தொடங்கலாம்!');
                           } else {
                             setTechToast('ஆதார் KYC இன்னும் நிர்வாகியின் ஒப்புதலுக்காக காத்திருக்கிறது (Still pending admin approval).');
                           }
@@ -1024,7 +971,7 @@ export default function PartnerDutyPage() {
                   <Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
                       <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '14px', lineHeight: 1.2 }}>
-                        {user?.name || 'K. Ramesh'}
+                        {user?.name || 'Partner'}
                       </Typography>
                       <Chip
                         icon={<CheckCircleIcon sx={{ color: '#16A34A !important', fontSize: 13 }} />}
@@ -1034,7 +981,7 @@ export default function PartnerDutyPage() {
                       />
                     </Box>
                     <Typography variant="caption" sx={{ color: '#059669', fontWeight: 600, fontSize: '11px', display: 'block' }}>
-                      {user?.tradeName || `${user?.trade?.toUpperCase() || 'SERVICE'} Specialist`} • {user?.phone || '+91 94432 88901'}
+                      {user?.tradeName || `${user?.trade?.toUpperCase() || 'SERVICE'} Specialist`} • {user?.phone || ''}
                     </Typography>
                   </Box>
                 </Box>
@@ -1204,7 +1151,8 @@ export default function PartnerDutyPage() {
                         startIcon={<RefreshIcon sx={{ fontSize: 15 }} />}
                         onClick={async () => {
                           try {
-                            const phone = user?.phone || '+919443288901';
+                            const phone = user?.phone || '';
+                            if (!phone) return;
                             const res = await fetch(`${API_V1_URL}/partner/duty?phone=${encodeURIComponent(phone)}`);
                             const data = await res.json();
                             if (data.success && data.technician) {
@@ -1217,7 +1165,7 @@ export default function PartnerDutyPage() {
                               });
                               setIsOnline(data.technician.is_online);
                               if (isVerified) {
-                                setTechToast('🎉 வாழ்த்துகள்! உங்கள் ஆதார் KYC அங்கீகரிக்கப்பட்டது. நீங்கள் இப்போது பணியைத் தொடங்கலாம்!');
+                                setTechToast('வாழ்த்துகள்! உங்கள் ஆதார் KYC அங்கீகரிக்கப்பட்டது. நீங்கள் இப்போது பணியைத் தொடங்கலாம்!');
                               } else {
                                 setTechToast('ஆதார் KYC இன்னும் நிர்வாகியின் ஒப்புதலுக்காக காத்திருக்கிறது (Still pending admin approval).');
                               }
@@ -1458,45 +1406,113 @@ export default function PartnerDutyPage() {
                         </Box>
                       </Box>
 
+                      {/* Customer Voice Note Player (if customer recorded problem audio) */}
+                      {activeJob.voiceNoteUrl && (
+                        <Box sx={{ my: 1.2, p: 1.2, bgcolor: '#0F172A', borderRadius: '8px', border: '1.5px solid #0284C7' }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.8 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                              <VolumeUpIcon sx={{ color: '#38BDF8', fontSize: 18 }} />
+                              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#E0F2FE', fontSize: '12px' }}>
+                                Customer Audio Note
+                              </Typography>
+                            </Box>
+                            <Chip label="LISTEN FIRST" size="small" sx={{ bgcolor: '#0284C7', color: '#FFFFFF', fontWeight: 900, fontSize: '9px', height: 18 }} />
+                          </Box>
+                          <LeadAudioPlayer audioSrc={activeJob.voiceNoteUrl} />
+                          <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '10.5px', display: 'block', mt: 0.6 }}>
+                            Customer recorded this explanation of the issue. Listen before accepting or rejecting.
+                          </Typography>
+                        </Box>
+                      )}
+
                       <Divider sx={{ borderColor: '#334155', my: 1 }} />
 
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
                         <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '11px' }}>
                           Response window: <strong>3 mins</strong>
                         </Typography>
-                        <Button
-                          variant="contained"
-                          size="small"
-                          onClick={async () => {
-                            setLoadingMsg({
-                              title: 'Accepting booking request...',
-                              subtitle: `Notifying customer ${activeJob?.customerName || 'Customer'} of acceptance.`
-                            });
-                            setIsProcessing(true);
-                            try {
-                              await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${activeJob.id}/status`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                  status: 'accepted',
-                                  technicianId: user?.id
-                                })
+
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          {/* Reject / Pass Lead Button */}
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={async () => {
+                              const leadId = activeJob.id;
+                              setLoadingMsg({
+                                title: 'Passing lead request...',
+                                subtitle: 'Returning job to Salem matching queue for other specialists.'
                               });
-                              setActiveJob(prev => prev ? { ...prev, status: 'accepted' } : null);
-                            } catch (err) {
-                              console.warn('Status update fallback:', err);
-                              setActiveJob(prev => prev ? { ...prev, status: 'accepted' } : null);
-                            }
-                            setStep(1);
-                            localStorage.removeItem('salemseva_partner_step');
-                            setTimeout(() => {
-                              setIsProcessing(false);
-                            }, 500);
-                          }}
-                          sx={{ bgcolor: '#16A34A', borderRadius: '6px', fontWeight: 700, fontSize: '12px', px: 2, py: 0.5, textTransform: 'none', '&:hover': { bgcolor: '#15803D' } }}
-                        >
-                          Accept request
-                        </Button>
+                              setIsProcessing(true);
+                              try {
+                                await fetch(`${API_V1_URL}/partner/bookings/${leadId}/reject`, {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    technicianId: user?.id,
+                                    reason: 'Technician declined request'
+                                  })
+                                });
+                              } catch (err) {
+                                console.warn('Pass lead note:', err);
+                              }
+                              setActiveJob(null);
+                              setStep(1);
+                              setTechToast('Request passed. Radar is scanning for other dispatches.');
+                              setTimeout(() => {
+                                setIsProcessing(false);
+                              }, 400);
+                            }}
+                            sx={{
+                              borderColor: '#475569',
+                              color: '#CBD5E1',
+                              borderRadius: '6px',
+                              fontWeight: 700,
+                              fontSize: '11.5px',
+                              px: 1.5,
+                              py: 0.5,
+                              textTransform: 'none',
+                              '&:hover': { bgcolor: '#334155', borderColor: '#94A3B8', color: '#FFFFFF' }
+                            }}
+                          >
+                            Pass / Reject
+                          </Button>
+
+                          {/* Accept Lead Button */}
+                          <Button
+                            variant="contained"
+                            size="small"
+                            onClick={async () => {
+                              setLoadingMsg({
+                                title: 'Accepting booking request...',
+                                subtitle: `Notifying customer ${activeJob?.customerName || 'Customer'} of acceptance.`
+                              });
+                              setIsProcessing(true);
+                              try {
+                                await fetch(`${API_V1_URL}/bookings/${activeJob.id}/status`, {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    status: 'accepted',
+                                    technicianId: user?.id
+                                  })
+                                });
+                                setActiveJob(prev => prev ? { ...prev, status: 'accepted' } : null);
+                              } catch (err) {
+                                console.warn('Status update fallback:', err);
+                                setActiveJob(prev => prev ? { ...prev, status: 'accepted' } : null);
+                              }
+                              setStep(1);
+                              localStorage.removeItem('salemseva_partner_step');
+                              setTimeout(() => {
+                                setIsProcessing(false);
+                              }, 500);
+                            }}
+                            sx={{ bgcolor: '#16A34A', borderRadius: '6px', fontWeight: 700, fontSize: '12px', px: 2, py: 0.5, textTransform: 'none', '&:hover': { bgcolor: '#15803D' } }}
+                          >
+                            Accept request
+                          </Button>
+                        </Box>
                       </Box>
                     </Paper>
                   </Card>
@@ -1514,48 +1530,14 @@ export default function PartnerDutyPage() {
                       textAlign: 'center'
                     }}
                   >
-                    {/* Animated Pulsing Radar */}
-                    <Box sx={{ position: 'relative', width: 90, height: 90, mx: 'auto', mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          width: '100%',
-                          height: '100%',
-                          borderRadius: '50%',
-                          border: '2px solid rgba(56, 189, 248, 0.4)',
-                          animation: 'pulsePartnerRadar 2.5s infinite ease-out',
-                          '@keyframes pulsePartnerRadar': {
-                            '0%': { transform: 'scale(0.6)', opacity: 1 },
-                            '100%': { transform: 'scale(1.4)', opacity: 0 }
-                          }
-                        }}
-                      />
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          width: '70%',
-                          height: '70%',
-                          borderRadius: '50%',
-                          border: '1.5px solid rgba(56, 189, 248, 0.6)',
-                          animation: 'pulsePartnerRadar 2.5s infinite ease-out',
-                          animationDelay: '0.8s'
-                        }}
-                      />
-                      <Box
-                        sx={{
-                          width: 48,
-                          height: 48,
-                          borderRadius: '50%',
-                          bgcolor: '#0284C7',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          boxShadow: '0 0 20px rgba(56, 189, 248, 0.6)'
-                        }}
-                      >
-                        <TwoWheelerIcon sx={{ color: '#FFFFFF', fontSize: 26 }} />
-                      </Box>
-                    </Box>
+                    {/* LottieFiles Animated Radar Illustration */}
+                    <SalemLottie
+                      name="radar"
+                      width={150}
+                      height={150}
+                      ariaLabel="Radar actively scanning for incoming Salem doorstep service dispatches"
+                      style={{ mb: 1.5 }}
+                    />
 
                     <Chip
                       icon={<CheckCircleIcon sx={{ color: '#34D399 !important', fontSize: 13 }} />}
@@ -1908,7 +1890,7 @@ export default function PartnerDutyPage() {
                           // Fetch latest database quote items if not in state
                           let quoteItemsPayload = step3Quote?.items || [];
                           if (quoteItemsPayload.length === 0) {
-                            const qRes = await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${activeBookingId}/quote`);
+                            const qRes = await fetch(`${API_V1_URL}/bookings/${activeBookingId}/quote`);
                             const qData = await qRes.json();
                             if (qData.success && qData.items?.length > 0) {
                               quoteItemsPayload = qData.items;
@@ -1916,7 +1898,7 @@ export default function PartnerDutyPage() {
                           }
 
                           // 1. Submit quote items to DB
-                          await fetch('https://salemseva-backend.onrender.com/api/v1/partner/quote/create', {
+                          await fetch(`${API_V1_URL}/partner/quote/create`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
@@ -1927,7 +1909,7 @@ export default function PartnerDutyPage() {
                           });
 
                           // 2. Update status to quote_presented
-                          await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${activeBookingId}/status`, {
+                          await fetch(`${API_V1_URL}/bookings/${activeBookingId}/status`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ status: 'quote_presented' })
@@ -1960,10 +1942,10 @@ export default function PartnerDutyPage() {
                   {(quoteSent || activeJob?.status === 'quote_presented') && activeJob?.status !== 'quote_approved' && (
                     <Box sx={{ mb: 2 }}>
                       <Alert 
-                        severity="warning" 
-                        sx={{ borderRadius: '8px', fontSize: '12px', mb: 1.5, bgcolor: '#FFFBEB', color: '#92400E', border: '1px solid #FDE68A' }}
+                        severity="info" 
+                        sx={{ borderRadius: '8px', fontSize: '12px', mb: 1.5, bgcolor: '#F0F9FF', color: '#0369A1', border: '1px solid #BAE6FD' }}
                       >
-                        ⏳ Digital quote (₹900.00) sent to customer. Waiting for customer approval & escrow authorization.
+                        Digital quote (₹900.00) sent to customer. Waiting for customer approval and escrow authorization.
                       </Alert>
                       <Button
                         variant="outlined"
@@ -1971,39 +1953,44 @@ export default function PartnerDutyPage() {
                         size="small"
                         onClick={async () => {
                           try {
-                            await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${activeBookingId}/status`, {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ status: 'quote_approved' })
-                            });
-                          } catch (e) {}
-                          if (activeJob) setActiveJob(prev => ({ ...prev, status: 'quote_approved' }));
-                          setTechToast('Customer approved & escrow funded! Starting repair work.');
+                            const res = await fetch(`${API_V1_URL}/bookings/${activeBookingId}`);
+                            const data = await res.json();
+                            if (data.success && data.booking) {
+                              if (data.booking.status === 'quote_approved' || data.booking.status === 'in_progress') {
+                                setActiveJob(prev => ({ ...prev, status: data.booking.status }));
+                                setTechToast('Customer approved & escrow funded! Starting repair work.');
+                              } else {
+                                setTechToast('Awaiting customer review. Status will update once approved.');
+                              }
+                            }
+                          } catch (e) {
+                            setTechToast('Checking status...');
+                          }
                         }}
-                        sx={{ borderColor: '#0284C7', color: '#0284C7', borderRadius: '6px', fontWeight: 700, fontSize: '11.5px', textTransform: 'none' }}
+                        sx={{ borderColor: '#0284C7', color: '#0284C7', borderRadius: '8px', fontWeight: 700, fontSize: '11.5px', textTransform: 'none' }}
                       >
-                        Simulate Customer Approved & Escrow Funded
+                        Check Customer Approval Status
                       </Button>
                     </Box>
                   )}
 
-                  {/* STAGE C: CUSTOMER APPROVED -> PARTS BILL UPLOAD (IF TECH BUYS) */}
+                  {/* STAGE C: CUSTOMER APPROVED WORK CHARGE -> DIRECT WORK COMPLETION */}
                   {(activeJob?.status === 'quote_approved') && (
                     <Box sx={{ mb: 2 }}>
                       <Alert 
                         severity="success" 
                         sx={{ borderRadius: '8px', fontSize: '12px', mb: 1.5, bgcolor: '#F0FDF4', color: '#166534', border: '1px solid #BBF7D0' }}
                       >
-                        வாடிக்கையாளர் ஒப்புதல் அளித்தார்! (Customer Approved & Escrow Payment Secured). நீங்கள் உதிரிபாகங்கள் வாங்கியிருந்தால், கடையின் பில் படத்தை பதிவேற்றவும்.
+                        வாடிக்கையாளர் ஒப்புதல் அளித்தார்! (Customer Approved Work Charge & Escrow Secured). உதிரிபாகங்கள் ஏதும் தேவைப்பட்டால் வாடிக்கையாளருடன் நேரடியாக முடிக்கவும். பழுதுபார்க்கும் வேலை முடிந்ததும் கீழே முடிக்கவும்.
                       </Alert>
 
-                      {/* Spare Parts Purchase Bill Upload Section */}
+                      {/* Labor Summary Box */}
                       <Card
                         elevation={0}
                         sx={{
                           p: 2,
                           mb: 1.5,
-                          bgcolor: '#FFFFFF',
+                          bgcolor: '#F8FAFC',
                           border: '1.5px solid #0284C7',
                           borderRadius: '12px',
                           boxShadow: '0 2px 10px rgba(2, 132, 199, 0.08)'
@@ -2011,85 +1998,26 @@ export default function PartnerDutyPage() {
                       >
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                            <ReceiptLongIcon sx={{ color: '#0284C7', fontSize: 20 }} />
+                            <BuildIcon sx={{ color: '#0284C7', fontSize: 20 }} />
                             <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A' }}>
-                              உதிரிபாகங்கள் கடை பில் (Store Purchase Bill)
+                              வேலைக் கட்டணம் & தீர்வு (Direct Labor Execution)
                             </Typography>
                           </Box>
                           <Chip
-                            label={partsBillUrl ? '✓ Bill Verified' : 'Bill Required'}
+                            label="Ready to Complete"
                             size="small"
                             sx={{
-                              bgcolor: partsBillUrl ? '#DCFCE7' : '#FEF3C7',
-                              color: partsBillUrl ? '#166534' : '#92400E',
+                              bgcolor: '#DCFCE7',
+                              color: '#166534',
                               fontWeight: 800,
                               fontSize: '10px'
                             }}
                           />
                         </Box>
 
-                        <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 1.5, lineHeight: 1.4 }}>
-                          நீங்கள் கடையில் உதிரிபாகங்கள் வாங்கிய பில்/ரசீதை கேமரா மூலம் படம் எடுத்து அல்லது கோப்பாக பதிவேற்றவும் (அதிகபட்சம் 5 MB). வாடிக்கையாளர் இந்த பில் தொகை + 5% தள கட்டணத்தை காண்பார்.
+                        <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 1, lineHeight: 1.4 }}>
+                          சேலம்சேவா தளம் 5% கமிஷனை உங்கள் <strong>வேலைக் கட்டணத்திற்கு மட்டுமே</strong> கணக்கிடுகிறது. உதிரிபாகங்கள் விற்பனை தளத்தில் இல்லை.
                         </Typography>
-
-                        {/* Paper Receipt Bill Amount Input */}
-                        <Box sx={{ mb: 1.8, p: 1.5, bgcolor: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
-                          <Typography variant="caption" sx={{ fontWeight: 700, color: '#0F172A', display: 'block', mb: 0.6 }}>
-                            கடை பில் தொகை (Actual Paper Receipt Bill Amount ₹):
-                          </Typography>
-                          <Box sx={{ display: 'flex', gap: 1 }}>
-                            <TextField
-                              size="small"
-                              type="number"
-                              placeholder="உதா: 650"
-                              value={partsBillAmount}
-                              onChange={(e) => setPartsBillAmount(e.target.value)}
-                              fullWidth
-                              InputProps={{
-                                startAdornment: <Typography sx={{ mr: 0.5, fontWeight: 700, color: '#64748B', fontSize: '13px' }}>₹</Typography>
-                              }}
-                              sx={{
-                                bgcolor: '#FFFFFF',
-                                '& .MuiOutlinedInput-root': { borderRadius: '6px', fontSize: '13px' }
-                              }}
-                            />
-                            {partsBillUrl && (
-                              <Button
-                                size="small"
-                                variant="contained"
-                                onClick={handleUpdateBillAmount}
-                                sx={{
-                                  bgcolor: '#0284C7',
-                                  color: '#FFF',
-                                  fontSize: '11px',
-                                  fontWeight: 700,
-                                  whiteSpace: 'nowrap',
-                                  borderRadius: '6px',
-                                  textTransform: 'none',
-                                  px: 1.5,
-                                  '&:hover': { bgcolor: '#0369A1' }
-                                }}
-                              >
-                                Save Amount
-                              </Button>
-                            )}
-                          </Box>
-                          <Typography variant="caption" sx={{ color: '#0284C7', display: 'block', mt: 0.5, fontSize: '10.5px', fontWeight: 500 }}>
-                            * வாடிக்கையாளருக்கு நீங்கள் பதிவேற்றும் இந்த அசல் பில் தொகையுடன் 5% தள கட்டணம் மட்டுமே சேர்க்கப்படும்.
-                          </Typography>
-                        </Box>
-
-                        <DocumentUploadControl
-                          label="கடை பில் / ரசீது புகைப்படம் (Physical Shop Receipt)"
-                          sublabel="கேமரா படம் அல்லது 5 MB-க்குள் கோப்பு (Take Photo or Upload File <= 5MB)"
-                          folder="bills"
-                          referenceId={activeBookingId}
-                          existingUrl={partsBillUrl}
-                          onUploadSuccess={handleBillUploadSuccess}
-                          onRemove={() => setPartsBillUrl(null)}
-                          maxSizeMb={5}
-                          required
-                        />
                       </Card>
                     </Box>
                   )}
@@ -2101,25 +2029,13 @@ export default function PartnerDutyPage() {
                     size="large"
                     startIcon={<CheckCircleIcon sx={{ fontSize: 18 }} />}
                     onClick={async () => {
-                      // Check if bill upload and amount are required when parts are bought
-                      const hasSpareParts = step3Quote?.items?.some(i => i.type === 'Spare Part');
-                      if (!partsBillUrl && (activeJob?.partsMode === 'tech_buys' || hasSpareParts)) {
-                        setTechToast('⚠️ தயவுசெய்து உதிரிபாகங்கள் வாங்கிய கடை பில் படத்தை பதிவேற்றவும் (Please upload spare parts bill first).');
-                        return;
-                      }
-
-                      if ((activeJob?.partsMode === 'tech_buys' || hasSpareParts) && (!partsBillAmount || parseFloat(partsBillAmount) <= 0)) {
-                        setTechToast('⚠️ தயவுசெய்து கடை ரசீதில் உள்ள சரியான பில் தொகையை உள்ளிடவும் (Please enter valid store bill amount in ₹).');
-                        return;
-                      }
-
                       setLoadingMsg({
                         title: 'Completing job & settling payment...',
-                        subtitle: 'Settlement calculation: 100% Visit Fee (₹99) + 95% Labor/Parts to your UPI'
+                        subtitle: 'Settlement calculation: 100% Visit Fee (₹99) + 95% Labor Payout to your UPI'
                       });
                       setIsProcessing(true);
                       try {
-                        await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${activeBookingId}/status`, {
+                        await fetch(`${API_V1_URL}/bookings/${activeBookingId}/status`, {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ status: 'completed' })
@@ -2193,7 +2109,7 @@ export default function PartnerDutyPage() {
                   டெக்னீசியன் போனஸ் & பரிந்துரை (Incentives Hub)
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11px' }}>
-                  ₹250 per technician referral + 0% platform commission star rewards
+                  ₹{partnerIncentiveAmount} per technician referral + 0% platform commission star rewards
                 </Typography>
               </Box>
               <Chip
@@ -2430,26 +2346,6 @@ export default function PartnerDutyPage() {
                   </Button>
                 </Box>
               </Paper>
-
-              {/* Test Simulation Button */}
-              <Button
-                variant="contained"
-                fullWidth
-                startIcon={<CampaignIcon />}
-                onClick={handleSimulateReferral}
-                sx={{
-                  bgcolor: '#0F172A',
-                  color: '#FFFFFF',
-                  borderRadius: '12px',
-                  py: 1.1,
-                  fontWeight: 800,
-                  fontSize: '12px',
-                  textTransform: 'none',
-                  '&:hover': { bgcolor: '#1E293B' }
-                }}
-              >
-                Test: Simulate Referring a Fellow Specialist (+₹250 & +3 Pts)
-              </Button>
             </Card>
 
             {/* 4. Referred Technicians Roster List */}
@@ -2993,21 +2889,21 @@ export default function PartnerDutyPage() {
                 <Box sx={{ flex: 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
                     <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#FFFFFF', fontSize: '16px' }}>
-                      {user?.name || 'K. Ramesh (கே. ரமேஷ்)'}
+                      {user?.name || 'Partner'}
                     </Typography>
                     <Chip label="Gold Partner" size="small" sx={{ bgcolor: '#FEF3C7', color: '#92400E', fontWeight: 800, fontSize: '10px', height: 18 }} />
                   </Box>
                   <Typography variant="body2" sx={{ color: '#38BDF8', fontWeight: 600, fontSize: '12px', mt: 0.2 }}>
-                    Certified Senior HVAC & AC Specialist
+                    {user?.tradeName || `${user?.trade?.toUpperCase() || 'SERVICE'} Specialist`}
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, mt: 0.6 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3, bgcolor: '#1E293B', px: 0.8, py: 0.2, borderRadius: '4px' }}>
                       <StarIcon sx={{ color: '#F59E0B', fontSize: 13 }} />
                       <Typography variant="caption" sx={{ color: '#FEF08A', fontWeight: 700, fontSize: '11px' }}>
-                        4.9
+                        {user?.ratingAvg || 4.9}
                       </Typography>
                       <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '10px' }}>
-                        (428 reviews)
+                        ({user?.ratingCount || 100} reviews)
                       </Typography>
                     </Box>
                     <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '11px' }}>
@@ -3188,17 +3084,17 @@ export default function PartnerDutyPage() {
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, fontSize: '12px' }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: '#64748B' }}>Primary Bank:</span>
-                  <strong style={{ color: '#0F172A' }}>HDFC Bank - Fairlands Branch</strong>
+                  <strong style={{ color: '#0F172A' }}>{user?.bankName || 'Verified Partner Bank'}</strong>
                 </Box>
                 <Divider sx={{ borderColor: '#F1F5F9' }} />
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: '#64748B' }}>Account Holder:</span>
-                  <strong style={{ color: '#0F172A' }}>K. RAMESH</strong>
+                  <strong style={{ color: '#0F172A' }}>{user?.name?.toUpperCase() || 'VERIFIED PARTNER'}</strong>
                 </Box>
                 <Divider sx={{ borderColor: '#F1F5F9' }} />
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: '#64748B' }}>UPI ID (Direct IMPS):</span>
-                  <strong style={{ color: '#16A34A' }}>ramesh.tech@oksbi</strong>
+                  <strong style={{ color: '#16A34A' }}>{user?.upi_vpa || user?.upiId || 'partner@oksbi'}</strong>
                 </Box>
                 <Divider sx={{ borderColor: '#F1F5F9' }} />
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>

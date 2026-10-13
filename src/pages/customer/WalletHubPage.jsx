@@ -1,3 +1,4 @@
+import { API_V1_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
 import {
   Container,
@@ -38,10 +39,14 @@ import StarsIcon from '@mui/icons-material/Stars';
 
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
+import { ILLUSTRATIONS } from '../../constants/visualAssets';
 
 export default function WalletHubPage() {
   const navigate = useNavigate();
-  const { walletBalance, simulateCustomerReferral, user } = useAuth();
+  const { walletBalance, user, rewardSettings } = useAuth();
+
+  const rewardCredits = parseFloat(rewardSettings?.customer_referral_credits || 50);
+  const refereeDiscount = parseFloat(rewardSettings?.referee_discount_amount || 50);
 
   const [copied, setCopied] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
@@ -74,7 +79,7 @@ export default function WalletHubPage() {
   const myReferralCode = user?.referralCodeUsed || 'SALEM100';
 
   useEffect(() => {
-    fetch('https://salemseva-backend.onrender.com/api/v1/wallet/customer')
+    fetch(`${API_V1_URL}/wallet/customer`)
       .then(res => res.json())
       .then(data => {
         if (data.success) {
@@ -100,37 +105,9 @@ export default function WalletHubPage() {
 
   const shareWhatsApp = () => {
     const text = encodeURIComponent(
-      `வணக்கம்! சேலத்தில் நம்பகமான எலக்ட்ரீசியன், பிளம்பர், AC சர்வீஸ் பெற SalemSeva பயன்பாட்டைப் பயன்படுத்துங்கள். \n\nஎனது ரெஃபரல் கோட் *${myReferralCode}* பயன்படுத்தி முதல் புக்கிங்கில் ₹50 தள்ளுபடி பெறுங்கள்: ${window.location.origin}/`
+      `வணக்கம்! சேலத்தில் நம்பகமான எலக்ட்ரீசியன், பிளம்பர், AC சர்வீஸ் பெற SalemSeva பயன்பாட்டைப் பயன்படுத்துங்கள். \n\nஎனது ரெஃபரல் கோட் *${myReferralCode}* பயன்படுத்தி முதல் புக்கிங்கில் ₹${refereeDiscount} தள்ளுபடி பெறுங்கள்: ${window.location.origin}/`
     );
     window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
-  };
-
-  const handleSimulateFriendBooking = async () => {
-    const friendNames = ['Kavitha S.', 'Suresh Kumar', 'Anand M.', 'Meena R.'];
-    const localities = ['Meyyanur, Salem', 'Hasthampatti, Salem', 'Suramangalam, Salem', 'Fairlands, Salem'];
-    const randomFriend = friendNames[Math.floor(Math.random() * friendNames.length)];
-    const randomLocality = localities[Math.floor(Math.random() * localities.length)];
-
-    await simulateCustomerReferral(randomFriend, randomLocality);
-    
-    const newTx = {
-      id: `tx-${Date.now()}`,
-      title: `Referral: ${randomFriend} (Completed)`,
-      amount: 100,
-      type: 'CREDIT',
-      category: 'REFERRAL_REWARD',
-      timestamp: 'Just now',
-      description: `Friend ${randomFriend} completed 1st service in ${randomLocality} (+100 Credits)`
-    };
-
-    setTransactions(prev => [newTx, ...prev]);
-    setReferralStats(prev => ({
-      ...prev,
-      friendsCompleted: prev.friendsCompleted + 1,
-      creditsEarned: prev.creditsEarned + 100
-    }));
-
-    toast.success(`Friend ${randomFriend} completed service in ${randomLocality}! +100 Credits added.`);
   };
 
   const formatTxDate = (dateStr) => {
@@ -178,7 +155,7 @@ export default function WalletHubPage() {
           />
         </Box>
         
-        {/* 1. Hero Balance Blue Card */}
+        {/* 1. Hero Balance Blue Card with SalemSeva Escrow Wallet Illustration */}
         <Card
           elevation={0}
           sx={{
@@ -186,55 +163,104 @@ export default function WalletHubPage() {
             color: '#FFFFFF',
             borderRadius: '20px',
             p: 2.5,
-            mb: 2.5,
+            mb: 2,
             boxShadow: '0 6px 20px rgba(2, 132, 199, 0.25)',
             position: 'relative',
             overflow: 'hidden'
           }}
         >
-          <Typography variant="caption" sx={{ fontWeight: 800, letterSpacing: 0.8, opacity: 0.9, fontSize: '11px', textTransform: 'uppercase' }}>
-            AVAILABLE SEVA CREDITS BALANCE
-          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative', zIndex: 1 }}>
+            <Box sx={{ maxWidth: '68%' }}>
+              <Typography variant="caption" sx={{ fontWeight: 800, letterSpacing: 0.8, opacity: 0.9, fontSize: '11px', textTransform: 'uppercase' }}>
+                AVAILABLE SEVA CREDITS BALANCE
+              </Typography>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, my: 1 }}>
-            <Box
-              sx={{
-                width: 42,
-                height: 42,
-                borderRadius: '50%',
-                bgcolor: '#F59E0B',
-                color: '#FFFFFF',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 2px 8px rgba(245, 158, 11, 0.4)'
-              }}
-            >
-              <StarIcon sx={{ fontSize: 24 }} />
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, my: 1 }}>
+                <Box
+                  sx={{
+                    width: 42,
+                    height: 42,
+                    borderRadius: '50%',
+                    bgcolor: '#F59E0B',
+                    color: '#FFFFFF',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 2px 8px rgba(245, 158, 11, 0.4)'
+                  }}
+                >
+                  <StarIcon sx={{ fontSize: 24 }} />
+                </Box>
+                <Typography variant="h3" sx={{ fontWeight: 900, color: '#FFFFFF', letterSpacing: -0.5 }}>
+                  {walletBalance} <span style={{ fontSize: 18, fontWeight: 700 }}>Credits</span>
+                </Typography>
+              </Box>
+
+              <Box sx={{ display: 'flex', gap: 0.8, mt: 1.5, flexWrap: 'wrap' }}>
+                <Chip
+                  label={`₹${walletBalance} Cash Value`}
+                  size="small"
+                  sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: '#FFFFFF', fontWeight: 800, fontSize: '10.5px' }}
+                />
+                <Chip
+                  label="20% Max Burn Cap / Booking"
+                  size="small"
+                  sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: '#FFFFFF', fontWeight: 800, fontSize: '10.5px' }}
+                />
+              </Box>
             </Box>
-            <Typography variant="h3" sx={{ fontWeight: 900, color: '#FFFFFF', letterSpacing: -0.5 }}>
-              {walletBalance} <span style={{ fontSize: 18, fontWeight: 700 }}>Credits</span>
-            </Typography>
-          </Box>
 
-          <Box sx={{ display: 'flex', gap: 1, mt: 1.5, flexWrap: 'wrap' }}>
-            <Chip
-              label={`₹${walletBalance} Cash Value`}
-              size="small"
-              sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: '#FFFFFF', fontWeight: 800, fontSize: '11px' }}
-            />
-            <Chip
-              label="20% Max Burn Cap / Booking"
-              size="small"
-              sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: '#FFFFFF', fontWeight: 800, fontSize: '11px' }}
-            />
-            <Chip
-              label="100% Usable Across Salem"
-              size="small"
-              sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: '#FFFFFF', fontWeight: 800, fontSize: '11px' }}
+            {/* SalemSeva Escrow Wallet & Cash Illustration */}
+            <Box
+              component="img"
+              src={ILLUSTRATIONS.wallet}
+              alt="SalemSeva Escrow Wallet & Cash"
+              sx={{
+                width: 90,
+                height: 80,
+                objectFit: 'contain',
+                opacity: 0.95,
+                filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.15))'
+              }}
             />
           </Box>
         </Card>
+
+        {/* 100% Escrow Protection & Safety Card */}
+        <Paper
+          elevation={0}
+          sx={{
+            p: 1.8,
+            mb: 2.5,
+            borderRadius: '16px',
+            bgcolor: '#FFFFFF',
+            border: '1px solid #E2E8F0',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.8,
+            boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)'
+          }}
+        >
+          <Box
+            component="img"
+            src={ILLUSTRATIONS.security}
+            alt="100% Escrow Protection & Safety"
+            sx={{
+              width: 52,
+              height: 52,
+              objectFit: 'contain',
+              flexShrink: 0
+            }}
+          />
+          <Box sx={{ flex: 1 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '13px' }}>
+              100% Escrow Protection & Safety
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11px', display: 'block', lineHeight: 1.4 }}>
+              Payment is held safely in SalemSeva escrow. Funds are released to verified technicians only after your OTP service completion verification.
+            </Typography>
+          </Box>
+        </Paper>
 
         {/* 2. Referral Hub Card */}
         <Card
@@ -256,14 +282,14 @@ export default function WalletHubPage() {
               </Typography>
             </Box>
             <Chip
-              label="EARN ₹100 / FRIEND"
+              label={`EARN ₹${rewardCredits} / FRIEND`}
               size="small"
               sx={{ bgcolor: '#E0F2FE', color: '#0284C7', fontWeight: 900, fontSize: '10px', height: 22 }}
             />
           </Box>
 
           <Typography variant="body2" sx={{ color: '#64748B', fontSize: '12px', lineHeight: 1.45, mb: 1.8 }}>
-            Give friends <strong>₹50 OFF</strong> their first home service. You get <strong>100 Seva Credits (₹100)</strong> instantly credited when their service is completed!
+            Give friends <strong>₹{refereeDiscount} OFF</strong> their first home service. You get <strong>{rewardCredits} Seva Credits (₹{rewardCredits})</strong> instantly credited when their service is completed!
           </Typography>
 
           {/* Referral Code Box */}
@@ -354,26 +380,6 @@ export default function WalletHubPage() {
               </Typography>
             </Box>
           </Paper>
-
-          {/* Simulate Friend Booking Button */}
-          <Button
-            variant="contained"
-            fullWidth
-            startIcon={<CampaignIcon />}
-            onClick={handleSimulateFriendBooking}
-            sx={{
-              bgcolor: '#10B981',
-              borderRadius: '14px',
-              py: 1.1,
-              fontWeight: 800,
-              fontSize: '12.5px',
-              boxShadow: 'none',
-              textTransform: 'none',
-              '&:hover': { bgcolor: '#059669' }
-            }}
-          >
-            Test Simulation: Friend Completes 1st Service (+100 Credits)
-          </Button>
         </Card>
 
         {/* 3. Credits Activity History Card */}

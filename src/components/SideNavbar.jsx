@@ -73,9 +73,9 @@ export default function SideNavbar({
   };
 
   const userRole = user?.role || (currentPath.startsWith('/partner') ? 'technician' : currentPath.startsWith('/admin') ? 'admin' : 'customer');
-  const displayName = user?.name || (userRole === 'technician' ? 'K. Ramesh' : userRole === 'admin' ? 'Salem Ops Admin' : 'Vimal Raj');
-  const userPhone = user?.phone || '+91 98427 11234';
-  const userLocality = user?.locality || 'Fairlands, Salem';
+  const displayName = user?.name || (userRole === 'technician' ? 'Partner' : userRole === 'admin' ? 'Salem Ops Admin' : 'Customer');
+  const userPhone = user?.phone || '';
+  const userLocality = user?.locality || 'Salem';
 
   const currentLangCode = getCurrentLanguage();
   const currentLangName = SUPPORTED_LANGUAGES.find(l => l.code === currentLangCode)?.nativeName || 'English';
@@ -92,6 +92,7 @@ export default function SideNavbar({
         bottom: 0,
         zIndex: 99999,
         display: 'flex',
+        justifyContent: 'flex-end',
         fontFamily: "'Inter', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif"
       }}
     >
@@ -120,11 +121,11 @@ export default function SideNavbar({
           height: '100%',
           backgroundColor: isDarkMode ? '#0F172A' : '#FFFFFF',
           color: isDarkMode ? '#F8FAFC' : '#0F172A',
-          boxShadow: '4px 0 24px rgba(0, 0, 0, 0.25)',
+          boxShadow: '-4px 0 24px rgba(0, 0, 0, 0.25)',
           display: 'flex',
           flexDirection: 'column',
           zIndex: 1301,
-          animation: 'slideInLeft 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+          animation: 'slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
           overflow: 'hidden'
         }}
       >
@@ -572,9 +573,9 @@ export default function SideNavbar({
       </div>
 
       <style>{`
-        @keyframes slideInLeft {
+        @keyframes slideInRight {
           from {
-            transform: translateX(-100%);
+            transform: translateX(100%);
           }
           to {
             transform: translateX(0);

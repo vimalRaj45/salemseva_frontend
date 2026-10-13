@@ -32,8 +32,32 @@ export function AuthProvider({ children }) {
   const [dbTechnicians, setDbTechnicians] = useState([]);
   const [dbCustomers, setDbCustomers] = useState([]);
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [authInitialTab, setAuthInitialTab] = useState('customer'); // 'customer' | 'technician' | 'admin'
+  const [authInitialTab, setAuthInitialTab] = useState('customer');
+
   const [sessionTerminatedModalOpen, setSessionTerminatedModalOpen] = useState(false);
+  const [rewardSettings, setRewardSettings] = useState({
+    customer_referral_credits: 50,
+    referee_discount_amount: 50,
+    review_reward_credits: 25,
+    feedback_reward_credits: 15,
+    feedback_rewards_enabled: true,
+    partner_referral_incentive: 100,
+    partner_welcome_bonus: 50
+  });
+
+  const fetchRewardSettings = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/settings/rewards`);
+      const data = await res.json();
+      if (data.success && data.settings) {
+        setRewardSettings(data.settings);
+      }
+    } catch (e) {}
+  };
+
+  useEffect(() => {
+    fetchRewardSettings();
+  }, []);
 
   const sessionTokenRef = useRef(localStorage.getItem('salemseva_session_token') || '');
 
@@ -191,54 +215,29 @@ export function AuthProvider({ children }) {
   };
 
   const loginWithPhonePassword = async (phone, password, role = 'customer') => {
-    let loggedUser = null;
-    const cleanPhone = phone.replace(/[\s\-]/g, '');
-
-    if (role === 'customer') {
-      const matched = dbCustomers.find(c => c.rawPhone === cleanPhone || c.phone === phone);
-      loggedUser = matched || {
-        id: `usr-cust-${Date.now()}`,
-        role: 'customer',
-        name: 'Salem Customer',
-        phone: phone.startsWith('+91') ? phone : `+91 ${phone}`,
-        email: 'customer@salemseva.in',
-        locality: 'Fairlands, Salem',
-        address: 'Fairlands, Salem - 636016',
-        walletBalance: 150,
-        isVerified: true
-      };
-    } else if (role === 'technician') {
-      const matched = dbTechnicians.find(t => t.rawPhone === cleanPhone || t.phone === phone);
-      loggedUser = matched || (dbTechnicians[0] || {
-        id: 'tech-default',
-        role: 'technician',
-        name: 'Salem Technician',
-        phone: phone.startsWith('+91') ? phone : `+91 ${phone}`,
-        trade: 'ac',
-        isKycVerified: true,
-        isOnline: true
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier: phone, phone, password, role })
       });
-    } else if (role === 'admin') {
-      loggedUser = {
-        id: 'adm-ops-001',
-        role: 'admin',
-        name: 'Salem Ops Central Admin',
-        phone: phone.startsWith('+91') ? phone : `+91 ${phone}`,
-        email: 'ops.admin@salemseva.in',
-        designation: 'Operations Command Hub Lead',
-        locality: 'Central HQ, Salem',
-        isVerified: true
-      };
+      const data = await res.json();
+      if (!data.success || !data.user) {
+        throw new Error(data.error || 'Login failed with provided credentials');
+      }
+
+      setUser(data.user);
+      localStorage.setItem('salemseva_user', JSON.stringify(data.user));
+      if (data.sessionToken) {
+        sessionTokenRef.current = data.sessionToken;
+        localStorage.setItem('salemseva_session_token', data.sessionToken);
+      }
+      setAuthModalOpen(false);
+      return data.user;
+    } catch (err) {
+      console.error('Authentication error:', err.message);
+      throw err;
     }
-
-    setUser(loggedUser);
-    localStorage.setItem('salemseva_user', JSON.stringify(loggedUser));
-    setAuthModalOpen(false);
-
-    // Register active session token on backend to enforce single-device login
-    await registerSessionWithBackend(loggedUser.phone, role, loggedUser.name, loggedUser.trade);
-
-    return loggedUser;
   };
 
   // Production Username / Phone / Email + Password Login
@@ -262,41 +261,8 @@ export function AuthProvider({ children }) {
       setAuthModalOpen(false);
       return data.user;
     } catch (err) {
-      const clean = (identifier || '').replace(/[\s\-\(\)\+]/g, '');
-      let fallback = null;
-      if (clean === '9443288901' || (identifier && identifier.toLowerCase().includes('partner'))) {
-        fallback = dbTechnicians[0] || {
-          id: 'tech-9443288901',
-          role: 'technician',
-          name: 'K. Ramesh',
-          phone: '+91 94432 88901',
-          trade: 'ac',
-          isKycVerified: true,
-          isOnline: true
-        };
-      } else if (clean === '9842099999' || (identifier && identifier.toLowerCase().includes('admin'))) {
-        fallback = {
-          id: 'adm-ops-001',
-          role: 'admin',
-          name: 'Salem Central Ops Admin',
-          phone: '+91 98420 99999',
-          email: 'ops.admin@salemseva.in',
-          locality: 'Central HQ, Salem'
-        };
-      } else {
-        fallback = dbCustomers[0] || {
-          id: 'c0000000-0000-0000-0000-000000000001',
-          role: 'customer',
-          name: 'Vimal Raj',
-          phone: identifier && identifier.startsWith('+91') ? identifier : `+91 ${identifier || '98427 11234'}`,
-          locality: 'Fairlands, Salem',
-          walletBalance: 150
-        };
-      }
-      setUser(fallback);
-      localStorage.setItem('salemseva_user', JSON.stringify(fallback));
-      setAuthModalOpen(false);
-      return fallback;
+      console.error('OTP login failed:', err.message);
+      throw err;
     }
   };
 
@@ -393,32 +359,9 @@ export function AuthProvider({ children }) {
   const loginAsPreset = async (presetKey) => {
     let preset = null;
     if (presetKey === 'customer') {
-      preset = dbCustomers[0] || {
-        id: 'c0000000-0000-0000-0000-000000000001',
-        role: 'customer',
-        name: 'Vimal Raj',
-        phone: '+91 98427 11234',
-        rawPhone: '+919842711234',
-        locality: 'Fairlands, Salem',
-        address: '14/2, 5th Cross, Fairlands, Salem - 636016',
-        walletBalance: 150,
-        isVerified: true
-      };
+      preset = dbCustomers[0];
     } else if (presetKey === 'technicianVerified' || presetKey === 'technician') {
-      preset = dbTechnicians[0] || {
-        id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
-        role: 'technician',
-        name: 'K. Ramesh',
-        phone: '+91 94432 88901',
-        trade: 'ac',
-        isKycVerified: true,
-        isOnline: true,
-        ratingAvg: 4.95,
-        ratingCount: 142,
-        jobsCompleted: 389,
-        todayEarnings: 1450,
-        serviceArea: 'Fairlands, Salem'
-      };
+      preset = dbTechnicians[0];
     } else if (presetKey === 'admin') {
       preset = {
         id: 'adm-ops-001',
@@ -432,26 +375,19 @@ export function AuthProvider({ children }) {
       };
     }
 
+    if (!preset) return;
     setUser(preset);
     localStorage.setItem('salemseva_user', JSON.stringify(preset));
     setAuthModalOpen(false);
 
-    if (preset && preset.phone) {
+    if (preset.phone) {
       await registerSessionWithBackend(preset.phone, preset.role || 'customer', preset.name, preset.trade);
     }
   };
 
   const loginAsCustomer = (customerData) => {
-    const cust = customerData || dbCustomers[0] || {
-      id: 'usr-cust-01',
-      role: 'customer',
-      name: 'Vimal Raj',
-      phone: '+91 98427 11234',
-      locality: 'Fairlands, Salem',
-      address: 'Fairlands, Salem - 636016',
-      walletBalance: 150,
-      isVerified: true
-    };
+    const cust = customerData || dbCustomers[0];
+    if (!cust) return;
     setUser(cust);
     localStorage.setItem('salemseva_user', JSON.stringify(cust));
     setAuthModalOpen(false);
@@ -459,15 +395,8 @@ export function AuthProvider({ children }) {
   };
 
   const loginAsTechnician = (technicianData) => {
-    const tech = technicianData || dbTechnicians[0] || {
-      id: 'tech-01',
-      role: 'technician',
-      name: 'K. Ramesh',
-      phone: '+91 94432 88901',
-      trade: 'ac',
-      isKycVerified: true,
-      isOnline: true
-    };
+    const tech = technicianData || dbTechnicians[0];
+    if (!tech) return;
     setUser(tech);
     localStorage.setItem('salemseva_user', JSON.stringify(tech));
     setAuthModalOpen(false);
@@ -594,26 +523,8 @@ export function AuthProvider({ children }) {
     return actualDebit;
   };
 
-  const simulateCustomerReferral = async (friendName = 'Kavitha S.', locality = 'Meyyanur, Salem') => {
-    const updated = walletBalance + 100;
-    updateWalletBalance(updated);
-
-    try {
-      await fetch(`${API_BASE_URL}/api/v1/wallet/customer/simulate-referral`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          friendName,
-          locality,
-          phone: user?.phone || '+91 98427 11234'
-        })
-      });
-    } catch (e) {}
-    return updated;
-  };
-
   const referTechnician = async ({ name, phone, trade, locality }) => {
-    const incentiveAmount = 250;
+    const incentiveAmount = parseFloat(rewardSettings?.partner_referral_incentive || 100);
     const newStarPoints = Math.min(30, (partnerIncentives.starPoints || 24) + 3);
     const newTotal = (partnerIncentives.totalIncentiveEarned || 750) + incentiveAmount;
     const newAvailable = (partnerIncentives.availablePayout || 500) + incentiveAmount;
@@ -635,7 +546,7 @@ export function AuthProvider({ children }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          referrerPhone: user?.phone || '+919443288901',
+          referrerPhone: user?.phone || '',
           referredName: name,
           referredPhone: phone,
           referredTrade: trade,
@@ -647,13 +558,13 @@ export function AuthProvider({ children }) {
     return updated;
   };
 
-  const claimPartnerPayout = async (upiId = 'partner.pay@okaxis') => {
+  const claimPartnerPayout = async (upiId = '') => {
     const payoutAmount = partnerIncentives.availablePayout || 0;
     if (payoutAmount <= 0) return partnerIncentives;
 
     const updated = {
       ...partnerIncentives,
-      settledPayout: (partnerIncentives.settledPayout || 250) + payoutAmount,
+      settledPayout: (partnerIncentives.settledPayout || 0) + payoutAmount,
       availablePayout: 0
     };
 
@@ -665,7 +576,7 @@ export function AuthProvider({ children }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          phone: user?.phone || '+919443288901',
+          phone: user?.phone || '',
           upiId
         })
       });
@@ -683,7 +594,9 @@ export function AuthProvider({ children }) {
         updateWalletBalance,
         creditWallet,
         debitWallet,
-        simulateCustomerReferral,
+        rewardSettings,
+        fetchRewardSettings,
+        refreshRewardSettings: fetchRewardSettings,
         partnerIncentives,
         referTechnician,
         claimPartnerPayout,
@@ -692,6 +605,7 @@ export function AuthProvider({ children }) {
         openAuthModal: openAuth,
         closeAuthModal: closeAuth,
         setAuthModalOpen,
+        setAuthInitialTab,
         loginWithPhonePassword,
         loginWithCredentials,
         registerAccount,

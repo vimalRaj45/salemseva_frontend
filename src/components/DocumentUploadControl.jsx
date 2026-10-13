@@ -1,3 +1,4 @@
+import { API_V1_URL } from '../config';
 import React, { useState, useRef, useEffect } from 'react';
 import {
   Box,
@@ -81,7 +82,7 @@ export default function DocumentUploadControl({
     if (file.size > maxSizeBytes) {
       const actualMb = (file.size / (1024 * 1024)).toFixed(2);
       setErrorMessage(
-        `⚠️ கோப்பின் அளவு (${actualMb} MB) அனுமதிக்கப்பட்ட ${maxSizeMb} MB வரம்பை தாண்டியுள்ளது. தயவுசெய்து 5 MB-க்குள் உள்ள சிறிய படத்தை தேர்ந்தெடுக்கவும்.`
+        `கோப்பின் அளவு (${actualMb} MB) அனுமதிக்கப்பட்ட ${maxSizeMb} MB வரம்பை தாண்டியுள்ளது. தயவுசெய்து 5 MB-க்குள் உள்ள சிறிய படத்தை தேர்ந்தெடுக்கவும்.`
       );
       return;
     }
@@ -112,7 +113,7 @@ export default function DocumentUploadControl({
       setErrorMessage('');
 
       // Upload to S3-compatible backend
-      const res = await fetch('https://salemseva-backend.onrender.com/api/v1/storage/upload', {
+      const res = await fetch(`${API_V1_URL}/storage/upload`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -237,7 +238,7 @@ export default function DocumentUploadControl({
                 '&:hover': { bgcolor: '#0369A1' }
               }}
             >
-              📸 கேமரா (Take Photo)
+              கேமரா (Take Photo)
             </Button>
 
             {/* Option 2: Upload File / Gallery */}
@@ -259,7 +260,7 @@ export default function DocumentUploadControl({
                 '&:hover': { borderColor: '#94A3B8', bgcolor: '#F8FAFC' }
               }}
             >
-              📁 பதிவேற்று (Upload File)
+              பதிவேற்று (Upload File)
             </Button>
           </Box>
         </Paper>
@@ -398,7 +399,7 @@ export default function DocumentUploadControl({
                 '&:hover': { bgcolor: '#15803D' }
               }}
             >
-              ✓ சரிபார்த்து பதிவேற்றவும் (Confirm & Upload)
+              சரிபார்த்து பதிவேற்றவும் (Confirm & Upload)
             </Button>
 
             <Button
@@ -523,7 +524,7 @@ export default function DocumentUploadControl({
               </Typography>
             </Box>
             <Typography variant="caption" sx={{ color: '#15803D', display: 'block', fontSize: '11px', fontWeight: 600 }}>
-              ✓ S3 கிளவுடில் பாதுகாப்பாக சேமிக்கப்பட்டுள்ளது (Verified)
+              S3 கிளவுடில் பாதுகாப்பாக சேமிக்கப்பட்டுள்ளது (Verified)
             </Typography>
           </Box>
 
@@ -568,7 +569,7 @@ export default function DocumentUploadControl({
           )}
           <Box sx={{ mt: 1, display: 'flex', justifyContent: 'center' }}>
             <Typography variant="caption" sx={{ color: '#94A3B8' }}>
-              {stagedFile ? '⚠️ பதிவேற்றத்திற்கு முந்தைய பார்வை (Pre-Upload Inspection)' : '✓ S3 கிளவுட் ஆவணம் (Verified S3 Document)'}
+              {stagedFile ? 'பதிவேற்றத்திற்கு முந்தைய பார்வை (Pre-Upload Inspection)' : 'S3 கிளவுட் ஆவணம் (Verified S3 Document)'}
             </Typography>
           </Box>
         </DialogContent>

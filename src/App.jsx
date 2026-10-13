@@ -1,3 +1,4 @@
+import { API_V1_URL } from './config';
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Box } from '@mui/material';
@@ -50,7 +51,7 @@ function CustomerActiveJobGuard({ children }) {
     if (!activeBookingId) return;
 
     let isMounted = true;
-    fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${activeBookingId}/track`)
+    fetch(`${API_V1_URL}/bookings/${activeBookingId}/track`)
       .then(r => r.json())
       .then(d => {
         if (!isMounted) return;
@@ -70,9 +71,10 @@ function CustomerActiveJobGuard({ children }) {
           return;
         }
 
-        if (['matching', 'accepted', 'en_route', 'arrived', 'inspecting', 'quote_presented', 'quote_approved', 'completed'].includes(status)) {
+        const isScheduled = d.booking?.booking_type === 'scheduled' || (!d.booking?.is_urgent_dispatch && d.booking?.scheduled_slot && d.booking?.scheduled_slot !== 'instant_now');
+        if (['created', 'matching', 'accepted', 'en_route', 'arrived', 'inspecting', 'quote_presented', 'quote_approved', 'completed'].includes(status)) {
           let target = `/track?bookingId=${activeBookingId}`;
-          if (status === 'matching') target = `/matching?bookingId=${activeBookingId}`;
+          if (status === 'matching' && !isScheduled) target = `/matching?bookingId=${activeBookingId}`;
           else if (status === 'quote_presented') target = `/quote?bookingId=${activeBookingId}`;
           else if (status === 'completed') target = `/rate?bookingId=${activeBookingId}`;
 

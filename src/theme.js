@@ -69,23 +69,56 @@ export const theme = createTheme({
     borderRadius: 8,
   },
   components: {
+    MuiButtonBase: {
+      defaultProps: {
+        disableRipple: false,
+      },
+      styleOverrides: {
+        root: {
+          '&:focus-visible': {
+            outline: '2px solid #0066CC',
+            outlineOffset: '2px',
+          },
+        },
+      },
+    },
     MuiButton: {
       styleOverrides: {
         root: {
           borderRadius: 8,
-          padding: '6px 14px',
+          padding: '8px 16px',
           fontWeight: 700,
-          fontSize: '0.78rem',
-          minHeight: '34px',
+          fontSize: '0.8125rem',
+          minHeight: '40px',
           boxShadow: 'none',
+          transition: 'background-color 140ms ease, border-color 140ms ease, color 140ms ease',
           '&:hover': {
             boxShadow: 'none',
+          },
+          '&:focus-visible': {
+            outline: '2px solid #0066CC',
+            outlineOffset: '2px',
+          },
+          '&.Mui-disabled': {
+            opacity: 0.6,
           },
         },
         containedPrimary: {
           backgroundColor: '#0066CC',
+          color: '#FFFFFF',
           '&:hover': {
             backgroundColor: '#0052CC',
+          },
+          '&:active': {
+            backgroundColor: '#003D99',
+          },
+        },
+        outlined: {
+          borderColor: '#E2E8F0',
+          color: '#0F172A',
+          '&:hover': {
+            borderColor: '#CBD5E1',
+            backgroundColor: '#F8FAFC',
           },
         },
       },
@@ -93,9 +126,10 @@ export const theme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          borderRadius: 10,
+          borderRadius: 12,
           boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
           border: '1px solid #E2E8F0',
+          backgroundColor: '#FFFFFF',
         },
       },
     },
@@ -115,15 +149,20 @@ export const theme = createTheme({
           borderRadius: 6,
           fontWeight: 700,
           fontSize: '0.6875rem',
-          height: 22,
+          height: 24,
+          '&:focus-visible': {
+            outline: '2px solid #0066CC',
+            outlineOffset: '1px',
+          },
         },
       },
     },
     MuiDialog: {
       styleOverrides: {
         paper: {
-          borderRadius: 12,
+          borderRadius: 14,
           border: '1px solid #E2E8F0',
+          boxShadow: '0 10px 25px rgba(15, 23, 42, 0.1)',
         },
       },
     },
@@ -132,16 +171,23 @@ export const theme = createTheme({
         root: {
           paddingBottom: 'env(safe-area-inset-bottom, 0px)',
           boxSizing: 'content-box',
+          borderTop: '1px solid #E2E8F0',
+          backgroundColor: '#FFFFFF',
         },
       },
     },
     MuiBottomNavigationAction: {
       styleOverrides: {
         root: {
-          padding: '4px 0',
+          padding: '6px 0',
           minWidth: 'auto',
+          minHeight: '44px',
           '&.Mui-selected': {
             color: '#0066CC',
+          },
+          '&:focus-visible': {
+            outline: '2px solid #0066CC',
+            outlineOffset: '-2px',
           },
         },
         label: {
@@ -158,20 +204,26 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: 8,
-          fontSize: '0.8rem',
+          fontSize: '0.8125rem',
+          minHeight: '40px',
           '& fieldset': {
             borderColor: '#E2E8F0',
+            transition: 'border-color 140ms ease',
           },
           '&:hover fieldset': {
-            borderColor: '#CBD5E1',
+            borderColor: '#94A3B8',
           },
           '&.Mui-focused fieldset': {
             borderColor: '#0066CC',
+            borderWidth: '2px',
+          },
+          '&.Mui-error fieldset': {
+            borderColor: '#DC2626',
           },
         },
         input: {
-          fontSize: '0.8rem',
-          padding: '8px 12px',
+          fontSize: '0.8125rem',
+          padding: '9px 12px',
         },
       },
     },

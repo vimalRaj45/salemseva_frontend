@@ -73,16 +73,16 @@ export default function Navbar({
 
 
   // Dynamic user data
-  const displayName = propUserName || user?.name || (isTechnician ? 'K. Ramesh' : isAdmin ? 'Salem Ops Admin' : 'Vimal Raj');
-  const initial = displayName.charAt(0).toUpperCase() || (isTechnician ? 'R' : isAdmin ? 'A' : 'V');
-  const creditsAmount = propCredits !== undefined ? propCredits : (authWalletBalance ?? user?.walletBalance ?? 150);
+  const displayName = propUserName || user?.name || (isTechnician ? 'Partner' : isAdmin ? 'Salem Ops Admin' : 'Customer');
+  const initial = displayName ? displayName.charAt(0).toUpperCase() : (isTechnician ? 'P' : isAdmin ? 'A' : 'C');
+  const creditsAmount = propCredits !== undefined ? propCredits : (authWalletBalance ?? user?.walletBalance ?? 0);
   const isPartnerOnline = user?.isOnline !== false;
 
-  // Responsive mobile state
-  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+  // Responsive mobile state (Breakpoint: < 900px for mobile/tablet, >= 900px for laptop/desktop)
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 900 : false);
 
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    const handleResize = () => setIsMobile(window.innerWidth < 900);
     window.addEventListener('resize', handleResize, { passive: true });
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -250,11 +250,18 @@ export default function Navbar({
         fontFamily: "'Inter', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif"
       }}
     >
+      <style>{`
+        @media (min-width: 900px) {
+          .salem-mobile-hamburger-btn {
+            display: none !important;
+          }
+        }
+      `}</style>
       <div
         style={{
-          maxWidth: '1200px',
+          maxWidth: '1360px',
           margin: '0 auto',
-          padding: isMobile ? '0 10px' : '0 16px',
+          padding: isMobile ? '0 12px' : '0 20px',
           display: 'flex',
           flexDirection: 'column'
         }}
@@ -265,37 +272,13 @@ export default function Navbar({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            height: isMobile ? '52px' : '62px',
-            gap: isMobile ? '6px' : '14px',
+            height: isMobile ? '54px' : '64px',
+            gap: isMobile ? '8px' : '14px',
             width: '100%'
           }}
         >
           {/* ================= 1. BRAND LOGO & ROLE IDENTITY ================= */}
           <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '6px' : '10px', flexShrink: 0 }}>
-            {/* Hamburger Button for Slide-Out Side Navigation (Mobile Only, hidden on laptop/desktop) */}
-            <button
-              type="button"
-              onClick={() => setIsSideNavOpen(true)}
-              aria-label="Open Side Navigation Menu"
-              title="Menu / வழிசெலுத்தல்"
-              style={{
-                display: isMobile ? 'flex' : 'none',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '34px',
-                height: '34px',
-                borderRadius: '10px',
-                backgroundColor: isDarkMode ? '#1E293B' : '#F1F5F9',
-                border: isDarkMode ? '1px solid #334155' : '1px solid #E2E8F0',
-                color: isDarkMode ? '#F8FAFC' : '#0F172A',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-                flexShrink: 0
-              }}
-            >
-              <Menu size={18} />
-            </button>
-
             <div
               onClick={() => {
                 if (isTechnician) navigate('/partner');
@@ -380,17 +363,16 @@ export default function Navbar({
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '3px',
-                        padding: '2px 6px',
-                        borderRadius: '999px',
-                        fontSize: '9.5px',
+                        padding: '2px 8px',
+                        borderRadius: '6px',
+                        fontSize: '10px',
                         fontWeight: 800,
-                        backgroundColor: '#FEF3C7',
-                        color: '#B45309',
-                        border: '1px solid #F59E0B'
+                        backgroundColor: isDarkMode ? '#1E293B' : '#E0F2FE',
+                        color: '#0284C7',
+                        border: isDarkMode ? '1px solid #334155' : '1px solid #BAE6FD'
                       }}
                     >
-                      <Activity size={10} color="#B45309" />
-                      HQ
+                      Admin
                     </span>
                   ) : (
                     <span
@@ -413,7 +395,7 @@ export default function Navbar({
                   )}
                 </div>
 
-                {!isMobile && (
+                {!isMobile && !isAdmin && (
                   <span
                     style={{
                       fontSize: '11px',
@@ -424,8 +406,6 @@ export default function Navbar({
                   >
                     {isTechnician
                       ? 'Verified Specialist Hub • Salem'
-                      : isAdmin
-                      ? 'Central Dispatch Operations • Salem'
                       : 'On-Demand Home Services • Salem'}
                   </span>
                 )}
@@ -451,12 +431,14 @@ export default function Navbar({
                   type="button"
                   onClick={() => setIsLocationOpen(!isLocationOpen)}
                   style={{
-                    display: 'flex',
+                    display: 'inline-flex',
                     alignItems: 'center',
                     gap: '6px',
-                    padding: '8px 12px',
-                    borderRadius: '12px',
-                    fontSize: '12px',
+                    height: '38px',
+                    padding: '0 12px',
+                    borderRadius: '10px',
+                    boxSizing: 'border-box',
+                    fontSize: '12.5px',
                     fontWeight: 700,
                     backgroundColor: isDarkMode
                       ? isLocationOpen ? '#1E293B' : '#0F172A'
@@ -590,7 +572,9 @@ export default function Navbar({
                     display: 'flex',
                     alignItems: 'center',
                     width: '100%',
-                    borderRadius: '12px',
+                    height: '38px',
+                    boxSizing: 'border-box',
+                    borderRadius: '10px',
                     backgroundColor: isDarkMode ? '#1E293B' : '#F1F5F9',
                     border: isSearchFocused
                       ? '1.5px solid #2563EB'
@@ -600,7 +584,7 @@ export default function Navbar({
                     transition: 'all 0.15s ease'
                   }}
                 >
-                  <Search size={16} color="#94A3B8" style={{ marginRight: '8px', flexShrink: 0 }} />
+                  <Search size={15} color="#94A3B8" style={{ marginRight: '8px', flexShrink: 0 }} />
                   <input
                     ref={searchInputRef}
                     type="text"
@@ -611,10 +595,11 @@ export default function Navbar({
                     placeholder="Search AC repair, electrician, plumber..."
                     style={{
                       width: '100%',
+                      height: '100%',
                       backgroundColor: 'transparent',
                       border: 'none',
                       outline: 'none',
-                      padding: '8px 0',
+                      padding: 0,
                       fontSize: '12.5px',
                       fontWeight: 500,
                       color: isDarkMode ? '#FFFFFF' : '#0F172A'
@@ -708,36 +693,7 @@ export default function Navbar({
             </div>
           )}
 
-          {/* --- CASE C: ADMIN: Live Dispatch Radar Status --- */}
-          {isAdmin && !isMobile && (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                flex: 1,
-                maxWidth: '520px'
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '7px 14px',
-                  borderRadius: '12px',
-                  fontSize: '12px',
-                  fontWeight: 800,
-                  backgroundColor: isDarkMode ? '#1E293B' : '#FFFBEB',
-                  color: '#D97706',
-                  border: '1.5px solid #F59E0B'
-                }}
-              >
-                <Activity size={14} color="#D97706" />
-                <span>Dispatch Radar: 8 Active Techs • 100% Online</span>
-              </div>
-            </div>
-          )}
+
 
           {/* ================= 3. RIGHT ACTION ITEMS (ROLE ADAPTIVE) ================= */}
           <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '6px' : '10px', flexShrink: 0 }}>
@@ -750,12 +706,14 @@ export default function Navbar({
                   type="button"
                   onClick={() => navigate('/history')}
                   style={{
-                    display: 'flex',
+                    display: 'inline-flex',
                     alignItems: 'center',
                     gap: '6px',
-                    padding: '8px 12px',
-                    borderRadius: '12px',
-                    fontSize: '12px',
+                    height: '38px',
+                    padding: '0 12px',
+                    borderRadius: '10px',
+                    boxSizing: 'border-box',
+                    fontSize: '12.5px',
                     fontWeight: 700,
                     backgroundColor: isBookingsActive
                       ? isDarkMode ? '#1E293B' : '#EFF6FF'
@@ -791,12 +749,14 @@ export default function Navbar({
                   onClick={() => navigate('/wallet')}
                   title="View Seva Wallet & Credits"
                   style={{
-                    display: 'flex',
+                    display: 'inline-flex',
                     alignItems: 'center',
                     gap: '6px',
-                    padding: '7px 12px',
-                    borderRadius: '12px',
-                    fontSize: '12px',
+                    height: '38px',
+                    padding: '0 12px',
+                    borderRadius: '10px',
+                    boxSizing: 'border-box',
+                    fontSize: '12.5px',
                     fontWeight: 800,
                     backgroundColor: isDarkMode ? 'rgba(245, 158, 11, 0.15)' : '#FFFBEB',
                     color: isDarkMode ? '#FBBF24' : '#B45309',
@@ -819,12 +779,14 @@ export default function Navbar({
                   type="button"
                   onClick={() => navigate('/partner')}
                   style={{
-                    display: 'flex',
+                    display: 'inline-flex',
                     alignItems: 'center',
                     gap: '6px',
-                    padding: '8px 12px',
-                    borderRadius: '12px',
-                    fontSize: '12px',
+                    height: '38px',
+                    padding: '0 12px',
+                    borderRadius: '10px',
+                    boxSizing: 'border-box',
+                    fontSize: '12.5px',
                     fontWeight: 800,
                     backgroundColor: isPartnerActive ? '#059669' : '#1E293B',
                     color: '#FFFFFF',
@@ -842,12 +804,14 @@ export default function Navbar({
                   onClick={() => navigate('/partner')}
                   title="Partner Incentives & Payout"
                   style={{
-                    display: 'flex',
+                    display: 'inline-flex',
                     alignItems: 'center',
                     gap: '6px',
-                    padding: '7px 12px',
-                    borderRadius: '12px',
-                    fontSize: '12px',
+                    height: '38px',
+                    padding: '0 12px',
+                    borderRadius: '10px',
+                    boxSizing: 'border-box',
+                    fontSize: '12.5px',
                     fontWeight: 800,
                     backgroundColor: '#ECFDF5',
                     color: '#047857',
@@ -862,112 +826,128 @@ export default function Navbar({
             )}
 
             {isAdmin && !isMobile && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => navigate('/admin')}
-                  style={{
-                    padding: '7px 12px',
-                    borderRadius: '12px',
-                    fontSize: '12px',
-                    fontWeight: 800,
-                    backgroundColor: '#F59E0B',
-                    color: '#0F172A',
-                    border: 'none',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Operations Command
-                </button>
-              </>
+              <button
+                type="button"
+                onClick={() => navigate('/')}
+                title="Switch to Customer Home View"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  height: '34px',
+                  padding: '0 12px',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  backgroundColor: isDarkMode ? '#1E293B' : '#F1F5F9',
+                  color: isDarkMode ? '#94A3B8' : '#475569',
+                  border: isDarkMode ? '1px solid #334155' : '1px solid #CBD5E1',
+                  cursor: 'pointer'
+                }}
+              >
+                <span>View Customer App</span>
+              </button>
             )}
 
-            {/* 3.2 Notifications Bell */}
-            <button
-              type="button"
-              onClick={() => navigate(isTechnician ? '/partner' : '/history')}
-              title="Notifications & Updates"
-              style={{
-                position: 'relative',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: isMobile ? '32px' : '36px',
-                height: isMobile ? '32px' : '36px',
-                borderRadius: '10px',
-                backgroundColor: 'transparent',
-                border: 'none',
-                color: isDarkMode ? '#94A3B8' : '#64748B',
-                cursor: 'pointer'
-              }}
-            >
-              <Bell size={isMobile ? 16 : 17} />
-              {hasNotifications && (
-                <span
-                  style={{
-                    position: 'absolute',
-                    top: isMobile ? '6px' : '8px',
-                    right: isMobile ? '6px' : '8px',
-                    width: '6px',
-                    height: '6px',
-                    backgroundColor: isTechnician ? '#10B981' : '#2563EB',
-                    borderRadius: '50%',
-                    border: isDarkMode ? '1.5px solid #0F172A' : '1.5px solid #FFFFFF'
-                  }}
-                />
-              )}
-            </button>
+            {/* 3.2 Notifications Bell (Customer & Partner Only) */}
+            {!isAdmin && (
+              <button
+                type="button"
+                onClick={() => navigate(isTechnician ? '/partner' : '/history')}
+                title="Notifications & Updates"
+                style={{
+                  position: 'relative',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: isMobile ? '34px' : '38px',
+                  height: isMobile ? '34px' : '38px',
+                  borderRadius: '10px',
+                  boxSizing: 'border-box',
+                  backgroundColor: isDarkMode ? '#1E293B' : '#F8FAFC',
+                  border: isDarkMode ? '1px solid #334155' : '1px solid #E2E8F0',
+                  color: isDarkMode ? '#94A3B8' : '#64748B',
+                  cursor: 'pointer',
+                  flexShrink: 0
+                }}
+              >
+                <Bell size={isMobile ? 15 : 16} />
+                {hasNotifications && (
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: isMobile ? '6px' : '8px',
+                      right: isMobile ? '6px' : '8px',
+                      width: '6px',
+                      height: '6px',
+                      backgroundColor: isTechnician ? '#10B981' : '#2563EB',
+                      borderRadius: '50%',
+                      border: isDarkMode ? '1.5px solid #0F172A' : '1.5px solid #FFFFFF'
+                    }}
+                  />
+                )}
+              </button>
+            )}
 
-            {/* Platform Feedback & Bug Reports (Customer & Technician) */}
-            <button
-              type="button"
-              onClick={() => setIsFeedbackModalOpen(true)}
-              title="Report Platform Issue or Feedback / பின்னூட்டம்"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '5px',
-                padding: isMobile ? '4px 7px' : '5px 10px',
-                borderRadius: '8px',
-                backgroundColor: isDarkMode ? 'rgba(13, 148, 136, 0.18)' : '#F0FDFA',
-                border: isDarkMode ? '1px solid #14B8A6' : '1px solid #99F6E4',
-                color: isDarkMode ? '#2DD4BF' : '#0F766E',
-                cursor: 'pointer',
-                fontSize: isMobile ? '11px' : '12px',
-                fontWeight: 800,
-                transition: 'all 0.15s ease',
-                flexShrink: 0
-              }}
-            >
-              <MessageSquarePlus size={isMobile ? 14 : 15} color={isDarkMode ? '#2DD4BF' : '#0D9488'} />
-              <span style={{ display: isMobile ? 'none' : 'inline' }}>Feedback</span>
-            </button>
+            {/* Platform Feedback & Bug Reports (Customer & Technician Only) */}
+            {!isAdmin && (
+              <button
+                type="button"
+                onClick={() => setIsFeedbackModalOpen(true)}
+                title="Report Platform Issue or Feedback / பின்னூட்டம்"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  height: isMobile ? '34px' : '38px',
+                  padding: isMobile ? '0 8px' : '0 12px',
+                  borderRadius: '10px',
+                  boxSizing: 'border-box',
+                  backgroundColor: isDarkMode ? 'rgba(13, 148, 136, 0.18)' : '#F0FDFA',
+                  border: isDarkMode ? '1px solid #14B8A6' : '1px solid #99F6E4',
+                  color: isDarkMode ? '#2DD4BF' : '#0F766E',
+                  cursor: 'pointer',
+                  fontSize: isMobile ? '11px' : '12.5px',
+                  fontWeight: 800,
+                  transition: 'all 0.15s ease',
+                  flexShrink: 0
+                }}
+              >
+                <MessageSquarePlus size={isMobile ? 14 : 15} color={isDarkMode ? '#2DD4BF' : '#0D9488'} />
+                <span style={{ display: isMobile ? 'none' : 'inline' }}>Feedback</span>
+              </button>
+            )}
 
-            {/* 3.3 Google Translate / Language Selector Button (Desktop only; in hamburger drawer on mobile) */}
-            <button
-              type="button"
-              onClick={() => setIsLanguageModalOpen(true)}
-              title="Change Language / மொழி தேர்வு (Google Translate)"
-              style={{
-                display: isMobile ? 'none' : 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                padding: '4px 8px',
-                borderRadius: '8px',
-                backgroundColor: isDarkMode ? '#1E293B' : '#EFF6FF',
-                border: isDarkMode ? '1px solid #334155' : '1px solid #DBEAFE',
-                color: '#0066CC',
-                cursor: 'pointer',
-                fontSize: '12px',
-                fontWeight: 800,
-                transition: 'all 0.15s ease'
-              }}
-            >
-              <Globe size={15} color="#0066CC" />
-              <span style={{ textTransform: 'uppercase' }}>
-                {getCurrentLanguage() === 'ta' ? 'தமிழ்' : getCurrentLanguage() === 'hi' ? 'हिन्दी' : getCurrentLanguage()}
-              </span>
-            </button>
+            {/* 3.3 Google Translate / Language Selector Button (Customer & Technician Only) */}
+            {!isAdmin && (
+              <button
+                type="button"
+                onClick={() => setIsLanguageModalOpen(true)}
+                title="Change Language / மொழி தேர்வு (Google Translate)"
+                style={{
+                  display: isMobile ? 'none' : 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  height: '38px',
+                  padding: '0 10px',
+                  borderRadius: '10px',
+                  boxSizing: 'border-box',
+                  backgroundColor: isDarkMode ? '#1E293B' : '#EFF6FF',
+                  border: isDarkMode ? '1px solid #334155' : '1px solid #DBEAFE',
+                  color: '#0066CC',
+                  cursor: 'pointer',
+                  fontSize: '12.5px',
+                  fontWeight: 800,
+                  transition: 'all 0.15s ease',
+                  flexShrink: 0
+                }}
+              >
+                <Globe size={15} color="#0066CC" />
+                <span style={{ textTransform: 'uppercase' }}>
+                  {getCurrentLanguage() === 'ta' ? 'தமிழ்' : getCurrentLanguage() === 'hi' ? 'हिन्दी' : getCurrentLanguage()}
+                </span>
+              </button>
+            )}
 
             {/* 3.4 Dark/Light Theme Toggle (Desktop only; in hamburger drawer on mobile) */}
             <button
@@ -975,16 +955,18 @@ export default function Navbar({
               onClick={toggleDarkMode}
               title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
               style={{
-                display: isMobile ? 'none' : 'flex',
+                display: isMobile ? 'none' : 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: '32px',
-                height: '32px',
-                borderRadius: '8px',
-                backgroundColor: 'transparent',
-                border: 'none',
+                width: '38px',
+                height: '38px',
+                borderRadius: '10px',
+                boxSizing: 'border-box',
+                backgroundColor: isDarkMode ? '#1E293B' : '#F8FAFC',
+                border: isDarkMode ? '1px solid #334155' : '1px solid #E2E8F0',
                 color: isDarkMode ? '#FBBF24' : '#64748B',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                flexShrink: 0
               }}
             >
               {isDarkMode ? <Sun size={16} color="#FBBF24" /> : <Moon size={16} color="#475569" />}
@@ -996,20 +978,20 @@ export default function Navbar({
                 type="button"
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                 style={{
-                  display: 'flex',
+                  display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '4px',
                   padding: 0,
                   backgroundColor: 'transparent',
                   border: 'none',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  flexShrink: 0
                 }}
               >
                 <div style={{ position: 'relative' }}>
                   <div
                     style={{
-                      width: isMobile ? '32px' : '36px',
-                      height: isMobile ? '32px' : '36px',
+                      width: isMobile ? '34px' : '38px',
+                      height: isMobile ? '34px' : '38px',
                       borderRadius: '50%',
                       background: isTechnician
                         ? 'linear-gradient(135deg, #059669 0%, #047857 100%)'
@@ -1018,7 +1000,7 @@ export default function Navbar({
                         : 'linear-gradient(135deg, #0F172A 0%, #334155 100%)',
                       color: '#FFFFFF',
                       fontWeight: 800,
-                      fontSize: isMobile ? '12px' : '13px',
+                      fontSize: isMobile ? '12px' : '14px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -1371,6 +1353,33 @@ export default function Navbar({
                 </div>
               )}
             </div>
+
+            {/* 3.6 Slide-Out Side Navigation Hamburger Button (Mobile / Small Screens Only) */}
+            {isMobile && (
+              <button
+                type="button"
+                className="salem-mobile-hamburger-btn"
+                onClick={() => setIsSideNavOpen(true)}
+                aria-label="Open Side Navigation Menu"
+                title="Menu / வழிசெலுத்தல்"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '34px',
+                  height: '34px',
+                  borderRadius: '10px',
+                  backgroundColor: isDarkMode ? '#1E293B' : '#F1F5F9',
+                  border: isDarkMode ? '1px solid #334155' : '1px solid #E2E8F0',
+                  color: isDarkMode ? '#F8FAFC' : '#0F172A',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  flexShrink: 0
+                }}
+              >
+                <Menu size={18} />
+              </button>
+            )}
           </div>
         </div>
       </div>

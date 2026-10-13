@@ -19,6 +19,7 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { ILLUSTRATIONS } from '../constants/visualAssets';
 
 const SALEM_LOCALITIES = [
   { name: 'Fairlands', pin: '636016', lat: 11.6738, lng: 78.1460 },
@@ -139,6 +140,35 @@ export default function LocationPickerModal({
       </DialogTitle>
 
       <DialogContent sx={{ pt: 1.5 }}>
+        {/* Salem Live Service Map Illustration Banner */}
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            bgcolor: '#F0F9FF',
+            border: '1px solid #BAE6FD',
+            borderRadius: '16px',
+            p: 1.5,
+            mb: 2
+          }}
+        >
+          <Box sx={{ maxWidth: '65%' }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0369A1', fontSize: '13px' }}>
+              Salem Citywide Live Coverage
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#0284C7', fontSize: '11px', display: 'block', lineHeight: 1.35, mt: 0.3 }}>
+              Select your ward or tap GPS for verified local technician auto-dispatch within 25 minutes.
+            </Typography>
+          </Box>
+          <Box
+            component="img"
+            src={ILLUSTRATIONS.salemMap}
+            alt="Salem Live Service Map"
+            sx={{ width: 80, height: 60, objectFit: 'contain' }}
+          />
+        </Box>
+
         {/* GPS Auto Detect Button */}
         <Button
           fullWidth

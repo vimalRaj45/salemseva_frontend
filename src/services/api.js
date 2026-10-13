@@ -9,13 +9,8 @@ export const ApiService = {
       const data = await res.json();
       return data.services || [];
     } catch (err) {
-      console.warn('Using fallback local catalog:', err.message);
-      return [
-        { id: 'ac', name: 'AC Repair & Service', name_ta: 'ஏசி பழுதுபார்த்தல்', visit_fee: 99.00, price_range: '₹299 - ₹1,499', icon: 'ac_unit' },
-        { id: 'electrician', name: 'Electrician Services', name_ta: 'எலக்ட்ரீஷியன் சேவை', visit_fee: 99.00, price_range: '₹149 - ₹899', icon: 'electric_bolt' },
-        { id: 'plumber', name: 'Plumbing & Drainage', name_ta: 'பிளம்பர் சேவை', visit_fee: 99.00, price_range: '₹149 - ₹799', icon: 'plumbing' },
-        { id: 'cleaning', name: 'Home & Bathroom Cleaning', name_ta: 'வீடு சுத்தம் செய்தல்', visit_fee: 149.00, price_range: '₹399 - ₹1,999', icon: 'cleaning_services' }
-      ];
+      console.warn('Error fetching services catalog:', err.message);
+      return [];
     }
   },
 
@@ -27,12 +22,8 @@ export const ApiService = {
       const data = await res.json();
       return data.issues || [];
     } catch (err) {
-      console.warn('Using fallback issues:', err.message);
-      return [
-        { id: 'cap', issue_name: 'Capacitor Replacement', min_price: 450, max_price: 650 },
-        { id: 'gas', issue_name: 'Gas Top-up & Coil Check', min_price: 850, max_price: 1400 },
-        { id: 'wash', issue_name: 'Deep Foam Jet Wash', min_price: 499, max_price: 699 }
-      ];
+      console.warn('Error fetching service issues:', err.message);
+      return [];
     }
   },
 
@@ -109,6 +100,28 @@ export const ApiService = {
           { urls: 'stun:stun.l.google.com:19302' }
         ]
       };
+    }
+  },
+
+  // 8. Fetch Real Customer Reviews & Stats
+  async fetchReviews(params = {}) {
+    try {
+      const query = new URLSearchParams(params).toString();
+      const res = await fetch(`${BASE_URL}/reviews${query ? `?${query}` : ''}`);
+      return await res.json();
+    } catch (err) {
+      console.error('Error fetching real reviews:', err);
+      return { success: false, reviews: [] };
+    }
+  },
+
+  async fetchReviewStats() {
+    try {
+      const res = await fetch(`${BASE_URL}/reviews/stats`);
+      return await res.json();
+    } catch (err) {
+      console.error('Error fetching review stats:', err);
+      return { success: false, stats: null };
     }
   }
 };

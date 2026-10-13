@@ -1,3 +1,4 @@
+import { API_V1_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
 import {
   Container,
@@ -15,10 +16,12 @@ import {
   BottomNavigation,
   BottomNavigationAction,
   Fab,
-  Skeleton
+  Skeleton,
+  Rating
 } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import AcUnitIcon from '@mui/icons-material/AcUnit';
 import ElectricBoltIcon from '@mui/icons-material/ElectricBolt';
 import PlumbingIcon from '@mui/icons-material/Plumbing';
@@ -62,6 +65,8 @@ export default function CustomerHomePage() {
   });
 
   const [activeBooking, setActiveBooking] = useState(null);
+  const [realReviews, setRealReviews] = useState([]);
+  const [reviewStats, setReviewStats] = useState(null);
 
   useEffect(() => {
     async function loadServices() {
@@ -79,6 +84,24 @@ export default function CustomerHomePage() {
     }
     loadServices();
 
+    async function loadReviews() {
+      try {
+        const [revData, statData] = await Promise.all([
+          ApiService.fetchReviews({ limit: 4 }),
+          ApiService.fetchReviewStats()
+        ]);
+        if (revData?.success && Array.isArray(revData.reviews)) {
+          setRealReviews(revData.reviews);
+        }
+        if (statData?.success && statData.stats) {
+          setReviewStats(statData.stats);
+        }
+      } catch (err) {
+        console.warn('Real reviews loading notice:', err);
+      }
+    }
+    loadReviews();
+
     // Real-time persistent active booking poll
     const activeBookingId = localStorage.getItem('salemseva_active_booking');
     if (!activeBookingId) {
@@ -88,7 +111,7 @@ export default function CustomerHomePage() {
 
     const checkActiveBooking = async () => {
       try {
-        const res = await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${activeBookingId}/track`);
+        const res = await fetch(`${API_V1_URL}/bookings/${activeBookingId}/track`);
         const d = await res.json();
         if (d.success && d.booking && ['matching', 'accepted', 'en_route', 'arrived', 'inspecting', 'quote_presented', 'quote_approved', 'completed'].includes(d.booking.status)) {
           // If already completed and user dismissed/cleared, don't show, else keep active
@@ -157,14 +180,7 @@ export default function CustomerHomePage() {
     }
   };
 
-  const defaultServices = [
-    { id: 'ac', name: 'AC Repair & Service', category: 'Cooling & Appliances', visitFee: 99, priceRange: '₹299 - ₹1,499' },
-    { id: 'electrician', name: 'Electrician & Wiring', category: 'Home Power & Safety', visitFee: 99, priceRange: '₹199 - ₹999' },
-    { id: 'plumber', name: 'Plumber & Sanitary', category: 'Sanitary & Motors', visitFee: 99, priceRange: '₹149 - ₹799' },
-    { id: 'cleaning', name: 'Home & Bath Cleaning', category: 'Sanitization', visitFee: 99, priceRange: '₹349 - ₹2,499' }
-  ];
-
-  const activeServicesList = (services && services.length > 0) ? services : defaultServices;
+  const activeServicesList = services || [];
 
   return (
     <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', pb: 10 }}>
@@ -218,7 +234,7 @@ export default function CustomerHomePage() {
                   textOverflow: 'ellipsis'
                 }}
               >
-                {userLocation.address || 'Doorstep service in 25–35 mins'}
+                {userLocation.address || 'Doorstep service in 25-35 mins'}
               </Typography>
             </Box>
           </Box>
@@ -275,10 +291,10 @@ export default function CustomerHomePage() {
         </Paper>
 
         {/* Active Connected Service Banner (Zero Interruption Lock & Seamless Resume) */}
-        {activeBooking && (() => {
+        {activeBooking && activeBooking.booking?.id && (() => {
           const status = activeBooking.booking?.status || 'matching';
-          const bId = activeBooking.booking?.id || 'SLM-84920';
-          const techName = activeBooking.technician?.name || 'K. Ramesh';
+          const bId = activeBooking.booking?.id;
+          const techName = activeBooking.technician?.name || activeBooking.technician_name || 'Assigned Partner';
 
           let resumeUrl = `/track?bookingId=${bId}`;
           let statusTitle = `Connected Service #${bId}`;
@@ -619,6 +635,86 @@ export default function CustomerHomePage() {
             })
           )}
         </Grid>
+
+        {/* Real Customer Reviews & Star Ratings (PostgreSQL Grounded) */}
+        {realReviews.length > 0 && (
+          <Box sx={{ mb: 2.5 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.2 }}>
+              <Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '14px', display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                  Real Salem Customer Reviews
+                  <Chip label="Verified" size="small" sx={{ bgcolor: '#DCFCE7', color: '#16A34A', fontWeight: 700, fontSize: '10px', height: 20 }} />
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11.5px' }}>
+                  Authentic ratings from completed bookings in Salem
+                </Typography>
+              </Box>
+              {reviewStats?.average_rating && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, bgcolor: '#FEF3C7', px: 1, py: 0.3, borderRadius: '6px' }}>
+                  <Rating value={Number(reviewStats.average_rating)} precision={0.1} readOnly size="small" sx={{ color: '#D97706' }} />
+                  <Typography variant="caption" sx={{ fontWeight: 800, color: '#92400E', fontSize: '11px' }}>
+                    {reviewStats.average_rating} ({reviewStats.total_reviews})
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+
+            <Grid container spacing={1.5}>
+              {realReviews.slice(0, 4).map((rev) => (
+                <Grid item xs={12} sm={6} key={rev.id}>
+                  <Card
+                    elevation={0}
+                    sx={{
+                      p: 1.5,
+                      borderRadius: '8px',
+                      bgcolor: '#FFFFFF',
+                      border: '1px solid #E2E8F0',
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between'
+                    }}
+                  >
+                    <Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Avatar sx={{ width: 28, height: 28, bgcolor: '#0284C7', fontSize: '12px', fontWeight: 700 }}>
+                            {(rev.customer_name || 'Customer').charAt(0)}
+                          </Avatar>
+                          <Box>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '12px', lineHeight: 1.2 }}>
+                              {rev.customer_name || 'Verified Homeowner'}
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: '#64748B', fontSize: '10.5px' }}>
+                              {rev.locality || 'Salem'} • {rev.service_name || 'Home Service'}
+                            </Typography>
+                          </Box>
+                        </Box>
+                        <Rating value={Number(rev.rating) || 5} precision={0.5} readOnly size="small" sx={{ color: '#F59E0B' }} />
+                      </Box>
+
+                      <Typography variant="body2" sx={{ color: '#334155', fontSize: '12px', lineHeight: 1.4, mb: 1, fontStyle: 'italic' }}>
+                        "{rev.feedback}"
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 0.8, borderTop: '1px solid #F1F5F9' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <CheckCircleIcon sx={{ color: '#16A34A', fontSize: 13 }} />
+                        <Typography variant="caption" sx={{ color: '#16A34A', fontWeight: 600, fontSize: '10.5px' }}>
+                          Verified Service #{rev.booking_id}
+                        </Typography>
+                      </Box>
+                      <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '10.5px' }}>
+                        Tech: {rev.technician_name}
+                      </Typography>
+                    </Box>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
+        )}
 
         {/* Trust & Guarantee Section */}
         <Paper

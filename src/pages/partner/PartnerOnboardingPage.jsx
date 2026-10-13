@@ -1,3 +1,4 @@
+import { API_V1_URL } from '../../config';
 import React, { useState } from 'react';
 import {
   Container,
@@ -24,24 +25,28 @@ import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import ProcessingBackdrop from '../../components/ProcessingBackdrop';
 import DocumentUploadControl from '../../components/DocumentUploadControl';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../context/AuthContext';
+import { ILLUSTRATIONS } from '../../constants/visualAssets';
 
 export default function PartnerOnboardingPage() {
   const navigate = useNavigate();
+  const { rewardSettings } = useAuth();
+  const welcomeBonus = parseFloat(rewardSettings?.partner_welcome_bonus || 50);
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
-  const [mobile, setMobile] = useState(() => searchParams.get('phone') || '94432 88901');
-  const [name, setName] = useState(() => searchParams.get('name') || 'K. Ramesh');
+  const [mobile, setMobile] = useState(() => searchParams.get('phone') || '');
+  const [name, setName] = useState(() => searchParams.get('name') || '');
   const [trade, setTrade] = useState(() => searchParams.get('trade') || 'ac');
-  const [aadhaar, setAadhaar] = useState('9842 7112 4921');
+  const [aadhaar, setAadhaar] = useState('');
   const [aadhaarCardUrl, setAadhaarCardUrl] = useState(null);
-  const [upiId, setUpiId] = useState('ramesh.tech@oksbi');
-  const [referralCode, setReferralCode] = useState('TECHRAMESH');
+  const [upiId, setUpiId] = useState('');
+  const [referralCode, setReferralCode] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setIsProcessing(true);
-    fetch('https://salemseva-backend.onrender.com/api/v1/partner/onboard', {
+    fetch(`${API_V1_URL}/partner/onboard`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -70,25 +75,21 @@ export default function PartnerOnboardingPage() {
     <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', display: 'flex', alignItems: 'center', py: 4, px: 2 }}>
       <Container maxWidth="xs">
         
-        {/* Brand Logo & Title */}
-        <Box sx={{ textAlign: 'center', mb: 3 }}>
+        {/* Brand Logo & Title with Verified Partners Illustration */}
+        <Box sx={{ textAlign: 'center', mb: 2.5 }}>
           <Box
+            component="img"
+            src={ILLUSTRATIONS.verifiedPartners}
+            alt="Verified Partners Onboarding"
             sx={{
-              width: 72,
-              height: 72,
-              borderRadius: '22px',
-              bgcolor: '#0284C7',
-              color: '#FFFFFF',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              width: 170,
+              height: 120,
+              objectFit: 'contain',
               mx: 'auto',
-              mb: 1.8,
-              boxShadow: '0 8px 24px rgba(2, 132, 199, 0.25)'
+              mb: 1.5,
+              filter: 'drop-shadow(0 4px 12px rgba(2, 132, 199, 0.15))'
             }}
-          >
-            <EngineeringIcon sx={{ fontSize: 38 }} />
-          </Box>
+          />
 
           <Typography variant="h5" sx={{ fontWeight: 900, color: '#0F172A', letterSpacing: -0.5, mb: 0.5 }}>
             டெக்னீசியன் பதிவு (Technician Onboarding)
@@ -166,6 +167,7 @@ export default function PartnerOnboardingPage() {
                 தொழில் பிரிவு (PRIMARY TRADE)
               </Typography>
               <FormControl fullWidth size="small">
+                {/* ds-allow-native-select */}
                 <Select
                   value={trade}
                   onChange={(e) => setTrade(e.target.value)}
@@ -234,7 +236,7 @@ export default function PartnerOnboardingPage() {
                 value={referralCode}
                 onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
                 placeholder="e.g. TECHRAMESH"
-                helperText="Use a fellow technician's referral code to unlock +₹100 Welcome Tool Bonus"
+                helperText={`Use a fellow technician's referral code to unlock +₹${welcomeBonus} Welcome Tool Bonus`}
                 FormHelperTextProps={{ sx: { color: '#059669', fontWeight: 600, fontSize: '11px', mt: 0.3 } }}
                 sx={{
                   '& .MuiOutlinedInput-root': {

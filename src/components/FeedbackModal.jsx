@@ -1,3 +1,4 @@
+import { API_V1_URL } from '../config';
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -27,16 +28,22 @@ import PaymentIcon from '@mui/icons-material/Payment';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import GpsFixedIcon from '@mui/icons-material/GpsFixed';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
+import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
+import SalemLottie from './SalemLottie';
+import { useAuth } from '../context/AuthContext';
 
 export default function FeedbackModal({ open, onClose, user, userRole = 'customer' }) {
+  const { rewardSettings, updateWalletBalance } = useAuth();
+  const feedbackRewardCredits = parseFloat(rewardSettings?.feedback_reward_credits || 15);
+  const feedbackCreditsEnabled = Boolean(rewardSettings?.feedback_rewards_enabled ?? true);
   const isTechnician = userRole === 'technician' || userRole === 'partner';
   
   const [rating, setRating] = useState(5);
   const [category, setCategory] = useState(isTechnician ? 'radar_gps' : 'app_glitch');
-  const [message, setMessage] = useState('');
   const [subject, setSubject] = useState('');
-  const [userName, setUserName] = useState(user?.name || (isTechnician ? 'K. Ramesh (Partner)' : 'Vimal Raj'));
-  const [userPhone, setUserPhone] = useState(user?.phone || '+91 98427 11234');
+  const [message, setMessage] = useState('');
+  const [userName, setUserName] = useState(user?.name || '');
+  const [userPhone, setUserPhone] = useState(user?.phone || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -82,30 +89,35 @@ export default function FeedbackModal({ open, onClose, user, userRole = 'custome
     setIsSubmitting(true);
 
     const payload = {
-      userId: user?.id || (isTechnician ? 'tech-ramesh' : 'usr-cust-001'),
-      userName: userName.trim() || (isTechnician ? 'Salem Technician' : 'Salem Customer'),
-      userPhone: userPhone.trim() || '+91 98427 11234',
+      userId: user?.id || null,
+      userName: userName.trim() || user?.name || (isTechnician ? 'Partner' : 'Customer'),
+      userPhone: userPhone.trim() || user?.phone || '',
       role: isTechnician ? 'technician' : 'customer',
       feedbackType: category,
       rating: rating || 5,
       subject: subject.trim() || `${categories.find(c => c.id === category)?.label || 'General Feedback'}`,
       message: message.trim(),
-      locality: user?.locality || 'Fairlands, Salem'
+      locality: user?.locality || 'Salem'
     };
 
     try {
-      const res = await fetch('https://salemseva-backend.onrender.com/api/v1/feedback/submit', {
+      const res = await fetch(`${API_V1_URL}/feedback/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
       const data = await res.json();
       
+      if (data.newBalance !== undefined && updateWalletBalance) {
+        updateWalletBalance(data.newBalance);
+      }
+
       // Store in localStorage backup as well
       const saved = JSON.parse(localStorage.getItem('salemseva_feedbacks_list') || '[]');
       const newRecord = {
         ...payload,
         id: data.feedback?.id || Date.now(),
+        creditsAwarded: data.creditsAwarded || 0,
         status: 'new',
         created_at: new Date().toISOString()
       };
@@ -154,20 +166,7 @@ export default function FeedbackModal({ open, onClose, user, userRole = 'custome
     <Dialog open={open} onClose={handleModalClose} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1, borderBottom: '1px solid #E2E8F0' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Box
-            sx={{
-              width: 36,
-              height: 36,
-              borderRadius: '10px',
-              bgcolor: isTechnician ? '#ECFDF5' : '#EFF6FF',
-              color: isTechnician ? '#059669' : '#2563EB',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-          >
-            {isTechnician ? <HandymanIcon sx={{ fontSize: 20 }} /> : <PersonIcon sx={{ fontSize: 20 }} />}
-          </Box>
+          <SalemLottie name="customerCare" width={42} height={42} style={{ margin: 0, flexShrink: 0 }} />
           <Box>
             <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '16px', lineHeight: 1.2 }}>
               {isTechnician ? 'Technician Platform Feedback' : 'Customer Platform Feedback'}
@@ -205,6 +204,13 @@ export default function FeedbackModal({ open, onClose, user, userRole = 'custome
             <Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A', mb: 0.5 }}>
               Thank You for Your Feedback!
             </Typography>
+            {feedbackCreditsEnabled && feedbackRewardCredits > 0 && (
+              <Chip
+                label={`+${feedbackRewardCredits} Seva Credits Credited to Wallet`}
+                size="small"
+                sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 800, mb: 1 }}
+              />
+            )}
             <Typography variant="body2" sx={{ color: '#64748B', maxWidth: '340px', margin: '0 auto' }}>
               Your report has been forwarded directly to the Salem Operations Admin Dashboard. Our central operations team will review it immediately.
             </Typography>
@@ -243,9 +249,19 @@ export default function FeedbackModal({ open, onClose, user, userRole = 'custome
                   {userName} ({userPhone})
                 </Typography>
               </Box>
-              <Typography variant="caption" sx={{ color: '#64748B', fontSize: '10.5px' }}>
-                Salem HQ
-              </Typography>
+              {feedbackCreditsEnabled && feedbackRewardCredits > 0 && (
+                <Chip
+                  label={`+${feedbackRewardCredits} Credits`}
+                  size="small"
+                  sx={{
+                    bgcolor: '#FEF3C7',
+                    color: '#92400E',
+                    fontWeight: 800,
+                    fontSize: '10px',
+                    height: 20
+                  }}
+                />
+              )}
             </Paper>
 
             {/* 1. Star Rating */}

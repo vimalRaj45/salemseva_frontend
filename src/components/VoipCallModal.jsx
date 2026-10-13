@@ -23,6 +23,8 @@ import PhoneInTalkIcon from '@mui/icons-material/PhoneInTalk';
 import LockIcon from '@mui/icons-material/Lock';
 
 import { API_BASE_URL } from '../config';
+import SalemLottie from './SalemLottie';
+import { ILLUSTRATIONS } from '../constants/visualAssets';
 
 const DEFAULT_ICE_SERVERS = [
   { urls: 'stun:stun.l.google.com:19302' },
@@ -34,9 +36,9 @@ const DEFAULT_ICE_SERVERS = [
 export default function VoipCallModal({
   open,
   onClose,
-  bookingId = 'SLM-84920',
-  calleeName = 'K. Ramesh (Technician)',
-  calleePhone = '+919842100001',
+  bookingId = '',
+  calleeName = 'Assigned Partner',
+  calleePhone = '',
   role = 'Customer',
   isIncoming = false
 }) {
@@ -480,7 +482,7 @@ export default function VoipCallModal({
         />
 
         {/* Privacy Masked Badge */}
-        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1, mb: 1.5 }}>
           <Chip
             icon={<SecurityIcon sx={{ color: '#34D399 !important', fontSize: 16 }} />}
             label="SalemSeva Masked VoIP • Zero Phone Number Leak"
@@ -489,24 +491,43 @@ export default function VoipCallModal({
           />
         </Box>
 
-        {/* Callee Avatar with Animation */}
-        <Box sx={{ position: 'relative', display: 'inline-block', my: 1.5 }}>
-          <Avatar
+        {/* Visual Call Animation & Callee Display */}
+        <Box sx={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', my: 1 }}>
+          {callState === 'CONNECTED' ? (
+            <Box sx={{ position: 'relative', mb: 1.5 }}>
+              <Avatar
+                sx={{
+                  width: 76,
+                  height: 76,
+                  bgcolor: '#2563EB',
+                  fontSize: '26px',
+                  fontWeight: 800,
+                  mx: 'auto',
+                  border: '3px solid #38BDF8',
+                  boxShadow: '0 0 25px rgba(56, 189, 248, 0.6)'
+                }}
+              >
+                {calleeName.substring(0, 2).toUpperCase()}
+              </Avatar>
+            </Box>
+          ) : (
+            <Box sx={{ mb: 1, position: 'relative' }}>
+              <SalemLottie name="supportCall" width={110} height={110} />
+            </Box>
+          )}
+
+          <Box
+            component="img"
+            src={ILLUSTRATIONS.calling}
+            alt="Masked VoIP Phone Call"
             sx={{
               width: 80,
-              height: 80,
-              bgcolor: '#2563EB',
-              fontSize: '28px',
-              fontWeight: 800,
-              mx: 'auto',
-              border: '3px solid #38BDF8',
-              boxShadow: callState === 'CONNECTED' 
-                ? '0 0 25px rgba(56, 189, 248, 0.6)' 
-                : (callState === 'RINGING' || callState === 'INCOMING' ? '0 0 20px rgba(234, 179, 8, 0.5)' : 'none')
+              height: 48,
+              objectFit: 'contain',
+              opacity: 0.8,
+              mb: 1
             }}
-          >
-            {calleeName.substring(0, 2).toUpperCase()}
-          </Avatar>
+          />
         </Box>
 
         <Typography variant="h6" sx={{ fontWeight: 800, color: '#FFFFFF', mb: 0.3, fontSize: '17px' }}>

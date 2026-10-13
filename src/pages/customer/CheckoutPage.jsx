@@ -1,3 +1,4 @@
+import { API_V1_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
 import {
   Container,
@@ -63,7 +64,7 @@ export default function CheckoutPage() {
     if (bookingId) {
       localStorage.setItem('salemseva_active_booking', bookingId);
     }
-    fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/quote`)
+    fetch(`${API_V1_URL}/bookings/${bookingId}/quote`)
       .then(res => res.json())
       .then(data => {
         if (data.success) {
@@ -103,7 +104,7 @@ export default function CheckoutPage() {
       let keyId = 'rzp_test_Tjo8HdYyapYlnO';
 
       try {
-        const orderRes = await fetch('https://salemseva-backend.onrender.com/api/v1/payments/create-order', {
+        const orderRes = await fetch(`${API_V1_URL}/payments/create-order`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -136,7 +137,7 @@ export default function CheckoutPage() {
         handler: async function (response) {
           try {
             // Verify payment on backend
-            await fetch('https://salemseva-backend.onrender.com/api/v1/payments/verify', {
+            await fetch(`${API_V1_URL}/payments/verify`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -149,7 +150,7 @@ export default function CheckoutPage() {
             });
 
             // Update booking status
-            await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/status`, {
+            await fetch(`${API_V1_URL}/bookings/${bookingId}/status`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ status: 'quote_approved' })
@@ -191,7 +192,7 @@ export default function CheckoutPage() {
         rzp.open();
       } else {
         // Fallback for demo mode
-        await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/status`, {
+        await fetch(`${API_V1_URL}/bookings/${bookingId}/status`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: 'quote_approved' })
@@ -285,14 +286,14 @@ export default function CheckoutPage() {
           <Box sx={{ mb: 1.5 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="body2" sx={{ color: '#0F172A', fontSize: '13px', fontWeight: 700 }}>
-                தொழிலாளர் கட்டணம் + 5% தள கட்டணம் (Labour & Platform Fee)
+                தொழிலாளர் வேலைக் கட்டணம் + 5% தள கட்டணம் (Labour & Platform Fee)
               </Typography>
               <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '13.5px' }}>
                 ₹{partsAndLabor.toFixed(2)}
               </Typography>
             </Box>
-            <Typography variant="caption" sx={{ color: '#0284C7', fontSize: '11px', display: 'block', mt: 0.3 }}>
-              * கடை பில்படி: டெக்னீஷியன் அசல் கடை ரசீதை பதிவேற்றியவுடன் அந்த பில் தொகை + 5% தள கட்டணம் நேரடியாக சேர்க்கப்படும்.
+            <Typography variant="caption" sx={{ color: '#166534', fontSize: '11px', display: 'block', mt: 0.3, fontWeight: 500 }}>
+              தளம் உதிரிபாகங்களை விற்பனை செய்வதில்லை. 5% தள கட்டணம் தொழிலாளர் வேலைக் கட்டணத்திற்கு மட்டுமே.
             </Typography>
           </Box>
 
@@ -358,10 +359,17 @@ export default function CheckoutPage() {
               </Typography>
             </Box>
             <Chip
-              label="100% CASHLESS"
+              label="100% DIGITAL ONLY"
               size="small"
               sx={{ bgcolor: '#E0F2FE', color: '#0284C7', fontWeight: 900, fontSize: '10px', height: 22 }}
             />
+          </Box>
+
+          <Box sx={{ mb: 1.5, p: 1, bgcolor: '#FEF3C7', border: '1px solid #FCD34D', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: 1 }}>
+            <SecurityIcon sx={{ color: '#D97706', fontSize: 16 }} />
+            <Typography variant="caption" sx={{ color: '#92400E', fontWeight: 700, fontSize: '11px' }}>
+              Digital Payments Only: No cash accepted at doorstep. 100% escrow protected.
+            </Typography>
           </Box>
 
           {/* Option 1: UPI */}

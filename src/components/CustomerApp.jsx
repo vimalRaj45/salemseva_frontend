@@ -59,8 +59,11 @@ import HomeRepairServiceIcon from '@mui/icons-material/HomeRepairService';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
 import { ApiService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export default function CustomerApp({ currentStep, setStep, activeBooking, setActiveBooking, onEscalateOps }) {
+  const { rewardSettings } = useAuth();
+  const reviewRewardCredits = parseFloat(rewardSettings?.review_reward_credits || 25);
   const [navTab, setNavTab] = useState(0);
   const [services, setServices] = useState([]);
   const [rating, setRating] = useState(5);
@@ -112,7 +115,7 @@ export default function CustomerApp({ currentStep, setStep, activeBooking, setAc
       setEscalationDialogOpen(true);
       if (onEscalateOps) onEscalateOps();
     } else {
-      alert(' Review Submitted! +50 Seva Credits Added to Wallet.');
+      alert(`Review Submitted! +${reviewRewardCredits} Seva Credits Added to Wallet.`);
       setStep('customer_history');
     }
   };
@@ -491,7 +494,7 @@ export default function CustomerApp({ currentStep, setStep, activeBooking, setAc
               size="large"
               onClick={handleReviewSubmit}
             >
-              {rating <= 3 ? "Submit Feedback & Request Free Revisit" : "Submit Review & Claim +50 Credits"}
+              {rating <= 3 ? "Submit Feedback & Request Free Revisit" : `Submit Review & Claim +${reviewRewardCredits} Credits`}
             </Button>
           </Box>
         )}

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_V1_URL } from '../../config';
 import {
   Container,
   Box,
@@ -39,14 +40,26 @@ import { useAuth } from '../../context/AuthContext';
 
 export default function RatingEscalationPage() {
   const navigate = useNavigate();
-  const { creditWallet } = useAuth();
+  const { creditWallet, rewardSettings } = useAuth();
+  const reviewRewardCredits = parseFloat(rewardSettings?.review_reward_credits || 25);
   const [searchParams] = useSearchParams();
-  const bookingId = searchParams.get('bookingId') || 'SLM-84920';
+  const bookingId = searchParams.get('bookingId') || localStorage.getItem('salemseva_active_booking') || '';
 
+  const [techName, setTechName] = useState('the technician');
   const [rating, setRating] = useState(5);
   const [selectedTags, setSelectedTags] = useState(['fast', 'oem', 'clean', 'transparent']);
   const [feedbackText, setFeedbackText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+
+  React.useEffect(() => {
+    if (!bookingId) return;
+    fetch(`${API_V1_URL}/bookings/${bookingId}/track`)
+      .then(r => r.json())
+      .then(d => {
+        if (d?.technician?.name) setTechName(d.technician.name);
+      })
+      .catch(() => {});
+  }, [bookingId]);
 
   // Compliments for high ratings (4-5 stars)
   const compliments = [
@@ -155,7 +168,7 @@ export default function RatingEscalationPage() {
           </Box>
 
           <Typography variant="h6" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '16px', mb: 0.3 }}>
-            How was K. Ramesh's service for #{bookingId}?
+            How was {techName}'s service{bookingId ? ` for #${bookingId}` : ''}?
           </Typography>
           <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11.5px' }}>
             Tap stars below to rate the service:
@@ -208,7 +221,7 @@ export default function RatingEscalationPage() {
           }}
         >
           <Typography variant="caption" sx={{ fontWeight: 600, color: '#0F172A', display: 'block', mb: 1.2, fontSize: '12.5px' }}>
-            {ratingInfo.isLow ? 'What went wrong? (Tap to report issues):' : 'What did you like about Ramesh\'s service? (Tap to add compliments):'}
+            {ratingInfo.isLow ? 'What went wrong? (Tap to report issues):' : `What did you like about ${techName}'s service? (Tap to add compliments):`}
           </Typography>
 
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
@@ -303,10 +316,10 @@ export default function RatingEscalationPage() {
 
               <Box>
                 <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#166534', fontSize: '13px' }}>
-                  +50 Seva credits reward
+                  +{reviewRewardCredits} Seva credits reward
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#15803D', display: 'block', fontSize: '11px' }}>
-                  • +20 credits: 5-star service rating • +30 credits: repeat booking cashback
+                  • +{reviewRewardCredits} credits: 5-star service rating reward credited to your wallet
                 </Typography>
               </Box>
             </Box>

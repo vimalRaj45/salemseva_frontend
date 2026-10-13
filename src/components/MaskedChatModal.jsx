@@ -1,3 +1,4 @@
+import { API_V1_URL } from '../config';
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Dialog,
@@ -17,13 +18,15 @@ import CloseIcon from '@mui/icons-material/Close';
 import SendIcon from '@mui/icons-material/Send';
 import SecurityIcon from '@mui/icons-material/Security';
 import LockIcon from '@mui/icons-material/Lock';
+import SalemLottie from './SalemLottie';
+import { ILLUSTRATIONS } from '../constants/visualAssets';
 
 export default function MaskedChatModal({
   open,
   onClose,
-  bookingId = 'SLM-84920',
+  bookingId = '',
   userRole = 'customer', // 'customer' | 'technician'
-  peerName = 'K. Ramesh',
+  peerName = 'Assigned Partner',
   peerSubtitle = 'Verified Salem Specialist'
 }) {
   const [input, setInput] = useState('');
@@ -38,7 +41,7 @@ export default function MaskedChatModal({
 
     const fetchMessages = async () => {
       try {
-        const res = await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/messages`);
+        const res = await fetch(`${API_V1_URL}/bookings/${bookingId}/messages`);
         const data = await res.json();
         if (data.success && isMounted) {
           setMessages(data.messages || []);
@@ -71,7 +74,7 @@ export default function MaskedChatModal({
     setIsSending(true);
     setInput('');
 
-    const mySenderName = userRole === 'customer' ? 'Customer' : 'K. Ramesh (Technician)';
+    const mySenderName = userRole === 'customer' ? 'Customer' : 'Technician';
 
     // Optimistic UI insert
     const tempMsg = {
@@ -85,7 +88,7 @@ export default function MaskedChatModal({
     setMessages((prev) => [...prev, tempMsg]);
 
     try {
-      await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/messages`, {
+      await fetch(`${API_V1_URL}/bookings/${bookingId}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -95,7 +98,7 @@ export default function MaskedChatModal({
         })
       });
       // Re-fetch instantly
-      const res = await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/messages`);
+      const res = await fetch(`${API_V1_URL}/bookings/${bookingId}/messages`);
       const data = await res.json();
       if (data.success) {
         setMessages(data.messages || []);
@@ -190,46 +193,63 @@ export default function MaskedChatModal({
           />
         </Box>
 
-        {messages.map((m) => {
-          const isMe = m.sender === userRole;
-          return (
+        {messages.length === 0 ? (
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, py: 3, textAlign: 'center' }}>
             <Box
-              key={m.id}
-              sx={{
-                alignSelf: isMe ? 'flex-end' : 'flex-start',
-                maxWidth: '82%',
-                bgcolor: isMe ? '#2563EB' : '#FFFFFF',
-                color: isMe ? '#FFFFFF' : '#0F172A',
-                px: 1.5,
-                py: 1,
-                borderRadius: isMe ? '14px 14px 2px 14px' : '14px 14px 14px 2px',
-                border: isMe ? 'none' : '1px solid #E2E8F0',
-                boxShadow: '0 1px 3px rgba(15, 23, 42, 0.06)'
-              }}
-            >
-              {!isMe && (
-                <Typography variant="caption" sx={{ color: '#2563EB', fontWeight: 700, fontSize: '10.5px', display: 'block', mb: 0.2 }}>
-                  {m.senderName || peerName}
-                </Typography>
-              )}
-              <Typography variant="body2" sx={{ fontSize: '12.5px', lineHeight: 1.4 }}>
-                {m.text}
-              </Typography>
-              <Typography
-                variant="caption"
+              component="img"
+              src={ILLUSTRATIONS.chat}
+              alt="In-App Secure Messaging"
+              sx={{ width: 140, height: 110, objectFit: 'contain', mb: 1.5, opacity: 0.9 }}
+            />
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '13px' }}>
+              In-App Secure Masked Messaging
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#64748B', maxWidth: 260, fontSize: '11px', mt: 0.3 }}>
+              Send real-time updates safely. Both your mobile number and the partner's number remain 100% private.
+            </Typography>
+          </Box>
+        ) : (
+          messages.map((m) => {
+            const isMe = m.sender === userRole;
+            return (
+              <Box
+                key={m.id}
                 sx={{
-                  fontSize: '9.5px',
-                  color: isMe ? 'rgba(255,255,255,0.75)' : '#94A3B8',
-                  display: 'block',
-                  textAlign: 'right',
-                  mt: 0.3
+                  alignSelf: isMe ? 'flex-end' : 'flex-start',
+                  maxWidth: '82%',
+                  bgcolor: isMe ? '#2563EB' : '#FFFFFF',
+                  color: isMe ? '#FFFFFF' : '#0F172A',
+                  px: 1.5,
+                  py: 1,
+                  borderRadius: isMe ? '14px 14px 2px 14px' : '14px 14px 14px 2px',
+                  border: isMe ? 'none' : '1px solid #E2E8F0',
+                  boxShadow: '0 1px 3px rgba(15, 23, 42, 0.06)'
                 }}
               >
-                {m.time}
-              </Typography>
-            </Box>
-          );
-        })}
+                {!isMe && (
+                  <Typography variant="caption" sx={{ color: '#2563EB', fontWeight: 700, fontSize: '10.5px', display: 'block', mb: 0.2 }}>
+                    {m.senderName || peerName}
+                  </Typography>
+                )}
+                <Typography variant="body2" sx={{ fontSize: '12.5px', lineHeight: 1.4 }}>
+                  {m.text}
+                </Typography>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    fontSize: '9.5px',
+                    color: isMe ? 'rgba(255,255,255,0.75)' : '#94A3B8',
+                    display: 'block',
+                    textAlign: 'right',
+                    mt: 0.3
+                  }}
+                >
+                  {m.time}
+                </Typography>
+              </Box>
+            );
+          })
+        )}
       </DialogContent>
 
       {/* Quick Replies */}
@@ -285,7 +305,13 @@ export default function MaskedChatModal({
             '&.Mui-disabled': { bgcolor: '#E2E8F0', color: '#94A3B8' }
           }}
         >
-          {isSending ? <CircularProgress size={18} sx={{ color: '#FFF' }} /> : <SendIcon sx={{ fontSize: 18 }} />}
+          {isSending ? (
+            <CircularProgress size={18} sx={{ color: '#FFF' }} />
+          ) : input.trim() ? (
+            <SalemLottie name="send" width={22} height={22} />
+          ) : (
+            <SendIcon sx={{ fontSize: 18 }} />
+          )}
         </IconButton>
       </DialogActions>
     </Dialog>

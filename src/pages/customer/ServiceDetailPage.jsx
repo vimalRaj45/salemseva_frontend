@@ -1,3 +1,4 @@
+import { API_V1_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
 import {
   Container,
@@ -44,10 +45,15 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import QrCode2Icon from '@mui/icons-material/QrCode2';
+import ShieldIcon from '@mui/icons-material/Shield';
 
 import { ApiService } from '../../services/api';
 import LocationPickerModal from '../../components/LocationPickerModal';
 import ProcessingBackdrop from '../../components/ProcessingBackdrop';
+import VoiceNoteRecorder from '../../components/VoiceNoteRecorder';
+import SalemLottie from '../../components/SalemLottie';
 import { useAuth } from '../../context/AuthContext';
 
 export default function ServiceDetailPage({ onStartBooking }) {
@@ -56,13 +62,16 @@ export default function ServiceDetailPage({ onStartBooking }) {
   const { serviceId = 'ac' } = useParams();
   const [selectedIssue, setSelectedIssue] = useState('not_cooling');
   const [customDescription, setCustomDescription] = useState('');
+  const [voiceNoteAudio, setVoiceNoteAudio] = useState(null);
   
   // Coupon state
-  const [couponCode, setCouponCode] = useState('SALEM100');
+  const [couponCode, setCouponCode] = useState('');
   const [couponInput, setCouponInput] = useState('');
-  const [couponApplied, setCouponApplied] = useState(true);
-  const [couponDiscount, setCouponDiscount] = useState(50);
+  const [couponApplied, setCouponApplied] = useState(false);
+  const [couponDiscount, setCouponDiscount] = useState(0);
   const [couponError, setCouponError] = useState('');
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [availableCoupons, setAvailableCoupons] = useState([]);
 
   const [serviceInfo, setServiceInfo] = useState(null);
   const [issuesList, setIssuesList] = useState([]);
@@ -78,9 +87,12 @@ export default function ServiceDetailPage({ onStartBooking }) {
     d.setDate(d.getDate() + 1);
     return d.toISOString().split('T')[0];
   });
-  const [selectedSlot, setSelectedSlot] = useState('10:00 AM – 12:00 PM');
+  const [selectedSlot, setSelectedSlot] = useState('10:00 AM - 12:00 PM');
   const [customTime, setCustomTime] = useState('');
   const [isCustomTimeActive, setIsCustomTimeActive] = useState(false);
+  const [scheduledPaymentModalOpen, setScheduledPaymentModalOpen] = useState(false);
+  const [selectedPayMethod, setSelectedPayMethod] = useState('upi');
+  const [isPayingScheduled, setIsPayingScheduled] = useState(false);
   const [scheduledSuccessModalOpen, setScheduledSuccessModalOpen] = useState(false);
   const [confirmedBooking, setConfirmedBooking] = useState(null);
   const dateInputRef = React.useRef(null);
@@ -127,7 +139,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
       setIsLoadingIssues(true);
       try {
         // Fetch Service Info from DB
-        const svcRes = await fetch(`https://salemseva-backend.onrender.com/api/v1/services/${serviceId || 'ac'}`);
+        const svcRes = await fetch(`${API_V1_URL}/services/${serviceId || 'ac'}`);
         const svcData = await svcRes.json();
         if (svcData.success && svcData.service) {
           setServiceInfo(svcData.service);
@@ -154,14 +166,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
     loadServiceData();
   }, [serviceId]);
 
-  const defaultIssues = [
-    { id: 'not_cooling', title: 'Diagnostic & Troubleshooting', estRange: '₹299 - ₹799', visitFee: '₹99' },
-    { id: 'water_leak', title: 'Repair & Parts Replacement', estRange: '₹199 - ₹499', visitFee: '₹99' },
-    { id: 'full_service', title: 'Complete Deep Service & Maintenance', estRange: '₹449 - ₹899', visitFee: '₹99' },
-    { id: 'other', title: 'Other problem / Custom inspection required', estRange: 'Quote on Inspection', visitFee: '₹99' }
-  ];
-
-  const displayIssues = issuesList.length > 0 ? issuesList : defaultIssues;
+  const displayIssues = issuesList;
 
   const getServiceIcon = () => {
     switch (serviceId) {
@@ -178,28 +183,53 @@ export default function ServiceDetailPage({ onStartBooking }) {
     }
   };
 
-  const handleApplyCoupon = () => {
+  useEffect(() => {
+    fetch(`${API_V1_URL}/coupons/active`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.coupons)) {
+          setAvailableCoupons(data.coupons);
+          if (data.coupons.length > 0) {
+            const first = data.coupons[0];
+            setCouponCode(first.code);
+            setCouponDiscount(first.discountValue);
+            setCouponApplied(true);
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleApplyCoupon = async (overrideCode) => {
     setCouponError('');
-    const code = (couponInput || '').trim().toUpperCase();
+    const code = (overrideCode || couponInput || '').trim().toUpperCase();
     if (!code) {
       setCouponError('Please enter a valid promo code');
       return;
     }
-    if (code === 'SALEM100' || code === 'FIRST100' || code === 'SUPERSEVA') {
-      setCouponCode(code);
-      setCouponDiscount(50);
-      setCouponApplied(true);
-      setCouponInput('');
-    } else if (code === 'SALEM50' || code === 'SAVE50') {
-      setCouponCode(code);
-      setCouponDiscount(30);
-      setCouponApplied(true);
-      setCouponInput('');
-    } else {
-      setCouponCode(code);
-      setCouponDiscount(40);
-      setCouponApplied(true);
-      setCouponInput('');
+    setCouponLoading(true);
+    try {
+      const res = await fetch(`${API_V1_URL}/coupons/validate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, bookingAmount: 99 })
+      });
+      const data = await res.json();
+      if (data.valid) {
+        setCouponCode(data.code);
+        setCouponDiscount(data.discountAmount);
+        setCouponApplied(true);
+        setCouponInput('');
+        setCouponError('');
+      } else {
+        setCouponError(data.error || 'Invalid or expired coupon code');
+        setCouponApplied(false);
+        setCouponDiscount(0);
+      }
+    } catch (err) {
+      setCouponError('Could not validate coupon. Please check connection.');
+    } finally {
+      setCouponLoading(false);
     }
   };
 
@@ -230,21 +260,25 @@ export default function ServiceDetailPage({ onStartBooking }) {
   };
 
   const timeSlots = [
-    { id: '08_10', label: '08:00 AM – 10:00 AM', period: 'Morning Window' },
-    { id: '10_12', label: '10:00 AM – 12:00 PM', period: 'Mid-Morning', popular: true },
-    { id: '12_02', label: '12:00 PM – 02:00 PM', period: 'Afternoon' },
-    { id: '02_04', label: '02:00 PM – 04:00 PM', period: 'Post-Lunch' },
-    { id: '04_06', label: '04:00 PM – 06:00 PM', period: 'Evening Window' },
-    { id: '06_08', label: '06:00 PM – 08:00 PM', period: 'Night Window' }
+    { id: '08_10', label: '08:00 AM - 10:00 AM', period: 'Morning Window' },
+    { id: '10_12', label: '10:00 AM - 12:00 PM', period: 'Mid-Morning', popular: true },
+    { id: '12_02', label: '12:00 PM - 02:00 PM', period: 'Afternoon' },
+    { id: '02_04', label: '02:00 PM - 04:00 PM', period: 'Post-Lunch' },
+    { id: '04_06', label: '04:00 PM - 06:00 PM', period: 'Evening Window' },
+    { id: '06_08', label: '06:00 PM - 08:00 PM', period: 'Night Window' }
   ];
 
   const handleProceed = async () => {
+    if (bookingMode === 'scheduled') {
+      setScheduledPaymentModalOpen(true);
+      return;
+    }
+
     setIsProcessing(true);
-    const isInstant = bookingMode === 'instant';
-    const finalSlot = isInstant ? 'instant_now' : `${getFormattedDateString()} • ${getEffectiveSlot()}`;
+    const finalSlot = 'instant_now';
 
     try {
-      const res = await fetch('https://salemseva-backend.onrender.com/api/v1/bookings/create', {
+      const res = await fetch(`${API_V1_URL}/bookings/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -260,38 +294,85 @@ export default function ServiceDetailPage({ onStartBooking }) {
           address: userLocation.address || 'Plot 42, 5th Cross, Fairlands, Salem - 636016',
           couponCode: couponApplied ? couponCode : null,
           discountAmount: couponApplied ? couponDiscount : 0,
-          isUrgentDispatch: isInstant,
+          isUrgentDispatch: true,
           scheduledSlot: finalSlot,
-          bookingType: isInstant ? 'instant' : 'scheduled'
+          bookingType: 'instant',
+          voiceNoteAudio: voiceNoteAudio
         })
       });
       const data = await res.json();
-      const bId = data.booking?.id || 'SLM-84920';
-      const bObj = data.booking || { id: bId, scheduled_slot: finalSlot };
+      if (!data.success || !data.booking?.id) {
+        throw new Error(data.error || 'Failed to register booking in database');
+      }
+      const bId = data.booking.id;
+      const bObj = data.booking;
 
       localStorage.setItem('salemseva_active_booking', bId);
       window.dispatchEvent(new CustomEvent('salemseva_new_booking_created', { detail: { bookingId: bId, booking: bObj } }));
       window.dispatchEvent(new Event('storage'));
       if (onStartBooking) onStartBooking(bObj);
       setIsProcessing(false);
-
-      if (isInstant) {
-        navigate(`/matching?bookingId=${bId}`);
-      } else {
-        setConfirmedBooking({ ...bObj, id: bId, scheduled_slot: finalSlot });
-        setScheduledSuccessModalOpen(true);
-      }
+      navigate(`/matching?bookingId=${bId}`);
     } catch (e) {
-      console.warn('Fallback to booking handling:', e);
-      const fallbackId = 'SLM-' + Math.floor(10000 + Math.random() * 90000);
-      localStorage.setItem('salemseva_active_booking', fallbackId);
+      console.error('Booking creation error:', e);
       setIsProcessing(false);
-      if (isInstant) {
-        navigate(`/matching?bookingId=${fallbackId}`);
-      } else {
-        setConfirmedBooking({ id: fallbackId, scheduled_slot: finalSlot });
-        setScheduledSuccessModalOpen(true);
+      alert('Unable to connect to service dispatch: ' + (e.message || 'Please check your connection and retry.'));
+    }
+  };
+
+  const handlePayAndConfirmScheduled = async () => {
+    setIsPayingScheduled(true);
+    const finalSlot = `${getFormattedDateString()} • ${getEffectiveSlot()}`;
+    const visitFeeAmount = 49;
+    const discount = couponApplied ? couponDiscount : 0;
+    const payableNow = Math.max(0, visitFeeAmount - discount);
+
+    try {
+      const res = await fetch(`${API_V1_URL}/bookings/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          serviceId: serviceId || 'ac',
+          issueId: selectedIssue,
+          customNotes: customDescription,
+          customerId: user?.id || 'usr-cust-001',
+          customerName: user?.name || 'Vimal Raj',
+          customerPhone: user?.phone || '+919842711234',
+          lat: userLocation.lat || 11.6643,
+          lng: userLocation.lng || 78.1460,
+          locality: userLocation.locality || 'Fairlands',
+          address: userLocation.address || 'Plot 42, 5th Cross, Fairlands, Salem - 636016',
+          couponCode: couponApplied ? couponCode : null,
+          discountAmount: discount,
+          isUrgentDispatch: false,
+          scheduledSlot: finalSlot,
+          bookingType: 'scheduled',
+          paymentStatus: 'paid',
+          paymentMethod: selectedPayMethod,
+          visitFeePaid: payableNow,
+          voiceNoteAudio: voiceNoteAudio
+        })
+      });
+      const data = await res.json();
+      if (!data.success || !data.booking?.id) {
+        throw new Error(data.error || 'Failed to register scheduled booking');
       }
+      const bId = data.booking.id;
+      const bObj = data.booking;
+
+      localStorage.setItem('salemseva_active_booking', bId);
+      window.dispatchEvent(new CustomEvent('salemseva_new_booking_created', { detail: { bookingId: bId, booking: bObj } }));
+      window.dispatchEvent(new Event('storage'));
+      if (onStartBooking) onStartBooking(bObj);
+      setIsPayingScheduled(false);
+      setScheduledPaymentModalOpen(false);
+      setConfirmedBooking({ ...bObj, id: bId, scheduled_slot: finalSlot });
+      setScheduledSuccessModalOpen(true);
+    } catch (e) {
+      console.error('Scheduled booking creation error:', e);
+      setIsPayingScheduled(false);
+      setScheduledPaymentModalOpen(false);
+      alert('Unable to reserve scheduled visit: ' + (e.message || 'Please retry.'));
     }
   };
 
@@ -400,7 +481,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
                   </Typography>
                 </Box>
                 <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11.5px' }}>
-                  • Verified Salem Technicians • 15–25 min ETA
+                  • Verified Salem Technicians • 15-25 min ETA
                 </Typography>
               </Box>
             </Box>
@@ -479,7 +560,8 @@ export default function ServiceDetailPage({ onStartBooking }) {
               />
               <Button
                 variant="contained"
-                onClick={handleApplyCoupon}
+                disabled={couponLoading}
+                onClick={() => handleApplyCoupon()}
                 sx={{
                   bgcolor: '#0F172A',
                   color: '#FFFFFF',
@@ -492,13 +574,39 @@ export default function ServiceDetailPage({ onStartBooking }) {
                   '&:hover': { bgcolor: '#1E293B' }
                 }}
               >
-                Apply
+                {couponLoading ? 'Checking...' : 'Apply'}
               </Button>
             </Box>
             {couponError && (
               <Typography variant="caption" sx={{ color: '#EF4444', fontSize: '11px', mt: 0.5, display: 'block' }}>
                 {couponError}
               </Typography>
+            )}
+
+            {/* Available Coupon Quick Selectors */}
+            {availableCoupons.length > 0 && (
+              <Box sx={{ mt: 1.2, display: 'flex', alignItems: 'center', gap: 0.8, flexWrap: 'wrap' }}>
+                <Typography variant="caption" sx={{ color: '#64748B', fontSize: '10.5px', fontWeight: 600 }}>
+                  Available Coupons:
+                </Typography>
+                {availableCoupons.map((ac) => (
+                  <Chip
+                    key={ac.id}
+                    label={`${ac.code} (${ac.discountType === 'percent' ? `${ac.discountValue}%` : `₹${ac.discountValue}`} OFF)`}
+                    size="small"
+                    onClick={() => handleApplyCoupon(ac.code)}
+                    sx={{
+                      cursor: 'pointer',
+                      fontSize: '10px',
+                      fontWeight: 700,
+                      bgcolor: '#EFF6FF',
+                      color: '#1D4ED8',
+                      border: '1px solid #BFDBFE',
+                      '&:hover': { bgcolor: '#DBEAFE' }
+                    }}
+                  />
+                ))}
+              </Box>
             )}
           </Paper>
         )}
@@ -599,8 +707,14 @@ export default function ServiceDetailPage({ onStartBooking }) {
               }
             }}
           />
+          
+          {/* Audio Voice Note for Technician */}
+          <VoiceNoteRecorder
+            onAudioChange={(audio) => setVoiceNoteAudio(audio)}
+          />
+
           <Typography variant="caption" sx={{ color: '#64748B', fontSize: '10.5px', mt: 0.5, display: 'block' }}>
-            Our technician will review these details before arriving with the right tools.
+            Our technician will listen to your voice note and review these details before arriving with the right tools.
           </Typography>
         </Card>
 
@@ -620,7 +734,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
             Choose How You Want to Book
           </Typography>
           <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 1.5 }}>
-            Need immediate service in 15–25 mins, or want to pick a convenient date & slot?
+            Need immediate service in 15-25 mins, or want to pick a convenient date & slot?
           </Typography>
 
           {/* Mode Tabs */}
@@ -656,7 +770,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
                   />
                 </Box>
                 <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11px', lineHeight: 1.3 }}>
-                  ⚡ Instant dispatch • Arrives in 15–25 mins
+                  Instant dispatch • Arrives in 15-25 mins
                 </Typography>
               </Paper>
             </Grid>
@@ -692,7 +806,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
                   />
                 </Box>
                 <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11px', lineHeight: 1.3 }}>
-                  📅 Scheduled visit • Central Ops Assigned
+                  Scheduled visit • Central Ops Assigned
                 </Typography>
               </Paper>
             </Grid>
@@ -989,7 +1103,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
           </Typography>
           <Typography variant="caption" sx={{ color: bookingMode === 'scheduled' ? '#0284C7' : couponApplied ? '#16A34A' : '#64748B', fontSize: '11px', fontWeight: 600 }}>
             {bookingMode === 'scheduled'
-              ? `📅 ${getFormattedDateString()} • ${getEffectiveSlot().split('–')[0].trim()}`
+              ? `${getFormattedDateString()} • ${getEffectiveSlot().split('-')[0].trim()}`
               : couponApplied ? `₹${couponDiscount} discount applied` : `Service in ${userLocation.locality || 'Fairlands, Salem'}`}
           </Typography>
         </Box>
@@ -1010,7 +1124,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
             '&:hover': { bgcolor: bookingMode === 'instant' ? '#1D4ED8' : '#0369A1' }
           }}
         >
-          {bookingMode === 'instant' ? 'Search Tech Now' : 'Confirm Scheduled Slot'}
+          {bookingMode === 'instant' ? 'Search Tech Now' : 'Pay ₹49 & Reserve Slot'}
         </Button>
       </Paper>
 
@@ -1040,6 +1154,200 @@ export default function ServiceDetailPage({ onStartBooking }) {
         badge={bookingMode === 'instant' ? 'Live dispatch' : 'Central Ops Queue'}
       />
 
+      {/* SCHEDULED BOOKING PRE-PAYMENT MODAL */}
+      <Dialog
+        open={scheduledPaymentModalOpen}
+        onClose={() => !isPayingScheduled && setScheduledPaymentModalOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{
+          sx: { borderRadius: '16px', overflow: 'hidden' }
+        }}
+      >
+        <DialogTitle sx={{ pb: 1, pt: 2.5, px: 2.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <CalendarMonthIcon sx={{ color: '#0284C7', fontSize: 24 }} />
+              <Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '17px' }}>
+                Reserve Scheduled Slot
+              </Typography>
+            </Box>
+            <Button
+              size="small"
+              onClick={() => setScheduledPaymentModalOpen(false)}
+              disabled={isPayingScheduled}
+              sx={{ minWidth: 28, p: 0.5, color: '#94A3B8' }}
+            >
+              <CloseIcon fontSize="small" />
+            </Button>
+          </Box>
+          <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mt: 0.3 }}>
+            Salem Central Operations Guaranteed Doorstep Slot
+          </Typography>
+        </DialogTitle>
+
+        <DialogContent sx={{ px: 2.5, py: 1 }}>
+          {/* Appointment Summary Card */}
+          <Paper elevation={0} sx={{ p: 2, bgcolor: '#F0F9FF', border: '1.5px solid #BAE6FD', borderRadius: '12px', mb: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 1 }}>
+              <EventIcon sx={{ color: '#0284C7', fontSize: 18 }} />
+              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0369A1', fontSize: '13px' }}>
+                {getFormattedDateString()} • {getEffectiveSlot()}
+              </Typography>
+            </Box>
+            <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '12.5px' }}>
+              {currentServiceName}
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mt: 0.2 }}>
+              {userLocation.address || 'Fairlands, Salem - 636016'}
+            </Typography>
+          </Paper>
+
+          {/* Price Breakdown */}
+          <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', mb: 2 }}>
+            <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 1.2 }}>
+              Payment Breakdown
+            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.8 }}>
+              <Typography variant="body2" sx={{ color: '#475569', fontSize: '12.5px' }}>
+                Doorstep Diagnostic & Inspection Visit:
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '12.5px' }}>
+                ₹49.00
+              </Typography>
+            </Box>
+            {couponApplied && couponDiscount > 0 && (
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.8 }}>
+                <Typography variant="body2" sx={{ color: '#16A34A', fontSize: '12.5px' }}>
+                  Coupon Discount ({couponCode}):
+                </Typography>
+                <Typography variant="body2" sx={{ fontWeight: 700, color: '#16A34A', fontSize: '12.5px' }}>
+                  -₹{couponDiscount}.00
+                </Typography>
+              </Box>
+            )}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.8 }}>
+              <Typography variant="body2" sx={{ color: '#475569', fontSize: '12.5px' }}>
+                Central Ops Slot Reservation:
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 800, color: '#16A34A', fontSize: '12.5px' }}>
+                FREE
+              </Typography>
+            </Box>
+            <Divider sx={{ my: 1, borderColor: '#E2E8F0' }} />
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '13.5px' }}>
+                Total Payable Now:
+              </Typography>
+              <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0284C7', fontSize: '16px' }}>
+                ₹{Math.max(0, 49 - (couponApplied ? couponDiscount : 0))}.00
+              </Typography>
+            </Box>
+          </Paper>
+
+          {/* Payment Method Selector */}
+          <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 1 }}>
+            Select Payment Method
+          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
+            <Paper
+              elevation={0}
+              onClick={() => setSelectedPayMethod('upi')}
+              sx={{
+                p: 1.4,
+                borderRadius: '10px',
+                cursor: 'pointer',
+                border: '1.5px solid',
+                borderColor: selectedPayMethod === 'upi' ? '#0284C7' : '#E2E8F0',
+                bgcolor: selectedPayMethod === 'upi' ? '#F0F9FF' : '#FFFFFF',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                <QrCode2Icon sx={{ color: '#0284C7', fontSize: 22 }} />
+                <Box>
+                  <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '12.5px' }}>
+                    UPI / GPay / PhonePe / Cards
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#64748B', fontSize: '10.5px' }}>
+                    Instant verification via Razorpay Escrow
+                  </Typography>
+                </Box>
+              </Box>
+              <Radio checked={selectedPayMethod === 'upi'} size="small" sx={{ p: 0, color: '#0284C7' }} />
+            </Paper>
+
+            <Paper
+              elevation={0}
+              onClick={() => setSelectedPayMethod('wallet')}
+              sx={{
+                p: 1.4,
+                borderRadius: '10px',
+                cursor: 'pointer',
+                border: '1.5px solid',
+                borderColor: selectedPayMethod === 'wallet' ? '#10B981' : '#E2E8F0',
+                bgcolor: selectedPayMethod === 'wallet' ? '#ECFDF5' : '#FFFFFF',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                <AccountBalanceWalletIcon sx={{ color: '#059669', fontSize: 22 }} />
+                <Box>
+                  <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '12.5px' }}>
+                    Seva Credits Wallet
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#059669', fontWeight: 700, fontSize: '10.5px' }}>
+                    Available balance: ₹{user?.walletBalance ?? 150}
+                  </Typography>
+                </Box>
+              </Box>
+              <Radio checked={selectedPayMethod === 'wallet'} size="small" sx={{ p: 0, color: '#10B981' }} />
+            </Paper>
+          </Box>
+
+          <Alert
+            severity="info"
+            icon={<ShieldIcon sx={{ fontSize: 18, color: '#0284C7' }} />}
+            sx={{ bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px', fontSize: '11px', color: '#475569', py: 0.5 }}
+          >
+            Salem Central Operations will allocate a verified specialist prior to your slot. When the technician starts heading to your home, you will receive an automatic notification and live tracking.
+          </Alert>
+        </DialogContent>
+
+        <DialogActions sx={{ p: 2.5, pt: 1, gap: 1 }}>
+          <Button
+            onClick={() => setScheduledPaymentModalOpen(false)}
+            disabled={isPayingScheduled}
+            sx={{ color: '#64748B', fontWeight: 700, textTransform: 'none' }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handlePayAndConfirmScheduled}
+            disabled={isPayingScheduled}
+            sx={{
+              flex: 1,
+              bgcolor: '#0284C7',
+              color: '#FFFFFF',
+              fontWeight: 800,
+              borderRadius: '10px',
+              py: 1,
+              textTransform: 'none',
+              '&:hover': { bgcolor: '#0369A1' }
+            }}
+          >
+            {isPayingScheduled ? 'Processing Payment...' : `Pay ₹${Math.max(0, 49 - (couponApplied ? couponDiscount : 0))} & Confirm`}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* SCHEDULED BOOKING SUCCESS CONFIRMATION MODAL */}
       <Dialog
         open={scheduledSuccessModalOpen}
@@ -1048,24 +1356,17 @@ export default function ServiceDetailPage({ onStartBooking }) {
         fullWidth
       >
         <DialogTitle sx={{ textAlign: 'center', pt: 3, pb: 1 }}>
-          <Box
-            sx={{
-              width: 54,
-              height: 54,
-              borderRadius: '50%',
-              bgcolor: '#F0FDF4',
-              color: '#16A34A',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 12px auto',
-              border: '2px solid #BBF7D0'
-            }}
-          >
-            <CheckCircleIcon sx={{ fontSize: 32 }} />
-          </Box>
+          {/* LottieFiles Booking Success Animation */}
+          <SalemLottie
+            name="success"
+            width={110}
+            height={110}
+            loop={false}
+            ariaLabel="Scheduled booking payment verified and confirmed"
+            style={{ mb: 1 }}
+          />
           <Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '18px' }}>
-            Booking Scheduled Successfully!
+            Scheduled Booking Confirmed & Paid!
           </Typography>
           <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mt: 0.5 }}>
             Booking ID: <strong>#{confirmedBooking?.id || 'SLM-84920'}</strong>
@@ -1079,7 +1380,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
                 SCHEDULED APPOINTMENT SLOT
               </Typography>
               <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0284C7' }}>
-                📅 {confirmedBooking?.scheduled_slot || `${getFormattedDateString()} • ${selectedSlot}`}
+                {confirmedBooking?.scheduled_slot || `${getFormattedDateString()} • ${selectedSlot}`}
               </Typography>
             </Box>
 
@@ -1104,7 +1405,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
               </Typography>
             </Box>
             <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mt: 0.5 }}>
-              Our operations dispatch controller will assign a verified technician for your selected window. You will receive updates directly on your tracking screen.
+              Salem Central Operations team is allocating a verified technician for your scheduled time slot. Prior to your appointment window, when the technician starts traveling to your home, you will receive an instant notification with live GPS tracking.
             </Typography>
           </Paper>
         </DialogContent>
@@ -1115,7 +1416,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
             variant="contained"
             onClick={() => {
               setScheduledSuccessModalOpen(false);
-              navigate('/history');
+              navigate(`/track?bookingId=${confirmedBooking?.id || 'SLM-84920'}`);
             }}
             sx={{
               bgcolor: '#0284C7',
@@ -1127,7 +1428,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
               '&:hover': { bgcolor: '#0369A1' }
             }}
           >
-            View in My Bookings
+            Track Status Now
           </Button>
 
           <Button
@@ -1135,7 +1436,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
             variant="outlined"
             onClick={() => {
               setScheduledSuccessModalOpen(false);
-              navigate(`/track?bookingId=${confirmedBooking?.id || 'SLM-84920'}`);
+              navigate('/history');
             }}
             sx={{
               borderColor: '#CBD5E1',
@@ -1146,7 +1447,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
               textTransform: 'none'
             }}
           >
-            Track Status Now
+            View in My Bookings
           </Button>
         </DialogActions>
       </Dialog>

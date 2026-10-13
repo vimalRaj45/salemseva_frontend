@@ -1,3 +1,4 @@
+import { API_V1_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
 import {
   Container,
@@ -54,13 +55,16 @@ import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 import ProcessingBackdrop from '../../components/ProcessingBackdrop';
+import SalemSeamlessLoader from '../../components/SalemSeamlessLoader';
+import SalemLottie from '../../components/SalemLottie';
+import { useAuth } from '../../context/AuthContext';
 
 export default function MatchingPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const urlBookingId = searchParams.get('bookingId');
   const storedBookingId = localStorage.getItem('salemseva_active_booking');
-  const bookingId = urlBookingId || storedBookingId || 'SLM-84920';
+  const bookingId = urlBookingId || storedBookingId || '';
 
   const [loading, setLoading] = useState(true);
   const [trackData, setTrackData] = useState(null);
@@ -80,133 +84,53 @@ export default function MatchingPage() {
   const [selectedSlot, setSelectedSlot] = useState('priority_12h');
   const [customSlotTime, setCustomSlotTime] = useState('');
 
-  // Multi-Trade Verified Technicians Directory for Salem Zones
-  const SERVICE_TECH_MAP = {
-    ac: [
-      {
-        id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
-        name: 'K. Ramesh',
-        trade: 'AC Master Specialist',
-        rating: 4.92,
-        jobsCount: 428,
-        distance: '1.2 km away',
-        locality: 'Fairlands, Salem',
-        eta: '15 mins',
-        phone: '+91 94432 88901'
-      },
-      {
-        id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22',
-        name: 'Murugan S.',
-        trade: 'HVAC & Refrigeration Expert',
-        rating: 4.88,
-        jobsCount: 312,
-        distance: '2.4 km away',
-        locality: 'Hasthampatti, Salem',
-        eta: '22 mins',
-        phone: '+91 98421 66720'
-      }
-    ],
-    electrician: [
-      {
-        id: 'c2eebc99-9c0b-4ef8-bb6d-6bb9bd380a33',
-        name: 'S. Senthil Kumar',
-        trade: 'Senior Certified Electrician',
-        rating: 4.95,
-        jobsCount: 530,
-        distance: '1.4 km away',
-        locality: 'Suramangalam, Salem',
-        eta: '12 mins',
-        phone: '+91 98421 44551'
-      },
-      {
-        id: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380a44',
-        name: 'M. Karthik',
-        trade: 'Wiring & MCB Safety Specialist',
-        rating: 4.89,
-        jobsCount: 340,
-        distance: '2.8 km away',
-        locality: 'Ammapet, Salem',
-        eta: '20 mins',
-        phone: '+91 94431 88220'
-      }
-    ],
-    plumber: [
-      {
-        id: 'e4eebc99-9c0b-4ef8-bb6d-6bb9bd380a55',
-        name: 'P. Velumani',
-        trade: 'Master Sanitary & Motor Plumber',
-        rating: 4.94,
-        jobsCount: 610,
-        distance: '1.1 km away',
-        locality: 'Shevapet, Salem',
-        eta: '10 mins',
-        phone: '+91 97890 33442'
-      },
-      {
-        id: 'f5eebc99-9c0b-4ef8-bb6d-6bb9bd380a66',
-        name: 'R. Selvam',
-        trade: 'Concealed Pipe & Drainage Expert',
-        rating: 4.87,
-        jobsCount: 285,
-        distance: '2.6 km away',
-        locality: 'Gugai, Salem',
-        eta: '18 mins',
-        phone: '+91 98425 11993'
-      }
-    ],
-    cleaning: [
-      {
-        id: 'a6eebc99-9c0b-4ef8-bb6d-6bb9bd380a77',
-        name: 'A. Manikandan',
-        trade: 'Deep Home Sanitization Lead',
-        rating: 4.91,
-        jobsCount: 410,
-        distance: '1.5 km away',
-        locality: 'Fairlands, Salem',
-        eta: '14 mins',
-        phone: '+91 94420 77884'
-      },
-      {
-        id: 'b7eebc99-9c0b-4ef8-bb6d-6bb9bd380a88',
-        name: 'D. Priya & Team',
-        trade: 'Elite Deep Cleaning & Descaling',
-        rating: 4.96,
-        jobsCount: 520,
-        distance: '2.1 km away',
-        locality: 'Hasthampatti, Salem',
-        eta: '20 mins',
-        phone: '+91 98432 66115'
-      }
-    ]
-  };
-
+  // Real Verified Technicians from PostgreSQL Neon Database
+  const { dbTechnicians = [] } = useAuth();
   const currentServiceId = trackData?.booking?.service_id || searchParams.get('serviceId') || 'ac';
-  const technicianCandidates = SERVICE_TECH_MAP[currentServiceId] || SERVICE_TECH_MAP.ac;
+  
+  // Match verified online/active technicians from database by trade
+  const matchedDbTechs = dbTechnicians.filter(t => (t.trade || '').toLowerCase() === currentServiceId.toLowerCase());
+  const technicianCandidates = matchedDbTechs.length > 0 ? matchedDbTechs : dbTechnicians;
 
   const currentTech = (trackData?.technician && trackData.technician.name) ? {
     id: trackData.technician.id,
     name: trackData.technician.name,
-    trade: `${trackData.technician.primaryTrade?.toUpperCase() || 'SERVICE'} Specialist`,
-    rating: trackData.technician.rating || 4.9,
+    trade: trackData.technician.trade || `${(trackData.technician.primaryTrade || currentServiceId).toUpperCase()} Specialist`,
+    rating: trackData.technician.rating || trackData.technician.ratingAvg || 4.9,
     jobsCount: trackData.technician.jobsCompleted || 350,
-    distance: '1.3 km away',
-    locality: 'Fairlands, Salem',
+    distance: trackData.technician.distanceKm ? `${trackData.technician.distanceKm} km away` : '1.2 km away',
+    locality: trackData.technician.serviceArea || trackData.technician.locality || 'Fairlands, Salem',
     eta: trackData.technician.eta || '12 mins',
     phone: trackData.technician.phone
-  } : (technicianCandidates[techIndex] || technicianCandidates[0]);
+  } : (technicianCandidates[techIndex] || technicianCandidates[0] || {
+    name: 'Salem Verified Specialist',
+    trade: `${currentServiceId.toUpperCase()} Service`,
+    rating: 4.9,
+    jobsCount: 150,
+    distance: 'Nearby',
+    locality: 'Salem Central Zone'
+  });
 
 
   useEffect(() => {
-    if (bookingId) {
-      localStorage.setItem('salemseva_active_booking', bookingId);
+    if (!bookingId) {
+      navigate('/', { replace: true });
+      return;
     }
+    localStorage.setItem('salemseva_active_booking', bookingId);
     let isMounted = true;
     const fetchBookingDetails = async () => {
       try {
-        const res = await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/track`);
+        const res = await fetch(`${API_V1_URL}/bookings/${bookingId}/track`);
         const data = await res.json();
         if (data.success && isMounted) {
           setTrackData(data);
+          const isScheduled = data.booking?.booking_type === 'scheduled' || (!data.booking?.is_urgent_dispatch && data.booking?.scheduled_slot && data.booking?.scheduled_slot !== 'instant_now');
+          if (isScheduled || data.booking?.status === 'created') {
+            navigate(`/track?bookingId=${bookingId}`, { replace: true });
+            return;
+          }
+
           const currentStatus = data.booking?.status;
           if (['en_route', 'arrived', 'inspecting', 'quote_presented', 'quote_approved', 'completed'].includes(currentStatus)) {
             // Already paid inspection fee and technician is actively dispatched
@@ -284,28 +208,6 @@ export default function MatchingPage() {
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
-  const handleSimulateAccept = async () => {
-    setIsProcessing(true);
-    try {
-      await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/status`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          status: 'accepted',
-          technicianId: currentTech.id
-        })
-      });
-      setMatchingState('accepted');
-      setPaymentSecondsRemaining(120);
-    } catch (err) {
-      console.warn('Accept fallback:', err);
-      setMatchingState('accepted');
-      setPaymentSecondsRemaining(120);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
   const handlePayInspectionFee = async () => {
     setIsPayingFee(true);
     try {
@@ -314,7 +216,7 @@ export default function MatchingPage() {
       let keyId = 'rzp_test_Tjo8HdYyapYlnO';
 
       try {
-        const orderRes = await fetch('https://salemseva-backend.onrender.com/api/v1/payments/create-order', {
+        const orderRes = await fetch(`${API_V1_URL}/payments/create-order`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -389,7 +291,7 @@ export default function MatchingPage() {
   const finalizePayment = async (paymentId, orderId, signature) => {
     try {
       // 1. Record Part 1 Payment in Neon Payments Escrow Ledger
-      await fetch(`https://salemseva-backend.onrender.com/api/v1/payments/verify`, {
+      await fetch(`${API_V1_URL}/payments/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -403,7 +305,7 @@ export default function MatchingPage() {
       });
 
       // 2. Advance booking status to 'en_route' (Technician unlocked to start ride)
-      await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/status`, {
+      await fetch(`${API_V1_URL}/bookings/${bookingId}/status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -434,7 +336,7 @@ export default function MatchingPage() {
   const handleConfirmSchedule = async () => {
     setIsProcessing(true);
     try {
-      await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/reschedule`, {
+      await fetch(`${API_V1_URL}/bookings/${bookingId}/reschedule`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -455,7 +357,7 @@ export default function MatchingPage() {
   const handleDirectCancel = async () => {
     setIsCancelling(true);
     try {
-      await fetch(`https://salemseva-backend.onrender.com/api/v1/bookings/${bookingId}/cancel`, {
+      await fetch(`${API_V1_URL}/bookings/${bookingId}/cancel`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -473,11 +375,7 @@ export default function MatchingPage() {
   };
 
   if (loading) {
-    return (
-      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#F8FAFC' }}>
-        <CircularProgress sx={{ color: '#2563EB' }} />
-      </Box>
-    );
+    return <SalemSeamlessLoader mode="booking" />;
   }
 
   return (
@@ -580,9 +478,18 @@ export default function MatchingPage() {
                   height: 6,
                   borderRadius: 3,
                   bgcolor: '#F1F5F9',
-                  mb: 2,
+                  mb: 1.5,
                   '& .MuiLinearProgress-bar': { bgcolor: '#2563EB' }
                 }}
+              />
+
+              {/* LottieFiles High-Fidelity Radar Pulse Animation */}
+              <SalemLottie
+                name="radar"
+                width={170}
+                height={170}
+                ariaLabel="Salem matching radar actively scanning for nearest certified technician"
+                style={{ mb: 1.5 }}
               />
 
               {/* Technician Candidate Preview */}

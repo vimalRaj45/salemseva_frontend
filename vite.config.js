@@ -8,7 +8,13 @@ export default defineConfig({
   },
   server: {
     port: 3000,
-    host: true
+    host: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true
+      }
+    }
   },
   optimizeDeps: {
     include: ['react-router-dom', '@mui/material', '@mui/icons-material', 'leaflet', 'react-leaflet']
