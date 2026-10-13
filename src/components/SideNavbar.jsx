@@ -209,273 +209,353 @@ export default function SideNavbar({
             flexDirection: 'column'
           }}
         >
-          {/* User Identity Profile Card */}
+          {/* User Identity Profile Card (Logged In) OR Clean Welcome Card (Guest) */}
           <div style={{ padding: '16px 18px 12px 18px' }}>
-          <div
-            style={{
-              padding: '14px',
-              borderRadius: '14px',
-              backgroundColor: isDarkMode ? '#1E293B' : '#EFF6FF',
-              border: isDarkMode ? '1px solid #334155' : '1px solid #DBEAFE',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '10px'
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {user ? (
               <div
                 style={{
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '12px',
-                  backgroundColor: '#2563EB',
-                  color: '#FFFFFF',
-                  fontWeight: 900,
-                  fontSize: '18px',
+                  padding: '14px',
+                  borderRadius: '14px',
+                  backgroundColor: isDarkMode ? '#1E293B' : '#EFF6FF',
+                  border: isDarkMode ? '1px solid #334155' : '1px solid #DBEAFE',
                   display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: '0 4px 10px rgba(37, 99, 235, 0.3)'
+                  flexDirection: 'column',
+                  gap: '10px'
                 }}
               >
-                {displayName.charAt(0).toUpperCase()}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div
+                    style={{
+                      width: '44px',
+                      height: '44px',
+                      borderRadius: '12px',
+                      backgroundColor: '#2563EB',
+                      color: '#FFFFFF',
+                      fontWeight: 900,
+                      fontSize: '18px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 4px 10px rgba(37, 99, 235, 0.3)'
+                    }}
+                  >
+                    {displayName.charAt(0).toUpperCase()}
+                  </div>
+
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span
+                        style={{
+                          fontSize: '14.5px',
+                          fontWeight: 800,
+                          color: isDarkMode ? '#F8FAFC' : '#0F172A',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
+                        }}
+                      >
+                        {displayName}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: '9.5px',
+                          fontWeight: 800,
+                          padding: '2px 6px',
+                          borderRadius: '999px',
+                          backgroundColor: userRole === 'technician' ? '#ECFDF5' : userRole === 'admin' ? '#FEF3C7' : '#DCFCE7',
+                          color: userRole === 'technician' ? '#059669' : userRole === 'admin' ? '#B45309' : '#15803D',
+                          border: userRole === 'technician' ? '1px solid #10B981' : userRole === 'admin' ? '1px solid #F59E0B' : '1px solid #86EFAC'
+                        }}
+                      >
+                        {userRole === 'technician' ? 'PARTNER' : userRole === 'admin' ? 'ADMIN HQ' : 'VERIFIED'}
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                      <MapPin size={11} color="#64748B" />
+                      <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 500 }}>
+                        {userLocality}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Wallet & Quick Stats Bar */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    paddingTop: '8px',
+                    borderTop: isDarkMode ? '1px solid #334155' : '1px solid #BFDBFE'
+                  }}
+                >
+                  <div
+                    onClick={() => handleNav('/wallet')}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <Wallet size={14} color="#D97706" />
+                    <span style={{ fontSize: '12px', fontWeight: 800, color: '#D97706' }}>
+                      ₹{creditsAmount} Seva Credits
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleNav('/wallet')}
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      color: '#2563EB',
+                      backgroundColor: 'transparent',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: 0
+                    }}
+                  >
+                    Add Credits &rarr;
+                  </button>
+                </div>
               </div>
-
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span
+            ) : (
+              <div
+                style={{
+                  padding: '16px',
+                  borderRadius: '14px',
+                  backgroundColor: isDarkMode ? '#1E293B' : '#EFF6FF',
+                  border: isDarkMode ? '1px solid #334155' : '1px solid #DBEAFE',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div
                     style={{
-                      fontSize: '14.5px',
-                      fontWeight: 800,
-                      color: isDarkMode ? '#F8FAFC' : '#0F172A',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis'
+                      width: '42px',
+                      height: '42px',
+                      borderRadius: '12px',
+                      backgroundColor: '#2563EB',
+                      color: '#FFFFFF',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 4px 10px rgba(37, 99, 235, 0.25)'
                     }}
                   >
-                    {displayName}
-                  </span>
-                  <span
-                    style={{
-                      fontSize: '9.5px',
-                      fontWeight: 800,
-                      padding: '2px 6px',
-                      borderRadius: '999px',
-                      backgroundColor: userRole === 'technician' ? '#ECFDF5' : userRole === 'admin' ? '#FEF3C7' : '#DCFCE7',
-                      color: userRole === 'technician' ? '#059669' : userRole === 'admin' ? '#B45309' : '#15803D',
-                      border: userRole === 'technician' ? '1px solid #10B981' : userRole === 'admin' ? '1px solid #F59E0B' : '1px solid #86EFAC'
-                    }}
-                  >
-                    {userRole === 'technician' ? 'PARTNER' : userRole === 'admin' ? 'ADMIN HQ' : 'VERIFIED'}
-                  </span>
+                    <User size={20} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '15px', fontWeight: 800, color: isDarkMode ? '#F8FAFC' : '#0F172A' }}>
+                      Welcome to SalemSeva
+                    </div>
+                    <div style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 500 }}>
+                      Hyperlocal Services Hub in Salem
+                    </div>
+                  </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
-                  <MapPin size={11} color="#64748B" />
-                  <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 500 }}>
-                    {userLocality}
-                  </span>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    if (onOpenAuthModal) onOpenAuthModal('customer');
+                    else handleNav('/login');
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    borderRadius: '10px',
+                    backgroundColor: '#2563EB',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    fontSize: '12.5px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 8px rgba(37, 99, 235, 0.3)'
+                  }}
+                >
+                  Sign In / Create Account
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Navigation Link Groups */}
+          <div style={{ flex: 1, padding: '8px 14px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            
+            {/* Group 1: Core Public Services */}
+            <div>
+              <span style={{ fontSize: '10.5px', fontWeight: 800, color: isDarkMode ? '#94A3B8' : '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', padding: '0 8px', display: 'block', marginBottom: '6px' }}>
+                Services
+              </span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                <SideNavItem
+                  icon={<Home size={18} />}
+                  label="Home / Explore Services"
+                  sublabel="AC, Electrician, Plumber, Cleaning"
+                  active={currentPath === '/'}
+                  isDark={isDarkMode}
+                  onClick={() => handleNav('/')}
+                />
+                {user && (
+                  <>
+                    <SideNavItem
+                      icon={<Calendar size={18} />}
+                      label="My Bookings & Invoices"
+                      sublabel="Track live technician or view history"
+                      active={currentPath === '/history' || currentPath.startsWith('/track')}
+                      isDark={isDarkMode}
+                      onClick={() => handleNav('/history')}
+                    />
+                    <SideNavItem
+                      icon={<Wallet size={18} />}
+                      label="Seva Wallet & Cashback"
+                      badge={`₹${creditsAmount}`}
+                      active={currentPath === '/wallet'}
+                      isDark={isDarkMode}
+                      onClick={() => handleNav('/wallet')}
+                    />
+                  </>
+                )}
               </div>
             </div>
 
-            {/* Wallet & Quick Stats Bar */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                paddingTop: '8px',
-                borderTop: isDarkMode ? '1px solid #334155' : '1px solid #BFDBFE'
-              }}
-            >
-              <div
-                onClick={() => handleNav('/wallet')}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  cursor: 'pointer'
-                }}
-              >
-                <Wallet size={14} color="#D97706" />
-                <span style={{ fontSize: '12px', fontWeight: 800, color: '#D97706' }}>
-                  ₹{creditsAmount} Seva Credits
+            {/* Group 2: Specialist Partner Zone (Only if partner, admin, or onboarding) */}
+            {user && (userRole === 'technician' || userRole === 'admin') && (
+              <div>
+                <span style={{ fontSize: '10.5px', fontWeight: 800, color: isDarkMode ? '#94A3B8' : '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', padding: '0 8px', display: 'block', marginBottom: '6px' }}>
+                  Technician Partner Desk
                 </span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                  <SideNavItem
+                    icon={<Zap size={18} />}
+                    label="Partner Duty Radar"
+                    badge="LIVE"
+                    badgeColor="#10B981"
+                    active={currentPath === '/partner'}
+                    isDark={isDarkMode}
+                    onClick={() => handleNav('/partner')}
+                  />
+                  <SideNavItem
+                    icon={<FileText size={18} />}
+                    label="Digital Quote Builder"
+                    sublabel="Create estimates & parts bill"
+                    active={currentPath === '/partner/quote-builder'}
+                    isDark={isDarkMode}
+                    onClick={() => handleNav('/partner/quote-builder')}
+                  />
+                  <SideNavItem
+                    icon={<BadgeCheck size={18} />}
+                    label="Partner KYC & Registration"
+                    sublabel="DigiLocker verification"
+                    active={currentPath === '/partner/onboarding'}
+                    isDark={isDarkMode}
+                    onClick={() => handleNav('/partner/onboarding')}
+                  />
+                </div>
               </div>
+            )}
 
-              <button
-                type="button"
-                onClick={() => handleNav('/wallet')}
-                style={{
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  color: '#2563EB',
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 0
-                }}
-              >
-                Add Credits &rarr;
-              </button>
+            {/* Group 3: Central Operations HQ (Admin Only) */}
+            {user && userRole === 'admin' && (
+              <div>
+                <span style={{ fontSize: '10.5px', fontWeight: 800, color: isDarkMode ? '#94A3B8' : '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', padding: '0 8px', display: 'block', marginBottom: '6px' }}>
+                  Salem Operations Desk
+                </span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                  <SideNavItem
+                    icon={<Activity size={18} />}
+                    label="Central Ops Dashboard"
+                    sublabel="Live fleet radar & booking dispatches"
+                    active={currentPath === '/admin'}
+                    isDark={isDarkMode}
+                    onClick={() => handleNav('/admin')}
+                  />
+                  <SideNavItem
+                    icon={<Clock size={18} />}
+                    label="Traceability & Audit Logs"
+                    sublabel="Tamper-proof event ledger"
+                    active={currentPath === '/admin/traceability'}
+                    isDark={isDarkMode}
+                    onClick={() => handleNav('/admin/traceability')}
+                  />
+                  <SideNavItem
+                    icon={<Wallet size={18} />}
+                    label="Razorpay Settlements Ledger"
+                    sublabel="Payouts & escrow distributions"
+                    active={currentPath === '/admin/settlements'}
+                    isDark={isDarkMode}
+                    onClick={() => handleNav('/admin/settlements')}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Group 4: Preferences & Support (Public / Essential) */}
+            <div>
+              <span style={{ fontSize: '10.5px', fontWeight: 800, color: isDarkMode ? '#94A3B8' : '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', padding: '0 8px', display: 'block', marginBottom: '6px' }}>
+                Preferences & Support
+              </span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                <SideNavItem
+                  icon={<Globe size={18} />}
+                  label="Language / மொழி"
+                  badge={currentLangName}
+                  badgeColor="#0284C7"
+                  isDark={isDarkMode}
+                  onClick={() => {
+                    onClose();
+                    onOpenLanguageModal();
+                  }}
+                />
+                <SideNavItem
+                  icon={isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+                  label={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                  isDark={isDarkMode}
+                  onClick={toggleDarkMode}
+                />
+                {user && (
+                  <SideNavItem
+                    icon={<MessageSquarePlus size={18} color="#0D9488" />}
+                    label="Platform Feedback & Issues"
+                    sublabel="Report platform bugs or ideas"
+                    badge="Ops Direct"
+                    badgeColor="#0D9488"
+                    isDark={isDarkMode}
+                    onClick={() => {
+                      onClose();
+                      if (onOpenFeedbackModal) onOpenFeedbackModal();
+                    }}
+                  />
+                )}
+                {!user && (
+                  <SideNavItem
+                    icon={<Briefcase size={18} />}
+                    label="Join as a Partner / டெக்னீசியன்"
+                    sublabel="Partner onboarding & daily earn"
+                    isDark={isDarkMode}
+                    onClick={() => handleNav('/partner/onboarding')}
+                  />
+                )}
+                <SideNavItem
+                  icon={<PhoneCall size={18} />}
+                  label="24/7 Salem Emergency Hotline"
+                  sublabel="1800-425-7253 (Toll Free)"
+                  isDark={isDarkMode}
+                  onClick={() => {
+                    window.location.href = 'tel:1800-425-7253';
+                  }}
+                />
+              </div>
             </div>
+
           </div>
-        </div>
-
-
-
-        {/* Navigation Link Groups */}
-        <div style={{ flex: 1, padding: '8px 14px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          
-          {/* Group 1: Customer Core */}
-          <div>
-            <span style={{ fontSize: '10.5px', fontWeight: 800, color: isDarkMode ? '#94A3B8' : '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', padding: '0 8px', display: 'block', marginBottom: '6px' }}>
-              Customer Services
-            </span>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-              <SideNavItem
-                icon={<Home size={18} />}
-                label="Home / Explore Services"
-                sublabel="AC, Electrician, Plumber, Cleaning"
-                active={currentPath === '/'}
-                isDark={isDarkMode}
-                onClick={() => handleNav('/')}
-              />
-              <SideNavItem
-                icon={<Calendar size={18} />}
-                label="My Bookings & Invoices"
-                sublabel="Track live technician or view history"
-                active={currentPath === '/history' || currentPath.startsWith('/track')}
-                isDark={isDarkMode}
-                onClick={() => handleNav('/history')}
-              />
-              <SideNavItem
-                icon={<Wallet size={18} />}
-                label="Seva Wallet & Cashback"
-                badge={`₹${creditsAmount}`}
-                active={currentPath === '/wallet'}
-                isDark={isDarkMode}
-                onClick={() => handleNav('/wallet')}
-              />
-            </div>
-          </div>
-
-          {/* Group 2: Specialist Partner Zone */}
-          <div>
-            <span style={{ fontSize: '10.5px', fontWeight: 800, color: isDarkMode ? '#94A3B8' : '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', padding: '0 8px', display: 'block', marginBottom: '6px' }}>
-              Technician Partner Desk
-            </span>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-              <SideNavItem
-                icon={<Zap size={18} />}
-                label="Partner Duty Radar"
-                badge="LIVE"
-                badgeColor="#10B981"
-                active={currentPath === '/partner'}
-                isDark={isDarkMode}
-                onClick={() => handleNav('/partner')}
-              />
-              <SideNavItem
-                icon={<FileText size={18} />}
-                label="Digital Quote Builder"
-                sublabel="Create estimates & parts bill"
-                active={currentPath === '/partner/quote-builder'}
-                isDark={isDarkMode}
-                onClick={() => handleNav('/partner/quote-builder')}
-              />
-              <SideNavItem
-                icon={<BadgeCheck size={18} />}
-                label="Partner KYC & Registration"
-                sublabel="DigiLocker verification"
-                active={currentPath === '/partner/onboarding'}
-                isDark={isDarkMode}
-                onClick={() => handleNav('/partner/onboarding')}
-              />
-            </div>
-          </div>
-
-          {/* Group 3: Central Operations HQ */}
-          <div>
-            <span style={{ fontSize: '10.5px', fontWeight: 800, color: isDarkMode ? '#94A3B8' : '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', padding: '0 8px', display: 'block', marginBottom: '6px' }}>
-              Salem Operations Desk
-            </span>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-              <SideNavItem
-                icon={<Activity size={18} />}
-                label="Central Ops Dashboard"
-                sublabel="Live fleet radar & booking dispatches"
-                active={currentPath === '/admin'}
-                isDark={isDarkMode}
-                onClick={() => handleNav('/admin')}
-              />
-              <SideNavItem
-                icon={<Clock size={18} />}
-                label="Traceability & Audit Logs"
-                sublabel="Tamper-proof event ledger"
-                active={currentPath === '/admin/traceability'}
-                isDark={isDarkMode}
-                onClick={() => handleNav('/admin/traceability')}
-              />
-              <SideNavItem
-                icon={<Wallet size={18} />}
-                label="Razorpay Settlements Ledger"
-                sublabel="Payouts & escrow distributions"
-                active={currentPath === '/admin/settlements'}
-                isDark={isDarkMode}
-                onClick={() => handleNav('/admin/settlements')}
-              />
-            </div>
-          </div>
-
-          {/* Group 4: Preferences & Support */}
-          <div>
-            <span style={{ fontSize: '10.5px', fontWeight: 800, color: isDarkMode ? '#94A3B8' : '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', padding: '0 8px', display: 'block', marginBottom: '6px' }}>
-              Preferences & Support
-            </span>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-              <SideNavItem
-                icon={<Globe size={18} />}
-                label="Language / மொழி"
-                badge={currentLangName}
-                badgeColor="#0284C7"
-                isDark={isDarkMode}
-                onClick={() => {
-                  onClose();
-                  onOpenLanguageModal();
-                }}
-              />
-              <SideNavItem
-                icon={isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-                label={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-                isDark={isDarkMode}
-                onClick={toggleDarkMode}
-              />
-              <SideNavItem
-                icon={<MessageSquarePlus size={18} color="#0D9488" />}
-                label="Platform Feedback & Issues"
-                sublabel="Report platform bugs or ideas"
-                badge="Ops Direct"
-                badgeColor="#0D9488"
-                isDark={isDarkMode}
-                onClick={() => {
-                  onClose();
-                  if (onOpenFeedbackModal) onOpenFeedbackModal();
-                }}
-              />
-              <SideNavItem
-                icon={<PhoneCall size={18} />}
-                label="24/7 Salem Emergency Hotline"
-                sublabel="1800-425-7253 (Toll Free)"
-                isDark={isDarkMode}
-                onClick={() => {
-                  window.location.href = 'tel:1800-425-7253';
-                }}
-              />
-            </div>
-          </div>
-
-        </div>
         </div>
 
         {/* Drawer Bottom Actions with Safe-Area Bottom Padding */}

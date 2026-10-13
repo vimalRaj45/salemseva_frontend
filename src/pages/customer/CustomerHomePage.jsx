@@ -204,39 +204,49 @@ export default function CustomerHomePage() {
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
-            <LocationOnIcon sx={{ fontSize: 20, color: '#2563EB', flexShrink: 0 }} />
-            <Box sx={{ minWidth: 0 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#0F172A', fontSize: '13px' }}>
-                  {userLocation.locality || 'Fairlands, Salem'}
-                </Typography>
-                <Chip
-                  label="Salem zone"
-                  size="small"
-                  sx={{
-                    bgcolor: '#F1F5F9',
-                    color: '#475569',
-                    fontWeight: 600,
-                    fontSize: '10px',
-                    height: 18,
-                    px: 0.2
-                  }}
-                />
-              </Box>
-              <Typography
-                variant="caption"
-                sx={{
-                  color: '#64748B',
-                  fontSize: '11px',
-                  display: 'block',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
-                }}
-              >
-                {userLocation.address || 'Doorstep service in 25-35 mins'}
-              </Typography>
-            </Box>
+            {(() => {
+              const pinMatch = String(userLocation.pincode || userLocation.address || '').match(/\b(\d{6})\b/);
+              const p = pinMatch ? pinMatch[1] : (userLocation.pincode || '');
+              const isBadPin = Boolean(p && !p.startsWith('636'));
+              return (
+                <>
+                  <LocationOnIcon sx={{ fontSize: 20, color: isBadPin ? '#DC2626' : '#2563EB', flexShrink: 0 }} />
+                  <Box sx={{ minWidth: 0 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700, color: isBadPin ? '#991B1B' : '#0F172A', fontSize: '13px' }}>
+                        {userLocation.locality || 'Fairlands, Salem'}
+                      </Typography>
+                      <Chip
+                        label={isBadPin ? 'Outside Salem Region' : 'Salem zone'}
+                        size="small"
+                        sx={{
+                          bgcolor: isBadPin ? '#FEF2F2' : '#F1F5F9',
+                          color: isBadPin ? '#DC2626' : '#475569',
+                          border: isBadPin ? '1px solid #FCA5A5' : 'none',
+                          fontWeight: 700,
+                          fontSize: '10px',
+                          height: 18,
+                          px: 0.2
+                        }}
+                      />
+                    </Box>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: isBadPin ? '#DC2626' : '#64748B',
+                        fontSize: '11px',
+                        display: 'block',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}
+                    >
+                      {isBadPin ? `PIN ${p} not accepted. Only Salem 636xxx serviced.` : (userLocation.address || 'Doorstep service in 25-35 mins')}
+                    </Typography>
+                  </Box>
+                </>
+              );
+            })()}
           </Box>
 
           <Button
@@ -290,8 +300,55 @@ export default function CustomerHomePage() {
           />
         </Paper>
 
+        {/* Guest Sign-in Invite Banner (Only shown when not logged in) */}
+        {!user && (
+          <Paper
+            elevation={0}
+            sx={{
+              p: 1.5,
+              mb: 2,
+              bgcolor: '#EFF6FF',
+              border: '1px solid #BFDBFE',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 1.5
+            }}
+          >
+            <Box>
+              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1E40AF', fontSize: '13px' }}>
+                Sign In to SalemSeva
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#3B82F6', fontSize: '11px', display: 'block' }}>
+                Get ₹100 off your first service & live GPS technician tracking
+              </Typography>
+            </Box>
+            <Button
+              size="small"
+              variant="contained"
+              onClick={() => navigate('/login')}
+              sx={{
+                bgcolor: '#2563EB',
+                color: '#FFF',
+                fontWeight: 700,
+                fontSize: '11.5px',
+                textTransform: 'none',
+                borderRadius: '6px',
+                px: 1.6,
+                py: 0.5,
+                flexShrink: 0,
+                boxShadow: 'none',
+                '&:hover': { bgcolor: '#1D4ED8' }
+              }}
+            >
+              Sign In
+            </Button>
+          </Paper>
+        )}
+
         {/* Active Connected Service Banner (Zero Interruption Lock & Seamless Resume) */}
-        {activeBooking && activeBooking.booking?.id && (() => {
+        {user && activeBooking && activeBooking.booking?.id && (() => {
           const status = activeBooking.booking?.status || 'matching';
           const bId = activeBooking.booking?.id;
           const techName = activeBooking.technician?.name || activeBooking.technician_name || 'Assigned Partner';
@@ -771,8 +828,14 @@ export default function CustomerHomePage() {
           onChange={(event, newValue) => {
             setNavValue(newValue);
             if (newValue === 0) navigate('/');
-            if (newValue === 1) navigate('/history');
-            if (newValue === 2) navigate('/wallet');
+            if (newValue === 1) {
+              if (!user) navigate('/login');
+              else navigate('/history');
+            }
+            if (newValue === 2) {
+              if (!user) navigate('/login');
+              else navigate('/wallet');
+            }
             if (newValue === 3) navigate('/partner');
           }}
           sx={{
@@ -796,7 +859,7 @@ export default function CustomerHomePage() {
             icon={<ReceiptLongIcon sx={{ fontSize: 20 }} />}
           />
           <BottomNavigationAction
-            label="Wallet"
+            label={user ? "Wallet" : "Sign In"}
             icon={<AccountCircleIcon sx={{ fontSize: 20 }} />}
           />
           <BottomNavigationAction

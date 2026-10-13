@@ -120,11 +120,13 @@ import AdminServicesModule from './AdminServicesModule';
 import AdminTeamModule from './AdminTeamModule';
 import AdminDispatchDrawer from './AdminDispatchDrawer';
 import AdminTrackingModal from './AdminTrackingModal';
+import { useAuth } from '../../context/AuthContext';
 
 import { API_V1_URL } from '../../config';
 
 export default function AdminDashboardPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [currentRole, setCurrentRole] = useState(() => localStorage.getItem('salemseva_admin_role') || 'super_admin');
   const [teamList, setTeamList] = useState([]);
@@ -943,6 +945,42 @@ export default function AdminDashboardPage() {
   };
 
   const activeFiltersCount = (searchQuery ? 1 : 0) + (selectedTrade !== 'all' ? 1 : 0) + (selectedLocality !== 'all' ? 1 : 0) + (selectedStatus !== 'all' ? 1 : 0) + (quickFilter !== 'all' ? 1 : 0);
+
+  if (!user) {
+    return (
+      <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', p: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Container maxWidth="xs" sx={{ textAlign: 'center' }}>
+          <Paper elevation={0} sx={{ p: 4, borderRadius: '16px', border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
+            <Box sx={{ width: 56, height: 56, borderRadius: '16px', bgcolor: '#FEF3C7', color: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 2 }}>
+              <AdminPanelSettingsIcon sx={{ fontSize: 32 }} />
+            </Box>
+            <Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '18px', mb: 1 }}>
+              Salem Operations Desk
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#64748B', fontSize: '13px', lineHeight: 1.5, mb: 3 }}>
+              Administrative credentials required to view fleet telemetry, live dispatches, and financial ledgers.
+            </Typography>
+            <Button
+              variant="contained"
+              fullWidth
+              onClick={() => navigate('/login')}
+              sx={{ bgcolor: '#0284C7', color: '#FFFFFF', fontWeight: 700, borderRadius: '10px', py: 1.2, mb: 1.5, textTransform: 'none', '&:hover': { bgcolor: '#0369A1' } }}
+            >
+              Sign In as Admin
+            </Button>
+            <Button
+              variant="text"
+              fullWidth
+              onClick={() => navigate('/')}
+              sx={{ color: '#64748B', fontSize: '12px', fontWeight: 600, textTransform: 'none' }}
+            >
+              Return to Customer App &rarr;
+            </Button>
+          </Paper>
+        </Container>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: '#F8FAFC' }}>

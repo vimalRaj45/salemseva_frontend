@@ -155,20 +155,40 @@ export default function WalletHubPage() {
           />
         </Box>
         
-        {/* 1. Hero Balance Blue Card with SalemSeva Escrow Wallet Illustration */}
-        <Card
-          elevation={0}
-          sx={{
-            background: 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)',
-            color: '#FFFFFF',
-            borderRadius: '20px',
-            p: 2.5,
-            mb: 2,
-            boxShadow: '0 6px 20px rgba(2, 132, 199, 0.25)',
-            position: 'relative',
-            overflow: 'hidden'
-          }}
-        >
+        {/* If user is not logged in, prompt to sign in instead of showing dummy wallet data */}
+        {!user ? (
+          <Paper elevation={0} sx={{ p: 4, textAlign: 'center', bgcolor: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', mb: 3 }}>
+            <AccountCircleIcon sx={{ fontSize: 48, color: '#94A3B8', mb: 1.5 }} />
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '16px', mb: 0.5 }}>
+              Sign In to View Seva Escrow Wallet
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#64748B', fontSize: '13px', mb: 2 }}>
+              Access your referral credits, welcome bonus, and digital cashback balance.
+            </Typography>
+            <Button
+              variant="contained"
+              onClick={() => navigate('/login')}
+              sx={{ bgcolor: '#2563EB', color: '#FFF', fontWeight: 700, fontSize: '13px', borderRadius: '8px', textTransform: 'none', px: 3 }}
+            >
+              Sign In
+            </Button>
+          </Paper>
+        ) : (
+          <>
+            {/* 1. Hero Balance Blue Card with SalemSeva Escrow Wallet Illustration */}
+            <Card
+              elevation={0}
+              sx={{
+                background: 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)',
+                color: '#FFFFFF',
+                borderRadius: '20px',
+                p: 2.5,
+                mb: 2,
+                boxShadow: '0 6px 20px rgba(2, 132, 199, 0.25)',
+                position: 'relative',
+                overflow: 'hidden'
+              }}
+            >
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative', zIndex: 1 }}>
             <Box sx={{ maxWidth: '68%' }}>
               <Typography variant="caption" sx={{ fontWeight: 800, letterSpacing: 0.8, opacity: 0.9, fontSize: '11px', textTransform: 'uppercase' }}>
@@ -467,6 +487,8 @@ export default function WalletHubPage() {
         >
           Book Home Service & Redeem Credits
         </Button>
+        </>
+        )}
 
       </Container>
 

@@ -48,9 +48,17 @@ export default function LocationPickerModal({
   const [doorAddress, setDoorAddress] = useState(
     currentLocation?.address || 'Plot 42, 5th Cross, Fairlands, Salem - 636016'
   );
+  const [customPin, setCustomPin] = useState(
+    currentLocation?.pincode || '636016'
+  );
   const [isDetecting, setIsDetecting] = useState(false);
   const [geoStatus, setGeoStatus] = useState('');
   const [searchFilter, setSearchFilter] = useState('');
+
+  // Extract or detect 6-digit PIN code
+  const pinInAddress = doorAddress.match(/\b(\d{6})\b/);
+  const activePin = pinInAddress ? pinInAddress[1] : customPin;
+  const isOutOfRegion = Boolean(activePin && activePin.length === 6 && !activePin.startsWith('636'));
 
   const handleDetectGPS = () => {
     setIsDetecting(true);
@@ -71,6 +79,7 @@ export default function LocationPickerModal({
           }, SALEM_LOCALITIES[0]);
 
           setSelectedLocality(closest.name);
+          setCustomPin(closest.pin);
           const fullAddr = `Live GPS Doorstep (${latitude.toFixed(4)}, ${longitude.toFixed(4)}), ${closest.name}, Salem - ${closest.pin}`;
           setDoorAddress(fullAddr);
         },
@@ -78,6 +87,7 @@ export default function LocationPickerModal({
           setIsDetecting(false);
           setGeoStatus('GPS permission prompt dismissed. Using high-precision Salem Fairlands.');
           setSelectedLocality('Fairlands');
+          setCustomPin('636016');
           setDoorAddress('Plot 42, 5th Cross, Fairlands, Salem - 636016');
         },
         { enableHighAccuracy: true, timeout: 8000 }
@@ -89,13 +99,18 @@ export default function LocationPickerModal({
   };
 
   const handleConfirm = () => {
+    if (isOutOfRegion) {
+      alert(`Service Unavailable: PIN code ${activePin} is outside our active Salem service region. SalemSeva only accepts bookings within Salem (636xxx).`);
+      return;
+    }
     const locObj = SALEM_LOCALITIES.find(l => l.name === selectedLocality) || SALEM_LOCALITIES[0];
+    const finalPin = activePin && activePin.length === 6 ? activePin : locObj.pin;
     const locationData = {
       locality: selectedLocality,
-      pincode: locObj.pin,
+      pincode: finalPin,
       lat: locObj.lat,
       lng: locObj.lng,
-      address: doorAddress || `${selectedLocality}, Salem - ${locObj.pin}`
+      address: doorAddress || `${selectedLocality}, Salem - ${finalPin}`
     };
     localStorage.setItem('salemseva_user_location', JSON.stringify(locationData));
     onSelectLocation(locationData);
@@ -245,6 +260,47 @@ export default function LocationPickerModal({
           })}
         </Box>
 
+        {/* Postal PIN Code & Service Coverage Verification */}
+        <Box sx={{ mb: 2, p: 1.5, borderRadius: '14px', bgcolor: isOutOfRegion ? '#FEF2F2' : '#F0FDF4', border: isOutOfRegion ? '1.5px solid #FCA5A5' : '1px solid #BBF7D0' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+            <Typography variant="caption" sx={{ fontWeight: 800, color: isOutOfRegion ? '#991B1B' : '#166534', letterSpacing: 0.5 }}>
+              POSTAL PIN CODE (SERVICE REGION):
+            </Typography>
+            <Chip
+              size="small"
+              label={isOutOfRegion ? 'Outside Service Area' : 'Salem Active Grid'}
+              sx={{
+                fontWeight: 800,
+                fontSize: '11px',
+                bgcolor: isOutOfRegion ? '#EF4444' : '#10B981',
+                color: '#FFFFFF'
+              }}
+            />
+          </Box>
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+            <TextField
+              size="small"
+              value={activePin}
+              onChange={(e) => {
+                const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+                setCustomPin(val);
+                // Also update pin in address
+                if (doorAddress.match(/\b\d{6}\b/)) {
+                  setDoorAddress(doorAddress.replace(/\b\d{6}\b/, val));
+                }
+              }}
+              placeholder="e.g. 636016"
+              inputProps={{ maxLength: 6 }}
+              sx={{ width: 140, '& .MuiOutlinedInput-root': { borderRadius: '10px', bgcolor: '#FFFFFF', fontWeight: 700 } }}
+            />
+            <Typography variant="caption" sx={{ color: isOutOfRegion ? '#DC2626' : '#15803D', fontWeight: 600, fontSize: '11.5px', lineHeight: 1.3 }}>
+              {isOutOfRegion
+                ? `PIN ${activePin} is outside our working region. SalemSeva only serves Salem (PINs: 636xxx).`
+                : `Verified Salem hub (${activePin}). Technicians arrive within 25 mins.`}
+            </Typography>
+          </Box>
+        </Box>
+
         {/* Doorstep Full Address Field */}
         <Typography variant="caption" sx={{ fontWeight: 800, color: '#64748B', display: 'block', mb: 0.8, letterSpacing: 0.5 }}>
           COMPLETE DOORSTEP / STREET ADDRESS:
@@ -267,17 +323,18 @@ export default function LocationPickerModal({
         <Button
           variant="contained"
           onClick={handleConfirm}
+          disabled={isOutOfRegion}
           sx={{
-            bgcolor: '#10B981',
+            bgcolor: isOutOfRegion ? '#94A3B8' : '#10B981',
             borderRadius: '14px',
             px: 3,
             py: 1,
             fontWeight: 900,
             textTransform: 'none',
-            '&:hover': { bgcolor: '#059669' }
+            '&:hover': { bgcolor: isOutOfRegion ? '#94A3B8' : '#059669' }
           }}
         >
-          Confirm Location
+          {isOutOfRegion ? 'Cannot Accept (Outside Salem)' : 'Confirm Location'}
         </Button>
       </DialogActions>
     </Dialog>

@@ -622,6 +622,42 @@ export default function PartnerDutyPage() {
     }
   };
 
+  if (!user) {
+    return (
+      <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', p: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Container maxWidth="xs" sx={{ textAlign: 'center' }}>
+          <Paper elevation={0} sx={{ p: 4, borderRadius: '16px', border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
+            <Box sx={{ width: 56, height: 56, borderRadius: '16px', bgcolor: '#ECFDF5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 2 }}>
+              <TwoWheelerIcon sx={{ fontSize: 32 }} />
+            </Box>
+            <Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '18px', mb: 1 }}>
+              Partner Duty Access
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#64748B', fontSize: '13px', lineHeight: 1.5, mb: 3 }}>
+              Please sign in with your verified partner mobile number to view your duty radar and job dispatches.
+            </Typography>
+            <Button
+              variant="contained"
+              fullWidth
+              onClick={() => navigate('/login')}
+              sx={{ bgcolor: '#059669', color: '#FFFFFF', fontWeight: 700, borderRadius: '10px', py: 1.2, mb: 1.5, textTransform: 'none', '&:hover': { bgcolor: '#047857' } }}
+            >
+              Partner Sign In
+            </Button>
+            <Button
+              variant="text"
+              fullWidth
+              onClick={() => navigate('/partner/onboarding')}
+              sx={{ color: '#64748B', fontSize: '12px', fontWeight: 600, textTransform: 'none' }}
+            >
+              New Partner? Register for Onboarding &rarr;
+            </Button>
+          </Paper>
+        </Container>
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', pb: 10 }}>
       <Container maxWidth="sm" sx={{ px: 2, pt: 2 }}>

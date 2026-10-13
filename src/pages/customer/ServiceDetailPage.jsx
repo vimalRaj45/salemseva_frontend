@@ -268,7 +268,19 @@ export default function ServiceDetailPage({ onStartBooking }) {
     { id: '06_08', label: '06:00 PM - 08:00 PM', period: 'Night Window' }
   ];
 
+  const checkSalemPincode = () => {
+    const pinMatch = String(userLocation.pincode || userLocation.address || '').match(/\b(\d{6})\b/);
+    const pin = pinMatch ? pinMatch[1] : (userLocation.pincode || '');
+    if (pin && !pin.startsWith('636')) {
+      alert(`Service Unavailable Outside Salem: PIN code ${pin} is outside our active technician region. SalemSeva only serves Salem (PIN codes: 636xxx). Your booking cannot be accepted.`);
+      return false;
+    }
+    return true;
+  };
+
   const handleProceed = async () => {
+    if (!checkSalemPincode()) return;
+
     if (bookingMode === 'scheduled') {
       setScheduledPaymentModalOpen(true);
       return;
@@ -292,6 +304,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
           lng: userLocation.lng || 78.1460,
           locality: userLocation.locality || 'Fairlands',
           address: userLocation.address || 'Plot 42, 5th Cross, Fairlands, Salem - 636016',
+          pincode: userLocation.pincode || '636016',
           couponCode: couponApplied ? couponCode : null,
           discountAmount: couponApplied ? couponDiscount : 0,
           isUrgentDispatch: true,
@@ -321,6 +334,8 @@ export default function ServiceDetailPage({ onStartBooking }) {
   };
 
   const handlePayAndConfirmScheduled = async () => {
+    if (!checkSalemPincode()) return;
+
     setIsPayingScheduled(true);
     const finalSlot = `${getFormattedDateString()} • ${getEffectiveSlot()}`;
     const visitFeeAmount = 49;
@@ -342,6 +357,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
           lng: userLocation.lng || 78.1460,
           locality: userLocation.locality || 'Fairlands',
           address: userLocation.address || 'Plot 42, 5th Cross, Fairlands, Salem - 636016',
+          pincode: userLocation.pincode || '636016',
           couponCode: couponApplied ? couponCode : null,
           discountAmount: discount,
           isUrgentDispatch: false,
@@ -388,58 +404,70 @@ export default function ServiceDetailPage({ onStartBooking }) {
       <Container maxWidth="sm" sx={{ px: 2, pt: 2 }}>
         
         {/* Location selector bar */}
-        <Paper
-          elevation={0}
-          onClick={() => setLocationPickerOpen(true)}
-          sx={{
-            p: 1.2,
-            mb: 1.5,
-            borderRadius: '8px',
-            bgcolor: '#FFFFFF',
-            border: '1px solid #E2E8F0',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            cursor: 'pointer',
-            '&:hover': { borderColor: '#CBD5E1' }
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
-            <LocationOnIcon sx={{ fontSize: 20, color: '#2563EB', flexShrink: 0 }} />
-            <Box sx={{ minWidth: 0 }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#0F172A', fontSize: '13px' }}>
-                {userLocation.locality || 'Fairlands, Salem'}
-              </Typography>
-              <Typography
-                variant="caption"
+        {(() => {
+          const pinMatch = String(userLocation.pincode || userLocation.address || '').match(/\b(\d{6})\b/);
+          const p = pinMatch ? pinMatch[1] : (userLocation.pincode || '');
+          const isBadPin = Boolean(p && !p.startsWith('636'));
+          return (
+            <Paper
+              elevation={0}
+              onClick={() => setLocationPickerOpen(true)}
+              sx={{
+                p: 1.2,
+                mb: 1.5,
+                borderRadius: '8px',
+                bgcolor: isBadPin ? '#FEF2F2' : '#FFFFFF',
+                border: isBadPin ? '1.5px solid #EF4444' : '1px solid #E2E8F0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                cursor: 'pointer',
+                '&:hover': { borderColor: isBadPin ? '#DC2626' : '#CBD5E1' }
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+                <LocationOnIcon sx={{ fontSize: 20, color: isBadPin ? '#DC2626' : '#2563EB', flexShrink: 0 }} />
+                <Box sx={{ minWidth: 0 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: isBadPin ? '#991B1B' : '#0F172A', fontSize: '13px' }}>
+                      {userLocation.locality || 'Fairlands, Salem'}
+                    </Typography>
+                    {isBadPin && (
+                      <Chip label="Outside Salem (Not Accepted)" size="small" sx={{ height: 18, fontSize: '9.5px', fontWeight: 800, bgcolor: '#EF4444', color: '#FFF' }} />
+                    )}
+                  </Box>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: isBadPin ? '#B91C1C' : '#64748B',
+                      fontSize: '11px',
+                      display: 'block',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    {userLocation.address || 'Service address in Salem'}
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Button
+                size="small"
+                endIcon={<KeyboardArrowDownIcon sx={{ fontSize: 16 }} />}
                 sx={{
-                  color: '#64748B',
-                  fontSize: '11px',
-                  display: 'block',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
+                  color: isBadPin ? '#DC2626' : '#2563EB',
+                  fontWeight: 700,
+                  fontSize: '12px',
+                  textTransform: 'none',
+                  flexShrink: 0
                 }}
               >
-                {userLocation.address || 'Service address in Salem'}
-              </Typography>
-            </Box>
-          </Box>
-
-          <Button
-            size="small"
-            endIcon={<KeyboardArrowDownIcon sx={{ fontSize: 16 }} />}
-            sx={{
-              color: '#2563EB',
-              fontWeight: 600,
-              fontSize: '12px',
-              textTransform: 'none',
-              flexShrink: 0
-            }}
-          >
-            Change
-          </Button>
-        </Paper>
+                Change
+              </Button>
+            </Paper>
+          );
+        })()}
 
         {/* Service Hero Header Card (Dynamic from DB) */}
         <Card

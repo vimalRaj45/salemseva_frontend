@@ -57,9 +57,11 @@ import CloseIcon from '@mui/icons-material/Close';
 import CurrencyRupeeIcon from '@mui/icons-material/CurrencyRupee';
 
 import CancelBookingModal from '../../components/CancelBookingModal';
+import { useAuth } from '../../context/AuthContext';
 
 export default function BookingHistoryPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [filterTab, setFilterTab] = useState('all');
   const [bookings, setBookings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -245,7 +247,24 @@ export default function BookingHistoryPage() {
         </Box>
 
         {/* Booking History Items */}
-        {isLoading ? (
+        {!user ? (
+          <Paper elevation={0} sx={{ p: 4, textAlign: 'center', bgcolor: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', mb: 3 }}>
+            <WorkOutlineIcon sx={{ fontSize: 44, color: '#94A3B8', mb: 1.5 }} />
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '16px', mb: 0.5 }}>
+              Sign In to View Your Bookings
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#64748B', fontSize: '13px', mb: 2 }}>
+              Track live service requests and download digital GST service bills.
+            </Typography>
+            <Button
+              variant="contained"
+              onClick={() => navigate('/login')}
+              sx={{ bgcolor: '#2563EB', color: '#FFF', fontWeight: 700, fontSize: '13px', borderRadius: '8px', textTransform: 'none', px: 3 }}
+            >
+              Sign In
+            </Button>
+          </Paper>
+        ) : isLoading ? (
           [1, 2].map((n) => (
             <Card
               key={n}

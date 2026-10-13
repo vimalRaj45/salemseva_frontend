@@ -236,6 +236,8 @@ export default function Navbar({
         right: 0,
         zIndex: 1100,
         width: '100%',
+        boxSizing: 'border-box',
+        overflowX: 'hidden',
         backgroundColor: isDarkMode ? '#0F172A' : '#FFFFFF',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
@@ -260,8 +262,10 @@ export default function Navbar({
       <div
         style={{
           maxWidth: '1360px',
+          width: '100%',
+          boxSizing: 'border-box',
           margin: '0 auto',
-          padding: isMobile ? '0 12px' : '0 20px',
+          padding: isMobile ? '0 10px' : '0 20px',
           display: 'flex',
           flexDirection: 'column'
         }}
@@ -273,8 +277,9 @@ export default function Navbar({
             alignItems: 'center',
             justifyContent: 'space-between',
             height: isMobile ? '54px' : '64px',
-            gap: isMobile ? '8px' : '14px',
-            width: '100%'
+            gap: isMobile ? '6px' : '14px',
+            width: '100%',
+            boxSizing: 'border-box'
           }}
         >
           {/* ================= 1. BRAND LOGO & ROLE IDENTITY ================= */}
@@ -377,7 +382,7 @@ export default function Navbar({
                   ) : (
                     <span
                       style={{
-                        display: 'inline-flex',
+                        display: isMobile ? 'none' : 'inline-flex',
                         alignItems: 'center',
                         gap: '3px',
                         padding: '2px 6px',
@@ -699,7 +704,7 @@ export default function Navbar({
           <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '6px' : '10px', flexShrink: 0 }}>
             
             {/* 3.1 Role Specific Action / Links (Desktop Only) */}
-            {isCustomer && !isMobile && (
+            {user && isCustomer && !isMobile && (
               <>
                 {/* Customer Bookings Link */}
                 <button
@@ -849,8 +854,8 @@ export default function Navbar({
               </button>
             )}
 
-            {/* 3.2 Notifications Bell (Customer & Partner Only) */}
-            {!isAdmin && (
+            {/* 3.2 Notifications Bell (Logged in Customer & Partner Only) */}
+            {user && !isAdmin && (
               <button
                 type="button"
                 onClick={() => navigate(isTechnician ? '/partner' : '/history')}
@@ -889,32 +894,32 @@ export default function Navbar({
               </button>
             )}
 
-            {/* Platform Feedback & Bug Reports (Customer & Technician Only) */}
-            {!isAdmin && (
+            {/* Platform Feedback & Bug Reports (Logged in Customer & Technician Only - Drawer on Mobile) */}
+            {user && !isAdmin && (
               <button
                 type="button"
                 onClick={() => setIsFeedbackModalOpen(true)}
                 title="Report Platform Issue or Feedback / பின்னூட்டம்"
                 style={{
-                  display: 'inline-flex',
+                  display: isMobile ? 'none' : 'inline-flex',
                   alignItems: 'center',
                   gap: '5px',
-                  height: isMobile ? '34px' : '38px',
-                  padding: isMobile ? '0 8px' : '0 12px',
+                  height: '38px',
+                  padding: '0 12px',
                   borderRadius: '10px',
                   boxSizing: 'border-box',
                   backgroundColor: isDarkMode ? 'rgba(13, 148, 136, 0.18)' : '#F0FDFA',
                   border: isDarkMode ? '1px solid #14B8A6' : '1px solid #99F6E4',
                   color: isDarkMode ? '#2DD4BF' : '#0F766E',
                   cursor: 'pointer',
-                  fontSize: isMobile ? '11px' : '12.5px',
+                  fontSize: '12.5px',
                   fontWeight: 800,
                   transition: 'all 0.15s ease',
                   flexShrink: 0
                 }}
               >
-                <MessageSquarePlus size={isMobile ? 14 : 15} color={isDarkMode ? '#2DD4BF' : '#0D9488'} />
-                <span style={{ display: isMobile ? 'none' : 'inline' }}>Feedback</span>
+                <MessageSquarePlus size={15} color={isDarkMode ? '#2DD4BF' : '#0D9488'} />
+                <span>Feedback</span>
               </button>
             )}
 
@@ -972,8 +977,9 @@ export default function Navbar({
               {isDarkMode ? <Sun size={16} color="#FBBF24" /> : <Moon size={16} color="#475569" />}
             </button>
 
-            {/* 3.5 User Avatar & Adaptive Role Dropdown */}
-            <div style={{ position: 'relative' }} ref={profileRef}>
+            {/* 3.5 User Avatar & Adaptive Role Dropdown (If Logged In) OR Clean Sign In Button */}
+            {user ? (
+              <div style={{ position: 'relative' }} ref={profileRef}>
               <button
                 type="button"
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
@@ -1353,6 +1359,35 @@ export default function Navbar({
                 </div>
               )}
             </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                if (openAuthModal) openAuthModal('customer');
+                else navigate('/login');
+              }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                height: isMobile ? '34px' : '38px',
+                padding: isMobile ? '0 12px' : '0 16px',
+                borderRadius: '10px',
+                fontSize: isMobile ? '12px' : '13px',
+                fontWeight: 700,
+                backgroundColor: '#2563EB',
+                color: '#FFFFFF',
+                border: 'none',
+                cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(37, 99, 235, 0.25)',
+                flexShrink: 0,
+                transition: 'background-color 0.15s ease'
+              }}
+            >
+              <User size={isMobile ? 14 : 16} />
+              <span>Sign In</span>
+            </button>
+          )}
 
             {/* 3.6 Slide-Out Side Navigation Hamburger Button (Mobile / Small Screens Only) */}
             {isMobile && (
