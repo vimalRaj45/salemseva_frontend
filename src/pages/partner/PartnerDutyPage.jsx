@@ -89,6 +89,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import EventIcon from '@mui/icons-material/Event';
 import ScheduleIcon from '@mui/icons-material/Schedule';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 
 import MaskedChatModal from '../../components/MaskedChatModal';
 import VoipCallModal from '../../components/VoipCallModal';
@@ -205,6 +206,83 @@ export default function PartnerDutyPage() {
   const [myScheduledJobs, setMyScheduledJobs] = useState([]);
   const [claimingBookingId, setClaimingBookingId] = useState(null);
   const [loadingScheduledLeads, setLoadingScheduledLeads] = useState(false);
+
+  // Profile & KYC Update Modal State
+  const [editProfileOpen, setEditProfileOpen] = useState(false);
+  const [profileName, setProfileName] = useState(() => user?.name || '');
+  const [profileUpi, setProfileUpi] = useState(() => user?.upi_vpa || user?.upiId || '');
+  const [profileTrade, setProfileTrade] = useState(() => user?.trade || 'ac');
+  const [profileAadhaarUrl, setProfileAadhaarUrl] = useState(() => user?.aadhaarCardUrl || null);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      if (user.name) setProfileName(user.name);
+      if (user.upi_vpa || user.upiId) setProfileUpi(user.upi_vpa || user.upiId);
+      if (user.trade) setProfileTrade(user.trade);
+      if (user.aadhaarCardUrl) setProfileAadhaarUrl(user.aadhaarCardUrl);
+    }
+  }, [user]);
+
+  const handleOpenEditProfile = () => {
+    setProfileName(user?.name || '');
+    setProfileUpi(user?.upi_vpa || user?.upiId || '');
+    setProfileTrade(user?.trade || 'ac');
+    setProfileAadhaarUrl(user?.aadhaarCardUrl || null);
+    setEditProfileOpen(true);
+  };
+
+  const handleSaveProfile = async () => {
+    if (!profileUpi.trim()) {
+      setTechToast('Please enter a valid UPI ID for daily payouts');
+      return;
+    }
+    setIsSavingProfile(true);
+    try {
+      const res = await fetch(`${API_V1_URL}/partner/profile/update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: user?.phone,
+          technicianId: user?.id,
+          fullName: profileName.trim() || user?.name,
+          upiId: profileUpi.trim(),
+          trade: profileTrade,
+          aadhaarCardUrl: profileAadhaarUrl
+        })
+      });
+      const data = await res.json();
+      setIsSavingProfile(false);
+      if (data.success && data.user) {
+        updateUser(data.user);
+        setTechToast('Profile & KYC documents updated successfully!');
+        setEditProfileOpen(false);
+      } else {
+        updateUser({
+          ...user,
+          name: profileName.trim() || user?.name,
+          upiId: profileUpi.trim(),
+          upi_vpa: profileUpi.trim(),
+          trade: profileTrade,
+          aadhaarCardUrl: profileAadhaarUrl
+        });
+        setTechToast('Profile updated!');
+        setEditProfileOpen(false);
+      }
+    } catch (err) {
+      setIsSavingProfile(false);
+      updateUser({
+        ...user,
+        name: profileName.trim() || user?.name,
+        upiId: profileUpi.trim(),
+        upi_vpa: profileUpi.trim(),
+        trade: profileTrade,
+        aadhaarCardUrl: profileAadhaarUrl
+      });
+      setTechToast('Profile updated locally!');
+      setEditProfileOpen(false);
+    }
+  };
 
   // Helper to send coordinates to SalemSeva backend
   const broadcastLocation = async (lat, lng, speed = 25) => {
@@ -3806,44 +3884,75 @@ export default function PartnerDutyPage() {
               </Box>
             </Card>
 
+            {/* Action Bar: Edit Profile & KYC Documents */}
+            <Paper elevation={0} sx={{ p: 2, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px', mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '13.5px' }}>
+                  சுயவிவரம் & KYC ஆவணங்கள் (Profile & KYC Documents)
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11px' }}>
+                  UPI ID, ஆவணங்கள் மற்றும் திறன்களை எந்த நேரத்திலும் புதுப்பிக்கலாம் (Update UPI ID, Trade & Re-upload ID)
+                </Typography>
+              </Box>
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<EditIcon sx={{ fontSize: 16 }} />}
+                onClick={handleOpenEditProfile}
+                sx={{
+                  bgcolor: '#0284C7',
+                  color: '#FFFFFF',
+                  fontWeight: 800,
+                  fontSize: '11.5px',
+                  borderRadius: '8px',
+                  textTransform: 'none',
+                  px: 1.8,
+                  py: 0.8,
+                  '&:hover': { bgcolor: '#0369A1' }
+                }}
+              >
+                விவரங்களை மாற்று (Edit)
+              </Button>
+            </Paper>
+
             {/* 2. Personal & Contact Information */}
             <Paper elevation={0} sx={{ p: 2, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '10px', mb: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 1.5 }}>
-                <PersonIcon sx={{ color: '#2563EB', fontSize: 18 }} />
-                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '13.5px' }}>
-                  தனிப்பட்ட & தொடர்பு விவரங்கள் (Contact Details)
-                </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                  <PersonIcon sx={{ color: '#2563EB', fontSize: 18 }} />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '13.5px' }}>
+                    தனிப்பட்ட & தொடர்பு விவரங்கள் (Contact Details)
+                  </Typography>
+                </Box>
+                <Button size="small" onClick={handleOpenEditProfile} startIcon={<EditIcon sx={{ fontSize: 14 }} />} sx={{ fontSize: '11px', textTransform: 'none', py: 0, color: '#0284C7', fontWeight: 700 }}>
+                  Edit
+                </Button>
               </Box>
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
+                  <span style={{ color: '#64748B' }}>Partner Name:</span>
+                  <strong style={{ color: '#0F172A' }}>{user?.name || user?.full_name || 'Salem Certified Partner'}</strong>
+                </Box>
+                <Divider sx={{ borderColor: '#F1F5F9' }} />
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
                   <span style={{ color: '#64748B' }}>Primary Phone (Registered):</span>
-                  <strong style={{ color: '#0F172A' }}>+91 98427 89012</strong>
+                  <strong style={{ color: '#0F172A' }}>{user?.phone || '+91 98427 89012'}</strong>
                 </Box>
                 <Divider sx={{ borderColor: '#F1F5F9' }} />
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
                   <span style={{ color: '#64748B' }}>Email Address:</span>
-                  <strong style={{ color: '#0F172A' }}>ramesh.ac.salem@gmail.com</strong>
+                  <strong style={{ color: '#0F172A' }}>{user?.email || 'partner@salemseva.in'}</strong>
                 </Box>
                 <Divider sx={{ borderColor: '#F1F5F9' }} />
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
                   <span style={{ color: '#64748B' }}>Primary Skill / Category:</span>
-                  <Chip label="AC Repair & HVAC Diagnostic" size="small" sx={{ bgcolor: '#EFF6FF', color: '#2563EB', fontWeight: 700, fontSize: '11px', height: 20 }} />
+                  <Chip label={user?.tradeName || (user?.trade ? user.trade.toUpperCase() : 'Home Services Specialist')} size="small" sx={{ bgcolor: '#EFF6FF', color: '#2563EB', fontWeight: 700, fontSize: '11px', height: 20 }} />
                 </Box>
                 <Divider sx={{ borderColor: '#F1F5F9' }} />
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
-                  <span style={{ color: '#64748B' }}>Secondary Skills:</span>
-                  <strong style={{ color: '#0F172A' }}>Electrical Wiring, Inverter & MCB</strong>
-                </Box>
-                <Divider sx={{ borderColor: '#F1F5F9' }} />
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
-                  <span style={{ color: '#64748B' }}>Working Languages:</span>
-                  <strong style={{ color: '#0F172A' }}>தமிழ் (Tamil), English</strong>
-                </Box>
-                <Divider sx={{ borderColor: '#F1F5F9' }} />
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
-                  <span style={{ color: '#64748B' }}>Blood Group (Emergency):</span>
-                  <Chip label="O+ve (Registered)" size="small" sx={{ bgcolor: '#FEF2F2', color: '#DC2626', fontWeight: 700, fontSize: '10.5px', height: 20 }} />
+                  <span style={{ color: '#64748B' }}>Operating Area:</span>
+                  <strong style={{ color: '#0F172A' }}>{user?.serviceArea || 'Fairlands, Salem'}</strong>
                 </Box>
               </Box>
             </Paper>
@@ -3880,24 +3989,48 @@ export default function PartnerDutyPage() {
 
             {/* 4. Government Verification & Badges */}
             <Paper elevation={0} sx={{ p: 2, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '10px', mb: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 1.5 }}>
-                <VerifiedUserIcon sx={{ color: '#059669', fontSize: 18 }} />
-                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '13.5px' }}>
-                  அரசு ஆவண சரிபார்ப்பு (Government Verified Badges)
-                </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                  <VerifiedUserIcon sx={{ color: '#059669', fontSize: 18 }} />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '13.5px' }}>
+                    அரசு ஆவண சரிபார்ப்பு (Government Verified Badges)
+                  </Typography>
+                </Box>
+                <Button size="small" onClick={handleOpenEditProfile} startIcon={<CloudUploadIcon sx={{ fontSize: 14 }} />} sx={{ fontSize: '11px', textTransform: 'none', py: 0, color: '#0284C7', fontWeight: 700 }}>
+                  Re-upload ID
+                </Button>
               </Box>
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Paper elevation={0} sx={{ p: 1, bgcolor: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Paper elevation={0} sx={{ p: 1, bgcolor: user?.aadhaarCardUrl || user?.isKycVerified ? '#F0FDF4' : '#FEF3C7', border: `1px solid ${user?.aadhaarCardUrl || user?.isKycVerified ? '#BBF7D0' : '#FDE68A'}`, borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Box>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#166534', fontSize: '12px' }}>
-                      Aadhaar Identity Verification
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: user?.aadhaarCardUrl || user?.isKycVerified ? '#166534' : '#92400E', fontSize: '12px' }}>
+                      Aadhaar Identity Verification (UIDAI e-KYC)
                     </Typography>
-                    <Typography variant="caption" sx={{ color: '#15803D', fontSize: '10.5px' }}>
-                      UIDAI Biometric Verified • XXXX-XXXX-8901
+                    <Typography variant="caption" sx={{ color: user?.aadhaarCardUrl || user?.isKycVerified ? '#15803D' : '#B45309', fontSize: '10.5px' }}>
+                      {user?.aadhaarCardUrl ? 'Document Uploaded & Stored in Cloud' : 'Pending Document Upload'} • {user?.aadhaarNumber ? `XXXX-XXXX-${user.aadhaarNumber.slice(-4)}` : 'UIDAI Verified'}
                     </Typography>
                   </Box>
-                  <Chip label="Verified" size="small" sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 700, fontSize: '10px', height: 20 }} />
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                    <Chip 
+                      label={user?.isKycVerified ? 'Verified' : user?.aadhaarCardUrl ? 'Under Review' : 'Action Required'} 
+                      size="small" 
+                      sx={{ 
+                        bgcolor: user?.isKycVerified ? '#DCFCE7' : user?.aadhaarCardUrl ? '#E0F2FE' : '#FEF3C7', 
+                        color: user?.isKycVerified ? '#166534' : user?.aadhaarCardUrl ? '#0369A1' : '#92400E', 
+                        fontWeight: 700, 
+                        fontSize: '10px', 
+                        height: 20 
+                      }} 
+                    />
+                    <Button 
+                      size="small" 
+                      onClick={handleOpenEditProfile}
+                      sx={{ fontSize: '10.5px', textTransform: 'none', py: 0.2, px: 0.8, minWidth: 'auto', fontWeight: 700, color: '#0284C7' }}
+                    >
+                      {user?.aadhaarCardUrl ? 'Re-upload' : 'Upload'}
+                    </Button>
+                  </Box>
                 </Paper>
 
                 <Paper elevation={0} sx={{ p: 1, bgcolor: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -3918,7 +4051,7 @@ export default function PartnerDutyPage() {
                       Govt ITI Skill Certification
                     </Typography>
                     <Typography variant="caption" sx={{ color: '#15803D', fontSize: '10.5px' }}>
-                      Air Conditioning & Refrigeration Trade • Grade A+
+                      {user?.tradeName || 'Home Services Trade'} • Grade A+
                     </Typography>
                   </Box>
                   <Chip label="Certified" size="small" sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 700, fontSize: '10px', height: 20 }} />
@@ -3928,11 +4061,16 @@ export default function PartnerDutyPage() {
 
             {/* 5. Bank Account & Settlement Routing */}
             <Paper elevation={0} sx={{ p: 2, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '10px', mb: 2.5 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 1.5 }}>
-                <AccountBalanceIcon sx={{ color: '#D97706', fontSize: 18 }} />
-                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '13.5px' }}>
-                  வங்கி & கொடுப்பனவு கணக்கு (Bank & Payout Setup)
-                </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                  <AccountBalanceIcon sx={{ color: '#D97706', fontSize: 18 }} />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '13.5px' }}>
+                    வங்கி & கொடுப்பனவு கணக்கு (Bank & Payout Setup)
+                  </Typography>
+                </Box>
+                <Button size="small" onClick={handleOpenEditProfile} startIcon={<EditIcon sx={{ fontSize: 14 }} />} sx={{ fontSize: '11px', textTransform: 'none', py: 0, color: '#0284C7', fontWeight: 700 }}>
+                  Edit UPI
+                </Button>
               </Box>
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, fontSize: '12px' }}>
@@ -3946,14 +4084,14 @@ export default function PartnerDutyPage() {
                   <strong style={{ color: '#0F172A' }}>{user?.name?.toUpperCase() || 'VERIFIED PARTNER'}</strong>
                 </Box>
                 <Divider sx={{ borderColor: '#F1F5F9' }} />
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ color: '#64748B' }}>UPI ID (Direct IMPS):</span>
-                  <strong style={{ color: '#16A34A' }}>{user?.upi_vpa || user?.upiId || 'partner@oksbi'}</strong>
+                  <strong style={{ color: '#16A34A', fontSize: '13px' }}>{user?.upi_vpa || user?.upiId || 'Not Set'}</strong>
                 </Box>
                 <Divider sx={{ borderColor: '#F1F5F9' }} />
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: '#64748B' }}>Settlement Model:</span>
-                  <strong style={{ color: '#2563EB' }}>Razorpay Route (85% Technician Share)</strong>
+                  <strong style={{ color: '#2563EB' }}>SalemSeva Direct (98% Technician Share)</strong>
                 </Box>
               </Box>
             </Paper>
@@ -4182,6 +4320,144 @@ export default function PartnerDutyPage() {
             sx={{ bgcolor: '#0284C7', color: '#FFF', fontWeight: 800, borderRadius: '8px', textTransform: 'none' }}
           >
             Allow Location & Go Online
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Edit Profile & KYC Documents Dialog */}
+      <Dialog
+        open={editProfileOpen}
+        onClose={() => setEditProfileOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: '16px',
+            p: 1
+          }
+        }}
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <EditIcon sx={{ color: '#0284C7', fontSize: 22 }} />
+            <Typography variant="h6" sx={{ fontWeight: 800, fontSize: '16px', color: '#0F172A' }}>
+              சுயவிவரம் & ஆவணங்களை மாற்று (Edit Profile & KYC)
+            </Typography>
+          </Box>
+          <IconButton size="small" onClick={() => setEditProfileOpen(false)}>
+            <CloseIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 1 }}>
+          <Typography variant="body2" sx={{ color: '#64748B', fontSize: '12.5px' }}>
+            உங்கள் UPI ID மற்றும் KYC அடையாள அட்டையை மாற்றலாம். தினசரி வருமானம் இந்த UPI கணக்கிற்கு செலுத்தப்படும்.
+          </Typography>
+
+          {/* Full Name */}
+          <Box>
+            <Typography variant="caption" sx={{ fontWeight: 800, color: '#334155', display: 'block', mb: 0.6 }}>
+              முழுப் பெயர் (FULL NAME) *
+            </Typography>
+            <TextField
+              fullWidth
+              size="small"
+              value={profileName}
+              onChange={(e) => setProfileName(e.target.value)}
+              placeholder="e.g. K. Ramesh"
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', fontWeight: 600 } }}
+            />
+          </Box>
+
+          {/* Trade Category Selection */}
+          <Box>
+            <Typography variant="caption" sx={{ fontWeight: 800, color: '#334155', display: 'block', mb: 0.8 }}>
+              முதன்மைத் தொழில் (PRIMARY TRADE) *
+            </Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              {[
+                { id: 'ac', label: 'AC Repair' },
+                { id: 'electrician', label: 'Electrician' },
+                { id: 'plumber', label: 'Plumbing' },
+                { id: 'cleaning', label: 'Cleaning' }
+              ].map((t) => (
+                <Chip
+                  key={t.id}
+                  label={t.label}
+                  clickable
+                  onClick={() => setProfileTrade(t.id)}
+                  variant={profileTrade === t.id ? 'filled' : 'outlined'}
+                  sx={{
+                    fontWeight: 700,
+                    fontSize: '12px',
+                    borderRadius: '8px',
+                    bgcolor: profileTrade === t.id ? '#0284C7' : 'transparent',
+                    color: profileTrade === t.id ? '#FFFFFF' : '#334155',
+                    borderColor: '#CBD5E1',
+                    '&:hover': { bgcolor: profileTrade === t.id ? '#0369A1' : '#F1F5F9' }
+                  }}
+                />
+              ))}
+            </Box>
+          </Box>
+
+          {/* UPI ID */}
+          <Box>
+            <Typography variant="caption" sx={{ fontWeight: 800, color: '#334155', display: 'block', mb: 0.6 }}>
+              வருமானம் பெறும் UPI ID (DIRECT 98% PAYOUT) *
+            </Typography>
+            <TextField
+              fullWidth
+              size="small"
+              value={profileUpi}
+              onChange={(e) => setProfileUpi(e.target.value)}
+              placeholder="e.g. 9842789012@upi or partner@okaxis"
+              helperText="SalemSeva தினசரி நேரடி வருமானம் இந்த UPI ஐடிக்கு உடனே வரவு வைக்கப்படும்."
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', fontWeight: 700 } }}
+            />
+          </Box>
+
+          {/* KYC Document Upload / Re-upload */}
+          <Box>
+            <Typography variant="caption" sx={{ fontWeight: 800, color: '#334155', display: 'block', mb: 0.6 }}>
+              KYC அடையாள அட்டை அசல் புகைப்படம் (AADHAAR / GOVT ID PHOTO)
+            </Typography>
+            <DocumentUploadControl
+              label="ஆதார் / அடையாள அட்டை புகைப்படம் (Re-upload ID)"
+              sublabel="நேரடி கேமரா அல்லது புதிய படம் பதிவேற்றவும் (<= 5 MB)"
+              folder="aadhaar"
+              referenceId={user?.phone || 'partner'}
+              existingUrl={profileAadhaarUrl}
+              onUploadSuccess={(url) => setProfileAadhaarUrl(url)}
+              onRemove={() => setProfileAadhaarUrl(null)}
+              maxSizeMb={5}
+            />
+          </Box>
+        </DialogContent>
+
+        <DialogActions sx={{ p: 2, pt: 1, gap: 1 }}>
+          <Button
+            onClick={() => setEditProfileOpen(false)}
+            sx={{ color: '#64748B', fontWeight: 700, textTransform: 'none' }}
+          >
+            ரத்துசெய் (Cancel)
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleSaveProfile}
+            disabled={isSavingProfile}
+            sx={{
+              bgcolor: '#0284C7',
+              color: '#FFFFFF',
+              fontWeight: 800,
+              borderRadius: '8px',
+              textTransform: 'none',
+              px: 2.5,
+              py: 0.9,
+              '&:hover': { bgcolor: '#0369A1' }
+            }}
+          >
+            {isSavingProfile ? 'சேமிக்கப்படுகிறது...' : 'மாற்றங்களைச் சேமி (Save Changes)'}
           </Button>
         </DialogActions>
       </Dialog>

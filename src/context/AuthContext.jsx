@@ -164,11 +164,31 @@ export function AuthProvider({ children }) {
               jobsCompleted: t.jobs_completed_count || t.jobsCompleted || 300,
               todayEarnings: 1450,
               starTier: t.star_tier || t.starTier || 'Gold Partner (Salem)',
+              upiId: t.upi_vpa || t.upiId,
+              upi_vpa: t.upi_vpa,
+              aadhaarCardUrl: t.aadhaar_card_url,
+              aadhaarNumber: t.aadhaar_number,
               serviceArea: (t.assigned_localities && t.assigned_localities[0]) ? `${t.assigned_localities[0]}, Salem` : 'Fairlands, Salem',
               assignedLocalities: t.assigned_localities || ['Fairlands', 'Hasthampatti']
             };
           });
           setDbTechnicians(mapped);
+
+          setUser(prev => {
+            if (prev && (prev.role === 'technician' || prev.role === 'partner')) {
+              const prevClean = (prev.phone || '').replace(/[^0-9]/g, '').slice(-10);
+              const matched = mapped.find(t => {
+                const tClean = (t.phone || '').replace(/[^0-9]/g, '').slice(-10);
+                return (t.id && prev.id && t.id === prev.id) || (tClean && prevClean && tClean === prevClean);
+              });
+              if (matched) {
+                const updated = { ...prev, ...matched };
+                localStorage.setItem('salemseva_user', JSON.stringify(updated));
+                return updated;
+              }
+            }
+            return prev;
+          });
         }
       } catch (err) {
         console.warn('Could not fetch technicians from DB:', err);

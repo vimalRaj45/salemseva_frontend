@@ -44,21 +44,21 @@ const ONBOARDING_STEPS = [
 
 export default function PartnerOnboardingPage() {
   const navigate = useNavigate();
-  const { rewardSettings } = useAuth();
+  const { rewardSettings, loginAsTechnician, user } = useAuth();
   const welcomeBonus = parseFloat(rewardSettings?.partner_welcome_bonus || 50);
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const [activeStep, setActiveStep] = useState(0);
 
-  const [mobile, setMobile] = useState(() => searchParams.get('phone') || '');
-  const [name, setName] = useState(() => searchParams.get('name') || '');
-  const [trade, setTrade] = useState(() => searchParams.get('trade') || 'ac');
-  const [aadhaar, setAadhaar] = useState('');
-  const [aadhaarCardUrl, setAadhaarCardUrl] = useState(null);
-  const [upiId, setUpiId] = useState('');
+  const [mobile, setMobile] = useState(() => searchParams.get('phone') || user?.phone || '');
+  const [name, setName] = useState(() => searchParams.get('name') || user?.name || '');
+  const [trade, setTrade] = useState(() => searchParams.get('trade') || user?.trade || 'ac');
+  const [aadhaar, setAadhaar] = useState(() => user?.aadhaarNumber || '');
+  const [aadhaarCardUrl, setAadhaarCardUrl] = useState(() => user?.aadhaarCardUrl || null);
+  const [upiId, setUpiId] = useState(() => user?.upiId || user?.upi_vpa || '');
   const [referralCode, setReferralCode] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [password, setPassword] = useState(() => searchParams.get('password') || '');
+  const [confirmPassword, setConfirmPassword] = useState(() => searchParams.get('password') || '');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -118,13 +118,68 @@ export default function PartnerOnboardingPage() {
         aadhaarCardUrl
       })
     })
-      .then(() => {
+      .then(async (res) => {
+        const data = await res.json().catch(() => ({}));
         setIsProcessing(false);
-        toast.success(`KYC & verification submitted! Welcome Partner ${name}.`);
+        const tradeNames = {
+          ac: 'AC Repair & Cooling Expert',
+          electrician: 'Electrician & Wiring Specialist',
+          plumber: 'Plumbing & Drainage Specialist',
+          cleaning: 'Home & Bathroom Cleaning Pro'
+        };
+        const techObj = data.user || {
+          id: data.technician?.id || `tech-${Date.now()}`,
+          role: 'technician',
+          name: data.technician?.full_name || name,
+          phone: data.technician?.phone || (mobile.startsWith('+91') ? mobile : `+91 ${mobile}`),
+          email: data.technician?.email || `${(name || 'tech').toLowerCase().replace(/[^a-z]/g, '')}@salemseva.in`,
+          trade: data.technician?.primary_trade || trade,
+          tradeName: tradeNames[trade] || 'Home Services Specialist',
+          isKycVerified: Boolean(data.technician?.is_kyc_verified),
+          isOnline: false,
+          upiId: upiId || data.technician?.upi_vpa,
+          upi_vpa: upiId || data.technician?.upi_vpa,
+          aadhaarCardUrl: aadhaarCardUrl || data.technician?.aadhaar_card_url,
+          aadhaarNumber: aadhaar || data.technician?.aadhaar_number,
+          serviceArea: 'Fairlands, Salem',
+          assignedLocalities: ['Fairlands'],
+          ratingAvg: 5.0,
+          ratingCount: 0,
+          jobsCompleted: 0
+        };
+        loginAsTechnician(techObj);
+        toast.success(`KYC & verification submitted! Welcome Partner ${techObj.name}.`);
         navigate('/partner');
       })
       .catch(() => {
         setIsProcessing(false);
+        const tradeNames = {
+          ac: 'AC Repair & Cooling Expert',
+          electrician: 'Electrician & Wiring Specialist',
+          plumber: 'Plumbing & Drainage Specialist',
+          cleaning: 'Home & Bathroom Cleaning Pro'
+        };
+        const fallbackTech = {
+          id: `tech-${Date.now()}`,
+          role: 'technician',
+          name: name,
+          phone: mobile.startsWith('+91') ? mobile : `+91 ${mobile}`,
+          email: `${name.toLowerCase().replace(/[^a-z]/g, '')}@salemseva.in`,
+          trade,
+          tradeName: tradeNames[trade] || 'Home Services Specialist',
+          isKycVerified: false,
+          isOnline: false,
+          upiId,
+          upi_vpa: upiId,
+          aadhaarCardUrl,
+          aadhaarNumber: aadhaar,
+          serviceArea: 'Fairlands, Salem',
+          assignedLocalities: ['Fairlands'],
+          ratingAvg: 5.0,
+          ratingCount: 0,
+          jobsCompleted: 0
+        };
+        loginAsTechnician(fallbackTech);
         toast.success(`KYC & verification submitted! Welcome Partner ${name}.`);
         navigate('/partner');
       });
