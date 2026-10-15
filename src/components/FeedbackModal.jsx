@@ -206,7 +206,7 @@ export default function FeedbackModal({ open, onClose, user, userRole = 'custome
             </Typography>
             {feedbackCreditsEnabled && feedbackRewardCredits > 0 && (
               <Chip
-                label={`+${feedbackRewardCredits} Seva Credits Credited to Wallet`}
+                label={`+${feedbackRewardCredits} Seva Credits (₹${(feedbackRewardCredits / 10).toFixed(0)}) Credited to Wallet`}
                 size="small"
                 sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 800, mb: 1 }}
               />

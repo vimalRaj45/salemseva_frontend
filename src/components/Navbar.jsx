@@ -790,7 +790,7 @@ export default function Navbar({
                   }}
                 >
                   <Wallet size={15} color="#D97706" />
-                  <span>₹{creditsAmount} CREDITS</span>
+                  <span>{creditsAmount} Credits (₹{(creditsAmount / 10).toFixed(0)})</span>
                 </button>
               </>
             )}
@@ -1145,7 +1145,7 @@ export default function Navbar({
                             <Wallet size={15} color="#D97706" />
                             <span>Seva Wallet & Rewards</span>
                           </div>
-                          <span style={{ fontSize: '11px', fontWeight: 800, color: '#D97706' }}>₹{creditsAmount}</span>
+                          <span style={{ fontSize: '11px', fontWeight: 800, color: '#D97706' }}>{creditsAmount} pts (₹{(creditsAmount / 10).toFixed(0)})</span>
                         </div>
 
                         <div

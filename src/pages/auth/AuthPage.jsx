@@ -236,41 +236,51 @@ export default function AuthPage({ initialMode = 'login' }) {
     <Box
       sx={{
         bgcolor: '#F1F5F9',
+        height: '100vh',
         minHeight: '100vh',
+        maxHeight: '100vh',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        p: { xs: 2, sm: 3, md: 4 }
+        p: { xs: 1, sm: 1.5, md: 2 },
+        boxSizing: 'border-box',
+        overflow: 'hidden'
       }}
     >
-      {/* Main Split-Screen Container Card */}
+      {/* Main Split-Screen Container Card - Viewport Fit (No Screen Scroll) */}
       <Card
         elevation={0}
         sx={{
           width: '100%',
-          maxWidth: '1160px',
+          maxWidth: '1120px',
+          height: 'calc(100vh - 28px)',
+          maxHeight: '680px',
           bgcolor: '#FFFFFF',
-          borderRadius: { xs: '20px', md: '28px' },
+          borderRadius: { xs: '16px', md: '24px' },
           border: '1px solid #E2E8F0',
-          boxShadow: '0 25px 60px -15px rgba(15, 23, 42, 0.09)',
+          boxShadow: '0 20px 50px -15px rgba(15, 23, 42, 0.09)',
           overflow: 'hidden',
           display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: '1.05fr 1.15fr' },
-          minHeight: { md: '680px' }
+          gridTemplateColumns: { xs: '1fr', md: '1fr 1.05fr' }
         }}
       >
         {/* ===================== LEFT PANE: SIGN IN / REGISTER FORM ===================== */}
         <Box
           sx={{
-            p: { xs: 3, sm: 4, md: 5 },
+            p: { xs: 2.2, sm: 2.8, md: 3.2 },
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'space-between'
+            justifyContent: 'space-between',
+            height: '100%',
+            boxSizing: 'border-box',
+            overflowY: 'auto',
+            '&::-webkit-scrollbar': { width: '4px' },
+            '&::-webkit-scrollbar-thumb': { bgcolor: '#CBD5E1', borderRadius: '4px' }
           }}
         >
           <Box>
             {/* Top Brand Logo & Mobile Continue as Guest Bar */}
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.8 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
                 <Box
                   sx={{
@@ -316,11 +326,11 @@ export default function AuthPage({ initialMode = 'login' }) {
             </Box>
 
             {/* Title & Subtitle */}
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="h4" sx={{ fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em', mb: 0.5 }}>
+            <Box sx={{ mb: 1.8 }}>
+              <Typography variant="h5" sx={{ fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em', mb: 0.3, fontSize: { xs: '1.35rem', md: '1.55rem' } }}>
                 {authMode === 'login' ? 'Sign In' : 'Create Account'}
               </Typography>
-              <Typography variant="body2" sx={{ color: '#64748B', fontSize: '13.5px' }}>
+              <Typography variant="body2" sx={{ color: '#64748B', fontSize: '12.5px' }}>
                 {authMode === 'login'
                   ? 'Welcome back! Please enter your details'
                   : 'Join Salem’s trusted network for home services & daily repairs'}
@@ -329,7 +339,7 @@ export default function AuthPage({ initialMode = 'login' }) {
 
             {/* Error Message Alert */}
             {errorMessage && (
-              <Alert severity="error" sx={{ mb: 2.5, borderRadius: '12px', fontSize: '12.5px' }}>
+              <Alert severity="error" sx={{ mb: 1.8, borderRadius: '10px', fontSize: '12px', py: 0.5 }}>
                 {errorMessage}
               </Alert>
             )}
@@ -338,8 +348,8 @@ export default function AuthPage({ initialMode = 'login' }) {
             {authMode === 'login' ? (
               <Box component="form" onSubmit={handleLoginSubmit}>
                 {/* Email / Mobile Field */}
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="caption" sx={{ fontWeight: 700, color: '#334155', display: 'block', mb: 0.8, fontSize: '12px' }}>
+                <Box sx={{ mb: 1.4 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 700, color: '#334155', display: 'block', mb: 0.5, fontSize: '11.5px' }}>
                     Email or Mobile Number
                   </Typography>
                   <TextField
@@ -352,13 +362,14 @@ export default function AuthPage({ initialMode = 'login' }) {
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
-                          <Mail size={17} color="#94A3B8" />
+                          <Mail size={16} color="#94A3B8" />
                         </InputAdornment>
                       ),
                       sx: {
-                        borderRadius: '12px',
+                        borderRadius: '10px',
                         bgcolor: '#FFFFFF',
-                        fontSize: '13.5px',
+                        fontSize: '13px',
+                        height: '38px',
                         '& fieldset': { borderColor: '#E2E8F0' },
                         '&:hover fieldset': { borderColor: '#94A3B8' },
                         '&.Mui-focused fieldset': { borderColor: '#0066CC', borderWidth: '1.5px' }
@@ -368,8 +379,8 @@ export default function AuthPage({ initialMode = 'login' }) {
                 </Box>
 
                 {/* Password Field */}
-                <Box sx={{ mb: 1.5 }}>
-                  <Typography variant="caption" sx={{ fontWeight: 700, color: '#334155', display: 'block', mb: 0.8, fontSize: '12px' }}>
+                <Box sx={{ mb: 1.2 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 700, color: '#334155', display: 'block', mb: 0.5, fontSize: '11.5px' }}>
                     Password
                   </Typography>
                   <TextField
@@ -383,7 +394,7 @@ export default function AuthPage({ initialMode = 'login' }) {
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
-                          <Lock size={17} color="#94A3B8" />
+                          <Lock size={16} color="#94A3B8" />
                         </InputAdornment>
                       ),
                       endAdornment: (
@@ -394,14 +405,15 @@ export default function AuthPage({ initialMode = 'login' }) {
                             edge="end"
                             sx={{ color: '#94A3B8' }}
                           >
-                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                            {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                           </IconButton>
                         </InputAdornment>
                       ),
                       sx: {
-                        borderRadius: '12px',
+                        borderRadius: '10px',
                         bgcolor: '#FFFFFF',
-                        fontSize: '13.5px',
+                        fontSize: '13px',
+                        height: '38px',
                         '& fieldset': { borderColor: '#E2E8F0' },
                         '&:hover fieldset': { borderColor: '#94A3B8' },
                         '&.Mui-focused fieldset': { borderColor: '#0066CC', borderWidth: '1.5px' }
@@ -458,23 +470,23 @@ export default function AuthPage({ initialMode = 'login' }) {
                   sx={{
                     bgcolor: '#0066CC',
                     color: '#FFFFFF',
-                    py: 1.35,
-                    borderRadius: '12px',
+                    py: 1,
+                    borderRadius: '10px',
                     fontWeight: 800,
-                    fontSize: '14px',
+                    fontSize: '13.5px',
                     textTransform: 'none',
-                    boxShadow: '0 4px 16px rgba(0, 102, 204, 0.28)',
+                    boxShadow: '0 4px 14px rgba(0, 102, 204, 0.25)',
                     transition: 'all 0.15s ease',
                     '&:hover': { bgcolor: '#0052CC', transform: 'translateY(-1px)' }
                   }}
                 >
-                  {isLoading ? <CircularProgress size={22} color="inherit" /> : 'Sign in'}
+                  {isLoading ? <CircularProgress size={20} color="inherit" /> : 'Sign in'}
                 </Button>
 
                 {/* OR Divider */}
-                <Box sx={{ display: 'flex', alignItems: 'center', my: 2.2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', my: 1.4 }}>
                   <Box sx={{ flex: 1, height: '1px', bgcolor: '#E2E8F0' }} />
-                  <Typography variant="caption" sx={{ px: 2, color: '#94A3B8', fontWeight: 700, fontSize: '11px', letterSpacing: '0.5px' }}>
+                  <Typography variant="caption" sx={{ px: 1.5, color: '#94A3B8', fontWeight: 700, fontSize: '10.5px', letterSpacing: '0.5px' }}>
                     OR
                   </Typography>
                   <Box sx={{ flex: 1, height: '1px', bgcolor: '#E2E8F0' }} />
@@ -486,20 +498,20 @@ export default function AuthPage({ initialMode = 'login' }) {
                   fullWidth
                   variant="outlined"
                   onClick={handleContinueAsGuest}
-                  startIcon={<Compass size={18} color="#0066CC" />}
-                  endIcon={<ArrowRight size={16} color="#64748B" />}
+                  startIcon={<Compass size={16} color="#0066CC" />}
+                  endIcon={<ArrowRight size={15} color="#64748B" />}
                   sx={{
-                    py: 1.25,
-                    borderRadius: '12px',
+                    py: 0.8,
+                    borderRadius: '10px',
                     borderColor: '#CBD5E1',
                     bgcolor: '#F8FAFC',
                     color: '#0F172A',
                     fontWeight: 800,
-                    fontSize: '13.5px',
+                    fontSize: '12.5px',
                     textTransform: 'none',
                     transition: 'all 0.15s ease',
                     justifyContent: 'space-between',
-                    px: 2,
+                    px: 1.8,
                     '&:hover': {
                       bgcolor: '#F1F5F9',
                       borderColor: '#94A3B8',
@@ -511,11 +523,11 @@ export default function AuthPage({ initialMode = 'login' }) {
                 </Button>
 
                 {/* Quick 1-Click Demo Accounts Pill Bar */}
-                <Box sx={{ mt: 2.5, p: 1.5, bgcolor: '#F8FAFC', borderRadius: '12px', border: '1px dashed #CBD5E1' }}>
-                  <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 800, fontSize: '11px', display: 'block', mb: 1 }}>
+                <Box sx={{ mt: 1.5, p: 1.1, bgcolor: '#F8FAFC', borderRadius: '10px', border: '1px dashed #CBD5E1' }}>
+                  <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 800, fontSize: '10.5px', display: 'block', mb: 0.8 }}>
                     Quick Demo One-Click Sign In:
                   </Typography>
-                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 1 }}>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 0.8 }}>
                     <Button
                       size="small"
                       onClick={() => {
@@ -919,7 +931,9 @@ export default function AuthPage({ initialMode = 'login' }) {
             flexDirection: 'column',
             justifyContent: 'space-between',
             background: 'linear-gradient(145deg, #0052CC 0%, #0066CC 55%, #003D99 100%)',
-            p: { md: 4.5, lg: 5 },
+            p: { md: 2.5, lg: 3 },
+            height: '100%',
+            boxSizing: 'border-box',
             position: 'relative',
             color: '#FFFFFF',
             overflow: 'hidden'
@@ -953,56 +967,60 @@ export default function AuthPage({ initialMode = 'login' }) {
 
           {/* Top Heading & Tagline */}
           <Box sx={{ position: 'relative', zIndex: 2 }}>
-            <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, bgcolor: 'rgba(255,255,255,0.15)', px: 1.5, py: 0.6, borderRadius: '20px', backdropFilter: 'blur(8px)', mb: 2 }}>
-              <Sparkles size={14} color="#FBBF24" />
-              <Typography variant="caption" sx={{ fontWeight: 800, letterSpacing: '0.5px', textTransform: 'uppercase', fontSize: '11px', color: '#FFFFFF' }}>
+            <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.8, bgcolor: 'rgba(255,255,255,0.15)', px: 1.2, py: 0.4, borderRadius: '20px', backdropFilter: 'blur(8px)', mb: 1 }}>
+              <Sparkles size={13} color="#FBBF24" />
+              <Typography variant="caption" sx={{ fontWeight: 800, letterSpacing: '0.5px', textTransform: 'uppercase', fontSize: '10.5px', color: '#FFFFFF' }}>
                 Salem's No. 1 Service App
               </Typography>
             </Box>
 
             <Typography
-              variant="h3"
+              variant="h4"
               sx={{
                 fontWeight: 800,
                 color: '#FFFFFF',
                 letterSpacing: '-0.02em',
-                lineHeight: 1.2,
-                mb: 1.5,
-                fontSize: { md: '2.1rem', lg: '2.35rem' }
+                lineHeight: 1.18,
+                mb: 0.6,
+                fontSize: { md: '1.35rem', lg: '1.55rem' }
               }}
             >
               Welcome back!<br />
-              Please sign in to your<br />
-              SalemSeva account
+              Please sign in to your SalemSeva account
             </Typography>
 
             <Typography
               variant="body2"
               sx={{
                 color: 'rgba(255,255,255,0.85)',
-                lineHeight: 1.6,
+                lineHeight: 1.4,
                 maxWidth: '440px',
-                fontSize: '13.5px'
+                fontSize: '12px'
               }}
             >
               {CAROUSEL_SLIDES[activeSlide].desc}
             </Typography>
           </Box>
 
-          {/* Central Showcase: Nano Banana Illustration & Service Activity Cards */}
-          <Box sx={{ position: 'relative', my: 2.5, zIndex: 2 }}>
+          {/* Central Showcase: Full Illustration Banner & Service Activity Cards */}
+          <Box sx={{ my: 1, zIndex: 2 }}>
             
-            {/* Active Illustration Banner */}
+            {/* Active Illustration Banner - 100% Unobscured & Full Image Shown */}
             <Box
               sx={{
                 position: 'relative',
-                borderRadius: '16px',
+                borderRadius: '14px',
                 overflow: 'hidden',
-                mb: 2,
-                border: '1px solid rgba(255, 255, 255, 0.25)',
+                mb: 1.5,
+                border: '1.5px solid rgba(255, 255, 255, 0.35)',
                 boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
-                bgcolor: 'rgba(255, 255, 255, 0.08)',
-                height: '160px'
+                bgcolor: '#FFFFFF',
+                width: '100%',
+                aspectRatio: '16/9',
+                maxHeight: { md: '130px', lg: '145px' },
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}
             >
               <img
@@ -1011,247 +1029,210 @@ export default function AuthPage({ initialMode = 'login' }) {
                 style={{
                   width: '100%',
                   height: '100%',
-                  objectFit: 'cover',
+                  objectFit: 'contain',
                   display: 'block'
                 }}
               />
               <Box
                 sx={{
                   position: 'absolute',
-                  bottom: 8,
-                  left: 10,
-                  bgcolor: 'rgba(15, 23, 42, 0.85)',
+                  bottom: 6,
+                  left: 8,
+                  bgcolor: 'rgba(15, 23, 42, 0.88)',
                   color: '#FFFFFF',
-                  px: 1.2,
-                  py: 0.4,
-                  borderRadius: '8px',
-                  fontSize: '11px',
+                  px: 1,
+                  py: 0.3,
+                  borderRadius: '6px',
+                  fontSize: '10px',
                   fontWeight: 800,
-                  backdropFilter: 'blur(4px)'
+                  backdropFilter: 'blur(4px)',
+                  zIndex: 2
                 }}
               >
                 {CAROUSEL_SLIDES[activeSlide]?.badge}
               </Box>
             </Box>
 
-            {/* 1. Main Service Activity Bar Chart Card (Inspired by Reference Screenshot) */}
-            <Card
-              elevation={0}
-              sx={{
-                bgcolor: '#FFFFFF',
-                borderRadius: '20px',
-                p: 2.5,
-                color: '#0F172A',
-                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.18)',
-                width: '100%',
-                boxSizing: 'border-box'
-              }}
-            >
-              {/* Header */}
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                <Box>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '13px', color: '#0F172A' }}>
-                    Salem Service Report
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11px' }}>
-                    Daily Completed vs Dispatched
-                  </Typography>
-                </Box>
-
-                {/* Legend */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#0066CC' }} />
-                    <Typography variant="caption" sx={{ fontSize: '10.5px', color: '#475569', fontWeight: 700 }}>
-                      Completed
+            {/* Relative Chart Wrapper: Bar Chart + Compact Floating Donut Card */}
+            <Box sx={{ position: 'relative' }}>
+              {/* 1. Main Service Activity Bar Chart Card */}
+              <Card
+                elevation={0}
+                sx={{
+                  bgcolor: '#FFFFFF',
+                  borderRadius: '16px',
+                  p: 1.6,
+                  color: '#0F172A',
+                  boxShadow: '0 16px 36px rgba(0, 0, 0, 0.18)',
+                  width: '100%',
+                  boxSizing: 'border-box'
+                }}
+              >
+                {/* Header */}
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '11.5px', color: '#0F172A' }}>
+                      Salem Service Report
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#64748B', fontSize: '9.5px' }}>
+                      Daily Completed vs Dispatched
                     </Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#E2E8F0' }} />
-                    <Typography variant="caption" sx={{ fontSize: '10.5px', color: '#64748B', fontWeight: 600 }}>
-                      Dispatched
-                    </Typography>
-                  </Box>
-                </Box>
-              </Box>
 
-              {/* Relative Bar Graph with Floating Tooltip */}
-              <Box sx={{ position: 'relative', height: '110px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', pt: 3 }}>
-                
-                {/* Floating Tooltip matching the screenshot */}
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: -6,
-                    right: 80,
-                    bgcolor: '#0F172A',
-                    color: '#FFFFFF',
-                    px: 1.2,
-                    py: 0.6,
-                    borderRadius: '8px',
-                    fontSize: '10.5px',
-                    fontWeight: 800,
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 0.2,
-                    zIndex: 3
-                  }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
-                    <Box sx={{ width: 5, height: 5, borderRadius: '50%', bgcolor: '#38BDF8' }} />
-                    <span>24,850+ Bookings</span>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, color: '#4ADE80' }}>
-                    <Box sx={{ width: 5, height: 5, borderRadius: '50%', bgcolor: '#4ADE80' }} />
-                    <span>98.6% On-Time</span>
-                  </Box>
-                </Box>
-
-                {/* 10 Monthly Vertical Bars */}
-                {[
-                  { month: 'Jan', h1: '40%', h2: '65%' },
-                  { month: 'Feb', h1: '48%', h2: '72%' },
-                  { month: 'Mar', h1: '54%', h2: '78%' },
-                  { month: 'Apr', h1: '60%', h2: '84%' },
-                  { month: 'May', h1: '45%', h2: '68%' },
-                  { month: 'Jun', h1: '52%', h2: '75%' },
-                  { month: 'Jul', h1: '62%', h2: '86%' },
-                  { month: 'Aug', h1: '72%', h2: '94%' },
-                  { month: 'Sep', h1: '66%', h2: '90%' },
-                  { month: 'Oct', h1: '78%', h2: '98%' }
-                ].map((bar, idx) => (
-                  <Box key={idx} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
-                    <Box sx={{ width: 14, height: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', bgcolor: '#F1F5F9', borderRadius: '4px', overflow: 'hidden' }}>
-                      <Box sx={{ width: '100%', height: bar.h2, bgcolor: '#CBD5E1', borderRadius: '4px 4px 0 0', display: 'flex', alignItems: 'flex-end' }}>
-                        <Box sx={{ width: '100%', height: bar.h1, bgcolor: '#0066CC', borderRadius: '4px 4px 0 0' }} />
-                      </Box>
+                  {/* Legend */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4 }}>
+                      <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#0066CC' }} />
+                      <Typography variant="caption" sx={{ fontSize: '9.5px', color: '#475569', fontWeight: 700 }}>
+                        Completed
+                      </Typography>
                     </Box>
-                    <Typography variant="caption" sx={{ fontSize: '9.5px', color: '#94A3B8', fontWeight: 600 }}>
-                      {bar.month}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4 }}>
+                      <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#CBD5E1' }} />
+                      <Typography variant="caption" sx={{ fontSize: '9.5px', color: '#64748B', fontWeight: 600 }}>
+                        Dispatched
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Box>
+
+                {/* Relative Bar Graph with Floating Tooltip */}
+                <Box sx={{ position: 'relative', height: '65px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', pt: 1.5 }}>
+                  
+                  {/* Floating Tooltip */}
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: -6,
+                      right: 60,
+                      bgcolor: '#0F172A',
+                      color: '#FFFFFF',
+                      px: 1,
+                      py: 0.4,
+                      borderRadius: '6px',
+                      fontSize: '9.5px',
+                      fontWeight: 800,
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 0.1,
+                      zIndex: 3
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <Box sx={{ width: 4, height: 4, borderRadius: '50%', bgcolor: '#38BDF8' }} />
+                      <span>24.8k Bookings</span>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: '#4ADE80' }}>
+                      <Box sx={{ width: 4, height: 4, borderRadius: '50%', bgcolor: '#4ADE80' }} />
+                      <span>98.6% On-Time</span>
+                    </Box>
+                  </Box>
+
+                  {/* 10 Monthly Vertical Bars */}
+                  {[
+                    { month: 'Jan', h1: '40%', h2: '65%' },
+                    { month: 'Feb', h1: '48%', h2: '72%' },
+                    { month: 'Mar', h1: '54%', h2: '78%' },
+                    { month: 'Apr', h1: '60%', h2: '84%' },
+                    { month: 'May', h1: '45%', h2: '68%' },
+                    { month: 'Jun', h1: '52%', h2: '75%' },
+                    { month: 'Jul', h1: '62%', h2: '86%' },
+                    { month: 'Aug', h1: '72%', h2: '94%' },
+                    { month: 'Sep', h1: '66%', h2: '90%' },
+                    { month: 'Oct', h1: '78%', h2: '98%' }
+                  ].map((bar, idx) => (
+                    <Box key={idx} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.3 }}>
+                      <Box sx={{ width: 12, height: '42px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', bgcolor: '#F1F5F9', borderRadius: '3px', overflow: 'hidden' }}>
+                        <Box sx={{ width: '100%', height: bar.h2, bgcolor: '#CBD5E1', borderRadius: '3px 3px 0 0', display: 'flex', alignItems: 'flex-end' }}>
+                          <Box sx={{ width: '100%', height: bar.h1, bgcolor: '#0066CC', borderRadius: '3px 3px 0 0' }} />
+                        </Box>
+                      </Box>
+                      <Typography variant="caption" sx={{ fontSize: '8.5px', color: '#94A3B8', fontWeight: 600 }}>
+                        {bar.month}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
+              </Card>
+
+              {/* 2. Floating Popular Categories Donut Card (Decreased size, positioned over chart without covering illustration) */}
+              <Card
+                elevation={0}
+                sx={{
+                  position: 'absolute',
+                  top: -12,
+                  right: -6,
+                  bgcolor: '#FFFFFF',
+                  borderRadius: '14px',
+                  p: 1.1,
+                  boxShadow: '0 10px 24px rgba(0, 0, 0, 0.18)',
+                  border: '1px solid #E2E8F0',
+                  width: '132px',
+                  zIndex: 4
+                }}
+              >
+                <Typography variant="caption" sx={{ fontWeight: 800, fontSize: '9px', color: '#0F172A', display: 'block', mb: 0.4, textAlign: 'center' }}>
+                  Popular Categories
+                </Typography>
+
+                {/* Circular SVG Donut */}
+                <Box sx={{ position: 'relative', width: 56, height: 56, mx: 'auto', my: 0.2 }}>
+                  <svg viewBox="0 0 36 36" style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
+                    <circle cx="18" cy="18" r="14" fill="none" stroke="#F1F5F9" strokeWidth="4" />
+                    <circle cx="18" cy="18" r="14" fill="none" stroke="#0066CC" strokeWidth="4" strokeDasharray="37 100" strokeDashoffset="0" />
+                    <circle cx="18" cy="18" r="14" fill="none" stroke="#FF6600" strokeWidth="4" strokeDasharray="25 100" strokeDashoffset="-37" />
+                    <circle cx="18" cy="18" r="14" fill="none" stroke="#10B981" strokeWidth="4" strokeDasharray="16 100" strokeDashoffset="-62" />
+                    <circle cx="18" cy="18" r="14" fill="none" stroke="#0D9488" strokeWidth="4" strokeDasharray="10 100" strokeDashoffset="-78" />
+                  </svg>
+
+                  {/* Donut Center Label */}
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      textAlign: 'center'
+                    }}
+                  >
+                    <Typography variant="caption" sx={{ fontWeight: 900, color: '#0F172A', fontSize: '9px', lineHeight: 1 }}>
+                      24.5k
+                    </Typography>
+                    <Typography variant="caption" sx={{ fontSize: '6.5px', color: '#64748B', fontWeight: 700 }}>
+                      Bookings
                     </Typography>
                   </Box>
-                ))}
-              </Box>
-            </Card>
-
-            {/* 2. Floating Popular Categories Donut Card (Top-Right Placement like in Reference Image) */}
-            <Card
-              elevation={0}
-              sx={{
-                position: 'absolute',
-                top: -36,
-                right: -14,
-                bgcolor: '#FFFFFF',
-                borderRadius: '18px',
-                p: 2,
-                boxShadow: '0 16px 36px rgba(0, 0, 0, 0.22)',
-                border: '1px solid #E2E8F0',
-                width: '180px',
-                zIndex: 4
-              }}
-            >
-              <Typography variant="caption" sx={{ fontWeight: 800, fontSize: '11px', color: '#0F172A', display: 'block', mb: 1, textAlign: 'center' }}>
-                Popular Categories
-              </Typography>
-
-              {/* Circular SVG Donut */}
-              <Box sx={{ position: 'relative', width: 90, height: 90, mx: 'auto', my: 0.5 }}>
-                <svg viewBox="0 0 36 36" style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
-                  {/* Background Track */}
-                  <circle cx="18" cy="18" r="14" fill="none" stroke="#F1F5F9" strokeWidth="4" />
-                  {/* Segment 1: AC Repair (42%) */}
-                  <circle
-                    cx="18"
-                    cy="18"
-                    r="14"
-                    fill="none"
-                    stroke="#0066CC"
-                    strokeWidth="4"
-                    strokeDasharray="37 100"
-                    strokeDashoffset="0"
-                  />
-                  {/* Segment 2: Electrician (28%) */}
-                  <circle
-                    cx="18"
-                    cy="18"
-                    r="14"
-                    fill="none"
-                    stroke="#FF6600"
-                    strokeWidth="4"
-                    strokeDasharray="25 100"
-                    strokeDashoffset="-37"
-                  />
-                  {/* Segment 3: Plumbing (18%) */}
-                  <circle
-                    cx="18"
-                    cy="18"
-                    r="14"
-                    fill="none"
-                    stroke="#10B981"
-                    strokeWidth="4"
-                    strokeDasharray="16 100"
-                    strokeDashoffset="-62"
-                  />
-                  {/* Segment 4: Cleaning (12%) */}
-                  <circle
-                    cx="18"
-                    cy="18"
-                    r="14"
-                    fill="none"
-                    stroke="#0D9488"
-                    strokeWidth="4"
-                    strokeDasharray="10 100"
-                    strokeDashoffset="-78"
-                  />
-                </svg>
-
-                {/* Donut Center Label */}
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    textAlign: 'center'
-                  }}
-                >
-                  <Typography variant="caption" sx={{ fontWeight: 900, color: '#0F172A', fontSize: '11px', lineHeight: 1 }}>
-                    24.5k
-                  </Typography>
-                  <Typography variant="caption" sx={{ fontSize: '8px', color: '#64748B', fontWeight: 700 }}>
-                    Bookings
-                  </Typography>
                 </Box>
-              </Box>
 
-              {/* Donut Mini Legend */}
-              <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mt: 1 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3 }}>
-                  <Box sx={{ width: 5, height: 5, borderRadius: '50%', bgcolor: '#0066CC' }} />
-                  <Typography variant="caption" sx={{ fontSize: '8.5px', color: '#64748B', fontWeight: 700 }}>
-                    AC
-                  </Typography>
+                {/* Donut Mini Legend */}
+                <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.6, mt: 0.4 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.2 }}>
+                    <Box sx={{ width: 4, height: 4, borderRadius: '50%', bgcolor: '#0066CC' }} />
+                    <Typography variant="caption" sx={{ fontSize: '7.5px', color: '#64748B', fontWeight: 700 }}>
+                      AC
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.2 }}>
+                    <Box sx={{ width: 4, height: 4, borderRadius: '50%', bgcolor: '#FF6600' }} />
+                    <Typography variant="caption" sx={{ fontSize: '7.5px', color: '#64748B', fontWeight: 700 }}>
+                      Wiring
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.2 }}>
+                    <Box sx={{ width: 4, height: 4, borderRadius: '50%', bgcolor: '#10B981' }} />
+                    <Typography variant="caption" sx={{ fontSize: '7.5px', color: '#64748B', fontWeight: 700 }}>
+                      Pipe
+                    </Typography>
+                  </Box>
                 </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3 }}>
-                  <Box sx={{ width: 5, height: 5, borderRadius: '50%', bgcolor: '#FF6600' }} />
-                  <Typography variant="caption" sx={{ fontSize: '8.5px', color: '#64748B', fontWeight: 700 }}>
-                    Wiring
-                  </Typography>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3 }}>
-                  <Box sx={{ width: 5, height: 5, borderRadius: '50%', bgcolor: '#10B981' }} />
-                  <Typography variant="caption" sx={{ fontSize: '8.5px', color: '#64748B', fontWeight: 700 }}>
-                    Pipe
-                  </Typography>
-                </Box>
-              </Box>
-            </Card>
+              </Card>
+            </Box>
           </Box>
 
           {/* Bottom Carousel Indicator Dots (Matching the screenshot) */}

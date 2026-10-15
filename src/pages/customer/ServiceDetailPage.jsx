@@ -82,7 +82,7 @@ const loadRazorpayScript = () => {
 
 export default function ServiceDetailPage({ onStartBooking }) {
   const navigate = useNavigate();
-  const { user, loginAsCustomer, loginWithCredentials, registerAccount } = useAuth();
+  const { user, loginAsCustomer, loginWithCredentials, registerAccount, walletBalance, debitWallet } = useAuth();
   const { serviceId = 'ac' } = useParams();
   const [selectedIssue, setSelectedIssue] = useState('not_cooling');
   const [customDescription, setCustomDescription] = useState('');
@@ -514,6 +514,33 @@ export default function ServiceDetailPage({ onStartBooking }) {
       return;
     }
 
+    // If Wallet payment method selected (Standard 10 credits = 1 rs)
+    if (selectedPayMethod === 'wallet') {
+      const currentCredits = walletBalance ?? user?.walletBalance ?? 150;
+      const requiredCredits = Math.round(payableNow * 10);
+      if (currentCredits < requiredCredits) {
+        setIsPayingScheduled(false);
+        toast.error(`Insufficient Seva Credits. Required: ${requiredCredits} credits (₹${payableNow}), Available: ${currentCredits} credits (₹${(currentCredits / 10).toFixed(2)})`);
+        return;
+      }
+      try {
+        if (debitWallet) {
+          await debitWallet(requiredCredits, `SCHED-${Date.now()}`);
+        }
+        await completeScheduledBookingCreation({
+          paymentMethod: 'wallet',
+          creditsBurned: requiredCredits
+        });
+        toast.success(`Booking confirmed! Paid ₹${payableNow} using ${requiredCredits} Seva Credits.`);
+        return;
+      } catch (wallErr) {
+        console.error('Wallet deduction error:', wallErr);
+        setIsPayingScheduled(false);
+        toast.error('Wallet payment failed: ' + (wallErr.message || 'Please retry.'));
+        return;
+      }
+    }
+
     try {
       // 1. Ensure Razorpay checkout script is loaded
       await loadRazorpayScript();
@@ -645,22 +672,22 @@ export default function ServiceDetailPage({ onStartBooking }) {
                 '&:hover': { borderColor: isBadPin ? '#DC2626' : '#CBD5E1' }
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
-                <LocationOnIcon sx={{ fontSize: 20, color: isBadPin ? '#DC2626' : '#2563EB', flexShrink: 0 }} />
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, minWidth: 0 }}>
+                <LocationOnIcon sx={{ fontSize: 22, color: isBadPin ? '#DC2626' : '#2563EB', flexShrink: 0 }} />
                 <Box sx={{ minWidth: 0 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: isBadPin ? '#991B1B' : '#0F172A', fontSize: '13px' }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: isBadPin ? '#991B1B' : '#0F172A', fontSize: { xs: '14px', sm: '15px' } }}>
                       {userLocation.locality || 'Fairlands, Salem'}
                     </Typography>
                     {isBadPin && (
-                      <Chip label="Outside Salem (Not Accepted)" size="small" sx={{ height: 18, fontSize: '9.5px', fontWeight: 800, bgcolor: '#EF4444', color: '#FFF' }} />
+                      <Chip label="Outside Salem (Not Accepted)" size="small" sx={{ height: 20, fontSize: '11px', fontWeight: 800, bgcolor: '#EF4444', color: '#FFF' }} />
                     )}
                   </Box>
                   <Typography
                     variant="caption"
                     sx={{
                       color: isBadPin ? '#B91C1C' : '#64748B',
-                      fontSize: '11px',
+                      fontSize: { xs: '12.5px', sm: '13.5px' },
                       display: 'block',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
@@ -674,11 +701,11 @@ export default function ServiceDetailPage({ onStartBooking }) {
 
               <Button
                 size="small"
-                endIcon={<KeyboardArrowDownIcon sx={{ fontSize: 16 }} />}
+                endIcon={<KeyboardArrowDownIcon sx={{ fontSize: 18 }} />}
                 sx={{
                   color: isBadPin ? '#DC2626' : '#2563EB',
                   fontWeight: 700,
-                  fontSize: '12px',
+                  fontSize: { xs: '13px', sm: '14px' },
                   textTransform: 'none',
                   flexShrink: 0
                 }}
@@ -696,15 +723,15 @@ export default function ServiceDetailPage({ onStartBooking }) {
             bgcolor: '#FFFFFF',
             border: '1px solid #E2E8F0',
             borderRadius: '8px',
-            p: 1.5,
+            p: { xs: 1.5, sm: 2 },
             mb: 1.5
           }}
         >
           <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
             <Box
               sx={{
-                width: 44,
-                height: 44,
+                width: 48,
+                height: 48,
                 borderRadius: '8px',
                 bgcolor: '#EFF6FF',
                 color: serviceInfo?.colorHex || '#2563EB',
@@ -718,17 +745,17 @@ export default function ServiceDetailPage({ onStartBooking }) {
             </Box>
 
             <Box sx={{ flex: 1 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '14.5px', lineHeight: 1.2 }}>
+              <Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A', fontSize: { xs: '16px', sm: '18.5px' }, lineHeight: 1.25 }}>
                 {currentServiceName}
               </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mt: 0.3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mt: 0.4 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3 }}>
-                  <StarIcon sx={{ color: '#D97706', fontSize: 14 }} />
-                  <Typography variant="caption" sx={{ fontWeight: 600, color: '#0F172A', fontSize: '11.5px' }}>
+                  <StarIcon sx={{ color: '#D97706', fontSize: 16 }} />
+                  <Typography variant="caption" sx={{ fontWeight: 700, color: '#0F172A', fontSize: { xs: '12.5px', sm: '13.5px' } }}>
                     4.9
                   </Typography>
                 </Box>
-                <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11.5px' }}>
+                <Typography variant="caption" sx={{ color: '#64748B', fontSize: { xs: '12.5px', sm: '13.5px' } }}>
                   • Verified Salem Technicians • 15-25 min ETA
                 </Typography>
               </Box>
@@ -753,14 +780,14 @@ export default function ServiceDetailPage({ onStartBooking }) {
                 <StepLabel
                   sx={{
                     '& .MuiStepLabel-label': {
-                      fontSize: '11px',
+                      fontSize: { xs: '12.5px', sm: '13.5px' },
                       fontWeight: 700,
                       color: '#475569',
                       '&.Mui-active': { color: '#0066CC', fontWeight: 800 },
                       '&.Mui-completed': { color: '#16A34A', fontWeight: 700 }
                     },
                     '& .MuiStepIcon-root': {
-                      fontSize: '20px',
+                      fontSize: { xs: '22px', sm: '24px' },
                       '&.Mui-active': { color: '#0066CC' },
                       '&.Mui-completed': { color: '#16A34A' }
                     }
@@ -778,7 +805,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
           <Paper
             elevation={0}
             sx={{
-              p: 1.2,
+              p: 1.5,
               bgcolor: '#F0FDF4',
               border: '1px solid #BBF7D0',
               borderRadius: '8px',
@@ -789,12 +816,12 @@ export default function ServiceDetailPage({ onStartBooking }) {
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <LocalOfferIcon sx={{ color: '#16A34A', fontSize: 16 }} />
+              <LocalOfferIcon sx={{ color: '#16A34A', fontSize: 18 }} />
               <Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#166534', fontSize: '12px' }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#166534', fontSize: { xs: '13.5px', sm: '14.5px' } }}>
                   ₹{couponDiscount} discount applied ({couponCode})
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#15803D', fontSize: '11px' }}>
+                <Typography variant="caption" sx={{ color: '#15803D', fontSize: { xs: '12px', sm: '13px' } }}>
                   Promotional credit applied to inspection & repair bill
                 </Typography>
               </Box>
@@ -802,9 +829,9 @@ export default function ServiceDetailPage({ onStartBooking }) {
 
             <Button
               size="small"
-              startIcon={<CloseIcon sx={{ fontSize: 13 }} />}
+              startIcon={<CloseIcon sx={{ fontSize: 15 }} />}
               onClick={handleRemoveCoupon}
-              sx={{ color: '#475569', fontWeight: 600, fontSize: '11.5px', textTransform: 'none', py: 0.2, '&:hover': { color: '#EF4444' } }}
+              sx={{ color: '#475569', fontWeight: 600, fontSize: { xs: '12.5px', sm: '13.5px' }, textTransform: 'none', py: 0.4, '&:hover': { color: '#EF4444' } }}
             >
               Remove
             </Button>
@@ -813,7 +840,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
           <Paper
             elevation={0}
             sx={{
-              p: 1.5,
+              p: { xs: 1.5, sm: 2 },
               bgcolor: '#FFFFFF',
               border: '1px solid #E2E8F0',
               borderRadius: '8px',
@@ -821,8 +848,8 @@ export default function ServiceDetailPage({ onStartBooking }) {
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 1 }}>
-              <LocalOfferIcon sx={{ color: '#2563EB', fontSize: 16 }} />
-              <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#0F172A', fontSize: '12.5px' }}>
+              <LocalOfferIcon sx={{ color: '#2563EB', fontSize: 18 }} />
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: { xs: '13.5px', sm: '14.5px' } }}>
                 Have a coupon or referral code?
               </Typography>
             </Box>
@@ -837,8 +864,8 @@ export default function ServiceDetailPage({ onStartBooking }) {
                 onKeyDown={(e) => { if (e.key === 'Enter') handleApplyCoupon(); }}
                 sx={{
                   '& .MuiOutlinedInput-root': {
-                    fontSize: '12px',
-                    borderRadius: '6px',
+                    fontSize: { xs: '13.5px', sm: '14.5px' },
+                    borderRadius: '8px',
                     bgcolor: '#F8FAFC'
                   }
                 }}
@@ -850,10 +877,10 @@ export default function ServiceDetailPage({ onStartBooking }) {
                 sx={{
                   bgcolor: '#0F172A',
                   color: '#FFFFFF',
-                  borderRadius: '6px',
-                  fontWeight: 600,
-                  fontSize: '12px',
-                  px: 2,
+                  borderRadius: '8px',
+                  fontWeight: 700,
+                  fontSize: { xs: '13px', sm: '14px' },
+                  px: 2.5,
                   textTransform: 'none',
                   flexShrink: 0,
                   '&:hover': { bgcolor: '#1E293B' }
@@ -863,7 +890,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
               </Button>
             </Box>
             {couponError && (
-              <Typography variant="caption" sx={{ color: '#EF4444', fontSize: '11px', mt: 0.5, display: 'block' }}>
+              <Typography variant="caption" sx={{ color: '#EF4444', fontSize: '12.5px', mt: 0.5, display: 'block' }}>
                 {couponError}
               </Typography>
             )}
@@ -871,7 +898,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
             {/* Available Coupon Quick Selectors */}
             {availableCoupons.length > 0 && (
               <Box sx={{ mt: 1.2, display: 'flex', alignItems: 'center', gap: 0.8, flexWrap: 'wrap' }}>
-                <Typography variant="caption" sx={{ color: '#64748B', fontSize: '10.5px', fontWeight: 600 }}>
+                <Typography variant="caption" sx={{ color: '#64748B', fontSize: { xs: '12px', sm: '13px' }, fontWeight: 600 }}>
                   Available Coupons:
                 </Typography>
                 {availableCoupons.map((ac) => (
@@ -882,8 +909,9 @@ export default function ServiceDetailPage({ onStartBooking }) {
                     onClick={() => handleApplyCoupon(ac.code)}
                     sx={{
                       cursor: 'pointer',
-                      fontSize: '10px',
+                      fontSize: '11.5px',
                       fontWeight: 700,
+                      height: 26,
                       bgcolor: '#EFF6FF',
                       color: '#1D4ED8',
                       border: '1px solid #BFDBFE',
@@ -897,21 +925,21 @@ export default function ServiceDetailPage({ onStartBooking }) {
         )}
 
         {/* Issue Selector Section */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#0F172A', fontSize: '13px' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.2 }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: { xs: '14.5px', sm: '16px' } }}>
             Select issue or problem
           </Typography>
-          <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11.5px' }}>
+          <Typography variant="caption" sx={{ color: '#64748B', fontSize: { xs: '12.5px', sm: '13.5px' } }}>
             Estimated cost in Salem
           </Typography>
         </Box>
 
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2, mb: 2.5 }}>
           {isLoadingIssues ? (
             [1, 2, 3, 4].map((n) => (
-              <Card key={n} elevation={0} sx={{ p: 1.2, borderRadius: '8px' }}>
-                <Skeleton variant="text" width="60%" height={20} />
-                <Skeleton variant="text" width="40%" height={14} />
+              <Card key={n} elevation={0} sx={{ p: 1.5, borderRadius: '8px' }}>
+                <Skeleton variant="text" width="60%" height={24} />
+                <Skeleton variant="text" width="40%" height={16} />
               </Card>
             ))
           ) : (
@@ -923,7 +951,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
                   elevation={0}
                   onClick={() => setSelectedIssue(item.id)}
                   sx={{
-                    p: 1.2,
+                    p: { xs: 1.4, sm: 1.6 },
                     bgcolor: isSelected ? '#EFF6FF' : '#FFFFFF',
                     border: isSelected ? '1.5px solid #2563EB' : '1px solid #E2E8F0',
                     borderRadius: '8px',
@@ -941,16 +969,16 @@ export default function ServiceDetailPage({ onStartBooking }) {
                       size="small"
                       sx={{ p: 0.2, '&.Mui-checked': { color: '#2563EB' } }}
                     />
-                    <Typography variant="subtitle2" sx={{ fontWeight: isSelected ? 600 : 500, color: '#0F172A', fontSize: '13px' }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: isSelected ? 700 : 500, color: '#0F172A', fontSize: { xs: '14px', sm: '15px' } }}>
                       {item.title}
                     </Typography>
                   </Box>
 
                   <Box sx={{ textAlign: 'right' }}>
-                    <Typography variant="caption" sx={{ color: '#475569', fontWeight: 600, display: 'block', fontSize: '11px' }}>
+                    <Typography variant="caption" sx={{ color: '#475569', fontWeight: 700, display: 'block', fontSize: { xs: '12.5px', sm: '13.5px' } }}>
                       {item.estRange}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: '#16A34A', fontSize: '10.5px' }}>
+                    <Typography variant="caption" sx={{ color: '#16A34A', fontSize: { xs: '11.5px', sm: '12.5px' }, fontWeight: 600 }}>
                       Visit fee: ₹49
                     </Typography>
                   </Box>
@@ -967,13 +995,13 @@ export default function ServiceDetailPage({ onStartBooking }) {
             bgcolor: '#FFFFFF',
             border: '1px solid #E2E8F0',
             borderRadius: '8px',
-            p: 1.5,
+            p: { xs: 1.5, sm: 2 },
             mb: 2.5
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 1 }}>
-            <EditNoteIcon sx={{ color: '#2563EB', fontSize: 18 }} />
-            <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#0F172A', fontSize: '12.5px' }}>
+            <EditNoteIcon sx={{ color: '#2563EB', fontSize: 20 }} />
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: { xs: '14px', sm: '15px' } }}>
               Describe problem details (optional)
             </Typography>
           </Box>
@@ -986,8 +1014,8 @@ export default function ServiceDetailPage({ onStartBooking }) {
             onChange={(e) => setCustomDescription(e.target.value)}
             sx={{
               '& .MuiOutlinedInput-root': {
-                fontSize: '12px',
-                borderRadius: '6px',
+                fontSize: { xs: '13.5px', sm: '14.5px' },
+                borderRadius: '8px',
                 bgcolor: '#F8FAFC'
               }
             }}
@@ -998,7 +1026,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
             onAudioChange={(audio) => setVoiceNoteAudio(audio)}
           />
 
-          <Typography variant="caption" sx={{ color: '#64748B', fontSize: '10.5px', mt: 0.5, display: 'block' }}>
+          <Typography variant="caption" sx={{ color: '#64748B', fontSize: { xs: '12px', sm: '13px' }, mt: 0.8, display: 'block' }}>
             Our technician will listen to your voice note and review these details before arriving with the right tools.
           </Typography>
         </Card>
@@ -1010,26 +1038,26 @@ export default function ServiceDetailPage({ onStartBooking }) {
             bgcolor: '#FFFFFF',
             border: '1.5px solid #E2E8F0',
             borderRadius: '12px',
-            p: 2,
+            p: { xs: 1.8, sm: 2.2 },
             mb: 2.5,
             boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)'
           }}
         >
-          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '13.5px', mb: 0.5 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', fontSize: { xs: '15.5px', sm: '17.5px' }, mb: 0.5 }}>
             Choose How You Want to Book
           </Typography>
-          <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 1.5 }}>
+          <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 1.5, fontSize: { xs: '12.5px', sm: '13.5px' } }}>
             Need immediate service in 15-25 mins, or want to pick a convenient date & slot?
           </Typography>
 
           {/* Mode Tabs */}
-          <Grid container spacing={1.2} sx={{ mb: 2 }}>
+          <Grid container spacing={1.5} sx={{ mb: 2 }}>
             <Grid item xs={6}>
               <Paper
                 elevation={0}
                 onClick={() => setBookingMode('instant')}
                 sx={{
-                  p: 1.5,
+                  p: { xs: 1.5, sm: 1.8 },
                   borderRadius: '10px',
                   cursor: 'pointer',
                   border: bookingMode === 'instant' ? '2px solid #2563EB' : '1px solid #E2E8F0',
@@ -1042,8 +1070,8 @@ export default function ServiceDetailPage({ onStartBooking }) {
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
-                    <BoltIcon sx={{ color: bookingMode === 'instant' ? '#2563EB' : '#64748B', fontSize: 18 }} />
-                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: bookingMode === 'instant' ? '#1D4ED8' : '#0F172A', fontSize: '12.5px' }}>
+                    <BoltIcon sx={{ color: bookingMode === 'instant' ? '#2563EB' : '#64748B', fontSize: 20 }} />
+                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: bookingMode === 'instant' ? '#1D4ED8' : '#0F172A', fontSize: { xs: '13.5px', sm: '15px' } }}>
                       Search Tech Now
                     </Typography>
                   </Box>
@@ -1054,7 +1082,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
                     sx={{ p: 0, '&.Mui-checked': { color: '#2563EB' } }}
                   />
                 </Box>
-                <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11px', lineHeight: 1.3 }}>
+                <Typography variant="caption" sx={{ color: '#64748B', fontSize: { xs: '12px', sm: '13px' }, lineHeight: 1.35 }}>
                   Instant dispatch • Arrives in 15-25 mins
                 </Typography>
               </Paper>
@@ -1065,7 +1093,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
                 elevation={0}
                 onClick={() => setBookingMode('scheduled')}
                 sx={{
-                  p: 1.5,
+                  p: { xs: 1.5, sm: 1.8 },
                   borderRadius: '10px',
                   cursor: 'pointer',
                   border: bookingMode === 'scheduled' ? '2px solid #0284C7' : '1px solid #E2E8F0',
@@ -1078,8 +1106,8 @@ export default function ServiceDetailPage({ onStartBooking }) {
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
-                    <CalendarMonthIcon sx={{ color: bookingMode === 'scheduled' ? '#0284C7' : '#64748B', fontSize: 18 }} />
-                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: bookingMode === 'scheduled' ? '#0369A1' : '#0F172A', fontSize: '12.5px' }}>
+                    <CalendarMonthIcon sx={{ color: bookingMode === 'scheduled' ? '#0284C7' : '#64748B', fontSize: 20 }} />
+                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: bookingMode === 'scheduled' ? '#0369A1' : '#0F172A', fontSize: { xs: '13.5px', sm: '15px' } }}>
                       Choose Date & Slot
                     </Typography>
                   </Box>
@@ -1090,7 +1118,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
                     sx={{ p: 0, '&.Mui-checked': { color: '#0284C7' } }}
                   />
                 </Box>
-                <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11px', lineHeight: 1.3 }}>
+                <Typography variant="caption" sx={{ color: '#64748B', fontSize: { xs: '12px', sm: '13px' }, lineHeight: 1.35 }}>
                   Scheduled visit • Central Ops Assigned
                 </Typography>
               </Paper>
@@ -1108,19 +1136,19 @@ export default function ServiceDetailPage({ onStartBooking }) {
               }}
             >
               {/* Step 1: 14-Day Horizontal Scroller + Calendar Picker */}
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="caption" sx={{ fontWeight: 800, color: '#0369A1', textTransform: 'uppercase' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.2 }}>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: '#0369A1', textTransform: 'uppercase', fontSize: { xs: '12.5px', sm: '13.5px' } }}>
                   1. Select Service Date:
                 </Typography>
                 <Button
                   size="small"
                   variant="text"
-                  startIcon={<CalendarMonthIcon sx={{ fontSize: 15 }} />}
+                  startIcon={<CalendarMonthIcon sx={{ fontSize: 18 }} />}
                   onClick={() => dateInputRef.current && (dateInputRef.current.showPicker ? dateInputRef.current.showPicker() : dateInputRef.current.click())}
                   sx={{
                     color: '#0284C7',
                     fontWeight: 800,
-                    fontSize: '11px',
+                    fontSize: { xs: '12.5px', sm: '13.5px' },
                     textTransform: 'none',
                     p: 0,
                     minWidth: 0
@@ -1144,11 +1172,11 @@ export default function ServiceDetailPage({ onStartBooking }) {
               <Box
                 sx={{
                   display: 'flex',
-                  gap: 1,
+                  gap: 1.2,
                   overflowX: 'auto',
-                  pb: 1,
+                  pb: 1.2,
                   mb: 1.5,
-                  '::-webkit-scrollbar': { height: '4px' },
+                  '::-webkit-scrollbar': { height: '5px' },
                   '::-webkit-scrollbar-thumb': { bgcolor: '#CBD5E1', borderRadius: '4px' }
                 }}
               >
@@ -1160,8 +1188,8 @@ export default function ServiceDetailPage({ onStartBooking }) {
                       elevation={0}
                       onClick={() => setSelectedDateISO(d.iso)}
                       sx={{
-                        minWidth: '68px',
-                        p: '8px 6px',
+                        minWidth: '72px',
+                        p: '10px 8px',
                         borderRadius: '10px',
                         cursor: 'pointer',
                         textAlign: 'center',
@@ -1181,7 +1209,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
                         variant="caption"
                         sx={{
                           display: 'block',
-                          fontSize: '9.5px',
+                          fontSize: '11.5px',
                           fontWeight: 800,
                           letterSpacing: '0.3px',
                           color: isSelected ? '#E0F2FE' : '#64748B'
@@ -1193,9 +1221,9 @@ export default function ServiceDetailPage({ onStartBooking }) {
                         variant="subtitle1"
                         sx={{
                           fontWeight: 900,
-                          fontSize: '18px',
+                          fontSize: { xs: '19px', sm: '21px' },
                           lineHeight: 1.2,
-                          my: 0.2,
+                          my: 0.3,
                           color: isSelected ? '#FFFFFF' : '#0F172A'
                         }}
                       >
@@ -1205,7 +1233,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
                         variant="caption"
                         sx={{
                           display: 'block',
-                          fontSize: '10px',
+                          fontSize: '11.5px',
                           fontWeight: 700,
                           color: isSelected ? '#E0F2FE' : '#94A3B8'
                         }}
@@ -1223,16 +1251,16 @@ export default function ServiceDetailPage({ onStartBooking }) {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  p: '6px 10px',
+                  p: '8px 12px',
                   bgcolor: '#EFF6FF',
                   borderRadius: '8px',
                   border: '1px solid #BFDBFE',
                   mb: 2
                 }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
-                  <EventIcon sx={{ color: '#0284C7', fontSize: 16 }} />
-                  <Typography variant="caption" sx={{ color: '#0369A1', fontWeight: 800, fontSize: '11.5px' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                  <EventIcon sx={{ color: '#0284C7', fontSize: 18 }} />
+                  <Typography variant="caption" sx={{ color: '#0369A1', fontWeight: 800, fontSize: { xs: '13px', sm: '14px' } }}>
                     Selected Date: <strong>{getFormattedDateString()}</strong>
                   </Typography>
                 </Box>
@@ -1240,20 +1268,20 @@ export default function ServiceDetailPage({ onStartBooking }) {
                   size="small"
                   variant="text"
                   onClick={() => dateInputRef.current && (dateInputRef.current.showPicker ? dateInputRef.current.showPicker() : dateInputRef.current.click())}
-                  sx={{ p: 0, minWidth: 0, fontSize: '10.5px', fontWeight: 700, color: '#0284C7', textTransform: 'none' }}
+                  sx={{ p: 0, minWidth: 0, fontSize: { xs: '12px', sm: '13px' }, fontWeight: 700, color: '#0284C7', textTransform: 'none' }}
                 >
                   Change Date
                 </Button>
               </Box>
 
               {/* Step 2: Time Slots + Custom Time */}
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="caption" sx={{ fontWeight: 800, color: '#0369A1', textTransform: 'uppercase' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.2 }}>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: '#0369A1', textTransform: 'uppercase', fontSize: { xs: '12.5px', sm: '13.5px' } }}>
                   2. Select Time Window or Custom Time:
                 </Typography>
               </Box>
 
-              <Grid container spacing={1} sx={{ mb: 1.5 }}>
+              <Grid container spacing={1.2} sx={{ mb: 1.5 }}>
                 {timeSlots.map(slot => {
                   const isSlotActive = !isCustomTimeActive && selectedSlot === slot.label;
                   return (
@@ -1265,7 +1293,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
                           setSelectedSlot(slot.label);
                         }}
                         sx={{
-                          p: 1,
+                          p: { xs: 1.2, sm: 1.4 },
                           borderRadius: '8px',
                           cursor: 'pointer',
                           border: isSlotActive ? '1.5px solid #0284C7' : '1px solid #E2E8F0',
@@ -1273,16 +1301,16 @@ export default function ServiceDetailPage({ onStartBooking }) {
                           transition: 'all 0.15s ease',
                           display: 'flex',
                           flexDirection: 'column',
-                          gap: 0.3
+                          gap: 0.4
                         }}
                       >
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <Typography variant="caption" sx={{ fontWeight: 800, color: isSlotActive ? '#0369A1' : '#0F172A', fontSize: '11.5px' }}>
+                          <Typography variant="caption" sx={{ fontWeight: 800, color: isSlotActive ? '#0369A1' : '#0F172A', fontSize: { xs: '13px', sm: '14px' } }}>
                             {slot.label}
                           </Typography>
-                          {isSlotActive && <CheckCircleIcon sx={{ fontSize: 14, color: '#0284C7' }} />}
+                          {isSlotActive && <CheckCircleIcon sx={{ fontSize: 16, color: '#0284C7' }} />}
                         </Box>
-                        <Typography variant="caption" sx={{ color: '#64748B', fontSize: '10px' }}>
+                        <Typography variant="caption" sx={{ color: '#64748B', fontSize: { xs: '11.5px', sm: '12.5px' } }}>
                           {slot.period} {slot.popular ? '• Popular' : ''}
                         </Typography>
                       </Paper>
@@ -1296,7 +1324,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
                 elevation={0}
                 onClick={() => setIsCustomTimeActive(true)}
                 sx={{
-                  p: 1.2,
+                  p: { xs: 1.2, sm: 1.5 },
                   borderRadius: '8px',
                   border: isCustomTimeActive ? '1.5px solid #0284C7' : '1px solid #E2E8F0',
                   bgcolor: isCustomTimeActive ? '#E0F2FE' : '#FFFFFF',
@@ -1307,13 +1335,13 @@ export default function ServiceDetailPage({ onStartBooking }) {
                   cursor: 'pointer'
                 }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                  <AccessTimeIcon sx={{ color: isCustomTimeActive ? '#0284C7' : '#64748B', fontSize: 18 }} />
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <AccessTimeIcon sx={{ color: isCustomTimeActive ? '#0284C7' : '#64748B', fontSize: 20 }} />
                   <Box>
-                    <Typography variant="caption" sx={{ fontWeight: 800, color: isCustomTimeActive ? '#0369A1' : '#0F172A', fontSize: '11.5px', display: 'block' }}>
+                    <Typography variant="caption" sx={{ fontWeight: 800, color: isCustomTimeActive ? '#0369A1' : '#0F172A', fontSize: { xs: '13px', sm: '14px' }, display: 'block' }}>
                       Specify Exact Custom Time (Optional)
                     </Typography>
-                    <Typography variant="caption" sx={{ color: '#64748B', fontSize: '10.5px' }}>
+                    <Typography variant="caption" sx={{ color: '#64748B', fontSize: { xs: '12px', sm: '13px' } }}>
                       {customTime ? `Chosen: ${getEffectiveSlot()}` : 'Pick an exact arrival time'}
                     </Typography>
                   </Box>
@@ -1328,10 +1356,10 @@ export default function ServiceDetailPage({ onStartBooking }) {
                     setIsCustomTimeActive(true);
                   }}
                   style={{
-                    padding: '4px 8px',
+                    padding: '6px 10px',
                     borderRadius: '6px',
                     border: '1px solid #CBD5E1',
-                    fontSize: '12px',
+                    fontSize: '13.5px',
                     fontWeight: '700',
                     color: '#0F172A',
                     backgroundColor: '#F8FAFC',
@@ -1344,17 +1372,17 @@ export default function ServiceDetailPage({ onStartBooking }) {
               <Paper
                 elevation={0}
                 sx={{
-                  p: 1.2,
+                  p: { xs: 1.2, sm: 1.5 },
                   bgcolor: '#FFFFFF',
                   borderRadius: '8px',
                   border: '1px dashed #BAE6FD',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 1
+                  gap: 1.2
                 }}
               >
-                <AdminPanelSettingsIcon sx={{ color: '#0284C7', fontSize: 20, flexShrink: 0 }} />
-                <Typography variant="caption" sx={{ color: '#334155', fontSize: '11px', lineHeight: 1.4 }}>
+                <AdminPanelSettingsIcon sx={{ color: '#0284C7', fontSize: 22, flexShrink: 0 }} />
+                <Typography variant="caption" sx={{ color: '#334155', fontSize: { xs: '12px', sm: '13px' }, lineHeight: 1.45 }}>
                   <strong>Admin Operations Queue:</strong> Once booked, this slot request is forwarded directly to the Salem Central Admin Board. Our operations desk assigns a certified technician for your scheduled window.
                 </Typography>
               </Paper>
@@ -1364,51 +1392,51 @@ export default function ServiceDetailPage({ onStartBooking }) {
 
         {/* Quality & Guarantees Accordion Section */}
         <Box sx={{ mb: 3 }}>
-          <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', mb: 1.2 }}>
+          <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', mb: 1.2, fontSize: { xs: '12px', sm: '13px' } }}>
             SalemSeva Quality & Guarantees
           </Typography>
 
           {/* Accordion 1: Labour Pricing & Zero Product Selling */}
           <Accordion elevation={0} sx={{ border: '1px solid #E2E8F0', borderRadius: '10px !important', mb: 1, '&:before': { display: 'none' } }}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 18 }} />}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 20 }} />}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <ShieldIcon sx={{ fontSize: 18, color: '#0066CC' }} />
-                <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: '13px', color: '#0F172A' }}>
+                <ShieldIcon sx={{ fontSize: 20, color: '#0066CC' }} />
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: { xs: '14px', sm: '15px' }, color: '#0F172A' }}>
                   Transparent Labour & Zero Product Push
                 </Typography>
               </Box>
             </AccordionSummary>
-            <AccordionDetails sx={{ pt: 0, color: '#475569', fontSize: '12px', lineHeight: 1.6 }}>
+            <AccordionDetails sx={{ pt: 0, color: '#475569', fontSize: { xs: '13px', sm: '14px' }, lineHeight: 1.6 }}>
               SalemSeva charges strictly for doorstep inspection and skilled workmanship. We do not sell or force spare parts. If any materials or replacement components are needed, you are completely free to provide them yourself or purchase them from any vendor of your choice.
             </AccordionDetails>
           </Accordion>
 
           {/* Accordion 2: 30-Day Free Rework Warranty */}
           <Accordion elevation={0} sx={{ border: '1px solid #E2E8F0', borderRadius: '10px !important', mb: 1, '&:before': { display: 'none' } }}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 18 }} />}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 20 }} />}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <CheckCircleIcon sx={{ fontSize: 18, color: '#16A34A' }} />
-                <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: '13px', color: '#0F172A' }}>
+                <CheckCircleIcon sx={{ fontSize: 20, color: '#16A34A' }} />
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: { xs: '14px', sm: '15px' }, color: '#0F172A' }}>
                   30-Day Free Work Warranty
                 </Typography>
               </Box>
             </AccordionSummary>
-            <AccordionDetails sx={{ pt: 0, color: '#475569', fontSize: '12px', lineHeight: 1.6 }}>
+            <AccordionDetails sx={{ pt: 0, color: '#475569', fontSize: { xs: '13px', sm: '14px' }, lineHeight: 1.6 }}>
               Every completed booking across Fairlands, Hasthampatti, Suramangalam, and all 10 Salem municipal wards comes with our 30-day workmanship assurance. If the same diagnosed fault reoccurs within 30 days, our technician will re-inspect and service it at zero extra labour charge.
             </AccordionDetails>
           </Accordion>
 
           {/* Accordion 3: Escrow Payment Protection */}
           <Accordion elevation={0} sx={{ border: '1px solid #E2E8F0', borderRadius: '10px !important', '&:before': { display: 'none' } }}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 18 }} />}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 20 }} />}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <LockIcon sx={{ fontSize: 18, color: '#059669' }} />
-                <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: '13px', color: '#0F172A' }}>
+                <LockIcon sx={{ fontSize: 20, color: '#059669' }} />
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: { xs: '14px', sm: '15px' }, color: '#0F172A' }}>
                   100% Escrow Payment Protection
                 </Typography>
               </Box>
             </AccordionSummary>
-            <AccordionDetails sx={{ pt: 0, color: '#475569', fontSize: '12px', lineHeight: 1.6 }}>
+            <AccordionDetails sx={{ pt: 0, color: '#475569', fontSize: { xs: '13px', sm: '14px' }, lineHeight: 1.6 }}>
               Your repair fee is locked in a secure digital escrow holding account. Funds are released to the technician only after you personally test the repaired appliance and sign off on completion.
             </AccordionDetails>
           </Accordion>
@@ -1426,7 +1454,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
           right: 0,
           bgcolor: '#FFFFFF',
           borderTop: '1px solid #E2E8F0',
-          py: 1.2,
+          py: 1.4,
           px: { xs: 2, md: 3 },
           zIndex: 995,
           boxShadow: '0 -4px 16px rgba(15, 23, 42, 0.08)'
@@ -1434,10 +1462,10 @@ export default function ServiceDetailPage({ onStartBooking }) {
       >
         <Container maxWidth="md" disableGutters sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box>
-            <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '13.5px', color: '#0F172A' }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: { xs: '15px', sm: '17px' }, color: '#0F172A' }}>
               Inspection fee: ₹49
             </Typography>
-            <Typography variant="caption" sx={{ color: bookingMode === 'scheduled' ? '#0066CC' : couponApplied ? '#16A34A' : '#64748B', fontSize: '11.5px', fontWeight: 600 }}>
+            <Typography variant="caption" sx={{ color: bookingMode === 'scheduled' ? '#0066CC' : couponApplied ? '#16A34A' : '#64748B', fontSize: { xs: '12.5px', sm: '13.5px' }, fontWeight: 600 }}>
               {bookingMode === 'scheduled'
                 ? `${getFormattedDateString()} • ${getEffectiveSlot().split('-')[0].trim()}`
                 : couponApplied ? `₹${couponDiscount} discount applied` : `Service in ${userLocation.locality || 'Fairlands, Salem'}`}
@@ -1447,15 +1475,15 @@ export default function ServiceDetailPage({ onStartBooking }) {
           <Button
             variant="contained"
             onClick={handleProceed}
-            endIcon={bookingMode === 'instant' ? <BoltIcon sx={{ fontSize: 18 }} /> : <ArrowForwardIcon sx={{ fontSize: 18 }} />}
+            endIcon={bookingMode === 'instant' ? <BoltIcon sx={{ fontSize: 20 }} /> : <ArrowForwardIcon sx={{ fontSize: 20 }} />}
             sx={{
               bgcolor: bookingMode === 'instant' ? '#0066CC' : '#0284C7',
               color: '#FFFFFF',
               borderRadius: '10px',
               fontWeight: 800,
-              px: 3,
-              py: 0.9,
-              fontSize: '13.5px',
+              px: { xs: 2.5, sm: 3.5 },
+              py: 1,
+              fontSize: { xs: '14px', sm: '15.5px' },
               textTransform: 'none',
               boxShadow: '0 4px 14px rgba(0, 102, 204, 0.25)',
               '&:hover': { bgcolor: bookingMode === 'instant' ? '#0052A3' : '#0369A1' }
@@ -1507,8 +1535,8 @@ export default function ServiceDetailPage({ onStartBooking }) {
         <DialogTitle sx={{ pb: 1, pt: 2.5, px: 2.5 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <CalendarMonthIcon sx={{ color: '#0284C7', fontSize: 24 }} />
-              <Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '17px' }}>
+              <CalendarMonthIcon sx={{ color: '#0284C7', fontSize: 26 }} />
+              <Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A', fontSize: { xs: '16.5px', sm: '18px' } }}>
                 Reserve Scheduled Slot
               </Typography>
             </Box>
@@ -1521,7 +1549,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
               <CloseIcon fontSize="small" />
             </Button>
           </Box>
-          <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mt: 0.3 }}>
+          <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mt: 0.3, fontSize: { xs: '12px', sm: '13px' } }}>
             Salem Central Operations Guaranteed Doorstep Slot
           </Typography>
         </DialogTitle>
@@ -1530,63 +1558,63 @@ export default function ServiceDetailPage({ onStartBooking }) {
           {/* Appointment Summary Card */}
           <Paper elevation={0} sx={{ p: 2, bgcolor: '#F0F9FF', border: '1.5px solid #BAE6FD', borderRadius: '12px', mb: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 1 }}>
-              <EventIcon sx={{ color: '#0284C7', fontSize: 18 }} />
-              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0369A1', fontSize: '13px' }}>
+              <EventIcon sx={{ color: '#0284C7', fontSize: 20 }} />
+              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0369A1', fontSize: { xs: '14px', sm: '15px' } }}>
                 {getFormattedDateString()} • {getEffectiveSlot()}
               </Typography>
             </Box>
-            <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '12.5px' }}>
+            <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: { xs: '13.5px', sm: '14.5px' } }}>
               {currentServiceName}
             </Typography>
-            <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mt: 0.2 }}>
+            <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mt: 0.3, fontSize: { xs: '12px', sm: '13px' } }}>
               {userLocation.address || 'Fairlands, Salem - 636016'}
             </Typography>
           </Paper>
 
           {/* Price Breakdown */}
           <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', mb: 2 }}>
-            <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 1.2 }}>
+            <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 1.2, fontSize: { xs: '11.5px', sm: '12.5px' } }}>
               Payment Breakdown
             </Typography>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.8 }}>
-              <Typography variant="body2" sx={{ color: '#475569', fontSize: '12.5px' }}>
+              <Typography variant="body2" sx={{ color: '#475569', fontSize: { xs: '13px', sm: '14px' } }}>
                 Doorstep Diagnostic & Inspection Visit:
               </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '12.5px' }}>
+              <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: { xs: '13px', sm: '14px' } }}>
                 ₹49.00
               </Typography>
             </Box>
             {couponApplied && couponDiscount > 0 && (
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.8 }}>
-                <Typography variant="body2" sx={{ color: '#16A34A', fontSize: '12.5px' }}>
+                <Typography variant="body2" sx={{ color: '#16A34A', fontSize: { xs: '13px', sm: '14px' } }}>
                   Coupon Discount ({couponCode}):
                 </Typography>
-                <Typography variant="body2" sx={{ fontWeight: 700, color: '#16A34A', fontSize: '12.5px' }}>
+                <Typography variant="body2" sx={{ fontWeight: 700, color: '#16A34A', fontSize: { xs: '13px', sm: '14px' } }}>
                   -₹{couponDiscount}.00
                 </Typography>
               </Box>
             )}
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.8 }}>
-              <Typography variant="body2" sx={{ color: '#475569', fontSize: '12.5px' }}>
+              <Typography variant="body2" sx={{ color: '#475569', fontSize: { xs: '13px', sm: '14px' } }}>
                 Central Ops Slot Reservation:
               </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 800, color: '#16A34A', fontSize: '12.5px' }}>
+              <Typography variant="body2" sx={{ fontWeight: 800, color: '#16A34A', fontSize: { xs: '13px', sm: '14px' } }}>
                 FREE
               </Typography>
             </Box>
             <Divider sx={{ my: 1, borderColor: '#E2E8F0' }} />
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '13.5px' }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: { xs: '14.5px', sm: '15.5px' } }}>
                 Total Payable Now:
               </Typography>
-              <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0284C7', fontSize: '16px' }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0284C7', fontSize: { xs: '17px', sm: '19px' } }}>
                 ₹{Math.max(0, 49 - (couponApplied ? couponDiscount : 0))}.00
               </Typography>
             </Box>
           </Paper>
 
           {/* Payment Method Selector */}
-          <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 1 }}>
+          <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 1, fontSize: { xs: '11.5px', sm: '12.5px' } }}>
             Select Payment Method
           </Typography>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
@@ -1594,7 +1622,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
               elevation={0}
               onClick={() => setSelectedPayMethod('upi')}
               sx={{
-                p: 1.4,
+                p: { xs: 1.4, sm: 1.6 },
                 borderRadius: '10px',
                 cursor: 'pointer',
                 border: '1.5px solid',
@@ -1607,12 +1635,12 @@ export default function ServiceDetailPage({ onStartBooking }) {
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
-                <QrCode2Icon sx={{ color: '#0284C7', fontSize: 22 }} />
+                <QrCode2Icon sx={{ color: '#0284C7', fontSize: 24 }} />
                 <Box>
-                  <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '12.5px' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: { xs: '13.5px', sm: '14.5px' } }}>
                     UPI / GPay / PhonePe / Cards
                   </Typography>
-                  <Typography variant="caption" sx={{ color: '#64748B', fontSize: '10.5px' }}>
+                  <Typography variant="caption" sx={{ color: '#64748B', fontSize: { xs: '11.5px', sm: '12.5px' } }}>
                     Instant verification via Razorpay Escrow
                   </Typography>
                 </Box>
@@ -1624,7 +1652,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
               elevation={0}
               onClick={() => setSelectedPayMethod('wallet')}
               sx={{
-                p: 1.4,
+                p: { xs: 1.4, sm: 1.6 },
                 borderRadius: '10px',
                 cursor: 'pointer',
                 border: '1.5px solid',
@@ -1637,13 +1665,13 @@ export default function ServiceDetailPage({ onStartBooking }) {
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
-                <AccountBalanceWalletIcon sx={{ color: '#059669', fontSize: 22 }} />
+                <AccountBalanceWalletIcon sx={{ color: '#059669', fontSize: 24 }} />
                 <Box>
-                  <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '12.5px' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: { xs: '13.5px', sm: '14.5px' } }}>
                     Seva Credits Wallet
                   </Typography>
-                  <Typography variant="caption" sx={{ color: '#059669', fontWeight: 700, fontSize: '10.5px' }}>
-                    Available balance: ₹{user?.walletBalance ?? 150}
+                  <Typography variant="caption" sx={{ color: '#059669', fontWeight: 700, fontSize: { xs: '11.5px', sm: '12.5px' } }}>
+                    Available: {walletBalance ?? user?.walletBalance ?? 150} Credits (₹{(((walletBalance ?? user?.walletBalance ?? 150) / 10)).toFixed(2)}) • 10 Credits = ₹1
                   </Typography>
                 </Box>
               </Box>
@@ -1653,8 +1681,8 @@ export default function ServiceDetailPage({ onStartBooking }) {
 
           <Alert
             severity="info"
-            icon={<ShieldIcon sx={{ fontSize: 18, color: '#0284C7' }} />}
-            sx={{ bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px', fontSize: '11px', color: '#475569', py: 0.5 }}
+            icon={<ShieldIcon sx={{ fontSize: 20, color: '#0284C7' }} />}
+            sx={{ bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px', fontSize: { xs: '12px', sm: '13px' }, color: '#475569', py: 0.6 }}
           >
             Salem Central Operations will allocate a verified specialist prior to your slot. When the technician starts heading to your home, you will receive an automatic notification and live tracking.
           </Alert>
@@ -1835,8 +1863,8 @@ export default function ServiceDetailPage({ onStartBooking }) {
                 borderRadius: '10px',
                 textTransform: 'none',
                 fontWeight: 700,
-                fontSize: '12px',
-                py: 0.8,
+                fontSize: { xs: '13px', sm: '14px' },
+                py: 1,
                 bgcolor: guestAuthMode === 'signin' ? '#0284C7' : 'transparent',
                 color: guestAuthMode === 'signin' ? '#FFF' : '#64748B',
                 borderColor: '#E2E8F0',
@@ -1856,8 +1884,8 @@ export default function ServiceDetailPage({ onStartBooking }) {
                 borderRadius: '10px',
                 textTransform: 'none',
                 fontWeight: 700,
-                fontSize: '12px',
-                py: 0.8,
+                fontSize: { xs: '13px', sm: '14px' },
+                py: 1,
                 bgcolor: guestAuthMode === 'signup' ? '#0284C7' : 'transparent',
                 color: guestAuthMode === 'signup' ? '#FFF' : '#64748B',
                 borderColor: '#E2E8F0',
@@ -1869,7 +1897,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
           </Box>
 
           {guestAuthError && (
-            <Alert severity="error" sx={{ mb: 2, borderRadius: '10px', fontSize: '12px' }}>
+            <Alert severity="error" sx={{ mb: 2, borderRadius: '10px', fontSize: { xs: '12.5px', sm: '13.5px' } }}>
               {guestAuthError}
             </Alert>
           )}
@@ -1877,7 +1905,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
           {guestAuthMode === 'signin' ? (
             /* ================= SIGN IN TAB ================= */
             <Box component="form" onSubmit={handleGuestCredentialsLogin} sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', fontSize: '11px' }}>
+              <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', fontSize: { xs: '12px', sm: '13px' } }}>
                 Mobile Number or Username:
               </Typography>
               <TextField
@@ -1886,10 +1914,10 @@ export default function ServiceDetailPage({ onStartBooking }) {
                 placeholder="e.g. 98420 12345"
                 value={guestIdentifier}
                 onChange={(e) => setGuestIdentifier(e.target.value)}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', fontSize: '13px' } }}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', fontSize: { xs: '13.5px', sm: '14.5px' } } }}
               />
 
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', fontSize: '11px' }}>
+              <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', fontSize: { xs: '12px', sm: '13px' } }}>
                 Password:
               </Typography>
               <TextField
@@ -1899,7 +1927,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
                 placeholder="Enter your account password"
                 value={guestPassword}
                 onChange={(e) => setGuestPassword(e.target.value)}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', fontSize: '13px' } }}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', fontSize: { xs: '13.5px', sm: '14.5px' } } }}
               />
 
               <Button
@@ -1911,8 +1939,8 @@ export default function ServiceDetailPage({ onStartBooking }) {
                   bgcolor: '#0284C7',
                   color: '#FFFFFF',
                   fontWeight: 800,
-                  fontSize: '13px',
-                  py: 1.1,
+                  fontSize: { xs: '14px', sm: '15px' },
+                  py: 1.2,
                   borderRadius: '10px',
                   textTransform: 'none',
                   boxShadow: '0 4px 12px rgba(2, 132, 199, 0.25)',
@@ -1925,7 +1953,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
           ) : (
             /* ================= CREATE ACCOUNT TAB ================= */
             <Box component="form" onSubmit={handleGuestSignUp} sx={{ display: 'flex', flexDirection: 'column', gap: 1.4 }}>
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', fontSize: '11px' }}>
+              <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', fontSize: { xs: '12px', sm: '13px' } }}>
                 Full Name:
               </Typography>
               <TextField
@@ -1934,10 +1962,10 @@ export default function ServiceDetailPage({ onStartBooking }) {
                 placeholder="e.g. Vimal Raj"
                 value={guestSignUpName}
                 onChange={(e) => setGuestSignUpName(e.target.value)}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', fontSize: '13px' } }}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', fontSize: { xs: '13.5px', sm: '14.5px' } } }}
               />
 
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', fontSize: '11px' }}>
+              <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', fontSize: { xs: '12px', sm: '13px' } }}>
                 Mobile Number (10 digits):
               </Typography>
               <TextField
@@ -1946,10 +1974,10 @@ export default function ServiceDetailPage({ onStartBooking }) {
                 placeholder="e.g. 98427 11234"
                 value={guestSignUpPhone}
                 onChange={(e) => setGuestSignUpPhone(e.target.value)}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', fontSize: '13px' } }}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', fontSize: { xs: '13.5px', sm: '14.5px' } } }}
               />
 
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', fontSize: '11px' }}>
+              <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', fontSize: { xs: '12px', sm: '13px' } }}>
                 Salem Locality:
               </Typography>
               <TextField
@@ -1958,7 +1986,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
                 size="small"
                 value={guestSignUpLocality}
                 onChange={(e) => setGuestSignUpLocality(e.target.value)}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', fontSize: '13px' } }}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', fontSize: { xs: '13.5px', sm: '14.5px' } } }}
               >
                 {[
                   'Fairlands, Salem',
@@ -1972,13 +2000,13 @@ export default function ServiceDetailPage({ onStartBooking }) {
                   'Kannankurichi, Salem',
                   'Gorimedu, Salem'
                 ].map((loc) => (
-                  <MenuItem key={loc} value={loc} sx={{ fontSize: '13px' }}>
+                  <MenuItem key={loc} value={loc} sx={{ fontSize: { xs: '13px', sm: '14px' } }}>
                     {loc}
                   </MenuItem>
                 ))}
               </TextField>
 
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', fontSize: '11px' }}>
+              <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', fontSize: { xs: '12px', sm: '13px' } }}>
                 Create Password (min 6 characters):
               </Typography>
               <TextField
@@ -1988,10 +2016,10 @@ export default function ServiceDetailPage({ onStartBooking }) {
                 placeholder="Choose password"
                 value={guestSignUpPassword}
                 onChange={(e) => setGuestSignUpPassword(e.target.value)}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', fontSize: '13px' } }}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', fontSize: { xs: '13.5px', sm: '14.5px' } } }}
               />
 
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', fontSize: '11px' }}>
+              <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', fontSize: { xs: '12px', sm: '13px' } }}>
                 Confirm Password:
               </Typography>
               <TextField
@@ -2001,7 +2029,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
                 placeholder="Re-enter password"
                 value={guestSignUpConfirmPassword}
                 onChange={(e) => setGuestSignUpConfirmPassword(e.target.value)}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', fontSize: '13px' } }}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', fontSize: { xs: '13.5px', sm: '14.5px' } } }}
               />
 
               <Button
@@ -2013,8 +2041,8 @@ export default function ServiceDetailPage({ onStartBooking }) {
                   bgcolor: '#0284C7',
                   color: '#FFFFFF',
                   fontWeight: 800,
-                  fontSize: '13px',
-                  py: 1.1,
+                  fontSize: { xs: '14px', sm: '15px' },
+                  py: 1.2,
                   borderRadius: '10px',
                   textTransform: 'none',
                   mt: 0.5,
@@ -2032,7 +2060,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
           <Button
             size="small"
             onClick={() => setGuestAuthModalOpen(false)}
-            sx={{ textTransform: 'none', fontWeight: 600, fontSize: '12px', color: '#64748B' }}
+            sx={{ textTransform: 'none', fontWeight: 600, fontSize: { xs: '12.5px', sm: '13.5px' }, color: '#64748B' }}
           >
             Cancel
           </Button>

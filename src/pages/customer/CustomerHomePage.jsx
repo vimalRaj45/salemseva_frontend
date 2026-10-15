@@ -501,7 +501,7 @@ export default function CustomerHomePage() {
                   {user.name}
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11px', display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <StarsIcon sx={{ color: '#D97706', fontSize: 13 }} /> ₹{user.walletBalance ?? 150} wallet credits available
+                  <StarsIcon sx={{ color: '#D97706', fontSize: 13 }} /> {user.walletBalance ?? 150} Credits (₹{(((user.walletBalance ?? 150) / 10)).toFixed(0)}) available
                 </Typography>
               </Box>
             </Box>

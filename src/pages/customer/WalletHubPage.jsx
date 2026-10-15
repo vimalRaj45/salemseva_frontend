@@ -148,7 +148,7 @@ export default function WalletHubPage() {
             </Box>
           </Box>
           <Chip 
-            label="1 Credit = ₹1" 
+            label="10 Credits = ₹1" 
             size="small" 
             sx={{ bgcolor: '#ECFDF5', color: '#065F46', border: '1px solid #A7F3D0', fontWeight: 800, fontSize: '11px', borderRadius: '6px' }} 
           />
@@ -271,12 +271,12 @@ export default function WalletHubPage() {
                       lineHeight: 1.3
                     }}
                   >
-                    100% Cash Value • Redeemable across any home service in Salem
+                    10 Credits = ₹1 Cash Value • Redeemable across any home service in Salem
                   </Typography>
 
                   <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                     <Chip
-                      label={`₹${walletBalance}.00 Cash Value`}
+                      label={`₹${(walletBalance / 10).toFixed(2)} Cash Value (10 Credits = ₹1)`}
                       size="small"
                       sx={{
                         bgcolor: 'rgba(255, 255, 255, 0.18)',
@@ -385,14 +385,14 @@ export default function WalletHubPage() {
                   </Typography>
                 </Box>
                 <Chip
-                  label={`EARN ₹${rewardCredits} / FRIEND`}
+                  label={`EARN ${rewardCredits} CREDITS (₹${(rewardCredits / 10).toFixed(0)}) / FRIEND`}
                   size="small"
                   sx={{ bgcolor: '#ECFDF5', color: '#047857', border: '1px solid #A7F3D0', fontWeight: 900, fontSize: '10.5px', height: 22 }}
                 />
               </Box>
 
               <Typography variant="body2" sx={{ color: '#334155', fontSize: '12.5px', lineHeight: 1.5, mb: 2 }}>
-                Give friends <strong>₹{refereeDiscount} OFF</strong> their first home service. You get <strong>{rewardCredits} Seva Credits (₹{rewardCredits})</strong> credited directly to your wallet when their service is completed!
+                Give friends <strong>₹{refereeDiscount} OFF</strong> their first home service. You get <strong>{rewardCredits} Seva Credits (₹{(rewardCredits / 10).toFixed(0)} value)</strong> credited directly to your wallet when their service is completed!
               </Typography>
 
               {/* Referral Code Box */}
@@ -479,7 +479,7 @@ export default function WalletHubPage() {
                 </Box>
                 <Box>
                   <Typography variant="h6" sx={{ fontWeight: 900, color: '#0066CC', fontSize: '17px' }}>
-                    ₹{referralStats.creditsEarned}
+                    {referralStats.creditsEarned} pts (₹{(referralStats.creditsEarned / 10).toFixed(0)})
                   </Typography>
                   <Typography variant="caption" sx={{ color: '#475569', fontSize: '11px', fontWeight: 600 }}>
                     Credits Earned

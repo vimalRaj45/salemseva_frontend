@@ -24,7 +24,8 @@ import {
   Briefcase,
   HelpCircle,
   Clock,
-  MessageSquarePlus
+  MessageSquarePlus,
+  Sparkles
 } from 'lucide-react';
 import { getCurrentLanguage, SUPPORTED_LANGUAGES } from '../services/languageService';
 
@@ -301,7 +302,7 @@ export default function SideNavbar({
                   >
                     <Wallet size={14} color="#D97706" />
                     <span style={{ fontSize: '12px', fontWeight: 800, color: '#D97706' }}>
-                      ₹{creditsAmount} Seva Credits
+                      {creditsAmount} Credits (₹{(creditsAmount / 10).toFixed(0)})
                     </span>
                   </div>
 
@@ -424,7 +425,7 @@ export default function SideNavbar({
                     <SideNavItem
                       icon={<Wallet size={18} />}
                       label="Seva Wallet & Cashback"
-                      badge={`₹${creditsAmount}`}
+                      badge={`${creditsAmount} pts (₹${(creditsAmount / 10).toFixed(0)})`}
                       active={currentPath === '/wallet'}
                       isDark={isDarkMode}
                       onClick={() => handleNav('/wallet')}

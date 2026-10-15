@@ -51,19 +51,19 @@ export const theme = createTheme({
     divider: '#E2E8F0',
   },
   typography: {
-    fontFamily: '"Outfit", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    h1: { fontWeight: 800, fontSize: '1.35rem', letterSpacing: '-0.02em', color: '#0F172A' },
-    h2: { fontWeight: 800, fontSize: '1.2rem', letterSpacing: '-0.015em', color: '#0F172A' },
-    h3: { fontWeight: 700, fontSize: '1.05rem', letterSpacing: '-0.01em', color: '#0F172A' },
-    h4: { fontWeight: 700, fontSize: '0.95rem', letterSpacing: '-0.01em', color: '#0F172A' },
-    h5: { fontWeight: 600, fontSize: '0.875rem', color: '#0F172A' },
-    h6: { fontWeight: 600, fontSize: '0.8125rem', color: '#0F172A' },
-    subtitle1: { fontWeight: 700, fontSize: '0.85rem', color: '#0F172A' },
-    subtitle2: { fontWeight: 600, fontSize: '0.8rem', color: '#334155' },
-    body1: { fontSize: '0.8rem', lineHeight: 1.45, color: '#334155' },
-    body2: { fontSize: '0.75rem', lineHeight: 1.4, color: '#64748B' },
-    caption: { fontSize: '0.6875rem', lineHeight: 1.35, color: '#64748B' },
-    button: { textTransform: 'none', fontWeight: 700, fontSize: '0.78rem' },
+    fontFamily: '"Outfit", "Inter", "Noto Sans Tamil", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    h1: { fontWeight: 800, fontSize: 'clamp(1.75rem, 1.3rem + 1.8vw, 2.5rem)', letterSpacing: '-0.02em', color: '#0F172A', lineHeight: 1.2 },
+    h2: { fontWeight: 800, fontSize: 'clamp(1.4rem, 1.15rem + 1.1vw, 2rem)', letterSpacing: '-0.015em', color: '#0F172A', lineHeight: 1.25 },
+    h3: { fontWeight: 700, fontSize: 'clamp(1.2rem, 1.05rem + 0.6vw, 1.5rem)', letterSpacing: '-0.01em', color: '#0F172A', lineHeight: 1.3 },
+    h4: { fontWeight: 700, fontSize: 'clamp(1.05rem, 0.98rem + 0.35vw, 1.25rem)', letterSpacing: '-0.01em', color: '#0F172A', lineHeight: 1.35 },
+    h5: { fontWeight: 600, fontSize: 'clamp(0.95rem, 0.9rem + 0.25vw, 1.125rem)', color: '#0F172A', lineHeight: 1.4 },
+    h6: { fontWeight: 600, fontSize: 'clamp(0.875rem, 0.85rem + 0.15vw, 1rem)', color: '#0F172A', lineHeight: 1.45 },
+    subtitle1: { fontWeight: 700, fontSize: 'clamp(0.95rem, 0.9rem + 0.25vw, 1.075rem)', color: '#0F172A', lineHeight: 1.4 },
+    subtitle2: { fontWeight: 600, fontSize: 'clamp(0.875rem, 0.825rem + 0.2vw, 0.975rem)', color: '#334155', lineHeight: 1.45 },
+    body1: { fontSize: 'clamp(0.9375rem, 0.9rem + 0.2vw, 1.05rem)', lineHeight: 1.55, color: '#334155' },
+    body2: { fontSize: 'clamp(0.875rem, 0.825rem + 0.15vw, 0.95rem)', lineHeight: 1.5, color: '#64748B' },
+    caption: { fontSize: 'clamp(0.75rem, 0.72rem + 0.1vw, 0.8125rem)', lineHeight: 1.4, color: '#64748B' },
+    button: { textTransform: 'none', fontWeight: 700, fontSize: 'clamp(0.875rem, 0.85rem + 0.15vw, 0.95rem)' },
   },
   shape: {
     borderRadius: 8,
@@ -86,10 +86,10 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: 8,
-          padding: '8px 16px',
+          padding: '9px 18px',
           fontWeight: 700,
-          fontSize: '0.8125rem',
-          minHeight: '40px',
+          fontSize: 'clamp(0.875rem, 0.85rem + 0.15vw, 0.95rem)',
+          minHeight: '44px',
           boxShadow: 'none',
           transition: 'background-color 140ms ease, border-color 140ms ease, color 140ms ease',
           '&:hover': {
@@ -148,8 +148,8 @@ export const theme = createTheme({
         root: {
           borderRadius: 6,
           fontWeight: 700,
-          fontSize: '0.6875rem',
-          height: 24,
+          fontSize: '0.75rem',
+          height: 26,
           '&:focus-visible': {
             outline: '2px solid #0066CC',
             outlineOffset: '1px',
@@ -181,7 +181,7 @@ export const theme = createTheme({
         root: {
           padding: '6px 0',
           minWidth: 'auto',
-          minHeight: '44px',
+          minHeight: '48px',
           '&.Mui-selected': {
             color: '#0066CC',
           },
@@ -191,10 +191,10 @@ export const theme = createTheme({
           },
         },
         label: {
-          fontSize: '0.65rem !important',
+          fontSize: '0.75rem !important',
           fontWeight: 600,
           '&.Mui-selected': {
-            fontSize: '0.68rem !important',
+            fontSize: '0.8125rem !important',
             fontWeight: 800,
           },
         },
@@ -204,8 +204,8 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: 8,
-          fontSize: '0.8125rem',
-          minHeight: '40px',
+          fontSize: 'clamp(0.875rem, 0.85rem + 0.15vw, 0.95rem)',
+          minHeight: '44px',
           '& fieldset': {
             borderColor: '#E2E8F0',
             transition: 'border-color 140ms ease',
@@ -222,8 +222,8 @@ export const theme = createTheme({
           },
         },
         input: {
-          fontSize: '0.8125rem',
-          padding: '9px 12px',
+          fontSize: 'clamp(0.875rem, 0.85rem + 0.15vw, 0.95rem)',
+          padding: '11px 14px',
         },
       },
     },

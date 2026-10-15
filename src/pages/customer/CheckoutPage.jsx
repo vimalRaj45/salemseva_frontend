@@ -84,16 +84,19 @@ export default function CheckoutPage() {
   }, [bookingId]);
 
   const grossTotal = partsAndLabor;
-  const maxBurnable = Math.min(walletBalance || 0, Math.floor(grossTotal * 0.20));
-  const creditDiscount = (redeemCredits && maxBurnable > 0) ? maxBurnable : 0;
+  // Standard conversion: 10 credits = 1 rs
+  const availableRsFromCredits = Math.floor((walletBalance || 0) / 10);
+  const maxBurnableRs = Math.min(availableRsFromCredits, Math.floor(grossTotal * 0.20));
+  const creditDiscount = (redeemCredits && maxBurnableRs > 0) ? maxBurnableRs : 0;
+  const creditsToDebit = creditDiscount * 10;
   const netPayable = Math.max(0, grossTotal - creditDiscount);
 
   const handlePayNow = async () => {
     setIsProcessing(true);
 
     try {
-      if (creditDiscount > 0) {
-        await debitWallet(creditDiscount, bookingId);
+      if (creditsToDebit > 0) {
+        await debitWallet(creditsToDebit, bookingId);
       }
 
       // 1. Ensure Razorpay checkout script is loaded
@@ -319,7 +322,7 @@ export default function CheckoutPage() {
                   sx={{ p: 0, color: '#10B981', '&.Mui-checked': { color: '#10B981' } }}
                 />
                 <Typography variant="caption" sx={{ fontWeight: 800, color: '#065F46', fontSize: '11.5px' }}>
-                  Redeem Seva Credits (Max 20% cap)
+                  Redeem Seva Credits ({walletBalance} credits = ₹{availableRsFromCredits}, Max 20% cap)
                 </Typography>
               </Box>
               <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#047857' }}>
