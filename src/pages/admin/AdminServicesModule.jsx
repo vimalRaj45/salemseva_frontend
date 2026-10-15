@@ -108,9 +108,21 @@ export default function AdminServicesModule({ currentRole = 'super_admin', onToa
     fetchServices();
   }, []);
 
+const formatServicePrice = (srv) => {
+  const p = srv.est_price_range_en || srv.estPriceRangeEn || srv.base_price;
+  if (!p) return '₹299 - ₹1,499';
+  if (typeof p === 'string' && (p.includes('₹') || p.includes('-') || isNaN(Number(p)))) {
+    return p;
+  }
+  const n = parseFloat(p);
+  return isNaN(n) ? 'Quote-based' : `₹${n.toFixed(2)}`;
+};
+
   const handleOpenFeeDialog = (srv) => {
     setSelectedServiceForFee(srv);
-    setNewVisitFee(srv.visit_fee || '99.00');
+    const rawVal = srv.visit_fee ?? srv.visitFee ?? '99.00';
+    const parsed = parseFloat(rawVal);
+    setNewVisitFee(isNaN(parsed) ? '99.00' : parsed.toFixed(2));
     setFeeDialogOpen(true);
   };
 
@@ -124,21 +136,46 @@ export default function AdminServicesModule({ currentRole = 'super_admin', onToa
 
     try {
       setSavingFee(true);
-      const res = await fetch(`${API_V1_URL}/admin/services/${selectedServiceForFee.id}/fee`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ visitFee: feeNum })
-      });
+      const payload = JSON.stringify({ visitFee: feeNum, visit_fee: feeNum });
+      let res;
+      try {
+        res = await fetch(`${API_V1_URL}/admin/services/${selectedServiceForFee.id}/fee`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload
+        });
+      } catch (e) {
+        res = await fetch(`${API_V1_URL}/admin/services/${selectedServiceForFee.id}/fee`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload
+        });
+      }
+
+      if (!res || !res.ok) {
+        res = await fetch(`${API_V1_URL}/admin/services/${selectedServiceForFee.id}/fee`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload
+        });
+      }
+
       const data = await res.json();
       if (data.success) {
-        onToast(`Inspection fee updated to ₹${feeNum.toFixed(2)} for ${selectedServiceForFee.name}`, 'success');
-        setServices(prev => prev.map(s => s.id === selectedServiceForFee.id ? { ...s, visit_fee: feeNum.toFixed(2) } : s));
+        const formattedFee = feeNum.toFixed(2);
+        onToast(`Inspection fee updated to ₹${formattedFee} for ${selectedServiceForFee.name}`, 'success');
+        setServices(prev => prev.map(s => (s.id === selectedServiceForFee.id ? {
+          ...s,
+          visit_fee: formattedFee,
+          visitFee: feeNum,
+          inspectionFee: feeNum
+        } : s)));
         setFeeDialogOpen(false);
       } else {
         onToast(data.error || 'Failed to update inspection fee', 'error');
       }
     } catch (err) {
-      onToast(err.message, 'error');
+      onToast(err.message || 'Error updating fee', 'error');
     } finally {
       setSavingFee(false);
     }
@@ -429,7 +466,7 @@ export default function AdminServicesModule({ currentRole = 'super_admin', onToa
 
                   <TableCell>
                     <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A' }}>
-                      {srv.est_price_range_en || (srv.base_price ? `₹${parseFloat(srv.base_price).toFixed(2)}` : '₹299 - ₹1,499')}
+                      {formatServicePrice(srv)}
                     </Typography>
                   </TableCell>
 
