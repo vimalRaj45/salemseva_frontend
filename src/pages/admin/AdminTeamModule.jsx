@@ -326,7 +326,11 @@ export default function AdminTeamModule({ currentRole = 'super_admin', onToast =
             </Typography>
           </Box>
         ) : (
-          <Table size="small">
+          <Box sx={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: '12px', border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
+            <Typography variant="caption" sx={{ display: { xs: 'block', md: 'none' }, color: '#94A3B8', px: 2, pt: 1, fontSize: '10.5px' }}>
+              Swipe left/right to view full table details
+            </Typography>
+            <Table size="small" sx={{ minWidth: 680 }}>
             <TableHead>
               <TableRow sx={{ bgcolor: '#F8FAFC', '& th': { color: '#475569', fontWeight: 800, fontSize: '12px', py: 1.5 } }}>
                 <TableCell>Member Name</TableCell>
@@ -449,7 +453,8 @@ export default function AdminTeamModule({ currentRole = 'super_admin', onToast =
               })}
             </TableBody>
           </Table>
-        )}
+        </Box>
+      )}
       </Card>
 
       {/* Add / Edit Staff Modal */}

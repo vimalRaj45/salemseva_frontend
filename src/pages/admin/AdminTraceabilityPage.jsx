@@ -5,11 +5,11 @@ import {
   Box,
   Typography,
   Card,
-  CardContent,
   Chip,
   Button,
   Paper,
-  Divider
+  Divider,
+  CircularProgress
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
@@ -17,10 +17,42 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import SecurityIcon from '@mui/icons-material/Security';
 import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
+import ArticleIcon from '@mui/icons-material/Article';
+
+const defaultFallbackLogs = [
+  {
+    id: 'sample-1',
+    event_type: 'BOOKING_DISPATCHED',
+    created_at: new Date().toISOString(),
+    booking_id: 'BK-1042',
+    actor_type: 'SYSTEM',
+    actor_id: 'AUTO_DISPATCH_ENGINE',
+    description: 'Booking matched and dispatched to nearest available partner in Fairlands zone.'
+  },
+  {
+    id: 'sample-2',
+    event_type: 'OTP_DOORSTEP_VERIFIED',
+    created_at: new Date(Date.now() - 3600000).toISOString(),
+    booking_id: 'BK-1039',
+    actor_type: 'TECHNICIAN',
+    actor_id: 'TECH-402',
+    description: 'Technician arrived at doorstep. Secure one-time PIN verified by customer.'
+  },
+  {
+    id: 'sample-3',
+    event_type: 'PAYMENT_ESCROW_SETTLED',
+    created_at: new Date(Date.now() - 7200000).toISOString(),
+    booking_id: 'BK-1035',
+    actor_type: 'GATEWAY',
+    actor_id: 'RAZORPAY_ROUTE',
+    description: 'Customer payment authorized. Net payout disbursed to partner bank account.'
+  }
+];
 
 export default function AdminTraceabilityPage() {
   const navigate = useNavigate();
   const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch(`${API_V1_URL}/admin/traceability`)
@@ -28,60 +60,97 @@ export default function AdminTraceabilityPage() {
       .then(data => {
         if (data.success && data.logs && data.logs.length > 0) {
           setLogs(data.logs);
+        } else {
+          setLogs(defaultFallbackLogs);
         }
       })
-      .catch(err => console.warn('Using live logs:', err));
+      .catch(err => {
+        console.warn('Using live logs fallback:', err);
+        setLogs(defaultFallbackLogs);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   return (
-    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', py: 4 }}>
-      <Container maxWidth="md">
+    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', py: { xs: 2.5, sm: 4 } }}>
+      <Container maxWidth="md" sx={{ px: { xs: 2, sm: 3 } }}>
         <Button 
           startIcon={<ArrowBackIcon />} 
           onClick={() => navigate('/admin')} 
-          sx={{ color: '#0284C7', mb: 2, fontWeight: 700, textTransform: 'none' }}
+          sx={{
+            color: '#0284C7',
+            mb: 2,
+            fontWeight: 700,
+            textTransform: 'none',
+            borderRadius: '10px',
+            minHeight: 44,
+            px: 2,
+            border: '1px solid #E2E8F0',
+            bgcolor: '#FFFFFF',
+            '&:hover': { bgcolor: '#F1F5F9' }
+          }}
         >
           Back to Admin Dashboard
         </Button>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-          <HistoryEduIcon sx={{ color: '#0284C7', fontSize: 32 }} />
-          <Typography variant="h5" sx={{ fontWeight: 900, color: '#0F172A', letterSpacing: -0.5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1, flexWrap: 'wrap' }}>
+          <HistoryEduIcon sx={{ color: '#0284C7', fontSize: { xs: 28, sm: 32 } }} />
+          <Typography variant="h5" sx={{ fontWeight: 900, color: '#0F172A', letterSpacing: -0.5, fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
             Forensic Job Audit & Traceability Matrix
           </Typography>
         </Box>
         <Typography variant="body2" sx={{ color: '#64748B', mb: 3 }}>
-          Forensic chronological audit trail of dispatched jobs and verification events recorded in database.
+          Forensic chronological audit trail of dispatched jobs, OTP doorstep validations, and settlement records.
         </Typography>
 
-        <Card elevation={0} sx={{ bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '20px', p: 3, boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {logs.length > 0 ? (
-              logs.map((log, idx) => (
-                <Paper key={log.id || idx} elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', borderRadius: '14px', borderLeft: '4px solid #0284C7', border: '1px solid #E2E8F0' }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0284C7' }}>
-                      {log.event_type}
-                    </Typography>
-                    <Chip label={new Date(log.created_at).toLocaleTimeString()} size="small" sx={{ bgcolor: '#E2E8F0', color: '#475569', fontSize: '11px', fontWeight: 700 }} />
+        <Card elevation={0} sx={{ bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '16px', p: { xs: 2, sm: 3 }, boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
+          {loading ? (
+            <Box sx={{ py: 6, textAlign: 'center' }}>
+              <CircularProgress size={32} sx={{ color: '#0284C7' }} />
+              <Typography variant="caption" sx={{ display: 'block', mt: 1.5, color: '#64748B', fontWeight: 600 }}>
+                Loading audit trail records...
+              </Typography>
+            </Box>
+          ) : (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+              {logs.map((log, idx) => (
+                <Paper
+                  key={log.id || idx}
+                  elevation={0}
+                  sx={{
+                    p: 2,
+                    bgcolor: '#F8FAFC',
+                    borderRadius: '12px',
+                    border: '1px solid #E2E8F0',
+                    transition: 'border-color 0.15s ease',
+                    '&:hover': { borderColor: '#BAE6FD' }
+                  }}
+                >
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.8, flexWrap: 'wrap', gap: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <ArticleIcon sx={{ fontSize: 18, color: '#0284C7' }} />
+                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '13px' }}>
+                        {log.event_type}
+                      </Typography>
+                    </Box>
+                    <Chip
+                      label={new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                      size="small"
+                      sx={{ bgcolor: '#E2E8F0', color: '#475569', fontSize: '11px', fontWeight: 700, height: 22 }}
+                    />
                   </Box>
-                  <Typography variant="body2" sx={{ color: '#334155', fontWeight: 600 }}>
-                    Booking: {log.booking_id} • Actor: {log.actor_type} ({log.actor_id})
+                  <Typography variant="body2" sx={{ color: '#334155', fontWeight: 600, fontSize: '12.5px' }}>
+                    Booking: <span style={{ color: '#0284C7' }}>{log.booking_id}</span> • Actor: <span style={{ color: '#0F172A' }}>{log.actor_type}</span> ({log.actor_id})
                   </Typography>
+                  {log.description && (
+                    <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mt: 0.5 }}>
+                      {log.description}
+                    </Typography>
+                  )}
                 </Paper>
-              ))
-            ) : (
-              defaultEvents.map((e, idx) => (
-                <Paper key={idx} elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', borderRadius: '14px', borderLeft: '4px solid #0284C7', border: '1px solid #E2E8F0' }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0284C7' }}>{e.title}</Typography>
-                    <Chip label={e.time} size="small" sx={{ bgcolor: '#E2E8F0', color: '#475569', fontSize: '11px', fontWeight: 700 }} />
-                  </Box>
-                  <Typography variant="body2" sx={{ color: '#475569' }}>{e.desc}</Typography>
-                </Paper>
-              ))
-            )}
-          </Box>
+              ))}
+            </Box>
+          )}
         </Card>
       </Container>
     </Box>

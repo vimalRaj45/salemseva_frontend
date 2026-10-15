@@ -48,6 +48,7 @@ import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import ArticleIcon from '@mui/icons-material/Article';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import SearchIcon from '@mui/icons-material/Search';
+import MenuIcon from '@mui/icons-material/Menu';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import ClearIcon from '@mui/icons-material/Clear';
@@ -128,6 +129,7 @@ export default function AdminDashboardPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [currentRole, setCurrentRole] = useState(() => localStorage.getItem('salemseva_admin_role') || 'super_admin');
   const [teamList, setTeamList] = useState([]);
   const [activeMainTab, setActiveMainTab] = useState('ops'); // 'ops', 'tracking', 'services', 'technicians', 'customers', 'feedback', 'rewards', 'team', 'traceability'
@@ -1077,40 +1079,64 @@ export default function AdminDashboardPage() {
           localStorage.setItem('salemseva_admin_role', newRole);
           setToast({ open: true, message: `Active RBAC role switched to ${newRole.toUpperCase()}`, severity: 'info' });
         }}
+        mobileOpen={mobileSidebarOpen}
+        onCloseMobile={() => setMobileSidebarOpen(false)}
       />
 
-      <Box component="main" sx={{ flex: 1, minWidth: 0, p: { xs: 2, md: 3 }, overflowY: 'auto', pb: 10 }}>
+      <Box component="main" sx={{ flex: 1, minWidth: 0, p: { xs: 1.5, sm: 2, md: 3 }, overflowY: 'auto', pb: 10 }}>
         
         {/* Top Header Bar */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2.5, flexWrap: 'wrap', gap: 2 }}>
-          <Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <AdminPanelSettingsIcon sx={{ color: '#0284C7', fontSize: 30 }} />
-              <Typography variant="h5" sx={{ fontWeight: 900, color: '#0F172A', letterSpacing: -0.5 }}>
-                SalemSeva <span style={{ color: '#0284C7', fontSize: 15, fontWeight: 700 }}>Central Ops & Fleet Command</span>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: { xs: 1.5, md: 2.5 }, flexWrap: 'wrap', gap: 1.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 }, flexWrap: 'wrap' }}>
+            <IconButton
+              onClick={() => setMobileSidebarOpen(true)}
+              aria-label="Open navigation menu"
+              sx={{
+                display: { xs: 'inline-flex', md: 'none' },
+                bgcolor: '#FFFFFF',
+                border: '1px solid #CBD5E1',
+                borderRadius: '10px',
+                p: 1,
+                minWidth: 44,
+                minHeight: 44,
+                color: '#0284C7',
+                '&:hover': { bgcolor: '#F1F5F9' }
+              }}
+            >
+              <MenuIcon sx={{ fontSize: 24 }} />
+            </IconButton>
+
+            <Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                <AdminPanelSettingsIcon sx={{ color: '#0284C7', fontSize: { xs: 24, sm: 30 } }} />
+                <Typography variant="h5" sx={{ fontWeight: 900, color: '#0F172A', letterSpacing: -0.5, fontSize: { xs: '1.15rem', sm: '1.4rem', md: '1.5rem' } }}>
+                  SalemSeva <span style={{ color: '#0284C7', fontSize: '0.85em', fontWeight: 700 }}>Central Ops & Fleet Command</span>
+                </Typography>
+                <Chip
+                  label="Live PostgreSQL DB"
+                  size="small"
+                  icon={<CheckCircleIcon sx={{ color: '#166534 !important', fontSize: 14 }} />}
+                  sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 800, fontSize: '10.5px', height: 22 }}
+                />
+              </Box>
+              <Typography variant="caption" sx={{ color: '#64748B', display: { xs: 'none', sm: 'block' }, mt: 0.3 }}>
+                Salem City Municipal Corporation Jurisdiction (Zone 1 - 4) • Real-time SLA & Dispatch
               </Typography>
-              <Chip
-                label="Live PostgreSQL DB"
-                size="small"
-                icon={<CheckCircleIcon sx={{ color: '#166534 !important', fontSize: 14 }} />}
-                sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 800, fontSize: '11px' }}
-              />
             </Box>
-            <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mt: 0.3 }}>
-              Salem City Municipal Corporation Jurisdiction (Zone 1 - 4) • Real-time SLA & Dispatch
-            </Typography>
           </Box>
 
-          <Box sx={{ display: 'flex', gap: 1.2, alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
             <Tooltip title="Refresh live telemetry from PostgreSQL">
               <IconButton
                 onClick={() => fetchOverview(true)}
                 disabled={refreshing}
+                aria-label="Refresh telemetry"
                 sx={{
                   bgcolor: '#FFFFFF',
                   border: '1px solid #CBD5E1',
                   borderRadius: '10px',
-                  p: 0.8,
+                  minWidth: 40,
+                  minHeight: 40,
                   color: '#0284C7',
                   '&:hover': { bgcolor: '#F1F5F9' }
                 }}
@@ -1123,7 +1149,7 @@ export default function AdminDashboardPage() {
               size="small"
               startIcon={<TimelineIcon sx={{ fontSize: 16 }} />}
               onClick={() => navigate('/admin/traceability')}
-              sx={{ color: '#0284C7', borderColor: '#CBD5E1', bgcolor: '#FFF', borderRadius: '10px', fontWeight: 700, textTransform: 'none', px: 2 }}
+              sx={{ color: '#0284C7', borderColor: '#CBD5E1', bgcolor: '#FFF', borderRadius: '10px', fontWeight: 700, textTransform: 'none', px: { xs: 1.2, sm: 2 }, minHeight: 40, fontSize: { xs: '11.5px', sm: '13px' } }}
             >
               Traceability Audit
             </Button>
@@ -1132,7 +1158,7 @@ export default function AdminDashboardPage() {
               size="small"
               startIcon={<AccountBalanceWalletIcon sx={{ fontSize: 16 }} />}
               onClick={() => navigate('/admin/settlements')}
-              sx={{ color: '#0284C7', borderColor: '#CBD5E1', bgcolor: '#FFF', borderRadius: '10px', fontWeight: 700, textTransform: 'none', px: 2 }}
+              sx={{ color: '#0284C7', borderColor: '#CBD5E1', bgcolor: '#FFF', borderRadius: '10px', fontWeight: 700, textTransform: 'none', px: { xs: 1.2, sm: 2 }, minHeight: 40, fontSize: { xs: '11.5px', sm: '13px' } }}
             >
               Razorpay Settlements
             </Button>
@@ -1146,6 +1172,7 @@ export default function AdminDashboardPage() {
             onChange={(e, val) => setActiveMainTab(val)}
             variant="scrollable"
             scrollButtons="auto"
+            allowScrollButtonsMobile
             sx={{
               minHeight: 42,
               '& .MuiTab-root': {
@@ -1388,79 +1415,79 @@ export default function AdminDashboardPage() {
           </Tabs>
         </Paper>
 
-        {/* 4 KPI Stat Cards */}
-        <Grid container spacing={1.5} sx={{ mb: 2.5 }}>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card elevation={0} sx={{ bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '8px', p: 1.5 }}>
+        {/* 4 KPI Stat Cards - 2x2 on mobile, 4-col on desktop */}
+        <Grid container spacing={{ xs: 1, sm: 1.5 }} sx={{ mb: 2.5 }}>
+          <Grid item xs={6} sm={6} md={3}>
+            <Card elevation={0} sx={{ bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px', p: { xs: 1.25, md: 1.5 }, height: '100%' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <Typography variant="caption" sx={{ fontWeight: 600, color: '#64748B' }}>
-                  Active live bookings
+                <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748B', fontSize: { xs: '11px', sm: '12px' } }}>
+                  Active bookings
                 </Typography>
-                <Avatar sx={{ bgcolor: '#EFF6FF', color: '#2563EB', width: 28, height: 28 }}>
-                  <SpeedIcon sx={{ fontSize: 16 }} />
+                <Avatar sx={{ bgcolor: '#EFF6FF', color: '#2563EB', width: { xs: 26, md: 28 }, height: { xs: 26, md: 28 } }}>
+                  <SpeedIcon sx={{ fontSize: { xs: 14, md: 16 } }} />
                 </Avatar>
               </Box>
-              <Typography variant="h4" sx={{ fontWeight: 700, color: '#0F172A', my: 0.5, fontVariantNumeric: 'tabular-nums' }}>
+              <Typography sx={{ fontWeight: 800, color: '#0F172A', my: 0.5, fontVariantNumeric: 'tabular-nums', fontSize: { xs: '1.3rem', sm: '1.6rem', md: '1.85rem' } }}>
                 {metrics.activeBookings || recentBookings.length || 0}
               </Typography>
-              <Typography variant="caption" sx={{ color: '#16A34A', fontWeight: 600 }}>
+              <Typography variant="caption" sx={{ color: '#16A34A', fontWeight: 700, fontSize: { xs: '10px', sm: '11.5px' }, display: 'block' }}>
                 Live dispatch sync
               </Typography>
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3}>
-            <Card elevation={0} sx={{ bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '8px', p: 1.5 }}>
+          <Grid item xs={6} sm={6} md={3}>
+            <Card elevation={0} sx={{ bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px', p: { xs: 1.25, md: 1.5 }, height: '100%' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <Typography variant="caption" sx={{ fontWeight: 600, color: '#64748B' }}>
-                  Technicians on duty
+                <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748B', fontSize: { xs: '11px', sm: '12px' } }}>
+                  Techs on duty
                 </Typography>
-                <Avatar sx={{ bgcolor: '#F0FDF4', color: '#166534', width: 28, height: 28 }}>
-                  <EngineeringIcon sx={{ fontSize: 16 }} />
+                <Avatar sx={{ bgcolor: '#F0FDF4', color: '#166534', width: { xs: 26, md: 28 }, height: { xs: 26, md: 28 } }}>
+                  <EngineeringIcon sx={{ fontSize: { xs: 14, md: 16 } }} />
                 </Avatar>
               </Box>
-              <Typography variant="h4" sx={{ fontWeight: 700, color: '#2563EB', my: 0.5, fontVariantNumeric: 'tabular-nums' }}>
-                {technicians.filter(t => t.is_online).length} <span style={{ fontSize: 15, color: '#64748B', fontWeight: 500 }}>/ {technicians.length}</span>
+              <Typography sx={{ fontWeight: 800, color: '#2563EB', my: 0.5, fontVariantNumeric: 'tabular-nums', fontSize: { xs: '1.3rem', sm: '1.6rem', md: '1.85rem' } }}>
+                {technicians.filter(t => t.is_online).length} <span style={{ fontSize: '0.6em', color: '#64748B', fontWeight: 600 }}>/ {technicians.length}</span>
               </Typography>
-              <Typography variant="caption" sx={{ color: '#64748B' }}>
+              <Typography variant="caption" sx={{ color: '#64748B', fontSize: { xs: '10px', sm: '11.5px' }, display: 'block' }}>
                 Salem coverage zones
               </Typography>
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3}>
-            <Card elevation={0} sx={{ bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '8px', p: 1.5 }}>
+          <Grid item xs={6} sm={6} md={3}>
+            <Card elevation={0} sx={{ bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px', p: { xs: 1.25, md: 1.5 }, height: '100%' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <Typography variant="caption" sx={{ fontWeight: 600, color: '#64748B' }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748B', fontSize: { xs: '11px', sm: '12px' } }}>
                   Registered clients
                 </Typography>
-                <Avatar sx={{ bgcolor: '#F1F5F9', color: '#475569', width: 28, height: 28 }}>
-                  <PeopleAltIcon sx={{ fontSize: 16 }} />
+                <Avatar sx={{ bgcolor: '#F1F5F9', color: '#475569', width: { xs: 26, md: 28 }, height: { xs: 26, md: 28 } }}>
+                  <PeopleAltIcon sx={{ fontSize: { xs: 14, md: 16 } }} />
                 </Avatar>
               </Box>
-              <Typography variant="h4" sx={{ fontWeight: 700, color: '#0F172A', my: 0.5, fontVariantNumeric: 'tabular-nums' }}>
+              <Typography sx={{ fontWeight: 800, color: '#0F172A', my: 0.5, fontVariantNumeric: 'tabular-nums', fontSize: { xs: '1.3rem', sm: '1.6rem', md: '1.85rem' } }}>
                 {customersList.length || 1}
               </Typography>
-              <Typography variant="caption" sx={{ color: '#64748B' }}>
+              <Typography variant="caption" sx={{ color: '#64748B', fontSize: { xs: '10px', sm: '11.5px' }, display: 'block' }}>
                 Verified residents
               </Typography>
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3}>
-            <Card elevation={0} sx={{ bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '8px', p: 1.5 }}>
+          <Grid item xs={6} sm={6} md={3}>
+            <Card elevation={0} sx={{ bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px', p: { xs: 1.25, md: 1.5 }, height: '100%' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <Typography variant="caption" sx={{ fontWeight: 600, color: '#64748B' }}>
-                  Today's gross volume
+                <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748B', fontSize: { xs: '11px', sm: '12px' } }}>
+                  Today's volume
                 </Typography>
-                <Avatar sx={{ bgcolor: '#F0FDF4', color: '#166534', width: 28, height: 28 }}>
-                  <AccountBalanceWalletIcon sx={{ fontSize: 16 }} />
+                <Avatar sx={{ bgcolor: '#F0FDF4', color: '#166534', width: { xs: 26, md: 28 }, height: { xs: 26, md: 28 } }}>
+                  <AccountBalanceWalletIcon sx={{ fontSize: { xs: 14, md: 16 } }} />
                 </Avatar>
               </Box>
-              <Typography variant="h4" sx={{ fontWeight: 700, color: '#16A34A', my: 0.5, fontVariantNumeric: 'tabular-nums' }}>
+              <Typography sx={{ fontWeight: 800, color: '#16A34A', my: 0.5, fontVariantNumeric: 'tabular-nums', fontSize: { xs: '1.3rem', sm: '1.6rem', md: '1.85rem' } }}>
                 ₹{metrics.financials?.totalRevenue ? Number(metrics.financials.totalRevenue).toLocaleString() : '42,850'}
               </Typography>
-              <Typography variant="caption" sx={{ color: '#64748B' }}>
+              <Typography variant="caption" sx={{ color: '#64748B', fontSize: { xs: '10px', sm: '11.5px' }, display: 'block' }}>
                 Digital escrow settlements
               </Typography>
             </Card>
@@ -1964,7 +1991,11 @@ export default function AdminDashboardPage() {
                   </Typography>
                 </Paper>
               ) : (
-                <Table size="small">
+                <Box sx={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: '12px', border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
+                  <Typography variant="caption" sx={{ display: { xs: 'block', md: 'none' }, color: '#94A3B8', px: 2, pt: 1, fontSize: '10.5px' }}>
+                    Swipe left/right to view full table details
+                  </Typography>
+                  <Table size="small" sx={{ minWidth: 720 }}>
                   <TableHead>
                     <TableRow sx={{ bgcolor: '#F8FAFC', '& th': { color: '#475569', fontWeight: 800, borderColor: '#E2E8F0', py: 1.4 } }}>
                       <TableCell>Booking ID</TableCell>
@@ -2174,7 +2205,8 @@ export default function AdminDashboardPage() {
                     ))}
                   </TableBody>
                 </Table>
-              )}
+              </Box>
+            )}
             </Card>
 
             {/*  SECTION 3: DIGITAL KYC QUEUE & DISPUTE ARBITRATION */}
@@ -2320,7 +2352,11 @@ export default function AdminDashboardPage() {
                 </Typography>
               </Paper>
             ) : (
-              <Table size="small">
+              <Box sx={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: '12px', border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
+                <Typography variant="caption" sx={{ display: { xs: 'block', md: 'none' }, color: '#94A3B8', px: 2, pt: 1, fontSize: '10.5px' }}>
+                  Swipe left/right to view full table details
+                </Typography>
+                <Table size="small" sx={{ minWidth: 720 }}>
                 <TableHead>
                   <TableRow sx={{ bgcolor: '#F8FAFC', '& th': { color: '#475569', fontWeight: 800, borderColor: '#E2E8F0', py: 1.4 } }}>
                     <TableCell>Customer Profile</TableCell>
@@ -2446,7 +2482,8 @@ export default function AdminDashboardPage() {
                   ))}
                 </TableBody>
               </Table>
-            )}
+            </Box>
+          )}
           </Card>
         )}
 
@@ -2478,12 +2515,16 @@ export default function AdminDashboardPage() {
                       <SearchIcon sx={{ color: '#94A3B8', fontSize: 18 }} />
                     </InputAdornment>
                   ),
-                  sx: { borderRadius: '12px', bgcolor: '#F8FAFC', width: 280, fontSize: '13px' }
+                  sx: { borderRadius: '12px', bgcolor: '#F8FAFC', width: { xs: '100%', sm: 280 }, fontSize: '13px' }
                 }}
               />
             </Box>
 
-            <Table size="small">
+            <Box sx={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: '12px', border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
+              <Typography variant="caption" sx={{ display: { xs: 'block', md: 'none' }, color: '#94A3B8', px: 2, pt: 1, fontSize: '10.5px' }}>
+                Swipe left/right to view full table details
+              </Typography>
+              <Table size="small" sx={{ minWidth: 720 }}>
               <TableHead>
                 <TableRow sx={{ bgcolor: '#F8FAFC', '& th': { color: '#475569', fontWeight: 800, borderColor: '#E2E8F0', py: 1.4 } }}>
                   <TableCell>Technician Profile</TableCell>
@@ -2696,7 +2737,8 @@ export default function AdminDashboardPage() {
                 ))}
               </TableBody>
             </Table>
-          </Card>
+          </Box>
+        </Card>
         )}
 
         {/* ========================================================================= */}
@@ -3009,7 +3051,11 @@ export default function AdminDashboardPage() {
                 </Typography>
               </Paper>
             ) : (
-              <Table size="small">
+              <Box sx={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: '12px', border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
+                <Typography variant="caption" sx={{ display: { xs: 'block', md: 'none' }, color: '#94A3B8', px: 2, pt: 1, fontSize: '10.5px' }}>
+                  Swipe left/right to view full table details
+                </Typography>
+                <Table size="small" sx={{ minWidth: 720 }}>
                 <TableHead>
                   <TableRow sx={{ bgcolor: '#F8FAFC', '& th': { color: '#475569', fontWeight: 800, borderColor: '#E2E8F0', py: 1.4 } }}>
                     <TableCell>User / Reporter</TableCell>
@@ -3199,7 +3245,8 @@ export default function AdminDashboardPage() {
                   })}
                 </TableBody>
               </Table>
-            )}
+            </Box>
+          )}
           </Card>
         )}
 
@@ -3317,7 +3364,11 @@ export default function AdminDashboardPage() {
                 </Typography>
               </Paper>
             ) : (
-              <Table size="small">
+              <Box sx={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: '12px', border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
+                <Typography variant="caption" sx={{ display: { xs: 'block', md: 'none' }, color: '#94A3B8', px: 2, pt: 1, fontSize: '10.5px' }}>
+                  Swipe left/right to view full table details
+                </Typography>
+                <Table size="small" sx={{ minWidth: 740 }}>
                 <TableHead>
                   <TableRow sx={{ bgcolor: '#F8FAFC', '& th': { color: '#475569', fontWeight: 800, borderColor: '#E2E8F0', py: 1.4 } }}>
                     <TableCell>Timestamp (IST)</TableCell>
@@ -3449,7 +3500,8 @@ export default function AdminDashboardPage() {
                   })}
                 </TableBody>
               </Table>
-            )}
+            </Box>
+          )}
           </Card>
         )}
 
@@ -3722,7 +3774,11 @@ export default function AdminDashboardPage() {
                   </Typography>
                 </Box>
               ) : (
-                <Table size="small">
+                <Box sx={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: '12px', border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
+                  <Typography variant="caption" sx={{ display: { xs: 'block', md: 'none' }, color: '#94A3B8', px: 2, pt: 1, fontSize: '10.5px' }}>
+                    Swipe left/right to view full table details
+                  </Typography>
+                  <Table size="small" sx={{ minWidth: 640 }}>
                   <TableHead>
                     <TableRow sx={{ bgcolor: '#F8FAFC' }}>
                       <TableCell sx={{ fontWeight: 800, color: '#475569', fontSize: '11px' }}>PROMO CODE</TableCell>
@@ -3810,7 +3866,8 @@ export default function AdminDashboardPage() {
                     ))}
                   </TableBody>
                 </Table>
-              )}
+              </Box>
+            )}
             </Card>
 
             {/* CREATE / EDIT COUPON DIALOG */}
@@ -4150,7 +4207,8 @@ export default function AdminDashboardPage() {
                 <Typography variant="caption" sx={{ color: '#64748B' }}>No booking records found for this customer.</Typography>
               </Paper>
             ) : (
-              <Table size="small">
+              <Box sx={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: '12px', border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
+                <Table size="small" sx={{ minWidth: 560 }}>
                 <TableHead>
                   <TableRow sx={{ bgcolor: '#F8FAFC', '& th': { color: '#475569', fontWeight: 800 } }}>
                     <TableCell>Booking ID</TableCell>
@@ -4202,7 +4260,8 @@ export default function AdminDashboardPage() {
                   ))}
                 </TableBody>
               </Table>
-            )}
+            </Box>
+          )}
           </DialogContent>
           <DialogActions sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             {customerDetails && (
@@ -4421,7 +4480,8 @@ export default function AdminDashboardPage() {
                 <Typography variant="caption" sx={{ color: '#64748B' }}>No service history recorded for this technician yet.</Typography>
               </Paper>
             ) : (
-              <Table size="small">
+              <Box sx={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: '12px', border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
+                <Table size="small" sx={{ minWidth: 560 }}>
                 <TableHead>
                   <TableRow sx={{ bgcolor: '#F8FAFC', '& th': { color: '#475569', fontWeight: 800 } }}>
                     <TableCell>Booking ID</TableCell>
@@ -4457,7 +4517,8 @@ export default function AdminDashboardPage() {
                   ))}
                 </TableBody>
               </Table>
-            )}
+            </Box>
+          )}
           </DialogContent>
           <DialogActions sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             {selectedTechDossier && (
