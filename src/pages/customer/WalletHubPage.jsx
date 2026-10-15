@@ -35,11 +35,11 @@ import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
-import StarsIcon from '@mui/icons-material/Stars';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import ShieldIcon from '@mui/icons-material/Shield';
 
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
-import { ILLUSTRATIONS } from '../../constants/visualAssets';
 
 export default function WalletHubPage() {
   const navigate = useNavigate();
@@ -119,17 +119,17 @@ export default function WalletHubPage() {
   };
 
   return (
-    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', pb: 10 }}>
-      <Container maxWidth="sm" sx={{ px: 2, pt: 2 }}>
+    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', pb: { xs: 10, md: 4 } }}>
+      <Container maxWidth="md" sx={{ px: { xs: 2, sm: 3, md: 4 }, pt: { xs: 1.5, md: 3 } }}>
         
         {/* Top Header with Back Navigation */}
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2.5 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
             <IconButton 
               onClick={() => navigate('/')} 
               sx={{ 
                 bgcolor: '#FFFFFF', 
-                border: '1px solid #CBD5E1', 
+                border: '1.5px solid #CBD5E1', 
                 color: '#0F172A',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
                 '&:hover': { bgcolor: '#F1F5F9' }
@@ -139,370 +139,456 @@ export default function WalletHubPage() {
               <ArrowBackIcon sx={{ fontSize: 20 }} />
             </IconButton>
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '18px', lineHeight: 1.2 }}>
+              <Typography variant="h6" sx={{ fontWeight: 900, color: '#0F172A', fontSize: '18px', lineHeight: 1.2 }}>
                 Seva Credits & Rewards
               </Typography>
-              <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11.5px' }}>
+              <Typography variant="caption" sx={{ color: '#475569', fontSize: '12px', fontWeight: 600 }}>
                 Salem community wallet & referral hub
               </Typography>
             </Box>
           </Box>
           <Chip 
-            icon={<StarsIcon sx={{ fontSize: '14px !important', color: '#166534 !important' }} />}
             label="1 Credit = ₹1" 
             size="small" 
-            sx={{ bgcolor: '#F0FDF4', color: '#166534', fontWeight: 800, fontSize: '11px', borderRadius: '6px' }} 
+            sx={{ bgcolor: '#ECFDF5', color: '#065F46', border: '1px solid #A7F3D0', fontWeight: 800, fontSize: '11px', borderRadius: '6px' }} 
           />
         </Box>
         
-        {/* If user is not logged in, prompt to sign in instead of showing dummy wallet data */}
+        {/* If user is not logged in, prompt to sign in */}
         {!user ? (
-          <Paper elevation={0} sx={{ p: 4, textAlign: 'center', bgcolor: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', mb: 3 }}>
+          <Paper elevation={0} sx={{ p: 4, textAlign: 'center', bgcolor: '#FFFFFF', borderRadius: '16px', border: '1.5px solid #E2E8F0', mb: 3 }}>
             <AccountCircleIcon sx={{ fontSize: 48, color: '#94A3B8', mb: 1.5 }} />
             <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '16px', mb: 0.5 }}>
               Sign In to View Seva Escrow Wallet
             </Typography>
-            <Typography variant="body2" sx={{ color: '#64748B', fontSize: '13px', mb: 2 }}>
+            <Typography variant="body2" sx={{ color: '#475569', fontSize: '13px', mb: 2 }}>
               Access your referral credits, welcome bonus, and digital cashback balance.
             </Typography>
             <Button
               variant="contained"
               onClick={() => navigate('/login')}
-              sx={{ bgcolor: '#2563EB', color: '#FFF', fontWeight: 700, fontSize: '13px', borderRadius: '8px', textTransform: 'none', px: 3 }}
+              sx={{ bgcolor: '#0066CC', color: '#FFF', fontWeight: 700, fontSize: '13px', borderRadius: '8px', textTransform: 'none', px: 3, '&:hover': { bgcolor: '#0052A3' } }}
             >
               Sign In
             </Button>
           </Paper>
         ) : (
           <>
-            {/* 1. Hero Balance Blue Card with SalemSeva Escrow Wallet Illustration */}
+            {/* 1. Hero Balance Salem Sapphire Card with 100% Readable Typography */}
             <Card
               elevation={0}
               sx={{
-                background: 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)',
+                background: 'linear-gradient(135deg, #0A2540 0%, #004085 55%, #0066CC 100%)',
                 color: '#FFFFFF',
                 borderRadius: '20px',
-                p: 2.5,
-                mb: 2,
-                boxShadow: '0 6px 20px rgba(2, 132, 199, 0.25)',
+                p: { xs: 2.5, sm: 3 },
+                mb: 2.5,
+                boxShadow: '0 8px 28px rgba(0, 64, 133, 0.28)',
                 position: 'relative',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                border: '1px solid rgba(255, 255, 255, 0.15)'
               }}
             >
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative', zIndex: 1 }}>
-            <Box sx={{ maxWidth: '68%' }}>
-              <Typography variant="caption" sx={{ fontWeight: 800, letterSpacing: 0.8, opacity: 0.9, fontSize: '11px', textTransform: 'uppercase' }}>
-                AVAILABLE SEVA CREDITS BALANCE
-              </Typography>
+              {/* Subtle background glow effect */}
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: -40,
+                  right: -40,
+                  width: 140,
+                  height: 140,
+                  borderRadius: '50%',
+                  background: 'radial-gradient(circle, rgba(255, 102, 0, 0.25) 0%, transparent 70%)',
+                  pointerEvents: 'none'
+                }}
+              />
 
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, my: 1 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', zIndex: 1 }}>
+                <Box sx={{ flex: 1 }}>
+                  {/* High contrast uppercase balance label */}
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      fontWeight: 900,
+                      letterSpacing: 1.2,
+                      fontSize: '11px',
+                      textTransform: 'uppercase',
+                      color: '#93C5FD',
+                      display: 'block',
+                      mb: 0.8
+                    }}
+                  >
+                    AVAILABLE SEVA CREDITS BALANCE
+                  </Typography>
+
+                  <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1.2, mb: 0.8 }}>
+                    <Box
+                      sx={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: '50%',
+                        bgcolor: '#F59E0B',
+                        color: '#FFFFFF',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 2px 10px rgba(245, 158, 11, 0.5)',
+                        verticalAlign: 'middle'
+                      }}
+                    >
+                      <StarIcon sx={{ fontSize: 22 }} />
+                    </Box>
+                    <Typography
+                      variant="h3"
+                      sx={{
+                        fontWeight: 900,
+                        color: '#FFFFFF',
+                        letterSpacing: -0.5,
+                        fontSize: { xs: '32px', sm: '38px' },
+                        lineHeight: 1
+                      }}
+                    >
+                      {walletBalance}
+                    </Typography>
+                    <Typography
+                      component="span"
+                      sx={{
+                        color: '#E0F2FE',
+                        fontWeight: 700,
+                        fontSize: '16px'
+                      }}
+                    >
+                      Credits
+                    </Typography>
+                  </Box>
+
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: '#E2E8F0',
+                      fontSize: '12px',
+                      mb: 2,
+                      lineHeight: 1.3
+                    }}
+                  >
+                    100% Cash Value • Redeemable across any home service in Salem
+                  </Typography>
+
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                    <Chip
+                      label={`₹${walletBalance}.00 Cash Value`}
+                      size="small"
+                      sx={{
+                        bgcolor: 'rgba(255, 255, 255, 0.18)',
+                        border: '1px solid rgba(255, 255, 255, 0.35)',
+                        color: '#FFFFFF',
+                        fontWeight: 800,
+                        fontSize: '11px',
+                        backdropFilter: 'blur(8px)'
+                      }}
+                    />
+                    <Chip
+                      label="20% Max Burn Cap / Booking"
+                      size="small"
+                      sx={{
+                        bgcolor: 'rgba(255, 255, 255, 0.18)',
+                        border: '1px solid rgba(255, 255, 255, 0.35)',
+                        color: '#FFFFFF',
+                        fontWeight: 800,
+                        fontSize: '11px',
+                        backdropFilter: 'blur(8px)'
+                      }}
+                    />
+                  </Box>
+                </Box>
+
+                {/* Vector Glass Wallet Icon Badge */}
                 <Box
                   sx={{
-                    width: 42,
-                    height: 42,
-                    borderRadius: '50%',
-                    bgcolor: '#F59E0B',
-                    color: '#FFFFFF',
+                    width: 76,
+                    height: 76,
+                    borderRadius: '20px',
+                    bgcolor: 'rgba(255, 255, 255, 0.12)',
+                    border: '1.5px solid rgba(255, 255, 255, 0.25)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    boxShadow: '0 2px 8px rgba(245, 158, 11, 0.4)'
+                    backdropFilter: 'blur(10px)',
+                    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
+                    flexShrink: 0,
+                    ml: 2
                   }}
                 >
-                  <StarIcon sx={{ fontSize: 24 }} />
+                  <AccountBalanceWalletIcon sx={{ fontSize: 40, color: '#FDE047' }} />
                 </Box>
-                <Typography variant="h3" sx={{ fontWeight: 900, color: '#FFFFFF', letterSpacing: -0.5 }}>
-                  {walletBalance} <span style={{ fontSize: 18, fontWeight: 700 }}>Credits</span>
+              </Box>
+            </Card>
+
+            {/* 2. 100% Escrow Protection & Safety Card */}
+            <Paper
+              elevation={0}
+              sx={{
+                p: 2,
+                mb: 2.5,
+                borderRadius: '16px',
+                bgcolor: '#FFFFFF',
+                border: '1.5px solid #E2E8F0',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1.8,
+                boxShadow: '0 2px 10px rgba(15, 23, 42, 0.04)'
+              }}
+            >
+              <Box
+                sx={{
+                  width: 46,
+                  height: 46,
+                  borderRadius: '12px',
+                  bgcolor: '#ECFDF5',
+                  border: '1px solid #A7F3D0',
+                  color: '#059669',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}
+              >
+                <ShieldIcon sx={{ fontSize: 26 }} />
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '13.5px', mb: 0.3 }}>
+                  100% Cashless Escrow Protection & Safety
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#475569', fontSize: '11.5px', display: 'block', lineHeight: 1.45 }}>
+                  Payment is held safely in SalemSeva escrow. Funds are released to verified technicians only after your OTP service completion verification.
                 </Typography>
               </Box>
+            </Paper>
 
-              <Box sx={{ display: 'flex', gap: 0.8, mt: 1.5, flexWrap: 'wrap' }}>
+            {/* 3. Referral Hub Card */}
+            <Card
+              elevation={0}
+              sx={{
+                bgcolor: '#FFFFFF',
+                border: '1.5px solid #E2E8F0',
+                borderRadius: '20px',
+                p: { xs: 2.2, sm: 2.8 },
+                mb: 2.5,
+                boxShadow: '0 4px 16px rgba(15, 23, 42, 0.05)'
+              }}
+            >
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <ShareIcon sx={{ color: '#0066CC', fontSize: 22 }} />
+                  <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0F172A', fontSize: '15px' }}>
+                    Refer Friends & Family in Salem
+                  </Typography>
+                </Box>
                 <Chip
-                  label={`₹${walletBalance} Cash Value`}
+                  label={`EARN ₹${rewardCredits} / FRIEND`}
                   size="small"
-                  sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: '#FFFFFF', fontWeight: 800, fontSize: '10.5px' }}
-                />
-                <Chip
-                  label="20% Max Burn Cap / Booking"
-                  size="small"
-                  sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: '#FFFFFF', fontWeight: 800, fontSize: '10.5px' }}
+                  sx={{ bgcolor: '#ECFDF5', color: '#047857', border: '1px solid #A7F3D0', fontWeight: 900, fontSize: '10.5px', height: 22 }}
                 />
               </Box>
-            </Box>
 
-            {/* SalemSeva Escrow Wallet & Cash Illustration */}
-            <Box
-              component="img"
-              src={ILLUSTRATIONS.wallet}
-              alt="SalemSeva Escrow Wallet & Cash"
-              sx={{
-                width: 90,
-                height: 80,
-                objectFit: 'contain',
-                opacity: 0.95,
-                filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.15))'
-              }}
-            />
-          </Box>
-        </Card>
-
-        {/* 100% Escrow Protection & Safety Card */}
-        <Paper
-          elevation={0}
-          sx={{
-            p: 1.8,
-            mb: 2.5,
-            borderRadius: '16px',
-            bgcolor: '#FFFFFF',
-            border: '1px solid #E2E8F0',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1.8,
-            boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)'
-          }}
-        >
-          <Box
-            component="img"
-            src={ILLUSTRATIONS.security}
-            alt="100% Escrow Protection & Safety"
-            sx={{
-              width: 52,
-              height: 52,
-              objectFit: 'contain',
-              flexShrink: 0
-            }}
-          />
-          <Box sx={{ flex: 1 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '13px' }}>
-              100% Escrow Protection & Safety
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11px', display: 'block', lineHeight: 1.4 }}>
-              Payment is held safely in SalemSeva escrow. Funds are released to verified technicians only after your OTP service completion verification.
-            </Typography>
-          </Box>
-        </Paper>
-
-        {/* 2. Referral Hub Card */}
-        <Card
-          elevation={0}
-          sx={{
-            bgcolor: '#FFFFFF',
-            border: '1.5px solid #0284C7',
-            borderRadius: '20px',
-            p: 2.2,
-            mb: 2.5,
-            boxShadow: '0 2px 10px rgba(15, 23, 42, 0.04)'
-          }}
-        >
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <ShareIcon sx={{ color: '#0284C7', fontSize: 20 }} />
-              <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0F172A', fontSize: '14.5px' }}>
-                Refer Friends in Salem
+              <Typography variant="body2" sx={{ color: '#334155', fontSize: '12.5px', lineHeight: 1.5, mb: 2 }}>
+                Give friends <strong>₹{refereeDiscount} OFF</strong> their first home service. You get <strong>{rewardCredits} Seva Credits (₹{rewardCredits})</strong> credited directly to your wallet when their service is completed!
               </Typography>
-            </Box>
-            <Chip
-              label={`EARN ₹${rewardCredits} / FRIEND`}
-              size="small"
-              sx={{ bgcolor: '#E0F2FE', color: '#0284C7', fontWeight: 900, fontSize: '10px', height: 22 }}
-            />
-          </Box>
 
-          <Typography variant="body2" sx={{ color: '#64748B', fontSize: '12px', lineHeight: 1.45, mb: 1.8 }}>
-            Give friends <strong>₹{refereeDiscount} OFF</strong> their first home service. You get <strong>{rewardCredits} Seva Credits (₹{rewardCredits})</strong> instantly credited when their service is completed!
-          </Typography>
-
-          {/* Referral Code Box */}
-          <Paper
-            elevation={0}
-            sx={{
-              p: 1.4,
-              bgcolor: '#F8FAFC',
-              border: '1.5px dashed #0284C7',
-              borderRadius: '12px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              mb: 1.5
-            }}
-          >
-            <Box>
-              <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontSize: '10px', fontWeight: 700 }}>
-                YOUR REFERRAL CODE:
-              </Typography>
-              <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0284C7', letterSpacing: 1.5 }}>
-                {myReferralCode}
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', gap: 0.8 }}>
-              <Button
-                size="small"
-                variant="contained"
-                onClick={copyCode}
-                startIcon={copied ? <CheckCircleIcon sx={{ fontSize: 15 }} /> : <ContentCopyIcon sx={{ fontSize: 15 }} />}
+              {/* Referral Code Box */}
+              <Paper
+                elevation={0}
                 sx={{
-                  bgcolor: copied ? '#10B981' : '#0284C7',
-                  borderRadius: '10px',
-                  fontWeight: 800,
-                  fontSize: '11px',
-                  px: 1.5,
-                  textTransform: 'none',
-                  '&:hover': { bgcolor: copied ? '#059669' : '#0369A1' }
+                  p: 1.8,
+                  bgcolor: '#F8FAFC',
+                  border: '1.5px dashed #94A3B8',
+                  borderRadius: '14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  mb: 2
                 }}
               >
-                {copied ? 'Copied!' : 'Copy'}
-              </Button>
-              <Button
-                size="small"
-                variant="contained"
-                onClick={shareWhatsApp}
-                startIcon={<WhatsAppIcon sx={{ fontSize: 16 }} />}
-                sx={{
-                  bgcolor: '#25D366',
-                  color: '#FFFFFF',
-                  borderRadius: '10px',
-                  fontWeight: 800,
-                  fontSize: '11px',
-                  px: 1.5,
-                  textTransform: 'none',
-                  '&:hover': { bgcolor: '#128C7E' }
-                }}
-              >
-                Share
-              </Button>
-            </Box>
-          </Paper>
-
-          {/* Referral Stats Counter */}
-          <Paper elevation={0} sx={{ p: 1.2, bgcolor: '#F1F5F9', borderRadius: '10px', mb: 1.8, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', textAlign: 'center' }}>
-            <Box>
-              <Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '15px' }}>
-                {referralStats.friendsInvited}
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#64748B', fontSize: '10px' }}>
-                Friends Invited
-              </Typography>
-            </Box>
-            <Box sx={{ borderLeft: '1px solid #CBD5E1', borderRight: '1px solid #CBD5E1' }}>
-              <Typography variant="h6" sx={{ fontWeight: 800, color: '#16A34A', fontSize: '15px' }}>
-                {referralStats.friendsCompleted}
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#64748B', fontSize: '10px' }}>
-                Completed
-              </Typography>
-            </Box>
-            <Box>
-              <Typography variant="h6" sx={{ fontWeight: 800, color: '#0284C7', fontSize: '15px' }}>
-                ₹{referralStats.creditsEarned}
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#64748B', fontSize: '10px' }}>
-                Credits Earned
-              </Typography>
-            </Box>
-          </Paper>
-        </Card>
-
-        {/* 3. Credits Activity History Card */}
-        <Card
-          elevation={0}
-          sx={{
-            bgcolor: '#FFFFFF',
-            border: '1px solid #E2E8F0',
-            borderRadius: '20px',
-            p: 2.2,
-            mb: 3,
-            boxShadow: '0 2px 10px rgba(15, 23, 42, 0.04)'
-          }}
-        >
-          <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0F172A', mb: 1.5, fontSize: '13.5px' }}>
-            Credits Activity Ledger ({transactions.length} entries)
-          </Typography>
-
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            {transactions.map((tx, idx) => {
-              const isCredit = tx.type === 'CREDIT';
-              return (
-                <Box key={tx.id || idx}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 0.8 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
-                      <Box
-                        sx={{
-                          bgcolor: isCredit ? '#DCFCE7' : '#FEE2E2',
-                          p: 0.8,
-                          borderRadius: '10px',
-                          color: isCredit ? '#166534' : '#991B1B',
-                          display: 'flex'
-                        }}
-                      >
-                        {isCredit ? (
-                          tx.category === 'SIGNUP_BONUS' ? <CardGiftcardIcon sx={{ fontSize: 18 }} /> : <GroupAddIcon sx={{ fontSize: 18 }} />
-                        ) : (
-                          <ShoppingBagIcon sx={{ fontSize: 18 }} />
-                        )}
-                      </Box>
-                      <Box>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '12.5px', lineHeight: 1.2 }}>
-                          {tx.title}
-                        </Typography>
-                        <Typography variant="caption" sx={{ color: '#64748B', fontSize: '10.5px' }}>
-                          {formatTxDate(tx.timestamp)} • {tx.description || (isCredit ? 'Credited to wallet' : 'Burned at checkout')}
-                        </Typography>
-                      </Box>
-                    </Box>
-                    <Typography
-                      variant="subtitle2"
-                      sx={{
-                        fontWeight: 900,
-                        color: isCredit ? '#047857' : '#DC2626',
-                        fontSize: '13.5px'
-                      }}
-                    >
-                      {isCredit ? `+${tx.amount}` : `-${tx.amount}`} Credits
-                    </Typography>
-                  </Box>
-                  {idx < transactions.length - 1 && <Divider sx={{ my: 0.6 }} />}
+                <Box>
+                  <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontSize: '10.5px', fontWeight: 700 }}>
+                    YOUR REFERRAL CODE:
+                  </Typography>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0066CC', letterSpacing: 2, fontSize: '17px' }}>
+                    {myReferralCode}
+                  </Typography>
                 </Box>
-              );
-            })}
-          </Box>
-        </Card>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Button
+                    size="small"
+                    variant="contained"
+                    onClick={copyCode}
+                    startIcon={copied ? <CheckCircleIcon sx={{ fontSize: 16 }} /> : <ContentCopyIcon sx={{ fontSize: 16 }} />}
+                    sx={{
+                      bgcolor: copied ? '#10B981' : '#0066CC',
+                      color: '#FFFFFF',
+                      borderRadius: '8px',
+                      fontWeight: 800,
+                      fontSize: '11.5px',
+                      px: 1.8,
+                      py: 0.8,
+                      textTransform: 'none',
+                      '&:hover': { bgcolor: copied ? '#059669' : '#0052A3' }
+                    }}
+                  >
+                    {copied ? 'Copied!' : 'Copy'}
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="contained"
+                    onClick={shareWhatsApp}
+                    startIcon={<WhatsAppIcon sx={{ fontSize: 17 }} />}
+                    sx={{
+                      bgcolor: '#16A34A',
+                      color: '#FFFFFF',
+                      borderRadius: '8px',
+                      fontWeight: 800,
+                      fontSize: '11.5px',
+                      px: 1.8,
+                      py: 0.8,
+                      textTransform: 'none',
+                      '&:hover': { bgcolor: '#15803D' }
+                    }}
+                  >
+                    Share
+                  </Button>
+                </Box>
+              </Paper>
 
-        {/* 4. Action Button */}
-        <Button
-          variant="contained"
-          fullWidth
-          size="large"
-          endIcon={<ArrowForwardIcon />}
-          onClick={() => navigate('/')}
-          sx={{
-            bgcolor: '#0284C7',
-            borderRadius: '16px',
-            py: 1.4,
-            fontWeight: 900,
-            fontSize: '15px',
-            boxShadow: '0 4px 14px rgba(2, 132, 199, 0.35)',
-            textTransform: 'none',
-            '&:hover': { bgcolor: '#0369A1' }
-          }}
-        >
-          Book Home Service & Redeem Credits
-        </Button>
-        </>
+              {/* Referral Stats Counter */}
+              <Paper elevation={0} sx={{ p: 1.5, bgcolor: '#F1F5F9', border: '1px solid #E2E8F0', borderRadius: '12px', mb: 1, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', textAlign: 'center' }}>
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 900, color: '#0F172A', fontSize: '17px' }}>
+                    {referralStats.friendsInvited}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#475569', fontSize: '11px', fontWeight: 600 }}>
+                    Friends Invited
+                  </Typography>
+                </Box>
+                <Box sx={{ borderLeft: '1px solid #CBD5E1', borderRight: '1px solid #CBD5E1' }}>
+                  <Typography variant="h6" sx={{ fontWeight: 900, color: '#059669', fontSize: '17px' }}>
+                    {referralStats.friendsCompleted}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#475569', fontSize: '11px', fontWeight: 600 }}>
+                    Completed
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 900, color: '#0066CC', fontSize: '17px' }}>
+                    ₹{referralStats.creditsEarned}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#475569', fontSize: '11px', fontWeight: 600 }}>
+                    Credits Earned
+                  </Typography>
+                </Box>
+              </Paper>
+            </Card>
+
+            {/* 4. Credits Activity History Card */}
+            <Card
+              elevation={0}
+              sx={{
+                bgcolor: '#FFFFFF',
+                border: '1.5px solid #E2E8F0',
+                borderRadius: '20px',
+                p: { xs: 2.2, sm: 2.8 },
+                mb: 3,
+                boxShadow: '0 4px 16px rgba(15, 23, 42, 0.05)'
+              }}
+            >
+              <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0F172A', mb: 1.5, fontSize: '14px' }}>
+                Credits Activity Ledger ({transactions.length} entries)
+              </Typography>
+
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                {transactions.map((tx, idx) => {
+                  const isCredit = tx.type === 'CREDIT';
+                  return (
+                    <Box key={tx.id || idx}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 0.8 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                          <Box
+                            sx={{
+                              bgcolor: isCredit ? '#DCFCE7' : '#FEE2E2',
+                              p: 0.8,
+                              borderRadius: '10px',
+                              color: isCredit ? '#166534' : '#991B1B',
+                              display: 'flex'
+                            }}
+                          >
+                            {isCredit ? (
+                              tx.category === 'SIGNUP_BONUS' ? <CardGiftcardIcon sx={{ fontSize: 18 }} /> : <GroupAddIcon sx={{ fontSize: 18 }} />
+                            ) : (
+                              <ShoppingBagIcon sx={{ fontSize: 18 }} />
+                            )}
+                          </Box>
+                          <Box>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '12.5px', lineHeight: 1.2 }}>
+                              {tx.title}
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: '#475569', fontSize: '11px' }}>
+                              {formatTxDate(tx.timestamp)} • {tx.description || (isCredit ? 'Credited to wallet' : 'Burned at checkout')}
+                            </Typography>
+                          </Box>
+                        </Box>
+                        <Typography
+                          variant="subtitle2"
+                          sx={{
+                            fontWeight: 900,
+                            color: isCredit ? '#047857' : '#DC2626',
+                            fontSize: '13.5px'
+                          }}
+                        >
+                          {isCredit ? `+${tx.amount}` : `-${tx.amount}`} Credits
+                        </Typography>
+                      </Box>
+                      {idx < transactions.length - 1 && <Divider sx={{ my: 0.6 }} />}
+                    </Box>
+                  );
+                })}
+              </Box>
+            </Card>
+
+            {/* 5. Action Button */}
+            <Button
+              variant="contained"
+              fullWidth
+              size="large"
+              endIcon={<ArrowForwardIcon />}
+              onClick={() => navigate('/')}
+              sx={{
+                bgcolor: '#0066CC',
+                color: '#FFFFFF',
+                borderRadius: '14px',
+                py: 1.5,
+                fontWeight: 800,
+                fontSize: '15px',
+                boxShadow: '0 4px 16px rgba(0, 102, 204, 0.3)',
+                textTransform: 'none',
+                mb: { xs: 8, md: 2 },
+                '&:hover': { bgcolor: '#0052A3' }
+              }}
+            >
+              Book Home Service & Redeem Credits
+            </Button>
+          </>
         )}
 
       </Container>
 
-      {/* Bottom Navigation */}
-      <Paper elevation={3} sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, bgcolor: '#FFFFFF', borderTop: '1px solid #E2E8F0', zIndex: 1000, pb: 'max(env(safe-area-inset-bottom, 0px), 14px)' }}>
+      {/* Mobile-Only Bottom Navigation (Hidden on desktop/tablet >= 900px) */}
+      <Paper elevation={3} sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, bgcolor: '#FFFFFF', borderTop: '1px solid #E2E8F0', zIndex: 1000, display: { xs: 'block', md: 'none' } }}>
         <BottomNavigation showLabels value={2} sx={{ height: 56, '& .Mui-selected': { color: '#0066CC', fontWeight: 700 } }}>
           <BottomNavigationAction label="Services" icon={<WorkOutlineIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/')} />
           <BottomNavigationAction label="Bookings" icon={<ReceiptLongIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/history')} />
           <BottomNavigationAction label="Wallet" icon={<AccountCircleIcon sx={{ fontSize: 20 }} />} sx={{ color: '#0066CC' }} />
-          <BottomNavigationAction label="Partner Zone" icon={<StarsIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/partner')} />
+          <BottomNavigationAction label="Partner Zone" icon={<AccountBalanceWalletIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/partner')} />
         </BottomNavigation>
       </Paper>
-
-
 
     </Box>
   );

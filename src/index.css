@@ -49,8 +49,7 @@ header, .app-header {
 .MuiPaper-root[style*="position: fixed"],
 .MuiPaper-root[style*="position:fixed"],
 .mobile-bottom-bar {
-  padding-bottom: max(env(safe-area-inset-bottom, 0px), 14px) !important;
-  box-sizing: content-box !important;
+  box-sizing: border-box !important;
 }
 
 /* Fluid Media & Map Container Scaling */
@@ -65,11 +64,12 @@ iframe {
 }
 
 /* Mobile-Friendly Material-UI Overrides */
-.MuiContainer-root {
-  width: 100% !important;
-  max-width: 100vw !important;
-  box-sizing: border-box !important;
-  padding-bottom: calc(75px + env(safe-area-inset-bottom, 16px));
+@media (max-width: 600px) {
+  .MuiContainer-root {
+    width: 100% !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+  }
 }
 
 /* Dialogs and Modals on Mobile: Never overflow viewport width */

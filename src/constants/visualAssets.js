@@ -2,22 +2,28 @@
 // Verified Undraw SVG Illustrations & Lottie Micro-Animations
 
 export const ILLUSTRATIONS = {
+  // Local SalemSeva Nano Banana Generated High-Res Illustrations
+  customerBooking: '/assets/illustrations/customer_booking.jpg',
+  partnerService: '/assets/illustrations/partner_service.jpg',
+  transparentPricing: '/assets/illustrations/transparent_pricing.jpg',
+  safetyVerification: '/assets/illustrations/safety_verification.jpg',
+
   // Hub & Field Partner Network
-  connectingTeams: 'https://raw.githubusercontent.com/mkhairi/undraw/master/vendor/assets/images/undraw/connecting_teams.svg',
+  connectingTeams: '/assets/illustrations/partner_service.jpg',
   // Verified Partners Onboarding
-  verifiedPartners: 'https://raw.githubusercontent.com/mkhairi/undraw/master/vendor/assets/images/undraw/co-workers.svg',
+  verifiedPartners: '/assets/illustrations/safety_verification.jpg',
   // Doorstep Courier & Delivery
-  delivery: 'https://raw.githubusercontent.com/mkhairi/undraw/master/vendor/assets/images/undraw/delivery.svg',
+  delivery: '/assets/illustrations/customer_booking.jpg',
   // Technician En Route Driving
-  technicianEnRoute: 'https://raw.githubusercontent.com/mkhairi/undraw/master/vendor/assets/images/undraw/city_driver.svg',
+  technicianEnRoute: '/assets/illustrations/partner_service.jpg',
   // Salem Live Service Map
-  salemMap: 'https://raw.githubusercontent.com/mkhairi/undraw/master/vendor/assets/images/undraw/map.svg',
+  salemMap: '/assets/illustrations/customer_booking.jpg',
   // Booking Confirmed with OTP
-  orderConfirmed: 'https://raw.githubusercontent.com/mkhairi/undraw/master/vendor/assets/images/undraw/order_confirmed.svg',
+  orderConfirmed: '/assets/illustrations/transparent_pricing.jpg',
   // SalemSeva Escrow Wallet & Cash
-  wallet: 'https://raw.githubusercontent.com/mkhairi/undraw/master/vendor/assets/images/undraw/wallet.svg',
+  wallet: '/assets/illustrations/transparent_pricing.jpg',
   // 100% Escrow Protection & Safety
-  security: 'https://raw.githubusercontent.com/mkhairi/undraw/master/vendor/assets/images/undraw/security.svg',
+  security: '/assets/illustrations/safety_verification.jpg',
   // Masked VoIP Phone Call
   calling: 'https://raw.githubusercontent.com/mkhairi/undraw/master/vendor/assets/images/undraw/calling.svg',
   // In-App Secure Messaging

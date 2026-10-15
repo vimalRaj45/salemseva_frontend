@@ -157,7 +157,7 @@ export default function CancelBookingModal({
                 </Typography>
               </Paper>
             ) : (
-              /* Success View for Post-Assignment / Post-Payment Cancellation */
+              /* Success View for Post-Assignment / Refunded Cancellation */
               <Paper
                 elevation={0}
                 sx={{
@@ -170,34 +170,42 @@ export default function CancelBookingModal({
                 }}
               >
                 <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 1 }}>
-                  Fee Disbursal Summary
+                  Cancellation & Refund Summary
                 </Typography>
                 
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.8 }}>
-                  <Typography variant="body2" sx={{ color: '#475569', fontSize: '13px' }}>Visit & Inspection Fee:</Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 600, color: '#0F172A', fontSize: '13px' }}>₹{cancelResult.originalPaid || visitFee}</Typography>
+                  <Typography variant="body2" sx={{ color: '#475569', fontSize: '13px' }}>Original Paid Amount:</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: '#0F172A', fontSize: '13px' }}>₹{Number(cancelResult.originalPaid || visitFee).toFixed(2)}</Typography>
                 </Box>
 
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.8 }}>
-                  <Typography variant="body2" sx={{ color: '#2563EB', fontSize: '13px' }}>Disbursed to Technician (Travel & Fuel):</Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 700, color: '#2563EB', fontSize: '13px' }}>100% (₹{cancelResult.technicianTravelDisbursal || cancelResult.originalPaid || visitFee})</Typography>
+                  <Typography variant="body2" sx={{ color: '#DC2626', fontSize: '12.5px' }}>SalemSeva Platform Cut (2%):</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: '#DC2626', fontSize: '12.5px' }}>
+                    -₹{Number(cancelResult.platformFeeDeduction ?? (Number(cancelResult.originalPaid || visitFee) * 0.02)).toFixed(2)}
+                  </Typography>
                 </Box>
 
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.8 }}>
-                  <Typography variant="body2" sx={{ color: '#64748B', fontSize: '12.5px' }}>SalemSeva Platform Commission:</Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 700, color: '#16A34A', fontSize: '12.5px' }}>₹0.00 (0%)</Typography>
+                  <Typography variant="body2" sx={{ color: '#DC2626', fontSize: '12.5px' }}>Razorpay Service Charge (2%):</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: '#DC2626', fontSize: '12.5px' }}>
+                    -₹{Number(cancelResult.gatewayChargeDeduction ?? (Number(cancelResult.originalPaid || visitFee) * 0.02)).toFixed(2)}
+                  </Typography>
                 </Box>
 
                 <Divider sx={{ my: 1 }} />
 
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#64748B', fontSize: '13px' }}>
-                    Refund Amount:
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#16A34A', fontSize: '13.5px' }}>
+                    Net Refund Initiated:
                   </Typography>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#64748B', fontSize: '13px' }}>
-                    ₹0.00 (Non-refundable)
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#16A34A', fontSize: '14px' }}>
+                    ₹{Number(cancelResult.refundAmount ?? (Number(cancelResult.originalPaid || visitFee) * 0.96)).toFixed(2)}
                   </Typography>
                 </Box>
+
+                <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontSize: '11px', lineHeight: 1.4, bgcolor: '#F1F5F9', p: 1, borderRadius: '8px' }}>
+                  Refund credited back to original payment source within 3-5 banking days in accordance with the SalemSeva Cancellation & Refund Policy.
+                </Typography>
               </Paper>
             )}
 
@@ -242,16 +250,16 @@ export default function CancelBookingModal({
                 </Typography>
               </Box>
             ) : (
-              /* Post-Assignment / Post-Payment Banner: Fair Partner Travel Policy */
+              /* Post-Assignment / Post-Payment Banner: Fair Cancellation & Refund Policy */
               <Box sx={{ bgcolor: '#FFFBEB', p: 1.4, borderRadius: '10px', border: '1px solid #FDE68A', mb: 2 }}>
                 <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 0.6 }}>
                   <TwoWheelerIcon sx={{ color: '#D97706', fontSize: 20 }} />
                   <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#92400E', fontSize: '12.5px' }}>
-                    Technician Travel & Visit Policy
+                    Cancellation & Refund Deduction
                   </Typography>
                 </Box>
                 <Typography variant="caption" sx={{ color: '#78350F', fontSize: '11.5px', display: 'block', lineHeight: 1.45 }}>
-                  A technician has been assigned and dispatched. The <strong>₹99 inspection fee is non-refundable</strong> because <strong>100% of it is allocated directly to the technician</strong> for travel and fuel expenses. <strong>SalemSeva takes ₹0 commission</strong>.
+                  Cancelling will initiate a refund to your original payment method. As per SalemSeva policy, <strong>2% platform facilitation fee</strong> and <strong>2% Razorpay transaction charge</strong> will be retained, and the remaining <strong>96% net amount will be credited back</strong>.
                 </Typography>
               </Box>
             )}

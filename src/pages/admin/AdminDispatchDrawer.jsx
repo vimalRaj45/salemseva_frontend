@@ -386,17 +386,19 @@ export default function AdminDispatchDrawer({
                     disabled={isDispatching}
                     onClick={() => handleConfirmDispatch(tech)}
                     sx={{
-                      bgcolor: '#0284C7',
+                      bgcolor: isOnline ? '#0284C7' : '#D97706',
                       color: '#FFFFFF',
                       fontWeight: 900,
                       fontSize: '12px',
                       textTransform: 'none',
                       borderRadius: '8px',
                       py: 0.7,
-                      '&:hover': { bgcolor: '#0369A1' }
+                      '&:hover': { bgcolor: isOnline ? '#0369A1' : '#B45309' }
                     }}
                   >
-                    {isDispatching ? 'Dispatching...' : 'Assign & Dispatch Now'}
+                    {isDispatching 
+                      ? 'Dispatching...' 
+                      : (isOnline ? 'Assign & Dispatch Now' : 'Request Offline Partner (ஆன்லைன் வர கோரவும்)')}
                   </Button>
                 </Paper>
               );

@@ -63,6 +63,7 @@ export default function AuthModal() {
   // Form State
   const [phone, setPhone] = useState('98427 11234');
   const [password, setPassword] = useState('salem123');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('Vimal Raj');
   const [address, setAddress] = useState('42, 3rd Cross, Fairlands Main Road');
   const [locality, setLocality] = useState('Fairlands, Salem');
@@ -95,6 +96,19 @@ export default function AuthModal() {
 
     try {
       await new Promise(r => setTimeout(r, 450));
+
+      if (authMode === 'signup') {
+        if (!password || password.length < 6) {
+          setStatusMessage({ type: 'error', text: 'Password must be at least 6 characters long' });
+          setLoading(false);
+          return;
+        }
+        if (password !== confirmPassword) {
+          setStatusMessage({ type: 'error', text: 'Passwords do not match. Please re-enter your password' });
+          setLoading(false);
+          return;
+        }
+      }
 
       if (activeTab === 'customer') {
         if (authMode === 'signup') {
@@ -584,6 +598,40 @@ export default function AuthModal() {
               }
             }}
           />
+
+          {/* Confirm Password Field for Signup */}
+          {authMode === 'signup' && (
+            <>
+              <Typography variant="caption" sx={{ fontWeight: 600, color: '#94A3B8', display: 'block', mb: 0.5 }}>
+                Confirm Password
+              </Typography>
+              <TextField
+                fullWidth
+                type="password"
+                size="small"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Re-enter your password"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LockOutlinedIcon sx={{ color: '#64748B', fontSize: 16 }} />
+                    </InputAdornment>
+                  )
+                }}
+                sx={{
+                  mb: 1.5,
+                  '& .MuiOutlinedInput-root': {
+                    bgcolor: '#1E293B',
+                    color: '#FFFFFF',
+                    borderRadius: '6px',
+                    fontSize: '13px',
+                    '& fieldset': { borderColor: '#334155' }
+                  }
+                }}
+              />
+            </>
+          )}
 
           {/* Signup Fields for Customer */}
           {activeTab === 'customer' && authMode === 'signup' && (

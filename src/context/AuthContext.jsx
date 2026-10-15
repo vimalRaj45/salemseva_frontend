@@ -29,6 +29,20 @@ export function AuthProvider({ children }) {
     }
   });
 
+  const [isGuest, setIsGuest] = useState(() => {
+    return localStorage.getItem('salemseva_is_guest') === 'true';
+  });
+
+  const continueAsGuest = () => {
+    setIsGuest(true);
+    localStorage.setItem('salemseva_is_guest', 'true');
+  };
+
+  const clearGuest = () => {
+    setIsGuest(false);
+    localStorage.removeItem('salemseva_is_guest');
+  };
+
   const [dbTechnicians, setDbTechnicians] = useState([]);
   const [dbCustomers, setDbCustomers] = useState([]);
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -452,6 +466,8 @@ export function AuthProvider({ children }) {
     setUser(null);
     localStorage.removeItem('salemseva_user');
     localStorage.removeItem('salemseva_session_token');
+    localStorage.removeItem('salemseva_is_guest');
+    setIsGuest(false);
     sessionTokenRef.current = '';
   };
 
@@ -590,6 +606,9 @@ export function AuthProvider({ children }) {
       value={{
         user,
         isAuthenticated: !!user,
+        isGuest,
+        continueAsGuest,
+        clearGuest,
         walletBalance,
         updateWalletBalance,
         creditWallet,

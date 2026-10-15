@@ -24,7 +24,10 @@ import {
   TableCell,
   TableRow,
   TableHead,
-  Alert
+  Alert,
+  Stepper,
+  Step,
+  StepLabel
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
@@ -58,6 +61,60 @@ import CurrencyRupeeIcon from '@mui/icons-material/CurrencyRupee';
 
 import CancelBookingModal from '../../components/CancelBookingModal';
 import { useAuth } from '../../context/AuthContext';
+
+function BookingStageStepper({ status }) {
+  const isCancelled = status === 'cancelled';
+  const steps = [
+    { key: 'placed', label: 'Placed' },
+    { key: 'assigned', label: 'Assigned' },
+    { key: 'transit', label: 'In Transit' },
+    { key: 'service', label: 'Inspected' },
+    { key: 'finish', label: isCancelled ? 'Cancelled' : 'Completed' }
+  ];
+
+  let currentIdx = 0;
+  if (['matching'].includes(status)) currentIdx = 0;
+  else if (['accepted'].includes(status)) currentIdx = 1;
+  else if (['en_route', 'arrived'].includes(status)) currentIdx = 2;
+  else if (['inspecting', 'quote_presented', 'quote_approved'].includes(status)) currentIdx = 3;
+  else if (status === 'completed' || isCancelled) currentIdx = 4;
+
+  return (
+    <Box sx={{ my: 1.2, p: 1.2, bgcolor: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+      <Stepper activeStep={currentIdx} alternativeLabel>
+        {steps.map((st, idx) => {
+          const isCurrent = idx === currentIdx;
+          const isError = isCancelled && isCurrent;
+
+          return (
+            <Step key={st.key} completed={idx < currentIdx && !isCancelled}>
+              <StepLabel
+                error={isError}
+                sx={{
+                  '& .MuiStepLabel-label': {
+                    fontSize: '10px',
+                    fontWeight: isCurrent ? 800 : 600,
+                    color: isError ? '#DC2626' : (isCurrent ? '#0066CC' : '#64748B'),
+                    mt: 0.2
+                  },
+                  '& .MuiStepIcon-root': {
+                    fontSize: '18px',
+                    color: '#CBD5E1',
+                    '&.Mui-active': { color: isError ? '#DC2626' : '#0066CC' },
+                    '&.Mui-completed': { color: '#0066CC' },
+                    '&.Mui-error': { color: '#DC2626' }
+                  }
+                }}
+              >
+                {st.label}
+              </StepLabel>
+            </Step>
+          );
+        })}
+      </Stepper>
+    </Box>
+  );
+}
 
 export default function BookingHistoryPage() {
   const navigate = useNavigate();
@@ -130,8 +187,8 @@ export default function BookingHistoryPage() {
   });
 
   return (
-    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', pb: 12 }}>
-      <Container maxWidth="sm" sx={{ px: 2, pt: 2 }}>
+    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', pb: { xs: 18, md: 8 } }}>
+      <Container maxWidth="md" sx={{ px: { xs: 2, sm: 3, md: 4 }, pt: { xs: 1.5, md: 2.5 } }}>
         
         {/* Top Header with Back Navigation Button */}
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
@@ -165,26 +222,25 @@ export default function BookingHistoryPage() {
           />
         </Box>
         
-        {/* Top Badges Banner */}
+        {/* Top Badges Banner with High Contrast */}
         <Box
           sx={{
-            background: 'linear-gradient(135deg, #0284C7 0%, #0F172A 100%)',
-            color: '#FFFFFF',
+            bgcolor: '#FFFFFF',
+            border: '1px solid #E2E8F0',
             borderRadius: '16px',
-            p: 1.8,
+            p: 1.5,
             display: 'flex',
-            gap: 1.5,
-            mb: 2,
-            boxShadow: '0 4px 14px rgba(2, 132, 199, 0.25)'
+            gap: 1.2,
+            mb: 2.5,
+            boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)'
           }}
         >
-          <Paper
-            elevation={0}
+          <Box
             sx={{
               flex: 1,
-              bgcolor: 'rgba(255, 255, 255, 0.12)',
-              color: '#FFFFFF',
-              py: 0.8,
+              bgcolor: '#F0FDF4',
+              border: '1px solid #BBF7D0',
+              py: 1,
               px: 1.2,
               borderRadius: '10px',
               display: 'flex',
@@ -193,19 +249,18 @@ export default function BookingHistoryPage() {
               gap: 0.8
             }}
           >
-            <ShieldIcon sx={{ color: '#38BDF8', fontSize: 18 }} />
-            <Typography variant="caption" sx={{ fontWeight: 800, fontSize: '11.5px' }}>
+            <ShieldIcon sx={{ color: '#16A34A', fontSize: 18 }} />
+            <Typography variant="caption" sx={{ fontWeight: 800, fontSize: '12px', color: '#166534' }}>
               100% Escrow Protected
             </Typography>
-          </Paper>
+          </Box>
 
-          <Paper
-            elevation={0}
+          <Box
             sx={{
               flex: 1.2,
-              bgcolor: 'rgba(255, 255, 255, 0.12)',
-              color: '#FFFFFF',
-              py: 0.8,
+              bgcolor: '#EFF6FF',
+              border: '1px solid #BFDBFE',
+              py: 1,
               px: 1.2,
               borderRadius: '10px',
               display: 'flex',
@@ -214,11 +269,11 @@ export default function BookingHistoryPage() {
               gap: 0.8
             }}
           >
-            <CheckCircleIcon sx={{ color: '#34D399', fontSize: 18 }} />
-            <Typography variant="caption" sx={{ fontWeight: 800, fontSize: '11.5px' }}>
+            <CheckCircleIcon sx={{ color: '#0066CC', fontSize: 18 }} />
+            <Typography variant="caption" sx={{ fontWeight: 800, fontSize: '12px', color: '#1E40AF' }}>
               30-Day Free Work Warranty
             </Typography>
-          </Paper>
+          </Box>
         </Box>
 
         {/* Filter Pills */}
@@ -376,6 +431,9 @@ export default function BookingHistoryPage() {
                   </Box>
                 </Box>
 
+                {/* Lifecycle Stage Stepper */}
+                <BookingStageStepper status={item.status} />
+
                 {/* 2. Key Metadata & Timestamps */}
                 <Box sx={{ bgcolor: '#F8FAFC', p: 1.2, borderRadius: '10px', border: '1px solid #E2E8F0', mb: 1.5 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.4 }}>
@@ -387,14 +445,14 @@ export default function BookingHistoryPage() {
 
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.4 }}>
                     <PersonIcon sx={{ fontSize: 15, color: '#0284C7' }} />
-                    <Typography variant="caption" sx={{ color: '#334155', fontSize: '11.5px' }}>
+                    <Typography variant="caption" sx={{ color: '#1E293B', fontWeight: 600, fontSize: '11.5px' }}>
                       <strong>Technician:</strong> {item.technician_name || 'Assigned on Demand'} {item.tech_rating ? `( ${item.tech_rating})` : ''}
                     </Typography>
                   </Box>
 
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
                     <LocationOnIcon sx={{ fontSize: 15, color: '#EA580C' }} />
-                    <Typography variant="caption" sx={{ color: '#334155', fontSize: '11.5px' }}>
+                    <Typography variant="caption" sx={{ color: '#1E293B', fontWeight: 600, fontSize: '11.5px' }}>
                       <strong>Address:</strong> {item.address_line || item.locality || 'Fairlands, Salem'}
                     </Typography>
                   </Box>
@@ -405,32 +463,39 @@ export default function BookingHistoryPage() {
                   elevation={0}
                   sx={{
                     bgcolor: '#FFFFFF',
-                    border: '1px solid #E2E8F0',
+                    border: '1px solid #CBD5E1',
                     borderRadius: '10px',
-                    p: 1.2,
+                    p: 1.4,
                     mb: 1.5
                   }}
                 >
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
-                    <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', textTransform: 'uppercase', fontSize: '10.5px' }}>
+                    <Typography variant="caption" sx={{ fontWeight: 800, color: '#0F172A', textTransform: 'uppercase', fontSize: '11px' }}>
                       2-Part Payment Summary
                     </Typography>
                     <Chip
                       label={totalPaid > 0 ? `Total Paid: ₹${totalPaid}` : 'No Charges'}
                       size="small"
-                      sx={{ bgcolor: totalPaid > 0 ? '#DCFCE7' : '#F1F5F9', color: totalPaid > 0 ? '#166534' : '#64748B', fontWeight: 800, fontSize: '10px', height: 18 }}
+                      sx={{ 
+                        bgcolor: totalPaid > 0 ? '#DCFCE7' : '#F1F5F9', 
+                        color: totalPaid > 0 ? '#166534' : '#334155', 
+                        border: `1px solid ${totalPaid > 0 ? '#86EFAC' : '#E2E8F0'}`,
+                        fontWeight: 800, 
+                        fontSize: '10.5px', 
+                        height: 20 
+                      }}
                     />
                   </Box>
 
                   {/* Part 1 Row */}
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 0.4 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
-                      <TwoWheelerIcon sx={{ fontSize: 15, color: '#2563EB' }} />
-                      <Typography variant="caption" sx={{ color: '#0F172A', fontWeight: 600, fontSize: '11.5px' }}>
+                      <TwoWheelerIcon sx={{ fontSize: 16, color: '#2563EB' }} />
+                      <Typography variant="caption" sx={{ color: '#0F172A', fontWeight: 700, fontSize: '12px' }}>
                         Part 1 (Visit & Doorstep Fuel):
                       </Typography>
                     </Box>
-                    <Typography variant="caption" sx={{ fontWeight: 700, color: part1Paid ? '#16A34A' : '#64748B' }}>
+                    <Typography variant="caption" sx={{ fontWeight: 800, color: part1Paid ? '#15803D' : '#475569', fontSize: '12px' }}>
                       ₹{part1Amt} • {part1Paid ? 'PAID (100% to Tech)' : (item.status === 'accepted' ? 'Awaiting Payment' : 'Zero Charge')}
                     </Typography>
                   </Box>
@@ -438,12 +503,12 @@ export default function BookingHistoryPage() {
                   {/* Part 2 Row */}
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 0.4 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
-                      <BuildIcon sx={{ fontSize: 15, color: '#D97706' }} />
-                      <Typography variant="caption" sx={{ color: '#0F172A', fontWeight: 600, fontSize: '11.5px' }}>
+                      <BuildIcon sx={{ fontSize: 16, color: '#D97706' }} />
+                      <Typography variant="caption" sx={{ color: '#0F172A', fontWeight: 700, fontSize: '12px' }}>
                         Part 2 (Repair Work & Labour Charge):
                       </Typography>
                     </Box>
-                    <Typography variant="caption" sx={{ fontWeight: 700, color: item.status === 'completed' ? '#16A34A' : '#64748B' }}>
+                    <Typography variant="caption" sx={{ fontWeight: 800, color: item.status === 'completed' ? '#15803D' : (item.status === 'quote_approved' ? '#0066CC' : '#475569'), fontSize: '12px' }}>
                       {item.status === 'completed' ? `₹${part2Amt} • PAID (Escrow Released)` : (item.status === 'quote_approved' ? `₹${part2Amt} • Approved` : 'Quoted on Inspection')}
                     </Typography>
                   </Box>
@@ -696,12 +761,12 @@ export default function BookingHistoryPage() {
               <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '12.5px' }}>₹99.00</Typography>
             </Box>
 
-            {invoiceModalBooking.status === 'completed' && (
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.6 }}>
-                <Typography variant="body2" sx={{ color: '#334155', fontSize: '12.5px' }}>Part 2: Repair Labour & Parts:</Typography>
-                <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '12.5px' }}>₹{invoiceModalBooking.quote_subtotal || 800}.00</Typography>
-              </Box>
-            )}
+              {invoiceModalBooking.status === 'completed' && (
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.6 }}>
+                  <Typography variant="body2" sx={{ color: '#334155', fontSize: '12.5px' }}>Part 2: Repair Workmanship & Skilled Labour:</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '12.5px' }}>₹{invoiceModalBooking.quote_subtotal || 800}.00</Typography>
+                </Box>
+              )}
 
             <Divider sx={{ my: 1 }} />
 
@@ -741,13 +806,27 @@ export default function BookingHistoryPage() {
       )}
 
       {/* Bottom Navigation */}
-      <Paper elevation={3} sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, bgcolor: '#FFFFFF', borderTop: '1px solid #E2E8F0', zIndex: 1000, pb: 'max(env(safe-area-inset-bottom, 0px), 14px)' }}>
-        <BottomNavigation showLabels value={1} sx={{ height: 56, '& .Mui-selected': { color: '#0066CC', fontWeight: 700 } }}>
-          <BottomNavigationAction label="Services" icon={<WorkOutlineIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/')} />
-          <BottomNavigationAction label="Bookings" icon={<ReceiptLongIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/history')} />
-          <BottomNavigationAction label="Wallet" icon={<AccountCircleIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/wallet')} />
-          <BottomNavigationAction label="Partner Zone" icon={<SecurityIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/partner')} />
-        </BottomNavigation>
+      <Paper 
+        elevation={4} 
+        sx={{ 
+          position: 'fixed', 
+          bottom: 0, 
+          left: 0, 
+          right: 0, 
+          bgcolor: '#FFFFFF', 
+          borderTop: '1px solid #E2E8F0', 
+          zIndex: 1000, 
+          display: { xs: 'block', md: 'none' }
+        }}
+      >
+        <Box sx={{ maxWidth: 'sm', mx: 'auto' }}>
+          <BottomNavigation showLabels value={1} sx={{ height: 56, '& .Mui-selected': { color: '#0066CC', fontWeight: 800 } }}>
+            <BottomNavigationAction label="Services" icon={<WorkOutlineIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/')} />
+            <BottomNavigationAction label="Bookings" icon={<ReceiptLongIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/history')} />
+            <BottomNavigationAction label="Wallet" icon={<AccountCircleIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/wallet')} />
+            <BottomNavigationAction label="Partner Zone" icon={<SecurityIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/partner')} />
+          </BottomNavigation>
+        </Box>
       </Paper>
     </Box>
   );

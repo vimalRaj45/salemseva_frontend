@@ -623,10 +623,14 @@ export default function AdminDashboardPage() {
   // Open In-App Aadhaar Card Viewer
   const handleOpenAadhaarViewer = (tech) => {
     const url = tech.aadhaar_card_url || tech.aadhaarCardUrl;
+    if (!url) {
+      setToast({ open: true, message: 'No Aadhaar document uploaded for this technician.', severity: 'warning' });
+      return;
+    }
     setDocZoom(1);
     setDocPreviewModal({
       open: true,
-      url: url || 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=600&auto=format&fit=crop&q=80',
+      url: url,
       title: `${tech.full_name || tech.name || 'Technician'} - Aadhaar e-KYC Identity Proof`,
       type: 'aadhaar',
       data: tech
@@ -636,10 +640,14 @@ export default function AdminDashboardPage() {
   // Open In-App Parts Bill Receipt Viewer
   const handleOpenBillViewer = (booking) => {
     const url = booking.parts_bill_url || booking.partsBillUrl;
+    if (!url) {
+      setToast({ open: true, message: 'No parts bill uploaded for this booking.', severity: 'warning' });
+      return;
+    }
     setDocZoom(1);
     setDocPreviewModal({
       open: true,
-      url: url || 'https://images.unsplash.com/photo-1554415707-9e4466bfe0b0?w=600&auto=format&fit=crop&q=80',
+      url: url,
       title: `Parts Receipt Bill for Booking #${booking.id}`,
       type: 'bill',
       data: booking
@@ -681,6 +689,64 @@ export default function AdminDashboardPage() {
     } catch (e) {
       console.error('KYC update error:', e);
       setToast({ open: true, message: 'Network error updating KYC status', severity: 'error' });
+    }
+  };
+
+  // Admin Toggle Block / Suspension for Customers
+  const handleToggleCustomerBlock = async (cust, shouldBlock) => {
+    const phone = cust.customer_phone || cust.phone;
+    let reason = '';
+    if (shouldBlock) {
+      reason = window.prompt(`Enter administrative reason for blocking customer (${cust.customer_name || phone}):`, 'Policy violation or repeated fraudulent cancellations');
+      if (reason === null) return;
+    }
+    try {
+      const res = await fetch(`${API_V1_URL}/admin/customers/${phone}/toggle-block`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isBlocked: shouldBlock, reason })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setToast({ open: true, message: data.message, severity: shouldBlock ? 'warning' : 'success' });
+        setCustomersList(prev => prev.map(c => (c.customer_phone === phone || c.phone === phone) ? { ...c, is_blocked: shouldBlock, block_reason: reason } : c));
+        if (customerDetails && (customerDetails.customer_phone === phone || customerDetails.phone === phone)) {
+          setCustomerDetails(prev => ({ ...prev, is_blocked: shouldBlock, block_reason: reason }));
+        }
+      } else {
+        setToast({ open: true, message: data.error || 'Operation failed', severity: 'error' });
+      }
+    } catch (err) {
+      setToast({ open: true, message: err.message, severity: 'error' });
+    }
+  };
+
+  // Admin Toggle Block / Suspension for Technicians
+  const handleToggleTechnicianBlock = async (tech, shouldBlock) => {
+    let reason = '';
+    if (shouldBlock) {
+      reason = window.prompt(`Enter reason for suspending technician ${tech.full_name}:`, 'Disciplinary review, KYC discrepancy, or repeated complaints');
+      if (reason === null) return;
+    }
+    try {
+      const res = await fetch(`${API_V1_URL}/admin/technicians/${tech.id}/toggle-block`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isBlocked: shouldBlock, reason })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setToast({ open: true, message: data.message, severity: shouldBlock ? 'warning' : 'success' });
+        setTechnicians(prev => prev.map(t => t.id === tech.id ? { ...t, is_blocked: shouldBlock, block_reason: reason, is_online: shouldBlock ? false : t.is_online } : t));
+        if (selectedTechDossier && selectedTechDossier.id === tech.id) {
+          setSelectedTechDossier(prev => ({ ...prev, is_blocked: shouldBlock, block_reason: reason, is_online: shouldBlock ? false : prev.is_online }));
+        }
+        fetchOverview(true);
+      } else {
+        setToast({ open: true, message: data.error || 'Operation failed', severity: 'error' });
+      }
+    } catch (err) {
+      setToast({ open: true, message: err.message, severity: 'error' });
     }
   };
 
@@ -1798,17 +1864,17 @@ export default function AdminDashboardPage() {
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4 }}>
                               <StarIcon sx={{ fontSize: 14, color: '#F59E0B' }} />
                               <Typography variant="caption" sx={{ fontWeight: 900, color: '#0F172A', fontSize: '11.5px' }}>
-                                {tech.rating_avg || '4.92'}
+                                {Number(tech.jobs_completed_count) > 0 && Number(tech.rating_avg) > 0 ? tech.rating_avg : 'New'}
                               </Typography>
                               <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '10px' }}>
-                                ({tech.rating_count || 38})
+                                ({Number(tech.rating_count) || 0})
                               </Typography>
                             </Box>
                             <Typography variant="caption" sx={{ color: '#475569', fontWeight: 700, fontSize: '11px' }}>
-                              {tech.jobs_completed_count || 14} jobs
+                              {Number(tech.jobs_completed_count) || 0} jobs
                             </Typography>
                             <Typography variant="caption" sx={{ color: '#64748B', fontSize: '10.5px' }}>
-                              {tech.years_experience || 5}y exp
+                              {tech.years_experience != null ? `${tech.years_experience}y exp` : '0y exp'}
                             </Typography>
                           </Box>
 
@@ -1984,7 +2050,7 @@ export default function AdminDashboardPage() {
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3 }}>
                                 <StarIcon sx={{ fontSize: 12, color: '#F59E0B' }} />
                                 <Typography variant="caption" sx={{ color: '#059669', fontWeight: 700 }}>
-                                  4.92 / 5.0 (Verified)
+                                  {job.technician_rating && Number(job.technician_rating) > 0 ? `${job.technician_rating} / 5.0 (Verified)` : 'New Partner'}
                                 </Typography>
                               </Box>
                             </Box>
@@ -2263,6 +2329,7 @@ export default function AdminDashboardPage() {
                     <TableCell align="center">Total Orders Placed</TableCell>
                     <TableCell align="center">Completed / Active</TableCell>
                     <TableCell align="right">Lifetime Spend (GMV)</TableCell>
+                    <TableCell align="center">Account Status</TableCell>
                     <TableCell align="center">Actions</TableCell>
                   </TableRow>
                 </TableHead>
@@ -2317,24 +2384,63 @@ export default function AdminDashboardPage() {
                         ₹{parseFloat(cust.total_spent || 0).toLocaleString()}
                       </TableCell>
                       <TableCell align="center">
-                        <Button
-                          variant="contained"
-                          size="small"
-                          startIcon={<HistoryEduIcon sx={{ fontSize: 13 }} />}
-                          onClick={() => handleOpenCustomerHistory(cust)}
-                          sx={{
-                            borderRadius: '8px',
-                            fontSize: '11px',
-                            fontWeight: 800,
-                            bgcolor: '#0284C7',
-                            color: '#FFF',
-                            textTransform: 'none',
-                            py: 0.3,
-                            '&:hover': { bgcolor: '#0369A1' }
-                          }}
-                        >
-                          View History
-                        </Button>
+                        {cust.is_blocked ? (
+                          <Chip
+                            label="BLOCKED"
+                            size="small"
+                            title={cust.block_reason || 'Administrative restriction'}
+                            sx={{ bgcolor: '#FEF2F2', color: '#DC2626', fontWeight: 900, fontSize: '10px', height: 20 }}
+                          />
+                        ) : (
+                          <Chip
+                            label="ACTIVE"
+                            size="small"
+                            sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 800, fontSize: '10px', height: 20 }}
+                          />
+                        )}
+                      </TableCell>
+                      <TableCell align="center">
+                        <Box sx={{ display: 'flex', gap: 0.6, justifyContent: 'center' }}>
+                          <Button
+                            variant="contained"
+                            size="small"
+                            startIcon={<HistoryEduIcon sx={{ fontSize: 13 }} />}
+                            onClick={() => handleOpenCustomerHistory(cust)}
+                            sx={{
+                              borderRadius: '8px',
+                              fontSize: '11px',
+                              fontWeight: 800,
+                              bgcolor: '#0284C7',
+                              color: '#FFF',
+                              textTransform: 'none',
+                              py: 0.3,
+                              '&:hover': { bgcolor: '#0369A1' }
+                            }}
+                          >
+                            History
+                          </Button>
+                          {cust.is_blocked ? (
+                            <Button
+                              variant="outlined"
+                              color="success"
+                              size="small"
+                              onClick={() => handleToggleCustomerBlock(cust, false)}
+                              sx={{ borderRadius: '8px', fontSize: '11px', fontWeight: 800, textTransform: 'none', py: 0.3 }}
+                            >
+                              Unblock
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="outlined"
+                              color="error"
+                              size="small"
+                              onClick={() => handleToggleCustomerBlock(cust, true)}
+                              sx={{ borderRadius: '8px', fontSize: '11px', fontWeight: 800, textTransform: 'none', py: 0.3 }}
+                            >
+                              Block
+                            </Button>
+                          )}
+                        </Box>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -2406,7 +2512,7 @@ export default function AdminDashboardPage() {
                             {tech.full_name}
                           </Typography>
                           <Typography variant="caption" sx={{ color: '#64748B' }}>
-                            {tech.years_experience || 5} Years Experience
+                            {tech.years_experience != null ? `${tech.years_experience} Years Experience` : '0 Years Experience'}
                           </Typography>
                         </Box>
                       </Box>
@@ -2421,10 +2527,10 @@ export default function AdminDashboardPage() {
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A' }}>
-                        {tech.phone || '+91-94432'}
+                        {tech.phone || 'No Phone'}
                       </Typography>
                       <Typography variant="caption" sx={{ color: '#64748B' }}>
-                        UPI: {tech.upi_vpa || 'ramesh@oksbi'}
+                        UPI: {tech.upi_vpa || 'Not Configured'}
                       </Typography>
                     </TableCell>
 
@@ -2469,12 +2575,12 @@ export default function AdminDashboardPage() {
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.4, mb: 0.3 }}>
                         <StarIcon sx={{ fontSize: 14, color: '#F59E0B' }} />
                         <Typography variant="body2" sx={{ fontWeight: 900, color: '#0F172A' }}>
-                          {tech.rating_avg || '4.92'}
+                          {Number(tech.jobs_completed_count) > 0 && Number(tech.rating_avg) > 0 ? tech.rating_avg : 'New'}
                         </Typography>
                       </Box>
                       <Chip
                         icon={<WorkHistoryIcon sx={{ color: '#166534 !important', fontSize: '12px !important' }} />}
-                        label={`${tech.jobs_completed_count || 14} Jobs`}
+                        label={`${Number(tech.jobs_completed_count) || 0} Jobs`}
                         size="small"
                         sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 800, fontSize: '10.5px', height: 20 }}
                       />
@@ -2482,7 +2588,9 @@ export default function AdminDashboardPage() {
 
                     <TableCell align="center">
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.4, alignItems: 'center' }}>
-                        {tech.is_online ? (
+                        {tech.is_blocked ? (
+                          <Chip label="SUSPENDED" size="small" sx={{ bgcolor: '#FEF2F2', color: '#DC2626', fontWeight: 900, fontSize: '9.5px', height: 18 }} title={tech.block_reason || 'Suspended by admin'} />
+                        ) : tech.is_online ? (
                           <Chip icon={<SensorsIcon sx={{ color: '#15803D !important', fontSize: '12px !important' }} />} label="ONLINE" size="small" sx={{ bgcolor: '#DCFCE7', color: '#15803D', fontWeight: 900, fontSize: '9.5px', height: 18 }} />
                         ) : (
                           <Chip icon={<PowerSettingsNewIcon sx={{ color: '#64748B !important', fontSize: '12px !important' }} />} label="OFFLINE" size="small" sx={{ bgcolor: '#F1F5F9', color: '#64748B', fontWeight: 800, fontSize: '9.5px', height: 18 }} />
@@ -2539,26 +2647,49 @@ export default function AdminDashboardPage() {
                           </Box>
                         ) : null}
 
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          startIcon={<HistoryEduIcon sx={{ fontSize: 13 }} />}
-                          onClick={() => handleOpenTechDossier(tech)}
-                          sx={{
-                            borderRadius: '8px',
-                            fontSize: '11px',
-                            fontWeight: 800,
-                            color: '#0284C7',
-                            borderColor: '#BAE6FD',
-                            bgcolor: '#F8FAFC',
-                            textTransform: 'none',
-                            py: 0.3,
-                            px: 1.2,
-                            '&:hover': { bgcolor: '#F0F9FF' }
-                          }}
-                        >
-                          Dossier 360
-                        </Button>
+                        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', justifyContent: 'center' }}>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<HistoryEduIcon sx={{ fontSize: 13 }} />}
+                            onClick={() => handleOpenTechDossier(tech)}
+                            sx={{
+                              borderRadius: '8px',
+                              fontSize: '11px',
+                              fontWeight: 800,
+                              color: '#0284C7',
+                              borderColor: '#BAE6FD',
+                              bgcolor: '#F8FAFC',
+                              textTransform: 'none',
+                              py: 0.3,
+                              px: 1,
+                              '&:hover': { bgcolor: '#F0F9FF' }
+                            }}
+                          >
+                            Dossier 360
+                          </Button>
+                          {tech.is_blocked ? (
+                            <Button
+                              variant="outlined"
+                              color="success"
+                              size="small"
+                              onClick={() => handleToggleTechnicianBlock(tech, false)}
+                              sx={{ borderRadius: '8px', fontSize: '10.5px', fontWeight: 800, textTransform: 'none', py: 0.2, px: 0.8 }}
+                            >
+                              Unblock
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="outlined"
+                              color="error"
+                              size="small"
+                              onClick={() => handleToggleTechnicianBlock(tech, true)}
+                              sx={{ borderRadius: '8px', fontSize: '10.5px', fontWeight: 800, textTransform: 'none', py: 0.2, px: 0.8 }}
+                            >
+                              Suspend
+                            </Button>
+                          )}
+                        </Box>
                       </Box>
                     </TableCell>
                   </TableRow>
@@ -4073,7 +4204,32 @@ export default function AdminDashboardPage() {
               </Table>
             )}
           </DialogContent>
-          <DialogActions sx={{ p: 2 }}>
+          <DialogActions sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            {customerDetails && (
+              <Box>
+                {customerDetails.is_blocked ? (
+                  <Button
+                    variant="contained"
+                    color="success"
+                    size="small"
+                    onClick={() => handleToggleCustomerBlock(customerDetails, false)}
+                    sx={{ textTransform: 'none', fontWeight: 800, borderRadius: '8px' }}
+                  >
+                    Unblock Customer Account
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    size="small"
+                    onClick={() => handleToggleCustomerBlock(customerDetails, true)}
+                    sx={{ textTransform: 'none', fontWeight: 800, borderRadius: '8px' }}
+                  >
+                    Suspend / Block Customer
+                  </Button>
+                )}
+              </Box>
+            )}
             <Button onClick={() => setCustomerModalOpen(false)} sx={{ fontWeight: 700, color: '#64748B' }}>Close</Button>
           </DialogActions>
         </Dialog>
@@ -4102,16 +4258,20 @@ export default function AdminDashboardPage() {
                   </Grid>
                   <Grid item xs={12} sm={4}>
                     <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700 }}>PERFORMANCE RATING</Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      <StarIcon sx={{ fontSize: 16, color: '#F59E0B' }} />
-                      <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0F172A' }}>{selectedTechDossier.rating_avg} </Typography>
-                    </Box>
-                    <Typography variant="caption" sx={{ color: '#64748B' }}>{selectedTechDossier.jobs_completed_count || techJobsHistory.length} Jobs Serviced</Typography>
+                    {Number(selectedTechDossier.jobs_completed_count) > 0 && Number(selectedTechDossier.rating_avg) > 0 ? (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <StarIcon sx={{ fontSize: 16, color: '#F59E0B' }} />
+                        <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0F172A' }}>{selectedTechDossier.rating_avg}</Typography>
+                      </Box>
+                    ) : (
+                      <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#64748B' }}>New Partner (Unrated)</Typography>
+                    )}
+                    <Typography variant="caption" sx={{ color: '#64748B' }}>{Number(selectedTechDossier.jobs_completed_count) || 0} Jobs Serviced</Typography>
                   </Grid>
                   <Grid item xs={12} sm={4}>
                     <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700 }}>LIFETIME PAYOUTS EARNED</Typography>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#059669' }}>₹{techFinancials?.lifetimeEarnings ? techFinancials.lifetimeEarnings.toLocaleString() : '12,450'}</Typography>
-                    <Typography variant="caption" sx={{ color: '#64748B' }}>UPI: {selectedTechDossier.upi_vpa || 'ramesh@oksbi'}</Typography>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#059669' }}>₹{(Number(techFinancials?.lifetimeEarnings) || 0).toLocaleString()}</Typography>
+                    <Typography variant="caption" sx={{ color: '#64748B' }}>UPI: {selectedTechDossier.upi_vpa || 'Not Configured'}</Typography>
                   </Grid>
 
                   {/* Aadhaar KYC Uploaded Document View & Decision */}
@@ -4127,24 +4287,91 @@ export default function AdminDashboardPage() {
                             AADHAAR IDENTITY & e-KYC VERIFICATION
                           </Typography>
                           <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A' }}>
-                            Aadhaar: {selectedTechDossier.aadhaar_number ? `XXXX-XXXX-${selectedTechDossier.aadhaar_number.slice(-4)}` : '9842-7112-4921'}
+                            Aadhaar: {selectedTechDossier.aadhaar_number ? `XXXX-XXXX-${selectedTechDossier.aadhaar_number.slice(-4)}` : 'Not Provided'}
                           </Typography>
                         </Box>
                       </Box>
 
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                         {(selectedTechDossier.aadhaar_card_url || selectedTechDossier.aadhaarCardUrl) ? (
-                          <Button
-                            variant="outlined"
-                            size="small"
-                            startIcon={<VisibilityIcon sx={{ fontSize: 13 }} />}
-                            onClick={() => handleOpenAadhaarViewer(selectedTechDossier)}
-                            sx={{ textTransform: 'none', fontWeight: 800, fontSize: '11px', borderRadius: '8px', color: '#0284C7', borderColor: '#BAE6FD', bgcolor: '#F0F9FF' }}
-                          >
-                            Preview Aadhaar Card
-                          </Button>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Box
+                              component="img"
+                              src={selectedTechDossier.aadhaar_card_url || selectedTechDossier.aadhaarCardUrl}
+                              alt="Uploaded Aadhaar Document"
+                              onClick={() => handleOpenAadhaarViewer(selectedTechDossier)}
+                              sx={{
+                                width: 54,
+                                height: 36,
+                                objectFit: 'cover',
+                                borderRadius: '6px',
+                                border: '1px solid #0284C7',
+                                cursor: 'pointer',
+                                boxShadow: '0 2px 6px rgba(2, 132, 199, 0.2)',
+                                '&:hover': { transform: 'scale(1.08)' },
+                                transition: 'all 0.2s'
+                              }}
+                              title="Click to zoom Aadhaar document"
+                            />
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              startIcon={<VisibilityIcon sx={{ fontSize: 13 }} />}
+                              onClick={() => handleOpenAadhaarViewer(selectedTechDossier)}
+                              sx={{ textTransform: 'none', fontWeight: 800, fontSize: '11px', borderRadius: '8px', color: '#0284C7', borderColor: '#BAE6FD', bgcolor: '#F0F9FF' }}
+                            >
+                              Preview Aadhaar Card
+                            </Button>
+                          </Box>
                         ) : (
-                          <Chip label="No Document Uploaded" size="small" sx={{ bgcolor: '#F1F5F9', color: '#64748B', fontWeight: 800, fontSize: '10px' }} />
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Chip label="No Document Uploaded" size="small" sx={{ bgcolor: '#F1F5F9', color: '#64748B', fontWeight: 800, fontSize: '10px' }} />
+                            <Button
+                              component="label"
+                              variant="outlined"
+                              size="small"
+                              startIcon={<CloudUploadIcon sx={{ fontSize: 13 }} />}
+                              sx={{ textTransform: 'none', fontWeight: 800, fontSize: '11px', borderRadius: '8px', color: '#0284C7', borderColor: '#BAE6FD', bgcolor: '#F0F9FF' }}
+                            >
+                              Attach Aadhaar Photo
+                              <input
+                                type="file"
+                                hidden
+                                accept="image/*"
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
+                                  try {
+                                    const reader = new FileReader();
+                                    reader.onload = async () => {
+                                      const base64Data = reader.result;
+                                      const res = await fetch(`${API_V1_URL}/storage/upload-aadhaar`, {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({
+                                          fileData: base64Data,
+                                          mimeType: file.type || 'image/jpeg',
+                                          phone: selectedTechDossier.phone,
+                                          fileName: file.name
+                                        })
+                                      });
+                                      const data = await res.json();
+                                      if (data.success && data.url) {
+                                        setSelectedTechDossier(prev => ({ ...prev, aadhaar_card_url: data.url }));
+                                        setTechnicians(prev => prev.map(t => t.id === selectedTechDossier.id ? { ...t, aadhaar_card_url: data.url } : t));
+                                        setToast({ open: true, message: 'Aadhaar document successfully attached!', severity: 'success' });
+                                      } else {
+                                        setToast({ open: true, message: data.error || 'Failed to attach Aadhaar document', severity: 'error' });
+                                      }
+                                    };
+                                    reader.readAsDataURL(file);
+                                  } catch (err) {
+                                    setToast({ open: true, message: 'Failed to upload Aadhaar: ' + err.message, severity: 'error' });
+                                  }
+                                }}
+                              />
+                            </Button>
+                          </Box>
                         )}
 
                         {!selectedTechDossier.is_kyc_verified ? (
@@ -4225,14 +4452,39 @@ export default function AdminDashboardPage() {
                       <TableCell sx={{ fontWeight: 700, color: '#0F172A' }}>{job.service_id?.toUpperCase()}</TableCell>
                       <TableCell sx={{ color: '#64748B', fontSize: '12px' }}>{new Date(job.created_at).toLocaleDateString()}</TableCell>
                       <TableCell align="center">{getStatusChip(job.status)}</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 900, color: '#059669' }}>₹{job.tech_payout_amount || (parseFloat(job.final_amount) * 0.85).toFixed(0)}</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 900, color: '#059669' }}>₹{job.tech_payout_amount || (parseFloat(job.final_amount) * 0.98).toFixed(0)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             )}
           </DialogContent>
-          <DialogActions sx={{ p: 2 }}>
+          <DialogActions sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            {selectedTechDossier && (
+              <Box>
+                {selectedTechDossier.is_blocked ? (
+                  <Button
+                    variant="contained"
+                    color="success"
+                    size="small"
+                    onClick={() => handleToggleTechnicianBlock(selectedTechDossier, false)}
+                    sx={{ textTransform: 'none', fontWeight: 800, borderRadius: '8px' }}
+                  >
+                    Restore / Unblock Partner
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    size="small"
+                    onClick={() => handleToggleTechnicianBlock(selectedTechDossier, true)}
+                    sx={{ textTransform: 'none', fontWeight: 800, borderRadius: '8px' }}
+                  >
+                    Suspend / Block Partner
+                  </Button>
+                )}
+              </Box>
+            )}
             <Button onClick={() => setTechDossierModalOpen(false)} sx={{ fontWeight: 700, color: '#64748B' }}>Close</Button>
           </DialogActions>
         </Dialog>
@@ -4576,7 +4828,7 @@ export default function AdminDashboardPage() {
                             {selectedBookingTrace.technician_name}
                           </Typography>
                           <Typography variant="caption" sx={{ color: '#64748B', display: 'block' }}>
-                            Trade: {getTradeLabel(selectedBookingTrace.primary_trade || selectedBookingTrace.service_id)} • Rating: 4.92 / 5.0
+                            Trade: {getTradeLabel(selectedBookingTrace.primary_trade || selectedBookingTrace.service_id)}{selectedBookingTrace.technician_rating && Number(selectedBookingTrace.technician_rating) > 0 ? ` • Rating: ${selectedBookingTrace.technician_rating} / 5.0` : ''}
                           </Typography>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.8 }}>
                             <Chip

@@ -43,6 +43,7 @@ import VerifiedIcon from '@mui/icons-material/Verified';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PhoneIcon from '@mui/icons-material/Phone';
+import toast from 'react-hot-toast';
 import ChatIcon from '@mui/icons-material/Chat';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import StarsIcon from '@mui/icons-material/Stars';
@@ -115,7 +116,7 @@ export default function CustomerApp({ currentStep, setStep, activeBooking, setAc
       setEscalationDialogOpen(true);
       if (onEscalateOps) onEscalateOps();
     } else {
-      alert(`Review Submitted! +${reviewRewardCredits} Seva Credits Added to Wallet.`);
+      toast.success(`Review Submitted! +${reviewRewardCredits} Seva Credits Added to Wallet.`);
       setStep('customer_history');
     }
   };

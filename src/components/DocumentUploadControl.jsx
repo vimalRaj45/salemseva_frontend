@@ -68,7 +68,7 @@ export default function DocumentUploadControl({
     });
   };
 
-  // Step 1: User selects / takes photo -> Stage for PREVIEW ONLY (DO NOT upload blindly!)
+  // Step 1: User selects / takes photo -> Stage, Auto-Upload and pass URL to parent immediately
   const handleFileSelect = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -88,65 +88,61 @@ export default function DocumentUploadControl({
     }
 
     try {
+      setIsUploading(true);
       const base64Data = await readFileAsBase64(file);
 
-      // Save to local staged state for PREVIEW FIRST
-      setStagedFile({
+      const staged = {
         file,
         dataUrl: base64Data,
         name: file.name || 'captured_document.jpg',
         sizeMb: (file.size / (1024 * 1024)).toFixed(2),
         type: file.type || 'image/jpeg'
-      });
-      setIsUploaded(false);
+      };
+      setStagedFile(staged);
+      setUploadedUrl(base64Data);
+      setIsUploaded(true);
+
+      // Notify parent immediately with local data URI so form submission never gets null
+      if (onUploadSuccess) {
+        onUploadSuccess(base64Data, { storageType: 'LOCAL_PREVIEW' });
+      }
+
+      // Automatically push to backend storage
+      try {
+        const res = await fetch(`${API_V1_URL}/storage/upload`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fileData: base64Data,
+            mimeType: staged.type,
+            folder,
+            referenceId: referenceId || 'partner_doc',
+            fileName: staged.name
+          })
+        });
+
+        const data = await res.json();
+        const finalUrl = data.url || base64Data;
+        setUploadedUrl(finalUrl);
+        if (onUploadSuccess) {
+          onUploadSuccess(finalUrl, data);
+        }
+      } catch (uploadErr) {
+        console.warn('Storage upload network note, preserved local image:', uploadErr.message);
+      }
     } catch (err) {
       setErrorMessage('கோப்பை வாசிப்பதில் பிழை ஏற்பட்டது. தயவுசெய்து மீண்டும் முயற்சிக்கவும்.');
+    } finally {
+      setIsUploading(false);
     }
   };
 
-  // Step 2: User reviewed preview and confirmed -> Perform actual S3 Upload
+  // Optional manual re-confirmation if needed
   const handleConfirmUpload = async () => {
-    if (!stagedFile) return;
-
-    try {
-      setIsUploading(true);
-      setErrorMessage('');
-
-      // Upload to S3-compatible backend
-      const res = await fetch(`${API_V1_URL}/storage/upload`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fileData: stagedFile.dataUrl,
-          mimeType: stagedFile.type || 'image/jpeg',
-          folder,
-          referenceId,
-          fileName: stagedFile.name
-        })
-      });
-
-      const data = await res.json();
-      const finalUrl = data.url || stagedFile.dataUrl;
-
-      setUploadedUrl(finalUrl);
+    if (!uploadedUrl && stagedFile) {
+      if (onUploadSuccess) onUploadSuccess(stagedFile.dataUrl);
+      setUploadedUrl(stagedFile.dataUrl);
       setIsUploaded(true);
-      setStagedFile(null);
-
-      if (onUploadSuccess) {
-        onUploadSuccess(finalUrl, data);
-      }
-    } catch (err) {
-      console.warn('S3 upload network fallback to local image:', err);
-      // Fallback: local base64 still works so technician is never blocked in field
-      const fallbackUrl = stagedFile.dataUrl;
-      setUploadedUrl(fallbackUrl);
-      setIsUploaded(true);
-      setStagedFile(null);
-      if (onUploadSuccess) {
-        onUploadSuccess(fallbackUrl, { storageType: 'LOCAL_FALLBACK' });
-      }
-    } finally {
-      setIsUploading(false);
     }
   };
 

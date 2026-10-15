@@ -17,6 +17,13 @@ import RatingEscalationPage from './pages/customer/RatingEscalationPage';
 import WalletHubPage from './pages/customer/WalletHubPage';
 import BookingHistoryPage from './pages/customer/BookingHistoryPage';
 
+// Legal & Compliance Pages
+import TermsPage from './pages/legal/TermsPage';
+import PrivacyPolicyPage from './pages/legal/PrivacyPolicyPage';
+import RefundPolicyPage from './pages/legal/RefundPolicyPage';
+import HowItWorksPage from './pages/customer/HowItWorksPage';
+import FirstTimeOnboardingPage from './pages/customer/FirstTimeOnboardingPage';
+
 // Partner Pages
 import PartnerOnboardingPage from './pages/partner/PartnerOnboardingPage';
 import PartnerDutyPage from './pages/partner/PartnerDutyPage';
@@ -44,8 +51,9 @@ function CustomerActiveJobGuard({ children }) {
     // Only guard customer browsing routes
     const isCustomerRoute = !location.pathname.startsWith('/partner') && !location.pathname.startsWith('/admin');
     const isWorkStep = ['/matching', '/track', '/quote', '/checkout', '/rate'].some(p => location.pathname.startsWith(p));
+    const isLegalPage = ['/terms', '/privacy', '/refund-policy', '/refunds', '/how-it-works'].some(p => location.pathname.startsWith(p));
     
-    if (!isCustomerRoute || isWorkStep) return;
+    if (!isCustomerRoute || isWorkStep || isLegalPage) return;
 
     const activeBookingId = localStorage.getItem('salemseva_active_booking');
     if (!activeBookingId) return;
@@ -93,6 +101,83 @@ function CustomerActiveJobGuard({ children }) {
   return children;
 }
 
+function InitialHomeRoute() {
+  const { user, isGuest } = useAuth();
+  const hasSeen = localStorage.getItem('salemseva_has_seen_onboarding');
+  if (!hasSeen && !user) {
+    return <Navigate to="/welcome" replace />;
+  }
+  if (!user && !isGuest) {
+    return <Navigate to="/login" replace />;
+  }
+  return <CustomerHomePage />;
+}
+
+function MainLayout({ walletBalance, currentBooking, setCurrentBooking }) {
+  const location = useLocation();
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
+  const isFullScreenPage = isAuthPage || location.pathname === '/how-it-works' || location.pathname === '/welcome';
+
+  return (
+    <CustomerActiveJobGuard>
+      <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', bgcolor: '#F8FAFC' }}>
+        {/* Production Top Navbar - hidden on full-screen auth / how-it-works / welcome pages */}
+        {!isFullScreenPage && <Navbar walletBalance={walletBalance} />}
+
+        {/* Real Production URL Routes */}
+        <Box sx={{ 
+          flex: 1, 
+          pt: isFullScreenPage ? 0 : { xs: 'calc(68px + env(safe-area-inset-top, 0px))', md: 'calc(88px + env(safe-area-inset-top, 0px))' },
+          pb: isFullScreenPage ? 0 : 'calc(74px + env(safe-area-inset-bottom, 16px))'
+        }}>
+          <Routes>
+            {/* Customer Routes */}
+            <Route path="/onboarding" element={<CustomerOnboardingPage onLoginSuccess={(u) => console.log('Logged in:', u)} />} />
+            <Route path="/" element={<InitialHomeRoute />} />
+            <Route path="/book/:serviceId" element={<ServiceDetailPage onStartBooking={(b) => setCurrentBooking(b)} />} />
+            <Route path="/matching" element={<MatchingPage />} />
+            <Route path="/track" element={<TrackingPage />} />
+            <Route path="/tracking" element={<Navigate to="/track" replace />} />
+            <Route path="/quote" element={<QuoteReviewPage />} />
+            <Route path="/checkout" element={<CheckoutPage walletBalance={walletBalance} />} />
+            <Route path="/rate" element={<RatingEscalationPage />} />
+            <Route path="/wallet" element={<WalletHubPage walletBalance={walletBalance} />} />
+            <Route path="/history" element={<BookingHistoryPage />} />
+
+            {/* Partner Routes */}
+            <Route path="/partner/onboarding" element={<PartnerOnboardingPage />} />
+            <Route path="/partner" element={<PartnerDutyPage />} />
+            <Route path="/partner/quote-builder" element={<PartnerQuoteBuilderPage />} />
+
+            {/* Admin Desk Routes */}
+            <Route path="/admin" element={<AdminDashboardPage />} />
+            <Route path="/admin/traceability" element={<AdminTraceabilityPage />} />
+            <Route path="/admin/settlements" element={<AdminSettlementsPage />} />
+            <Route path="/admin/financials" element={<AdminSettlementsPage />} />
+
+            {/* Dedicated Authentication Routes */}
+            <Route path="/login" element={<AuthPage initialMode="login" />} />
+            <Route path="/register" element={<AuthPage initialMode="register" />} />
+
+            {/* Public Legal & Compliance Routes */}
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/privacy" element={<PrivacyPolicyPage />} />
+            <Route path="/refund-policy" element={<RefundPolicyPage />} />
+            <Route path="/refunds" element={<Navigate to="/refund-policy" replace />} />
+
+            {/* Explainer & How It Works Routes */}
+            <Route path="/how-it-works" element={<HowItWorksPage />} />
+            <Route path="/welcome" element={<FirstTimeOnboardingPage />} />
+
+            {/* Fallback */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Box>
+      </Box>
+    </CustomerActiveJobGuard>
+  );
+}
+
 function AppContent() {
   const { user } = useAuth();
   const [currentBooking, setCurrentBooking] = useState(null);
@@ -119,54 +204,11 @@ function AppContent() {
 
       <BrowserRouter>
         <GlobalNotificationWatcher />
-        <CustomerActiveJobGuard>
-          <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', bgcolor: '#F8FAFC' }}>
-            
-            {/* Production Top Navbar */}
-            <Navbar 
-              walletBalance={walletBalance} 
-            />
-
-          {/* Real Production URL Routes */}
-          <Box sx={{ 
-            flex: 1, 
-            pt: { xs: 'calc(58px + env(safe-area-inset-top, 0px))', md: 'calc(68px + env(safe-area-inset-top, 0px))' },
-            pb: 'calc(74px + env(safe-area-inset-bottom, 16px))'
-          }}>
-            <Routes>
-              {/* Customer Routes */}
-              <Route path="/onboarding" element={<CustomerOnboardingPage onLoginSuccess={(u) => console.log('Logged in:', u)} />} />
-              <Route path="/" element={<CustomerHomePage />} />
-              <Route path="/book/:serviceId" element={<ServiceDetailPage onStartBooking={(b) => setCurrentBooking(b)} />} />
-              <Route path="/matching" element={<MatchingPage />} />
-              <Route path="/track" element={<TrackingPage />} />
-              <Route path="/tracking" element={<Navigate to="/track" replace />} />
-              <Route path="/quote" element={<QuoteReviewPage />} />
-              <Route path="/checkout" element={<CheckoutPage walletBalance={walletBalance} />} />
-              <Route path="/rate" element={<RatingEscalationPage />} />
-              <Route path="/wallet" element={<WalletHubPage walletBalance={walletBalance} />} />
-              <Route path="/history" element={<BookingHistoryPage />} />
-
-              {/* Partner Routes */}
-              <Route path="/partner/onboarding" element={<PartnerOnboardingPage />} />
-              <Route path="/partner" element={<PartnerDutyPage />} />
-              <Route path="/partner/quote-builder" element={<PartnerQuoteBuilderPage />} />
-
-              {/* Admin Desk Routes */}
-              <Route path="/admin" element={<AdminDashboardPage />} />
-              <Route path="/admin/traceability" element={<AdminTraceabilityPage />} />
-              <Route path="/admin/settlements" element={<AdminSettlementsPage />} />
-
-              {/* Dedicated Authentication Routes */}
-              <Route path="/login" element={<AuthPage initialMode="login" />} />
-              <Route path="/register" element={<AuthPage initialMode="register" />} />
-
-              {/* Fallback */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Box>
-        </Box>
-      </CustomerActiveJobGuard>
+        <MainLayout
+          walletBalance={walletBalance}
+          currentBooking={currentBooking}
+          setCurrentBooking={setCurrentBooking}
+        />
 
       {/* Global React Hot Toast Notifier */}
       <Toaster

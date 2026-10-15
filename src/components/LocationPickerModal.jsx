@@ -20,21 +20,15 @@ import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { ILLUSTRATIONS } from '../constants/visualAssets';
+import toast from 'react-hot-toast';
 
-const SALEM_LOCALITIES = [
-  { name: 'Fairlands', pin: '636016', lat: 11.6738, lng: 78.1460 },
-  { name: 'Hasthampatti', pin: '636007', lat: 11.6780, lng: 78.1630 },
-  { name: 'Alagapuram', pin: '636004', lat: 11.6795, lng: 78.1380 },
-  { name: 'Suramangalam / Junction', pin: '636005', lat: 11.6720, lng: 78.1150 },
-  { name: 'Meyyanur', pin: '636004', lat: 11.6660, lng: 78.1340 },
-  { name: 'Ammapet', pin: '636003', lat: 11.6540, lng: 78.1750 },
-  { name: 'Shevapet', pin: '636002', lat: 11.6480, lng: 78.1420 },
-  { name: 'Gugai', pin: '636006', lat: 11.6390, lng: 78.1520 },
-  { name: 'Kondalampatti', pin: '636010', lat: 11.6180, lng: 78.1330 },
-  { name: 'Kannankurichi (Yercaud Foothills)', pin: '636008', lat: 11.7100, lng: 78.1820 },
-  { name: 'Gorimedu', pin: '636008', lat: 11.7050, lng: 78.1640 },
-  { name: 'Steel Plant Area', pin: '636013', lat: 11.6420, lng: 78.0750 }
-];
+import {
+  SALEM_LOCALITIES,
+  SALEM_CENTER,
+  getLiveAccurateLocation,
+  calculateDistanceKm,
+  verifySalemBoundary
+} from '../utils/geoUtils';
 
 export default function LocationPickerModal({
   open,
@@ -53,54 +47,73 @@ export default function LocationPickerModal({
   );
   const [isDetecting, setIsDetecting] = useState(false);
   const [geoStatus, setGeoStatus] = useState('');
+  const [detectedCoords, setDetectedCoords] = useState(
+    currentLocation?.lat && currentLocation?.lng ? { lat: currentLocation.lat, lng: currentLocation.lng } : null
+  );
+  const [detectedOutsideRegion, setDetectedOutsideRegion] = useState(false);
+  const [detectedPlaceInfo, setDetectedPlaceInfo] = useState(null);
   const [searchFilter, setSearchFilter] = useState('');
 
   // Extract or detect 6-digit PIN code
   const pinInAddress = doorAddress.match(/\b(\d{6})\b/);
   const activePin = pinInAddress ? pinInAddress[1] : customPin;
-  const isOutOfRegion = Boolean(activePin && activePin.length === 6 && !activePin.startsWith('636'));
+  const isOutOfRegion = Boolean(
+    detectedOutsideRegion ||
+    (activePin && activePin.length === 6 && !activePin.startsWith('636'))
+  );
 
-  const handleDetectGPS = () => {
+  const handleDetectGPS = async () => {
     setIsDetecting(true);
-    setGeoStatus('Locating your GPS coordinates in Salem...');
+    setGeoStatus('Locating your accurate live GPS coordinates...');
 
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setIsDetecting(false);
-          setGeoStatus(`GPS Locked: ${latitude.toFixed(4)}° N, ${longitude.toFixed(4)}° E`);
-          
-          // Find closest Salem locality
-          const closest = SALEM_LOCALITIES.reduce((prev, curr) => {
-            const prevDist = Math.hypot(prev.lat - latitude, prev.lng - longitude);
-            const currDist = Math.hypot(curr.lat - latitude, curr.lng - longitude);
-            return currDist < prevDist ? curr : prev;
-          }, SALEM_LOCALITIES[0]);
-
-          setSelectedLocality(closest.name);
-          setCustomPin(closest.pin);
-          const fullAddr = `Live GPS Doorstep (${latitude.toFixed(4)}, ${longitude.toFixed(4)}), ${closest.name}, Salem - ${closest.pin}`;
-          setDoorAddress(fullAddr);
-        },
-        (error) => {
-          setIsDetecting(false);
-          setGeoStatus('GPS permission prompt dismissed. Using high-precision Salem Fairlands.');
-          setSelectedLocality('Fairlands');
-          setCustomPin('636016');
-          setDoorAddress('Plot 42, 5th Cross, Fairlands, Salem - 636016');
-        },
-        { enableHighAccuracy: true, timeout: 8000 }
-      );
-    } else {
+    try {
+      const geo = await getLiveAccurateLocation();
       setIsDetecting(false);
-      setGeoStatus('Geolocation not supported by browser. Selected Salem Central.');
+      setDetectedCoords({ lat: geo.lat, lng: geo.lng });
+
+      if (geo.isSalem) {
+        setDetectedOutsideRegion(false);
+        setDetectedPlaceInfo(null);
+        setGeoStatus(`GPS Locked: ${geo.lat.toFixed(4)} N, ${geo.lng.toFixed(4)} E (${geo.localityName || 'Salem Grid'})`);
+
+        // Find closest locality in Salem
+        const closest = SALEM_LOCALITIES.reduce((prev, curr) => {
+          const prevDist = Math.hypot(prev.lat - geo.lat, prev.lng - geo.lng);
+          const currDist = Math.hypot(curr.lat - geo.lat, curr.lng - geo.lng);
+          return currDist < prevDist ? curr : prev;
+        }, SALEM_LOCALITIES[0]);
+
+        setSelectedLocality(closest.name);
+        setCustomPin(geo.pincode && geo.pincode.startsWith('636') ? geo.pincode : closest.pin);
+        const resolvedAddr = geo.fullAddress && geo.fullAddress.length > 15
+          ? geo.fullAddress
+          : `Live GPS Doorstep (${geo.lat.toFixed(4)}, ${geo.lng.toFixed(4)}), ${closest.name}, Salem - ${closest.pin}`;
+        setDoorAddress(resolvedAddr);
+      } else {
+        // Accurately acknowledge that user is outside Salem
+        setDetectedOutsideRegion(true);
+        setDetectedPlaceInfo({
+          name: geo.localityName || geo.city || 'Outside Salem',
+          distanceKm: geo.distanceKmFromCenter || 0,
+          pincode: geo.pincode || ''
+        });
+        setGeoStatus(
+          `Live GPS: ${geo.lat.toFixed(4)} N, ${geo.lng.toFixed(4)} E (${geo.city || geo.district || 'Outside Region'}, ~${Math.round(geo.distanceKmFromCenter || 0)} km from Salem)`
+        );
+        if (geo.pincode) {
+          setCustomPin(geo.pincode);
+        }
+        setDoorAddress(geo.fullAddress || `Live Location: ${geo.lat.toFixed(4)}, ${geo.lng.toFixed(4)} (${geo.city})`);
+      }
+    } catch (error) {
+      setIsDetecting(false);
+      setGeoStatus(`Location detection notice: ${error.message || 'Please select a Salem locality below.'}`);
     }
   };
 
   const handleConfirm = () => {
     if (isOutOfRegion) {
-      alert(`Service Unavailable: PIN code ${activePin} is outside our active Salem service region. SalemSeva only accepts bookings within Salem (636xxx).`);
+      toast.error(`Service Unavailable: PIN (${activePin}) is outside Salem district. SalemSeva operates exclusively in Salem (636xxx). Please select a Salem locality.`);
       return;
     }
     const locObj = SALEM_LOCALITIES.find(l => l.name === selectedLocality) || SALEM_LOCALITIES[0];
@@ -108,8 +121,8 @@ export default function LocationPickerModal({
     const locationData = {
       locality: selectedLocality,
       pincode: finalPin,
-      lat: locObj.lat,
-      lng: locObj.lng,
+      lat: detectedCoords ? detectedCoords.lat : locObj.lat,
+      lng: detectedCoords ? detectedCoords.lng : locObj.lng,
       address: doorAddress || `${selectedLocality}, Salem - ${finalPin}`
     };
     localStorage.setItem('salemseva_user_location', JSON.stringify(locationData));
@@ -207,9 +220,20 @@ export default function LocationPickerModal({
         </Button>
 
         {geoStatus && (
-          <Typography variant="caption" sx={{ display: 'block', mb: 2, color: '#059669', fontWeight: 700, bgcolor: '#ECFDF5', p: 1, borderRadius: '8px', border: '1px solid #A7F3D0' }}>
+          <Typography variant="caption" sx={{ display: 'block', mb: 2, color: detectedOutsideRegion ? '#B91C1C' : '#059669', fontWeight: 700, bgcolor: detectedOutsideRegion ? '#FEF2F2' : '#ECFDF5', p: 1, borderRadius: '8px', border: detectedOutsideRegion ? '1px solid #FECACA' : '1px solid #A7F3D0' }}>
              {geoStatus}
           </Typography>
+        )}
+
+        {detectedOutsideRegion && (
+          <Box sx={{ mb: 2, p: 1.5, borderRadius: '12px', bgcolor: '#FEF2F2', border: '1.5px solid #FCA5A5' }}>
+            <Typography variant="subtitle2" sx={{ color: '#991B1B', fontWeight: 800, fontSize: '13px', mb: 0.5 }}>
+              Live GPS Detected Outside Salem Region
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#7F1D1D', display: 'block', lineHeight: 1.4 }}>
+              Your current device location ({detectedPlaceInfo?.name || 'Outside Area'}) is approximately {Math.round(detectedPlaceInfo?.distanceKm || 0)} km from Salem. SalemSeva technician doorstep service is exclusively available within Salem (PIN 636xxx). To schedule service for a home or property in Salem, select a Salem locality below.
+            </Typography>
+          </Box>
         )}
 
         {/* Search localities */}
@@ -236,13 +260,16 @@ export default function LocationPickerModal({
 
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2.5, maxHeight: 160, overflowY: 'auto', pr: 0.5 }}>
           {filteredLocalities.map((loc) => {
-            const isSelected = selectedLocality === loc.name;
+            const isSelected = selectedLocality === loc.name && !detectedOutsideRegion;
             return (
               <Chip
                 key={loc.name}
                 label={`${loc.name} (${loc.pin})`}
                 onClick={() => {
+                  setDetectedOutsideRegion(false);
                   setSelectedLocality(loc.name);
+                  setCustomPin(loc.pin);
+                  setDetectedCoords({ lat: loc.lat, lng: loc.lng });
                   setDoorAddress(`Plot/House No., ${loc.name}, Salem - ${loc.pin}`);
                 }}
                 icon={isSelected ? <CheckCircleIcon sx={{ fontSize: 16, color: '#0284C7 !important' }} /> : undefined}

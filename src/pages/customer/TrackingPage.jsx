@@ -22,7 +22,8 @@ import {
   RadioGroup,
   FormControlLabel,
   Snackbar,
-  IconButton
+  IconButton,
+  Divider
 } from '@mui/material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -64,6 +65,7 @@ import CancelBookingModal from '../../components/CancelBookingModal';
 import SalemLottie from '../../components/SalemLottie';
 import SalemSeamlessLoader from '../../components/SalemSeamlessLoader';
 import { NativeNotifier } from '../../services/nativeNotify';
+import toast from 'react-hot-toast';
 
 export default function TrackingPage() {
   const navigate = useNavigate();
@@ -285,8 +287,15 @@ export default function TrackingPage() {
   };
 
   const bookingStatus = trackData?.booking?.status || 'matching';
-  const hasOnlineTech = trackData?.hasOnlineTech && trackData?.technician;
+  const isScheduledBooking = trackData?.booking?.booking_type === 'scheduled' || 
+    (Boolean(trackData?.booking?.scheduled_slot) && trackData?.booking?.scheduled_slot !== 'instant_now') || 
+    Boolean(trackData?.isScheduled);
+
+  const isRideActive = ['en_route', 'arrived', 'inspecting', 'quote_presented', 'quote_approved', 'completed'].includes(bookingStatus);
   const tech = trackData?.technician;
+  const hasOnlineTech = isScheduledBooking 
+    ? Boolean(tech && isRideActive)
+    : Boolean(tech && (trackData?.hasOnlineTech || isRideActive));
 
   // Poll uploaded store bill & dynamic settlement when quote is approved or completed
   useEffect(() => {
@@ -336,21 +345,89 @@ export default function TrackingPage() {
       <Container maxWidth="sm" sx={{ px: 2, pt: 2 }}>
         
         {/* ========================================================================= */}
-        {/* SCENARIO A: NO TECHNICIAN ACTIVE RIGHT NOW -> CENTRAL OPS 12H QUEUE */}
+        {/* SCENARIO A: NO TECHNICIAN ACTIVE RIGHT NOW OR SCHEDULED RIDE NOT STARTED */}
         {/* ========================================================================= */}
         {!hasOnlineTech ? (
           <>
             {/* Top Status Alert */}
             <Alert 
-              severity="info" 
-              icon={<ScheduleIcon sx={{ fontSize: 22 }} />}
-              sx={{ mb: 2, borderRadius: '16px', fontWeight: 800, bgcolor: '#E0F2FE', color: '#0369A1', border: '1px solid #7DD3FC' }}
+              severity={isScheduledBooking ? (tech ? "success" : "info") : "info"} 
+              icon={isScheduledBooking ? (tech ? <CheckCircleIcon sx={{ fontSize: 22 }} /> : <ScheduleIcon sx={{ fontSize: 22 }} />) : <ScheduleIcon sx={{ fontSize: 22 }} />}
+              sx={{
+                mb: 2,
+                borderRadius: '16px',
+                fontWeight: 800,
+                bgcolor: (isScheduledBooking && tech) ? '#F0FDF4' : '#E0F2FE',
+                color: (isScheduledBooking && tech) ? '#166534' : '#0369A1',
+                border: (isScheduledBooking && tech) ? '1px solid #BBF7D0' : '1px solid #7DD3FC'
+              }}
             >
-              {(trackData?.booking?.booking_type === 'scheduled' || (!trackData?.booking?.is_urgent_dispatch && trackData?.booking?.scheduled_slot && trackData?.booking?.scheduled_slot !== 'instant_now'))
-                ? `Booking #${bookingId} Confirmed & Paid: Salem Central Operations is allocating a verified specialist for your scheduled window.`
+              {isScheduledBooking
+                ? (tech
+                    ? `Technician Assigned: ${tech.name} is confirmed for your appointment. You will be notified with live GPS tracking when your technician starts traveling.`
+                    : `Booking #${bookingId} Confirmed: Your booking was sent to Salem Central Ops. They are looking for a certified technician for your scheduled window.`)
                 : `Booking #${bookingId} is confirmed and placed in Salem Central Ops queue.`
               }
             </Alert>
+
+            {/* If Scheduled Booking & Technician Assigned: Standby Card */}
+            {isScheduledBooking && tech && (
+              <Card
+                elevation={0}
+                sx={{
+                  bgcolor: '#FFFFFF',
+                  border: '1.5px solid #BBF7D0',
+                  borderRadius: '16px',
+                  p: 2,
+                  mb: 2.5,
+                  boxShadow: '0 4px 16px rgba(16, 185, 129, 0.08)'
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                    <Avatar
+                      sx={{
+                        bgcolor: '#0284C7',
+                        width: 44,
+                        height: 44,
+                        fontWeight: 900,
+                        fontSize: '18px'
+                      }}
+                    >
+                      {tech.name ? tech.name[0] : 'T'}
+                    </Avatar>
+                    <Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0F172A', lineHeight: 1.2 }}>
+                          {tech.name}
+                        </Typography>
+                        <Chip
+                          icon={<ShieldIcon sx={{ fontSize: 13, color: '#0284C7 !important' }} />}
+                          label="KYC VERIFIED"
+                          size="small"
+                          sx={{ height: 18, fontSize: '9px', fontWeight: 800, bgcolor: '#E0F2FE', color: '#0369A1' }}
+                        />
+                      </Box>
+                      <Typography variant="caption" sx={{ color: '#475569', fontWeight: 600 }}>
+                        {tech.primaryTrade?.toUpperCase() || 'EXPERT'} • {tech.rating || 5.0} Rating ({tech.jobsCompleted || 0}+ Doorsteps)
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Chip
+                    label="STANDBY"
+                    size="small"
+                    sx={{ bgcolor: '#FEF3C7', color: '#92400E', fontWeight: 900, fontSize: '10px', height: 22 }}
+                  />
+                </Box>
+
+                <Box sx={{ bgcolor: '#F0FDF4', p: 1.5, borderRadius: '12px', border: '1px solid #DCFCE7', display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                  <NotificationsActiveIcon sx={{ color: '#16A34A', fontSize: 20, mt: 0.2, flexShrink: 0 }} />
+                  <Typography variant="caption" sx={{ color: '#166534', fontWeight: 700, lineHeight: 1.45 }}>
+                    Technician assigned and scheduled. You will receive an instant notification with live GPS tracking when the technician starts the ride to your doorstep (~30-45 mins before your chosen window).
+                  </Typography>
+                </Box>
+              </Card>
+            )}
 
             {/* Central Dispatch Radar Map */}
             <Card
@@ -407,49 +484,148 @@ export default function TrackingPage() {
               sx={{
                 bgcolor: '#FFFFFF',
                 border: '1.5px solid #E2E8F0',
-                borderRadius: '20px',
+                borderRadius: '16px',
                 p: 2.5,
                 mb: 2.5,
                 boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)'
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, mb: 1.5 }}>
-                <ShieldIcon sx={{ color: '#0284C7', fontSize: 24 }} />
-                <Box>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0F172A', lineHeight: 1.2 }}>
-                    {(trackData?.booking?.booking_type === 'scheduled' || (!trackData?.booking?.is_urgent_dispatch && trackData?.booking?.scheduled_slot && trackData?.booking?.scheduled_slot !== 'instant_now'))
-                      ? 'Salem Central Operations Allocation Desk'
-                      : 'Central Ops Assignment Guarantee'}
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: '#64748B' }}>
-                    Fairlands & Salem City Jurisdiction
-                  </Typography>
-                </Box>
-              </Box>
-
-              <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '14px', mb: 2 }}>
-                <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A', mb: 0.5 }}>
-                  {(trackData?.booking?.booking_type === 'scheduled' || (!trackData?.booking?.is_urgent_dispatch && trackData?.booking?.scheduled_slot && trackData?.booking?.scheduled_slot !== 'instant_now'))
-                    ? 'Salem Central Operations team is allocating your specialist'
-                    : 'Notice: All verified technicians are currently offline or busy.'}
-                </Typography>
-                <Typography variant="caption" sx={{ color: '#475569', lineHeight: 1.5, display: 'block' }}>
-                  {(trackData?.booking?.booking_type === 'scheduled' || (!trackData?.booking?.is_urgent_dispatch && trackData?.booking?.scheduled_slot && trackData?.booking?.scheduled_slot !== 'instant_now'))
-                    ? 'Your appointment is confirmed and your visit fee is paid. Central Operations is allocating the highest-rated verified technician in your Salem zone. As soon as your technician starts travelling to your home, you will receive an automatic notification and live GPS tracking will activate.'
-                    : 'Your service request is actively monitored by Central Ops. A certified partner will be assigned within our 12-hour guarantee window or at your chosen scheduled slot.'}
-                </Typography>
-              </Paper>
-
-              {(trackData?.booking?.booking_type === 'scheduled' || (!trackData?.booking?.is_urgent_dispatch && trackData?.booking?.scheduled_slot && trackData?.booking?.scheduled_slot !== 'instant_now')) && (
-                <Paper elevation={0} sx={{ p: 1.5, bgcolor: '#ECFDF5', border: '1px solid #A7F3D0', borderRadius: '12px', mb: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <NotificationsActiveIcon sx={{ color: '#059669', fontSize: 20 }} />
-                    <Typography variant="caption" sx={{ color: '#065F46', fontWeight: 800, fontSize: '12px' }}>
-                      Automatic Journey Notification
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                  <Box sx={{ width: 42, height: 42, borderRadius: '10px', bgcolor: '#EFF6FF', color: '#0284C7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <HubIcon sx={{ fontSize: 24 }} />
+                  </Box>
+                  <Box>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0F172A', lineHeight: 1.2 }}>
+                      Salem Central Operations Desk
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#0284C7', fontWeight: 700 }}>
+                      சேலம் தலைமை செயல்பாட்டு மையம் • Fairlands Zone
                     </Typography>
                   </Box>
-                  <Typography variant="caption" sx={{ color: '#047857', display: 'block', mt: 0.5 }}>
-                    When your assigned technician starts travelling to your doorstep, you will receive an instant notification and live GPS tracking will activate automatically.
+                </Box>
+                <Chip
+                  label={(trackData?.booking?.booking_type === 'scheduled' || (!trackData?.booking?.is_urgent_dispatch && trackData?.booking?.scheduled_slot && trackData?.booking?.scheduled_slot !== 'instant_now')) ? 'SCHEDULED PROTOCOL' : 'DISPATCH QUEUE'}
+                  size="small"
+                  sx={{ bgcolor: '#EFF6FF', color: '#1D4ED8', fontWeight: 800, fontSize: '10px', height: 22 }}
+                />
+              </Box>
+
+              {(trackData?.booking?.booking_type === 'scheduled' || (!trackData?.booking?.is_urgent_dispatch && trackData?.booking?.scheduled_slot && trackData?.booking?.scheduled_slot !== 'instant_now')) ? (
+                /* 5-STAGE PROGRESSIVE CENTRAL OPS TRANSPARENCY PIPELINE */
+                <Box sx={{ mb: 2.5 }}>
+                  <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '10px', display: 'block', mb: 1.5 }}>
+                    LIVE OPERATIONS AUDIT TRAIL • நிகழ்நேர செயல்பாட்டு படிகள்
+                  </Typography>
+
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                    {/* Stage 1: Request & Escrow */}
+                    <Paper elevation={0} sx={{ p: 1.4, bgcolor: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '10px' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                          <CheckCircleIcon sx={{ color: '#10B981', fontSize: 18 }} />
+                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '12.5px' }}>
+                            1. Pre-Booking & Escrow Verified
+                          </Typography>
+                        </Box>
+                        <Chip label="COMPLETED" size="small" sx={{ bgcolor: '#ECFDF5', color: '#065F46', fontWeight: 800, fontSize: '9.5px', height: 18 }} />
+                      </Box>
+                      <Typography variant="caption" sx={{ color: '#64748B', display: 'block', pl: 3.2, fontSize: '11px', lineHeight: 1.4 }}>
+                        கோரிக்கை பதிவு செய்யப்பட்டது. வாடிக்கையாளர் ₹99.00 கட்டணம் Razorpay Escrow முறையில் பாதுகாப்பாக வைக்கப்பட்டுள்ளது.
+                      </Typography>
+                    </Paper>
+
+                    {/* Stage 2: Locality Feasibility & Spares Check */}
+                    <Paper elevation={0} sx={{ p: 1.4, bgcolor: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '10px' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                          <CheckCircleIcon sx={{ color: '#10B981', fontSize: 18 }} />
+                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '12.5px' }}>
+                            2. Locality Feasibility & Diagnostic Assessment
+                          </Typography>
+                        </Box>
+                        <Chip label="PASSED" size="small" sx={{ bgcolor: '#ECFDF5', color: '#065F46', fontWeight: 800, fontSize: '9.5px', height: 18 }} />
+                      </Box>
+                      <Typography variant="caption" sx={{ color: '#64748B', display: 'block', pl: 3.2, fontSize: '11px', lineHeight: 1.4 }}>
+                        சேலம் கட்டுப்பாட்டு மையம் உங்கள் பகுதிக்கான ({trackData?.booking?.locality || 'Fairlands, Salem'}) தொழில்நுட்ப சாத்தியக்கூறுகள் மற்றும் கருவிகளை உறுதி செய்துள்ளது.
+                      </Typography>
+                    </Paper>
+
+                    {/* Stage 3: Specialist Allocation */}
+                    <Paper elevation={0} sx={{ p: 1.4, bgcolor: tech ? '#F0FDF4' : '#FFFBEB', border: tech ? '1.5px solid #BBF7D0' : '1.5px solid #FDE68A', borderRadius: '10px' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                          {tech ? (
+                            <CheckCircleIcon sx={{ color: '#10B981', fontSize: 18 }} />
+                          ) : (
+                            <HourglassTopIcon sx={{ color: '#D97706', fontSize: 18 }} />
+                          )}
+                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '12.5px' }}>
+                            3. Specialist Allocation & Matching
+                          </Typography>
+                        </Box>
+                        <Chip 
+                          label={tech ? "ALLOCATED" : "IN PROGRESS"} 
+                          size="small" 
+                          sx={{ 
+                            bgcolor: tech ? '#DCFCE7' : '#FEF3C7', 
+                            color: tech ? '#15803D' : '#92400E', 
+                            fontWeight: 800, 
+                            fontSize: '9.5px', 
+                            height: 18 
+                          }} 
+                        />
+                      </Box>
+                      <Typography variant="caption" sx={{ color: '#475569', display: 'block', pl: 3.2, fontSize: '11px', lineHeight: 1.4 }}>
+                        {tech ? (
+                          <>நிபுணர் நியமிக்கப்பட்டுள்ளார்: <strong>{tech.name}</strong> ({tech.rating} ரேட்டிங் • {tech.primaryTrade?.toUpperCase() || 'SERVICE'}).</>
+                        ) : (
+                          <>சேலம் தலைமை கட்டுப்பாட்டு அறை உங்கள் பகுதிக்கான சிறந்த ரேட்டிங் பெற்ற சான்றளிக்கப்பட்ட தொழில்நுட்ப நிபுணரை ஒதுக்கி வருகிறது.</>
+                        )}
+                      </Typography>
+                    </Paper>
+
+                    {/* Stage 4: Slot Confirmation & Staging */}
+                    <Paper elevation={0} sx={{ p: 1.4, bgcolor: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '10px' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                          <ScheduleIcon sx={{ color: '#0284C7', fontSize: 18 }} />
+                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '12.5px' }}>
+                            4. Slot Confirmed & Equipment Staging
+                          </Typography>
+                        </Box>
+                        <Chip label="CONFIRMED" size="small" sx={{ bgcolor: '#EFF6FF', color: '#1E40AF', fontWeight: 800, fontSize: '9.5px', height: 18 }} />
+                      </Box>
+                      <Typography variant="caption" sx={{ color: '#64748B', display: 'block', pl: 3.2, fontSize: '11px', lineHeight: 1.4 }}>
+                        தேர்வு செய்யப்பட்ட நேரம்: <strong>{getSlotLabel(trackData?.booking?.scheduled_slot)}</strong>. சேவைக்கான அத்தியாவசிய உபகரணங்கள் தயார் செய்யப்பட்டுள்ளன.
+                      </Typography>
+                    </Paper>
+
+                    {/* Stage 5: Pre-Dispatch & Live Tracking */}
+                    <Paper elevation={0} sx={{ p: 1.4, bgcolor: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '10px' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                          <TwoWheelerIcon sx={{ color: '#64748B', fontSize: 18 }} />
+                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '12.5px' }}>
+                            5. Pre-Dispatch Departure & Live GPS Radar
+                          </Typography>
+                        </Box>
+                        <Chip label="QUEUED" size="small" sx={{ bgcolor: '#F1F5F9', color: '#475569', fontWeight: 800, fontSize: '9.5px', height: 18 }} />
+                      </Box>
+                      <Typography variant="caption" sx={{ color: '#64748B', display: 'block', pl: 3.2, fontSize: '11px', lineHeight: 1.4 }}>
+                        பணி நேரத்திற்கு 30 நிமிடங்களுக்கு முன்பு நேரலை GPS கண்காணிப்பு மற்றும் டெக்னீசியன் புறப்பாடு அறிவிப்பு தானாகவே திறக்கப்படும்.
+                      </Typography>
+                    </Paper>
+                  </Box>
+                </Box>
+              ) : (
+                /* Instant Booking Offline Notice */
+                <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '14px', mb: 2 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A', mb: 0.5 }}>
+                    Notice: All verified technicians are currently offline or busy.
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#475569', lineHeight: 1.5, display: 'block' }}>
+                    Your service request is actively monitored by Central Ops. A certified partner will be assigned within our 12-hour guarantee window or at your chosen scheduled slot.
                   </Typography>
                 </Paper>
               )}
@@ -511,7 +687,7 @@ export default function TrackingPage() {
                   size="small"
                   variant="contained"
                   startIcon={<PhoneIcon sx={{ fontSize: 13 }} />}
-                  onClick={() => alert('Dialing Salem Central Ops: 0427-2448888')}
+                  onClick={() => toast.success('Connecting to Salem Central Ops: 0427-2448888')}
                   sx={{
                     bgcolor: '#0F172A',
                     color: '#FFF',
@@ -936,13 +1112,21 @@ export default function TrackingPage() {
                       Certified Partner • {tech.primaryTrade?.toUpperCase() || 'TECHNICIAN'}
                     </Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.3 }}>
-                      <StarIcon sx={{ color: '#D97706', fontSize: 14 }} />
-                      <Typography variant="caption" sx={{ fontWeight: 600, color: '#0F172A', fontSize: '11.5px' }}>
-                        {tech.rating || 4.92}
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: '#2563EB', fontWeight: 500, fontSize: '11px' }}>
-                        ({tech.jobsCompleted || 428} jobs • Salem verified)
-                      </Typography>
+                      {Number(tech.jobsCompleted) > 0 && Number(tech.rating) > 0 ? (
+                        <>
+                          <StarIcon sx={{ color: '#D97706', fontSize: 14 }} />
+                          <Typography variant="caption" sx={{ fontWeight: 600, color: '#0F172A', fontSize: '11.5px' }}>
+                            {tech.rating}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: '#2563EB', fontWeight: 500, fontSize: '11px' }}>
+                            ({tech.jobsCompleted} jobs • Salem verified)
+                          </Typography>
+                        </>
+                      ) : (
+                        <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 600, fontSize: '11px' }}>
+                          New Partner • {Number(tech.jobsCompleted) || 0} jobs completed
+                        </Typography>
+                      )}
                     </Box>
                   </Box>
                 </Box>
@@ -1221,7 +1405,7 @@ export default function TrackingPage() {
                     size="small"
                     variant="outlined"
                     startIcon={<PhoneIcon sx={{ fontSize: 13 }} />}
-                    onClick={() => alert('Dialing Salem Central Ops: 0427-2448888')}
+                    onClick={() => toast.success('Connecting to Salem Central Ops: 0427-2448888')}
                     sx={{
                       borderColor: '#D97706',
                       color: '#92400E',
@@ -1654,7 +1838,7 @@ export default function TrackingPage() {
       </Dialog>
 
       {/* Bottom Navigation */}
-      <Paper elevation={8} sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, bgcolor: '#FFFFFF', borderTop: '1px solid #E2E8F0', zIndex: 1000 }}>
+      <Paper elevation={8} sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, bgcolor: '#FFFFFF', borderTop: '1px solid #E2E8F0', zIndex: 1000, display: { xs: 'block', md: 'none' } }}>
         <BottomNavigation showLabels value={0} sx={{ height: 54, '& .Mui-selected': { color: '#0284C7', fontWeight: 700 } }}>
           <BottomNavigationAction label="Services" icon={<WorkOutlineIcon sx={{ fontSize: 20 }} />} sx={{ color: '#0284C7' }} onClick={() => navigate('/')} />
           <BottomNavigationAction label="Bookings" icon={<ReceiptLongIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/history')} />

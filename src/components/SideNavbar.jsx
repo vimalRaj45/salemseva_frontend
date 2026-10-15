@@ -403,6 +403,14 @@ export default function SideNavbar({
                   isDark={isDarkMode}
                   onClick={() => handleNav('/')}
                 />
+                <SideNavItem
+                  icon={<Sparkles size={18} color="#0066CC" />}
+                  label="How SalemSeva Works"
+                  sublabel="Doorstep dispatch guide & guarantee"
+                  active={currentPath === '/how-it-works'}
+                  isDark={isDarkMode}
+                  onClick={() => handleNav('/how-it-works')}
+                />
                 {user && (
                   <>
                     <SideNavItem
@@ -555,6 +563,39 @@ export default function SideNavbar({
               </div>
             </div>
 
+            {/* Group 5: Legal & Governance Policies */}
+            <div>
+              <span style={{ fontSize: '10.5px', fontWeight: 800, color: isDarkMode ? '#94A3B8' : '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', padding: '0 8px', display: 'block', marginBottom: '6px' }}>
+                Legal & Policies
+              </span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                <SideNavItem
+                  icon={<FileText size={18} />}
+                  label="Terms & Conditions"
+                  sublabel="Intermediary policies & 2% platform facilitation"
+                  active={currentPath === '/terms'}
+                  isDark={isDarkMode}
+                  onClick={() => handleNav('/terms')}
+                />
+                <SideNavItem
+                  icon={<ShieldCheck size={18} />}
+                  label="Privacy Policy"
+                  sublabel="DPDP Act, 2023 & data encryption"
+                  active={currentPath === '/privacy'}
+                  isDark={isDarkMode}
+                  onClick={() => handleNav('/privacy')}
+                />
+                <SideNavItem
+                  icon={<HelpCircle size={18} />}
+                  label="Cancellation & Refund Policy"
+                  sublabel="Fee deductions & 30-day warranty"
+                  active={currentPath === '/refund-policy'}
+                  isDark={isDarkMode}
+                  onClick={() => handleNav('/refund-policy')}
+                />
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -645,6 +686,15 @@ export default function SideNavbar({
           )}
 
           <div style={{ textAlign: 'center', marginTop: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '6px', fontSize: '11px', flexWrap: 'wrap' }}>
+              <span onClick={() => handleNav('/how-it-works')} style={{ color: '#0066CC', cursor: 'pointer', fontWeight: 600 }}>How It Works</span>
+              <span style={{ color: '#94A3B8' }}>•</span>
+              <span onClick={() => handleNav('/terms')} style={{ color: '#0066CC', cursor: 'pointer', fontWeight: 600 }}>Terms</span>
+              <span style={{ color: '#94A3B8' }}>•</span>
+              <span onClick={() => handleNav('/privacy')} style={{ color: '#0066CC', cursor: 'pointer', fontWeight: 600 }}>Privacy</span>
+              <span style={{ color: '#94A3B8' }}>•</span>
+              <span onClick={() => handleNav('/refund-policy')} style={{ color: '#0066CC', cursor: 'pointer', fontWeight: 600 }}>Refunds</span>
+            </div>
             <span style={{ fontSize: '10px', color: isDarkMode ? '#64748B' : '#94A3B8' }}>
               SalemSeva v2.4 • Smart City Service Mesh
             </span>

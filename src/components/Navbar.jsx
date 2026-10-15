@@ -35,6 +35,8 @@ import LanguageSelectorModal from './LanguageSelectorModal';
 import SideNavbar from './SideNavbar';
 import FeedbackModal from './FeedbackModal';
 import { SUPPORTED_LANGUAGES, getCurrentLanguage } from '../services/languageService';
+import { getLiveAccurateLocation } from '../utils/geoUtils';
+import toast from 'react-hot-toast';
 
 export default function Navbar({
   userName: propUserName,
@@ -184,20 +186,36 @@ export default function Navbar({
     }
   };
 
-  const handleUseCurrentLocation = () => {
+  const handleUseCurrentLocation = async () => {
     if (navigator.geolocation) {
-      setSelectedLocation('Detecting location...');
-      navigator.geolocation.getCurrentPosition(
-        () => {
-          setSelectedLocation('Fairlands, Salem (Current)');
+      setSelectedLocation('Detecting live GPS...');
+      try {
+        const geo = await getLiveAccurateLocation();
+        if (geo.isSalem) {
+          const locName = `${geo.localityName || 'Salem Central'}, Salem`;
+          setSelectedLocation(locName);
           setIsLocationOpen(false);
-          if (onLocationChange) onLocationChange('Fairlands, Salem');
-        },
-        () => {
-          setSelectedLocation('Fairlands, Salem');
+          const locationData = {
+            locality: geo.localityName || 'Fairlands',
+            pincode: geo.pincode && geo.pincode.startsWith('636') ? geo.pincode : '636016',
+            lat: geo.lat,
+            lng: geo.lng,
+            address: geo.fullAddress || `${locName} - 636016`
+          };
+          localStorage.setItem('salemseva_user_location', JSON.stringify(locationData));
+          if (onLocationChange) onLocationChange(locName);
+        } else {
+          const placeLabel = geo.city || geo.district || 'Outside Area';
+          const outName = `${placeLabel} (Outside Salem)`;
+          setSelectedLocation(outName);
           setIsLocationOpen(false);
+          toast.error(`Notice: Live GPS detected in ${placeLabel} (~${Math.round(geo.distanceKmFromCenter || 0)} km away). SalemSeva technicians operate in Salem (636xxx only).`);
+          if (onLocationChange) onLocationChange(outName);
         }
-      );
+      } catch (err) {
+        setSelectedLocation('Fairlands, Salem');
+        setIsLocationOpen(false);
+      }
     } else {
       setSelectedLocation('Fairlands, Salem');
       setIsLocationOpen(false);
@@ -237,7 +255,7 @@ export default function Navbar({
         zIndex: 1100,
         width: '100%',
         boxSizing: 'border-box',
-        overflowX: 'hidden',
+        overflow: 'visible',
         backgroundColor: isDarkMode ? '#0F172A' : '#FFFFFF',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
@@ -1035,16 +1053,16 @@ export default function Navbar({
                 <div
                   style={{
                     position: isMobile ? 'fixed' : 'absolute',
-                    top: isMobile ? '60px' : 'calc(100% + 8px)',
+                    top: isMobile ? '60px' : 'calc(100% + 10px)',
                     right: isMobile ? '12px' : 0,
-                    width: isMobile ? 'calc(100vw - 24px)' : '280px',
-                    maxWidth: '300px',
+                    width: isMobile ? 'calc(100vw - 24px)' : '290px',
+                    maxWidth: '310px',
                     backgroundColor: isDarkMode ? '#0F172A' : '#FFFFFF',
                     borderRadius: '16px',
-                    boxShadow: '0 12px 36px rgba(0,0,0,0.2)',
+                    boxShadow: '0 20px 48px -6px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.08)',
                     border: isDarkMode ? '1px solid #334155' : '1px solid #E2E8F0',
                     padding: '8px',
-                    zIndex: 1200
+                    zIndex: 2500
                   }}
                 >
                   {/* User Header */}
@@ -1372,14 +1390,14 @@ export default function Navbar({
                 gap: '6px',
                 height: isMobile ? '34px' : '38px',
                 padding: isMobile ? '0 12px' : '0 16px',
-                borderRadius: '10px',
+                borderRadius: '8px',
                 fontSize: isMobile ? '12px' : '13px',
                 fontWeight: 700,
-                backgroundColor: '#2563EB',
+                backgroundColor: '#0066CC',
                 color: '#FFFFFF',
                 border: 'none',
                 cursor: 'pointer',
-                boxShadow: '0 2px 8px rgba(37, 99, 235, 0.25)',
+                boxShadow: '0 2px 8px rgba(0, 102, 204, 0.25)',
                 flexShrink: 0,
                 transition: 'background-color 0.15s ease'
               }}

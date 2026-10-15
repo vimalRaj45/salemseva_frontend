@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neon S3 Bucket Storage Test Suite - SalemSeva</title>
+  <style>
+    :root {
+      --primary: #0066CC;
+      --primary-hover: #0052A3;
+      --success: #16A34A;
+      --danger: #DC2626;
+      --warning: #D97706;
+      --bg: #F8FAFC;
+      --card-bg: #FFFFFF;
+      --border: #E2E8F0;
+      --text-main: #0F172A;
+      --text-muted: #64748B;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg);
+      color: var(--text-main);
+      line-height: 1.5;
+      padding: 24px 16px 80px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .header {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .title-group h1 {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .title-group p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-neon {
+      background-color: #ECFDF5;
+      color: #065F46;
+      border: 1px solid #A7F3D0;
+    }
+
+    .config-strip {
+      background: #F1F5F9;
+      border-radius: 10px;
+      padding: 12px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 12px;
+      color: #475569;
+      align-items: center;
+      border: 1px solid #E2E8F0;
+    }
+
+    .config-strip strong {
+      color: var(--text-main);
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .step-number {
+      width: 24px;
+      height: 24px;
+      background: var(--primary);
+      color: #FFFFFF;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .form-input, .form-select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #FFFFFF;
+      font-size: 13px;
+      color: var(--text-main);
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    .form-input:focus, .form-select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+    }
+
+    .dropzone {
+      border: 2px dashed #CBD5E1;
+      border-radius: 12px;
+      padding: 32px 16px;
+      text-align: center;
+      background: #FAFAFA;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-bottom: 16px;
+    }
+
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--primary);
+      background: #EFF6FF;
+    }
+
+    .dropzone p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    .dropzone-title {
+      font-weight: 700;
+      color: var(--text-main);
+      font-size: 14px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s ease;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #FFFFFF;
+      box-shadow: 0 2px 6px rgba(0, 102, 204, 0.25);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-secondary {
+      background: #E2E8F0;
+      color: #334155;
+    }
+
+    .btn-secondary:hover {
+      background: #CBD5E1;
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: #FFFFFF;
+    }
+
+    .btn-success:hover {
+      background: #15803D;
+    }
+
+    .btn-block {
+      width: 100%;
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .status-box {
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 10px;
+      font-size: 12.5px;
+      display: none;
+    }
+
+    .status-box.show {
+      display: block;
+    }
+
+    .status-success {
+      background: #F0FDF4;
+      border: 1px solid #BBF7D0;
+      color: #166534;
+    }
+
+    .status-error {
+      background: #FEF2F2;
+      border: 1px solid #FECACA;
+      color: #991B1B;
+    }
+
+    .status-info {
+      background: #EFF6FF;
+      border: 1px solid #BFDBFE;
+      color: #1E40AF;
+    }
+
+    .log-terminal {
+      background: #0F172A;
+      color: #38BDF8;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      padding: 14px;
+      border-radius: 10px;
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 12px;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .preview-container {
+      margin-top: 16px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      background: #F8FAFC;
+      display: none;
+    }
+
+    .preview-container.active {
+      display: block;
+    }
+
+    .preview-image {
+      max-width: 100%;
+      max-height: 380px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      display: block;
+      margin: 0 auto;
+      object-fit: contain;
+      background: #FFFFFF;
+    }
+
+    .preview-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+      font-size: 12px;
+      background: #FFFFFF;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .preview-meta div span {
+      display: block;
+      color: var(--text-muted);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .preview-meta div strong {
+      color: var(--text-main);
+      word-break: break-all;
+    }
+
+    .actions-bar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Top Header -->
+    <div class="header">
+      <div class="header-top">
+        <div class="title-group">
+          <h1>Neon S3 Bucket Upload & Retrieval Suite</h1>
+          <p>SalemSeva Doorstep Services Hyperlocal Cloud Storage Infrastructure</p>
+        </div>
+        <span class="badge badge-neon">AWS S3 Compatible • Neon Tech</span>
+      </div>
+
+      <!-- Infrastructure Configuration Details -->
+      <div class="config-strip">
+        <div><strong>Bucket:</strong> <span id="conf-bucket">salemseva-uploads</span></div>
+        <div><strong>Region:</strong> <span id="conf-region">us-east-2</span></div>
+        <div><strong>Storage Provider:</strong> Neon Cloud Object Storage</div>
+      </div>
+    </div>
+
+    <!-- Quick 1-Click Automated Roundtrip Test Card -->
+    <div class="card" style="border: 1px solid #BFDBFE; background: #F8FAFC;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <h2 style="font-size: 15px; font-weight: 800; color: #1E3A8A; margin-bottom: 2px;">
+            Automated Neon S3 Roundtrip Self-Test
+          </h2>
+          <p style="font-size: 12px; color: #475569;">
+            Generates a test graphic, uploads it to Neon S3 bucket, retrieves it via GetObject, and validates headers.
+          </p>
+        </div>
+        <button type="button" class="btn btn-primary" id="btn-auto-test" onclick="runAutomatedTest()">
+          Run Automated S3 Roundtrip Test
+        </button>
+      </div>
+      <div id="auto-test-status" class="status-box"></div>
+    </div>
+
+    <!-- Step 1: Upload to Neon S3 Bucket -->
+    <div class="card">
+      <div class="card-title">
+        <span class="step-number">1</span>
+        <span>Upload File to Neon S3 Bucket</span>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label" for="api-base-url">API Base URL</label>
+          <input type="text" id="api-base-url" class="form-input" value="http://localhost:8080/api/v1" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="upload-folder">Bucket Target Folder</label>
+          <select id="upload-folder" class="form-select">
+            <option value="aadhaar">aadhaar (Partner KYC Verification)</option>
+            <option value="bills">bills (Spare Parts Invoices)</option>
+            <option value="proofs">proofs (Job Work Evidence)</option>
+            <option value="test" selected>test (Diagnostic Verification)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="upload-ref-id">Reference ID</label>
+          <input type="text" id="upload-ref-id" class="form-input" value="KYC-TEST-9876543210" />
+        </div>
+      </div>
+
+      <!-- File Dropzone -->
+      <div class="dropzone" id="dropzone" onclick="document.getElementById('file-input').click()">
+        <input type="file" id="file-input" style="display: none;" accept="image/*,application/pdf,text/plain" onchange="handleFileSelect(event)" />
+        <div class="dropzone-title" id="dropzone-label">Click to select or drag & drop file here</div>
+        <p>Supports PNG, JPG, WebP, PDF, Text (Max 5 MB)</p>
+      </div>
+
+      <!-- File Meta Summary Before Upload -->
+      <div id="selected-file-meta" style="display: none; margin-bottom: 16px; font-size: 12.5px; background: #F1F5F9; padding: 10px 14px; border-radius: 8px;">
+        <span id="selected-file-text"></span>
+      </div>
+
+      <button type="button" class="btn btn-primary btn-block" id="btn-upload" onclick="uploadSelectedFile()" disabled>
+        Upload File to Neon S3 Bucket
+      </button>
+
+      <div id="upload-status" class="status-box"></div>
+      <div id="upload-log" class="log-terminal" style="display: none;"></div>
+    </div>
+
+    <!-- Step 2: Retrieve & Inspect Object from Neon S3 -->
+    <div class="card">
+      <div class="card-title">
+        <span class="step-number">2</span>
+        <span>Retrieve & Verify Object from Neon S3 Bucket</span>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label class="form-label" for="retrieve-key">S3 Object Key</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="retrieve-key" class="form-input" placeholder="e.g. test/hello_1792051977167.txt or aadhaar/sample.jpg" />
+          <button type="button" class="btn btn-secondary" onclick="retrieveObjectFromS3()">
+            Retrieve Object
+          </button>
+        </div>
+      </div>
+
+      <div id="retrieve-status" class="status-box"></div>
+
+      <!-- Live Preview Area -->
+      <div id="preview-box" class="preview-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <span style="font-size: 13px; font-weight: 800; color: var(--text-main);">Verified S3 Object Content</span>
+          <span id="preview-tag" class="badge badge-neon">Loaded From Bucket</span>
+        </div>
+
+        <div id="preview-content-area" style="text-align: center;">
+          <!-- Dynamically filled with image or text -->
+        </div>
+
+        <div class="preview-meta">
+          <div>
+            <span>Object Key</span>
+            <strong id="meta-key">-</strong>
+          </div>
+          <div>
+            <span>Content-Type</span>
+            <strong id="meta-type">-</strong>
+          </div>
+          <div>
+            <span>File Size</span>
+            <strong id="meta-size">-</strong>
+          </div>
+          <div>
+            <span>S3 Source Bucket</span>
+            <strong id="meta-bucket">salemseva-uploads</strong>
+          </div>
+        </div>
+
+        <div class="actions-bar">
+          <a id="btn-open-url" href="#" target="_blank" class="btn btn-secondary" style="text-decoration: none;">
+            Open Direct Stream in New Tab
+          </a>
+          <button type="button" class="btn btn-secondary" onclick="fetchS3Metadata()">
+            Inspect Raw S3 Headers
+          </button>
+        </div>
+
+        <div id="meta-log" class="log-terminal" style="display: none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let activeFile = null;
+    let activeFileDataBase64 = null;
+
+    // Drag and drop handlers
+    const dropzone = document.getElementById('dropzone');
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('dragover');
+    });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        processSelectedFile(e.dataTransfer.files[0]);
+      }
+    });
+
+    function handleFileSelect(e) {
+      if (e.target.files && e.target.files[0]) {
+        processSelectedFile(e.target.files[0]);
+      }
+    }
+
+    function processSelectedFile(file) {
+      activeFile = file;
+      const metaBox = document.getElementById('selected-file-meta');
+      const metaText = document.getElementById('selected-file-text');
+      const btnUpload = document.getElementById('btn-upload');
+
+      metaText.textContent = `Selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB) - MIME: ${file.type || 'unknown'}`;
+      metaBox.style.display = 'block';
+
+      // Read as base64
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        activeFileDataBase64 = event.target.result;
+        btnUpload.disabled = false;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Step 1: Upload
+    async function uploadSelectedFile() {
+      if (!activeFileDataBase64) return;
+
+      const apiBase = document.getElementById('api-base-url').value.trim().replace(/\/$/, '');
+      const folder = document.getElementById('upload-folder').value;
+      const refId = document.getElementById('upload-ref-id').value.trim() || 'TEST-DOC';
+      const statusBox = document.getElementById('upload-status');
+      const logBox = document.getElementById('upload-log');
+      const btnUpload = document.getElementById('btn-upload');
+
+      statusBox.className = 'status-box status-info show';
+      statusBox.textContent = 'Uploading file to Neon S3 bucket... Please wait.';
+      btnUpload.disabled = true;
+      logBox.style.display = 'none';
+
+      try {
+        const payload = {
+          fileData: activeFileDataBase64,
+          mimeType: activeFile.type || 'image/jpeg',
+          folder: folder,
+          referenceId: refId,
+          fileName: activeFile.name
+        };
+
+        const res = await fetch(`${apiBase}/storage/upload`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        logBox.textContent = JSON.stringify(data, null, 2);
+        logBox.style.display = 'block';
+
+        if (res.ok && data.success) {
+          statusBox.className = 'status-box status-success show';
+          statusBox.textContent = `Upload Successful! Stored in Neon S3 at key: ${data.key}`;
+
+          // Auto-fill retrieval input
+          document.getElementById('retrieve-key').value = data.key;
+
+          // Automatically trigger preview retrieval
+          retrieveObjectFromS3(data.key);
+        } else {
+          statusBox.className = 'status-box status-error show';
+          statusBox.textContent = `Upload Failed: ${data.error || 'Server error'}`;
+        }
+      } catch (err) {
+        statusBox.className = 'status-box status-error show';
+        statusBox.textContent = `Network / Execution Error: ${err.message}. Ensure backend is running at ${apiBase}`;
+      } finally {
+        btnUpload.disabled = false;
+      }
+    }
+
+    // Step 2: Retrieve & Inspect
+    async function retrieveObjectFromS3(explicitKey) {
+      const apiBase = document.getElementById('api-base-url').value.trim().replace(/\/$/, '');
+      const key = (explicitKey || document.getElementById('retrieve-key').value).trim();
+      const statusBox = document.getElementById('retrieve-status');
+      const previewBox = document.getElementById('preview-box');
+      const previewContent = document.getElementById('preview-content-area');
+
+      if (!key) {
+        statusBox.className = 'status-box status-error show';
+        statusBox.textContent = 'Please specify an S3 object key to retrieve.';
+        return;
+      }
+
+      statusBox.className = 'status-box status-info show';
+      statusBox.textContent = `Retrieving object "${key}" from Neon S3...`;
+
+      try {
+        // Query object metadata first
+        const infoRes = await fetch(`${apiBase}/storage/info?key=${encodeURIComponent(key)}`);
+        const infoData = await infoRes.json();
+
+        if (!infoRes.ok || !infoData.success) {
+          statusBox.className = 'status-box status-error show';
+          statusBox.textContent = `Retrieve failed: ${infoData.error || 'Key not found in Neon S3'}`;
+          previewBox.classList.remove('active');
+          return;
+        }
+
+        const streamUrl = `${apiBase}/storage/view?key=${encodeURIComponent(key)}`;
+
+        // Populate meta card
+        document.getElementById('meta-key').textContent = key;
+        document.getElementById('meta-type').textContent = infoData.contentType;
+        document.getElementById('meta-size').textContent = `${(infoData.contentLength / 1024).toFixed(1)} KB (${infoData.contentLength} bytes)`;
+        document.getElementById('btn-open-url').href = streamUrl;
+
+        // Render content preview based on mime type
+        const mime = infoData.contentType || '';
+        if (mime.startsWith('image/')) {
+          previewContent.innerHTML = `<img src="${streamUrl}" class="preview-image" alt="S3 Stored Object" />`;
+        } else if (mime.includes('text') || mime.includes('json')) {
+          const textRes = await fetch(streamUrl);
+          const textVal = await textRes.text();
+          previewContent.innerHTML = `<div class="log-terminal" style="text-align: left; max-height: 250px;">${escapeHtml(textVal)}</div>`;
+        } else {
+          previewContent.innerHTML = `
+            <div style="padding: 24px; background: #F1F5F9; border-radius: 8px;">
+              <p style="font-weight: 700; color: #334155;">Binary / Document File (${mime})</p>
+              <p style="font-size: 12px; color: #64748B; margin-top: 4px;">Direct stream active from Neon S3 bucket.</p>
+              <a href="${streamUrl}" download class="btn btn-secondary" style="margin-top: 10px; display: inline-flex;">Download File</a>
+            </div>
+          `;
+        }
+
+        previewBox.classList.add('active');
+        statusBox.className = 'status-box status-success show';
+        statusBox.textContent = `Object "${key}" successfully verified & retrieved from Neon S3!`;
+      } catch (err) {
+        statusBox.className = 'status-box status-error show';
+        statusBox.textContent = `Error retrieving object: ${err.message}`;
+      }
+    }
+
+    // Inspect S3 Metadata
+    async function fetchS3Metadata() {
+      const apiBase = document.getElementById('api-base-url').value.trim().replace(/\/$/, '');
+      const key = document.getElementById('retrieve-key').value.trim();
+      const metaLog = document.getElementById('meta-log');
+
+      if (!key) return;
+
+      try {
+        const res = await fetch(`${apiBase}/storage/info?key=${encodeURIComponent(key)}`);
+        const data = await res.json();
+        metaLog.textContent = JSON.stringify(data, null, 2);
+        metaLog.style.display = 'block';
+      } catch (err) {
+        metaLog.textContent = `Failed to fetch metadata: ${err.message}`;
+        metaLog.style.display = 'block';
+      }
+    }
+
+    // Automated End-to-End Roundtrip Test
+    async function runAutomatedTest() {
+      const apiBase = document.getElementById('api-base-url').value.trim().replace(/\/$/, '');
+      const statusBox = document.getElementById('auto-test-status');
+      const btn = document.getElementById('btn-auto-test');
+
+      statusBox.className = 'status-box status-info show';
+      statusBox.textContent = 'Generating sample test graphic and initiating roundtrip S3 test...';
+      btn.disabled = true;
+
+      try {
+        // Create an in-memory canvas test image
+        const canvas = document.createElement('canvas');
+        canvas.width = 300;
+        canvas.height = 120;
+        const ctx = canvas.getContext('2d');
+
+        // Draw background & verification badge
+        ctx.fillStyle = '#0066CC';
+        ctx.fillRect(0, 0, 300, 120);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.fillText('SalemSeva Neon S3 Pass', 20, 45);
+        ctx.font = '12px sans-serif';
+        ctx.fillText(`Timestamp: ${Date.now()}`, 20, 75);
+        ctx.fillText('Bucket: salemseva-uploads', 20, 95);
+
+        const testBase64 = canvas.toDataURL('image/png');
+
+        // 1. Upload to S3
+        const uploadRes = await fetch(`${apiBase}/storage/upload`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fileData: testBase64,
+            mimeType: 'image/png',
+            folder: 'test',
+            referenceId: 'ROUNDTRIP_VERIFY',
+            fileName: 'neon_verify_graphic.png'
+          })
+        });
+
+        const uploadData = await uploadRes.json();
+        if (!uploadRes.ok || !uploadData.success) {
+          throw new Error(uploadData.error || 'Automated upload failed');
+        }
+
+        const generatedKey = uploadData.key;
+
+        // 2. Retrieve object info from S3
+        const infoRes = await fetch(`${apiBase}/storage/info?key=${encodeURIComponent(generatedKey)}`);
+        const infoData = await infoRes.json();
+
+        if (!infoRes.ok || !infoData.success) {
+          throw new Error('Automated retrieval inspection failed');
+        }
+
+        // 3. Populate UI with the verified object
+        document.getElementById('retrieve-key').value = generatedKey;
+        await retrieveObjectFromS3(generatedKey);
+
+        statusBox.className = 'status-box status-success show';
+        statusBox.innerHTML = `
+          <strong>Automated Roundtrip Test Passed 100%!</strong><br />
+          1. Successfully uploaded ${infoData.contentLength} bytes to Neon S3.<br />
+          2. Verified key <code>${generatedKey}</code> inside bucket <code>salemseva-uploads</code>.<br />
+          3. Successfully streamed and rendered live image above.
+        `;
+      } catch (err) {
+        statusBox.className = 'status-box status-error show';
+        statusBox.textContent = `Automated Test Failed: ${err.message}. Verify that the backend server is running on port 8080.`;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function escapeHtml(text) {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return text.replace(/[&<>"']/g, (m) => map[m]);
+    }
+  </script>
+</body>
+</html>

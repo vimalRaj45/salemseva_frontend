@@ -174,6 +174,7 @@ export default function PartnerDutyPage() {
   const lastMessageCountRef = useRef(-1);
 
   const [activeJob, setActiveJob] = useState(null);
+  const [offlineJobRequest, setOfflineJobRequest] = useState(null);
   const [countdown, setCountdown] = useState(45);
   const [isProcessing, setIsProcessing] = useState(false);
   const [loadingMsg, setLoadingMsg] = useState({ title: '', subtitle: '' });
@@ -388,6 +389,13 @@ export default function PartnerDutyPage() {
             if (updateUser && user && user.isOnline !== data.technician.is_online) {
               updateUser({ isOnline: data.technician.is_online });
             }
+          }
+
+          // Track offline job request dispatched by admin
+          if (data.offlineJobRequest) {
+            setOfflineJobRequest(data.offlineJobRequest);
+          } else {
+            setOfflineJobRequest(null);
           }
 
           // Check if customer cancelled an assigned job
@@ -622,6 +630,61 @@ export default function PartnerDutyPage() {
     }
   };
 
+  const handleAcceptOfflineRequest = async (bookingId) => {
+    setIsProcessing(true);
+    setLoadingMsg({
+      title: 'நிர்வாக கோரிக்கையை ஏற்கிறது...',
+      subtitle: 'Connecting to Salem Central Ops & Switching Duty to Online'
+    });
+    try {
+      const res = await fetch(`${API_V1_URL}/partner/duty/accept-offline-request`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bookingId,
+          phone: user?.phone,
+          technicianId: user?.id
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setIsOnline(true);
+        setIsGpsBroadcasting(true);
+        localStorage.setItem('salemseva_partner_is_online', 'true');
+        if (updateUser) {
+          updateUser({ isOnline: true });
+        }
+        setOfflineJobRequest(null);
+        setStep(2); // Go directly to En Route active job navigation
+        localStorage.setItem('salemseva_partner_step', '2');
+        setTechToast('கோரிக்கை ஏற்கப்பட்டது! நீங்கள் இப்போது ஆன்லைனில் உள்ளீர்கள். வாடிக்கையாளர் இருப்பிடத்திற்கு புறப்படவும்.');
+      } else {
+        setTechToast(data.error || 'Failed to accept offline request');
+      }
+    } catch (e) {
+      setTechToast('Network error accepting offline request');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleDeclineOfflineRequest = async (bookingId) => {
+    try {
+      await fetch(`${API_V1_URL}/partner/bookings/${bookingId}/reject`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          technicianId: user?.id,
+          reason: 'Technician currently unavailable / offline'
+        })
+      });
+      setOfflineJobRequest(null);
+      setTechToast('கோரிக்கை நிராகரிக்கப்பட்டது (Request declined).');
+    } catch (e) {
+      setOfflineJobRequest(null);
+    }
+  };
+
   if (!user) {
     return (
       <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', p: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -660,7 +723,7 @@ export default function PartnerDutyPage() {
 
   return (
     <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', pb: 10 }}>
-      <Container maxWidth="sm" sx={{ px: 2, pt: 2 }}>
+      <Container maxWidth="md" sx={{ px: { xs: 2, sm: 3 }, pt: { xs: 2, sm: 3 } }}>
         
         {/* Top Header Mode Toggle */}
         <Box sx={{ display: 'flex', gap: 0.8, mb: 2 }}>
@@ -1228,69 +1291,185 @@ export default function PartnerDutyPage() {
                     </Box>
                   </Card>
                 ) : !isOnline ? (
-                  /* Dedicated Offline Duty State */
-                  <Card
-                    elevation={0}
-                    sx={{
-                      bgcolor: '#0F172A',
-                      color: '#FFFFFF',
-                      borderRadius: '12px',
-                      p: 3,
-                      mb: 2,
-                      border: '1px solid #334155',
-                      textAlign: 'center'
-                    }}
-                  >
-                    <Box
+                  offlineJobRequest ? (
+                    /* Priority Direct Job Dispatch Request from Salem Central Admin (Technician Offline) */
+                    <Card
+                      elevation={0}
                       sx={{
-                        width: 64,
-                        height: 64,
-                        borderRadius: '50%',
-                        bgcolor: '#1E293B',
-                        border: '2px dashed #64748B',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        mx: 'auto',
-                        mb: 2
-                      }}
-                    >
-                      <TwoWheelerIcon sx={{ color: '#94A3B8', fontSize: 32 }} />
-                    </Box>
-
-                    <Chip
-                      label="தற்போது ஆஃப்லைனில் உள்ளீர்கள் • Currently Offline"
-                      size="small"
-                      sx={{ bgcolor: '#1E293B', color: '#FCA5A5', fontWeight: 700, fontSize: '11px', mb: 1.5, border: '1px solid #7F1D1D' }}
-                    />
-
-                    <Typography variant="h6" sx={{ fontWeight: 800, color: '#FFFFFF', fontSize: '15px', mb: 0.8 }}>
-                      வேலை கோரிக்கைகள் இடைநிறுத்தப்பட்டுள்ளன (Duty Paused)
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: '#94A3B8', fontSize: '12px', maxWidth: 360, mx: 'auto', mb: 2.5, lineHeight: 1.5 }}>
-                      You are marked offline. Customers will not see you on Salem radar and no dispatch requests will be sent to you until you go online.
-                    </Typography>
-
-                    <Button
-                      variant="contained"
-                      onClick={() => handleToggleOnline(true)}
-                      startIcon={<CheckCircleIcon sx={{ fontSize: 18 }} />}
-                      sx={{
-                        bgcolor: '#16A34A',
+                        bgcolor: '#0F172A',
                         color: '#FFFFFF',
-                        fontWeight: 700,
-                        fontSize: '13px',
-                        px: 3,
-                        py: 1,
-                        borderRadius: '8px',
-                        textTransform: 'none',
-                        boxShadow: '0 4px 14px rgba(22, 163, 74, 0.3)',
-                        '&:hover': { bgcolor: '#15803D' }
+                        borderRadius: '12px',
+                        p: 2.5,
+                        mb: 2,
+                        border: '2px solid #F59E0B',
+                        boxShadow: '0 4px 24px rgba(245, 158, 11, 0.25)'
                       }}
                     >
-                      Go Online • ஆன்லைனுக்கு மாறவும்
-                    </Button>
-                  </Card>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                          <BoltIcon sx={{ color: '#F59E0B', fontSize: 22 }} />
+                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#FEF08A', fontSize: '13.5px' }}>
+                            நிர்வாக நேரடி கோரிக்கை • Admin Dispatch Request
+                          </Typography>
+                        </Box>
+                        <Chip
+                          label="OFFLINE PRIORITY"
+                          size="small"
+                          sx={{ bgcolor: '#FEF3C7', color: '#92400E', fontWeight: 800, fontSize: '10px', height: 20 }}
+                        />
+                      </Box>
+
+                      <Alert severity="warning" sx={{ bgcolor: 'rgba(245, 158, 11, 0.12)', color: '#FCD34D', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '8px', fontSize: '12px', mb: 2, py: 0.6 }}>
+                        <strong>சேலம் தலைமை அலுவலக அறிவிப்பு:</strong> வாடிக்கையாளருக்கு அவசர உதவி தேவைப்படுகிறது. நீங்கள் இந்த வேலையை ஏற்றுக்கொண்டால் உங்கள் நிலை <strong>தானாகவே ONLINE</strong> ஆக மாற்றப்பட்டு வாடிக்கையாளர் முகவரி திறக்கப்படும்.
+                      </Alert>
+
+                      {/* Job Overview */}
+                      <Paper elevation={0} sx={{ p: 1.8, bgcolor: '#1E293B', border: '1px solid #334155', borderRadius: '10px', mb: 2 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                          <Box>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#FFFFFF', fontSize: '14px' }}>
+                              {offlineJobRequest.customerName || 'Customer'}
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: '#94A3B8', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <LocationOnIcon sx={{ fontSize: 13, color: '#38BDF8' }} />
+                              {offlineJobRequest.locality || 'Fairlands, Salem'}
+                            </Typography>
+                          </Box>
+                          <Chip
+                            label={`Booking #${offlineJobRequest.id}`}
+                            size="small"
+                            sx={{ bgcolor: '#334155', color: '#CBD5E1', fontSize: '10.5px', fontWeight: 700 }}
+                          />
+                        </Box>
+
+                        <Typography variant="body2" sx={{ color: '#E2E8F0', fontSize: '12.5px', bgcolor: '#0F172A', p: 1.2, borderRadius: '6px', border: '1px solid #334155', mb: 1.5 }}>
+                          <strong>தேவை:</strong> {offlineJobRequest.issueDescription || 'Service Diagnostics & Inspection'}
+                        </Typography>
+
+                        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
+                          <Box sx={{ bgcolor: '#0F172A', p: 1, borderRadius: '6px', border: '1px solid #334155' }}>
+                            <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '10px', display: 'block' }}>
+                              TRAVEL & VISIT FEE:
+                            </Typography>
+                            <Typography variant="subtitle2" sx={{ color: '#34D399', fontWeight: 800, fontSize: '13px' }}>
+                              ₹{offlineJobRequest.visitFee || 99}.00 (Guaranteed)
+                            </Typography>
+                          </Box>
+                          <Box sx={{ bgcolor: '#0F172A', p: 1, borderRadius: '6px', border: '1px solid #334155' }}>
+                            <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '10px', display: 'block' }}>
+                              DISPATCH MODE:
+                            </Typography>
+                            <Typography variant="subtitle2" sx={{ color: '#38BDF8', fontWeight: 800, fontSize: '13px' }}>
+                              Admin Allocated
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </Paper>
+
+                      {/* Action CTA Buttons */}
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Button
+                          fullWidth
+                          variant="contained"
+                          onClick={() => handleAcceptOfflineRequest(offlineJobRequest.id)}
+                          startIcon={<CheckCircleIcon sx={{ fontSize: 18 }} />}
+                          sx={{
+                            bgcolor: '#16A34A',
+                            color: '#FFFFFF',
+                            fontWeight: 800,
+                            fontSize: '13px',
+                            py: 1.2,
+                            borderRadius: '8px',
+                            textTransform: 'none',
+                            boxShadow: '0 4px 14px rgba(22, 163, 74, 0.4)',
+                            '&:hover': { bgcolor: '#15803D' }
+                          }}
+                        >
+                          ஏற்றுக்கொண்டு ஆன்லைன் வரவும் (Accept & Go Online)
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          onClick={() => handleDeclineOfflineRequest(offlineJobRequest.id)}
+                          sx={{
+                            borderColor: '#475569',
+                            color: '#94A3B8',
+                            fontWeight: 700,
+                            fontSize: '12px',
+                            px: 2,
+                            borderRadius: '8px',
+                            textTransform: 'none',
+                            '&:hover': { borderColor: '#EF4444', color: '#EF4444' }
+                          }}
+                        >
+                          தவிர்க்கவும்
+                        </Button>
+                      </Box>
+                    </Card>
+                  ) : (
+                    /* Dedicated Offline Duty State */
+                    <Card
+                      elevation={0}
+                      sx={{
+                        bgcolor: '#0F172A',
+                        color: '#FFFFFF',
+                        borderRadius: '12px',
+                        p: 3,
+                        mb: 2,
+                        border: '1px solid #334155',
+                        textAlign: 'center'
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: 64,
+                          height: 64,
+                          borderRadius: '50%',
+                          bgcolor: '#1E293B',
+                          border: '2px dashed #64748B',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          mx: 'auto',
+                          mb: 2
+                        }}
+                      >
+                        <TwoWheelerIcon sx={{ color: '#94A3B8', fontSize: 32 }} />
+                      </Box>
+
+                      <Chip
+                        label="தற்போது ஆஃப்லைனில் உள்ளீர்கள் • Currently Offline"
+                        size="small"
+                        sx={{ bgcolor: '#1E293B', color: '#FCA5A5', fontWeight: 700, fontSize: '11px', mb: 1.5, border: '1px solid #7F1D1D' }}
+                      />
+
+                      <Typography variant="h6" sx={{ fontWeight: 800, color: '#FFFFFF', fontSize: '15px', mb: 0.8 }}>
+                        வேலை கோரிக்கைகள் இடைநிறுத்தப்பட்டுள்ளன (Duty Paused)
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: '#94A3B8', fontSize: '12px', maxWidth: 360, mx: 'auto', mb: 2.5, lineHeight: 1.5 }}>
+                        You are marked offline. Customers will not see you on Salem radar and no dispatch requests will be sent to you until you go online.
+                      </Typography>
+
+                      <Button
+                        variant="contained"
+                        onClick={() => handleToggleOnline(true)}
+                        startIcon={<CheckCircleIcon sx={{ fontSize: 18 }} />}
+                        sx={{
+                          bgcolor: '#16A34A',
+                          color: '#FFFFFF',
+                          fontWeight: 700,
+                          fontSize: '13px',
+                          px: 3,
+                          py: 1,
+                          borderRadius: '8px',
+                          textTransform: 'none',
+                          boxShadow: '0 4px 14px rgba(22, 163, 74, 0.3)',
+                          '&:hover': { bgcolor: '#15803D' }
+                        }}
+                      >
+                        Go Online • ஆன்லைனுக்கு மாறவும்
+                      </Button>
+                    </Card>
+                  )
                 ) : activeJob && activeJob.status === 'accepted' ? (
                   /* ================= WAITING FOR CUSTOMER RAZORPAY PAYMENT (₹99 ADVANCE) ================= */
                   <Card
@@ -2819,7 +2998,7 @@ export default function PartnerDutyPage() {
               variant="contained"
               startIcon={<PrintIcon />}
               onClick={() => {
-                alert('Settlement slip receipt downloaded / printed successfully.');
+                setTechToast('Settlement slip receipt downloaded / printed successfully.');
                 setSelectedSlipJob(null);
               }}
               sx={{ bgcolor: '#0F172A', color: '#FFF', borderRadius: '6px', fontWeight: 600, fontSize: '12px', textTransform: 'none' }}
@@ -2844,7 +3023,7 @@ export default function PartnerDutyPage() {
               fullWidth
               size="large"
               startIcon={<PhoneIcon />}
-              onClick={() => alert('சேலம் மத்திய மேனேஜர் ஆனந்திற்கு அவசர அழைப்பு மேற்கொள்ளப்படுகிறது... 0427-2448888')}
+              onClick={() => setTechToast('சேலம் மத்திய மேனேஜர் ஆனந்திற்கு அவசர அழைப்பு: 0427-2448888')}
               sx={{
                 bgcolor: '#2563EB',
                 borderRadius: '8px',
@@ -2871,14 +3050,14 @@ export default function PartnerDutyPage() {
                   டெக்னீசியன் சுயவிவரம் (Partner Profile)
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11px' }}>
-                  Technician ID: PRT-SLM-9428 • Salem Central Hub
+                  Technician ID: PRT-SLM-{user?.id ? String(user.id).slice(0, 6).toUpperCase() : 'PARTNER'} • Salem Central Hub
                 </Typography>
               </Box>
               <Chip
-                icon={<CheckCircleIcon sx={{ color: '#047857 !important', fontSize: 13 }} />}
-                label="Verified Pro"
+                icon={<CheckCircleIcon sx={{ color: user?.isKycVerified ? '#047857 !important' : '#B45309 !important', fontSize: 13 }} />}
+                label={user?.isKycVerified ? 'Verified Pro' : 'Verification Pending'}
                 size="small"
-                sx={{ bgcolor: '#DCFCE7', color: '#047857', fontWeight: 700, fontSize: '11px', borderRadius: '4px' }}
+                sx={{ bgcolor: user?.isKycVerified ? '#DCFCE7' : '#FEF3C7', color: user?.isKycVerified ? '#047857' : '#B45309', fontWeight: 700, fontSize: '11px', borderRadius: '4px' }}
               />
             </Box>
 
@@ -2907,7 +3086,7 @@ export default function PartnerDutyPage() {
                       border: '2px solid #38BDF8'
                     }}
                   >
-                    KR
+                    {(user?.name || 'PR').slice(0, 2).toUpperCase()}
                   </Avatar>
                   <Box
                     sx={{
@@ -2927,7 +3106,11 @@ export default function PartnerDutyPage() {
                     <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#FFFFFF', fontSize: '16px' }}>
                       {user?.name || 'Partner'}
                     </Typography>
-                    <Chip label="Gold Partner" size="small" sx={{ bgcolor: '#FEF3C7', color: '#92400E', fontWeight: 800, fontSize: '10px', height: 18 }} />
+                    <Chip 
+                      label={Number(user?.jobsCompleted || user?.jobs_completed_count) > 0 ? 'Gold Partner' : 'New Partner'} 
+                      size="small" 
+                      sx={{ bgcolor: '#FEF3C7', color: '#92400E', fontWeight: 800, fontSize: '10px', height: 18 }} 
+                    />
                   </Box>
                   <Typography variant="body2" sx={{ color: '#38BDF8', fontWeight: 600, fontSize: '12px', mt: 0.2 }}>
                     {user?.tradeName || `${user?.trade?.toUpperCase() || 'SERVICE'} Specialist`}
@@ -2936,10 +3119,10 @@ export default function PartnerDutyPage() {
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3, bgcolor: '#1E293B', px: 0.8, py: 0.2, borderRadius: '4px' }}>
                       <StarIcon sx={{ color: '#F59E0B', fontSize: 13 }} />
                       <Typography variant="caption" sx={{ color: '#FEF08A', fontWeight: 700, fontSize: '11px' }}>
-                        {user?.ratingAvg || 4.9}
+                        {Number(user?.jobsCompleted || user?.jobs_completed_count) > 0 && Number(user?.ratingAvg) > 0 ? user.ratingAvg : 'Unrated'}
                       </Typography>
                       <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '10px' }}>
-                        ({user?.ratingCount || 100} reviews)
+                        ({Number(user?.ratingCount) || 0} reviews)
                       </Typography>
                     </Box>
                     <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '11px' }}>
@@ -2958,7 +3141,7 @@ export default function PartnerDutyPage() {
                     Jobs Done
                   </Typography>
                   <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#38BDF8', fontSize: '13px' }}>
-                    428
+                    {Number(user?.jobsCompleted || user?.jobs_completed_count) || 0}
                   </Typography>
                 </Box>
                 <Box sx={{ bgcolor: '#1E293B', p: 0.8, borderRadius: '6px' }}>
@@ -3226,7 +3409,7 @@ export default function PartnerDutyPage() {
       </Snackbar>
 
       {/* Bottom Navigation */}
-      <Paper elevation={3} sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, bgcolor: '#FFFFFF', borderTop: '1px solid #E2E8F0', zIndex: 1000, pb: 'max(env(safe-area-inset-bottom, 0px), 14px)' }}>
+      <Paper elevation={3} sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, bgcolor: '#FFFFFF', borderTop: '1px solid #E2E8F0', zIndex: 1000, display: { xs: 'block', md: 'none' } }}>
         <BottomNavigation
           showLabels
           value={bottomNav}

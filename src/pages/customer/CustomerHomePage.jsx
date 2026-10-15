@@ -183,9 +183,57 @@ export default function CustomerHomePage() {
   const activeServicesList = services || [];
 
   return (
-    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', pb: 10 }}>
-      <Container maxWidth="sm" sx={{ px: { xs: 2, sm: 3 }, pt: 2 }}>
+    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', pb: { xs: 2, md: 4 } }}>
+      <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3, md: 4 }, pt: { xs: 1.5, md: 3 } }}>
         
+        {/* Guest Mode Explorer Notification Banner */}
+        {!user && (
+          <Paper
+            elevation={0}
+            sx={{
+              p: 1.5,
+              mb: 1.5,
+              borderRadius: '10px',
+              bgcolor: '#EFF6FF',
+              border: '1px solid #BFDBFE',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 1.5
+            }}
+          >
+            <Box sx={{ minWidth: 0 }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1E3A8A', fontSize: '13px', lineHeight: 1.2 }}>
+                Browsing as Guest (விருந்தினர் பார்வை)
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#2563EB', fontSize: '11.5px', display: 'block', mt: 0.2 }}>
+                Sign in anytime to claim ₹100 Welcome credits & live GPS tracking.
+              </Typography>
+            </Box>
+            <Button
+              variant="contained"
+              size="small"
+              onClick={() => navigate('/login')}
+              sx={{
+                bgcolor: '#0066CC',
+                color: '#FFFFFF',
+                textTransform: 'none',
+                fontWeight: 700,
+                fontSize: '12px',
+                height: '34px',
+                px: 2,
+                borderRadius: '8px',
+                boxShadow: 'none',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+                '&:hover': { bgcolor: '#0052CC' }
+              }}
+            >
+              Sign In
+            </Button>
+          </Paper>
+        )}
+
         {/* Location selector bar */}
         <Paper
           elevation={0}
@@ -193,7 +241,7 @@ export default function CustomerHomePage() {
           sx={{
             p: 1.2,
             mb: 1.5,
-            borderRadius: '8px',
+            borderRadius: '10px',
             bgcolor: '#FFFFFF',
             border: '1px solid #E2E8F0',
             display: 'flex',
@@ -253,12 +301,15 @@ export default function CustomerHomePage() {
             size="small"
             endIcon={<KeyboardArrowDownIcon sx={{ fontSize: 16 }} />}
             sx={{
-              color: '#2563EB',
-              fontWeight: 600,
+              color: '#0066CC',
+              fontWeight: 700,
               fontSize: '12px',
+              height: '32px',
               textTransform: 'none',
               flexShrink: 0,
-              p: 0.5
+              px: 1.2,
+              borderRadius: '8px',
+              '&:hover': { bgcolor: '#EFF6FF' }
             }}
           >
             Change
@@ -269,10 +320,10 @@ export default function CustomerHomePage() {
         <Paper
           elevation={0}
           sx={{
-            p: '4px 10px',
+            p: '6px 12px',
             display: 'flex',
             alignItems: 'center',
-            borderRadius: '8px',
+            borderRadius: '10px',
             bgcolor: '#FFFFFF',
             border: '1px solid #E2E8F0',
             mb: 2
@@ -299,53 +350,6 @@ export default function CustomerHomePage() {
             }}
           />
         </Paper>
-
-        {/* Guest Sign-in Invite Banner (Only shown when not logged in) */}
-        {!user && (
-          <Paper
-            elevation={0}
-            sx={{
-              p: 1.5,
-              mb: 2,
-              bgcolor: '#EFF6FF',
-              border: '1px solid #BFDBFE',
-              borderRadius: '8px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 1.5
-            }}
-          >
-            <Box>
-              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1E40AF', fontSize: '13px' }}>
-                Sign In to SalemSeva
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#3B82F6', fontSize: '11px', display: 'block' }}>
-                Get ₹100 off your first service & live GPS technician tracking
-              </Typography>
-            </Box>
-            <Button
-              size="small"
-              variant="contained"
-              onClick={() => navigate('/login')}
-              sx={{
-                bgcolor: '#2563EB',
-                color: '#FFF',
-                fontWeight: 700,
-                fontSize: '11.5px',
-                textTransform: 'none',
-                borderRadius: '6px',
-                px: 1.6,
-                py: 0.5,
-                flexShrink: 0,
-                boxShadow: 'none',
-                '&:hover': { bgcolor: '#1D4ED8' }
-              }}
-            >
-              Sign In
-            </Button>
-          </Paper>
-        )}
 
         {/* Active Connected Service Banner (Zero Interruption Lock & Seamless Resume) */}
         {user && activeBooking && activeBooking.booking?.id && (() => {
@@ -453,17 +457,18 @@ export default function CustomerHomePage() {
                 variant="contained"
                 onClick={() => navigate(resumeUrl)}
                 sx={{
-                  bgcolor: '#2563EB',
+                  bgcolor: '#0066CC',
                   color: '#FFFFFF',
-                  borderRadius: '6px',
-                  fontSize: '11.5px',
-                  fontWeight: 600,
+                  borderRadius: '8px',
+                  height: '34px',
+                  fontSize: '12px',
+                  fontWeight: 700,
                   textTransform: 'none',
-                  py: 0.5,
-                  px: 1.4,
+                  px: 1.8,
                   flexShrink: 0,
                   ml: 1,
-                  '&:hover': { bgcolor: '#1D4ED8' }
+                  boxShadow: 'none',
+                  '&:hover': { bgcolor: '#0052CC' }
                 }}
               >
                 {btnText}
@@ -506,14 +511,15 @@ export default function CustomerHomePage() {
               variant="outlined"
               onClick={() => navigate('/wallet')}
               sx={{
-                borderColor: '#E2E8F0',
+                borderColor: '#CBD5E1',
                 color: '#334155',
-                fontWeight: 600,
-                fontSize: '11px',
-                borderRadius: '6px',
+                fontWeight: 700,
+                fontSize: '12px',
+                borderRadius: '8px',
+                height: '32px',
                 textTransform: 'none',
-                py: 0.3,
-                px: 1
+                px: 1.5,
+                '&:hover': { bgcolor: '#F8FAFC', borderColor: '#94A3B8' }
               }}
             >
               Wallet
@@ -551,15 +557,16 @@ export default function CustomerHomePage() {
                   variant="contained"
                   onClick={() => navigate('/book/ac')}
                   sx={{
-                    bgcolor: '#2563EB',
+                    bgcolor: '#0066CC',
                     color: '#FFFFFF',
-                    borderRadius: '6px',
-                    px: 1.5,
-                    py: 0.5,
-                    fontSize: '11.5px',
-                    fontWeight: 600,
+                    borderRadius: '8px',
+                    height: '34px',
+                    px: 2,
+                    fontSize: '12px',
+                    fontWeight: 700,
                     textTransform: 'none',
-                    '&:hover': { bgcolor: '#1D4ED8' }
+                    boxShadow: 'none',
+                    '&:hover': { bgcolor: '#0052CC' }
                   }}
                 >
                   Book AC service
@@ -596,16 +603,16 @@ export default function CustomerHomePage() {
           </Typography>
         </Box>
 
-        {/* 2x2 Services Grid (Dynamic DB Data) */}
-        <Grid container spacing={1.5} sx={{ mb: 2.5 }}>
+        {/* Responsive Services Grid (Dynamic DB Data) */}
+        <Grid container spacing={2} sx={{ mb: 3 }}>
           {isLoading ? (
             [1, 2, 3, 4].map((n) => (
-              <Grid item xs={6} key={n}>
-                <Card elevation={0} sx={{ height: '100%', p: 1.5, borderRadius: '8px' }}>
-                  <Skeleton variant="rounded" width={36} height={36} sx={{ mb: 1 }} />
-                  <Skeleton variant="text" width="80%" height={20} sx={{ mb: 0.5 }} />
-                  <Skeleton variant="text" width="95%" height={14} />
-                  <Skeleton variant="text" width="50%" height={14} />
+              <Grid item xs={6} sm={4} md={3} key={n}>
+                <Card elevation={0} sx={{ height: '100%', p: 2, borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+                  <Skeleton variant="rounded" width={40} height={40} sx={{ mb: 1.2, borderRadius: '8px' }} />
+                  <Skeleton variant="text" width="80%" height={22} sx={{ mb: 0.5 }} />
+                  <Skeleton variant="text" width="95%" height={16} />
+                  <Skeleton variant="text" width="50%" height={16} />
                 </Card>
               </Grid>
             ))
@@ -613,13 +620,13 @@ export default function CustomerHomePage() {
             activeServicesList.map((svc) => {
               const meta = getServiceMetadata(svc);
               return (
-                <Grid item xs={6} key={svc.id}>
+                <Grid item xs={6} sm={4} md={3} key={svc.id}>
                   <Card
                     elevation={0}
                     onClick={() => navigate(`/book/${svc.id}`)}
                     sx={{
                       height: '100%',
-                      borderRadius: '8px',
+                      borderRadius: '12px',
                       bgcolor: '#FFFFFF',
                       border: '1px solid #E2E8F0',
                       p: 1.5,
@@ -806,9 +813,71 @@ export default function CustomerHomePage() {
           </Grid>
         </Paper>
 
+        {/* Compliance, Policy & Legal Footer */}
+        <Box
+          sx={{
+            mt: 3,
+            mb: 4,
+            p: 2.5,
+            borderRadius: '14px',
+            bgcolor: 'rgba(255, 255, 255, 0.85)',
+            backdropFilter: 'blur(8px)',
+            border: '1px solid #E2E8F0',
+            textAlign: 'center'
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 1 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0066CC', fontSize: '14px' }}>
+              Salem<span style={{ color: '#FF6600' }}>Seva</span>
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 600, fontSize: '11px' }}>
+              • Salem Municipal Hyperlocal Network
+            </Typography>
+          </Box>
+          <Typography variant="body2" sx={{ color: '#64748B', fontSize: '11.5px', lineHeight: 1.6, maxWidth: '480px', mx: 'auto', mb: 2 }}>
+            Salem technology intermediary connecting verified local technicians with homes across Fairlands, Hasthampatti, Suramangalam, Ammapet, and Shevapet. 2% platform fee, 98% technician payout.
+          </Typography>
+
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2, flexWrap: 'wrap', pt: 1.5, borderTop: '1px solid #F1F5F9' }}>
+            <Box
+              component="span"
+              onClick={() => navigate('/how-it-works')}
+              sx={{ color: '#0066CC', fontSize: '12px', fontWeight: 600, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+            >
+              How It Works
+            </Box>
+            <Typography variant="caption" sx={{ color: '#CBD5E1' }}>|</Typography>
+            <Box
+              component="span"
+              onClick={() => navigate('/terms')}
+              sx={{ color: '#0066CC', fontSize: '12px', fontWeight: 600, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+            >
+              Terms & Conditions
+            </Box>
+            <Typography variant="caption" sx={{ color: '#CBD5E1' }}>|</Typography>
+            <Box
+              component="span"
+              onClick={() => navigate('/privacy')}
+              sx={{ color: '#0066CC', fontSize: '12px', fontWeight: 600, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+            >
+              Privacy Policy
+            </Box>
+            <Typography variant="caption" sx={{ color: '#CBD5E1' }}>|</Typography>
+            <Box
+              component="span"
+              onClick={() => navigate('/refund-policy')}
+              sx={{ color: '#0066CC', fontSize: '12px', fontWeight: 600, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+            >
+              Refund Policy
+            </Box>
+          </Box>
+          <Typography variant="caption" sx={{ display: 'block', color: '#94A3B8', fontSize: '10.5px', mt: 1.5 }}>
+            Copyright 2026 SalemSeva Technologies. All rights reserved.
+          </Typography>
+        </Box>
+
       </Container>
 
-      {/* Bottom Navigation */}
       <Paper
         elevation={3}
         sx={{
@@ -819,54 +888,56 @@ export default function CustomerHomePage() {
           bgcolor: '#FFFFFF',
           borderTop: '1px solid #E2E8F0',
           zIndex: 1000,
-          pb: 'calc(6px + env(safe-area-inset-bottom, 16px))'
+          display: { xs: 'block', md: 'none' }
         }}
       >
-        <BottomNavigation
-          showLabels
-          value={navValue}
-          onChange={(event, newValue) => {
-            setNavValue(newValue);
-            if (newValue === 0) navigate('/');
-            if (newValue === 1) {
-              if (!user) navigate('/login');
-              else navigate('/history');
-            }
-            if (newValue === 2) {
-              if (!user) navigate('/login');
-              else navigate('/wallet');
-            }
-            if (newValue === 3) navigate('/partner');
-          }}
-          sx={{
-            height: 56,
-            '& .Mui-selected': {
-              color: '#0066CC',
-              fontWeight: 700
-            },
-            '& .MuiBottomNavigationAction-label': {
-              fontSize: '11px',
-              fontWeight: 600
-            }
-          }}
-        >
-          <BottomNavigationAction
-            label="Services"
-            icon={<WorkOutlineIcon sx={{ fontSize: 20 }} />}
-          />
-          <BottomNavigationAction
-            label="Bookings"
-            icon={<ReceiptLongIcon sx={{ fontSize: 20 }} />}
-          />
-          <BottomNavigationAction
-            label={user ? "Wallet" : "Sign In"}
-            icon={<AccountCircleIcon sx={{ fontSize: 20 }} />}
-          />
-          <BottomNavigationAction
-            label="Partner Zone"
-            icon={<StorefrontIcon sx={{ fontSize: 20 }} />}
-          />
-        </BottomNavigation>
+        <Box sx={{ maxWidth: 'sm', mx: 'auto' }}>
+          <BottomNavigation
+            showLabels
+            value={navValue}
+            onChange={(event, newValue) => {
+              setNavValue(newValue);
+              if (newValue === 0) navigate('/');
+              if (newValue === 1) {
+                if (!user) navigate('/login');
+                else navigate('/history');
+              }
+              if (newValue === 2) {
+                if (!user) navigate('/login');
+                else navigate('/wallet');
+              }
+              if (newValue === 3) navigate('/partner');
+            }}
+            sx={{
+              height: 56,
+              '& .Mui-selected': {
+                color: '#0066CC',
+                fontWeight: 700
+              },
+              '& .MuiBottomNavigationAction-label': {
+                fontSize: '11px',
+                fontWeight: 600
+              }
+            }}
+          >
+            <BottomNavigationAction
+              label="Services"
+              icon={<WorkOutlineIcon sx={{ fontSize: 20 }} />}
+            />
+            <BottomNavigationAction
+              label="Bookings"
+              icon={<ReceiptLongIcon sx={{ fontSize: 20 }} />}
+            />
+            <BottomNavigationAction
+              label={user ? "Wallet" : "Sign In"}
+              icon={<AccountCircleIcon sx={{ fontSize: 20 }} />}
+            />
+            <BottomNavigationAction
+              label="Partner Zone"
+              icon={<StorefrontIcon sx={{ fontSize: 20 }} />}
+            />
+          </BottomNavigation>
+        </Box>
       </Paper>
 
       {/* Location Picker Modal */}
