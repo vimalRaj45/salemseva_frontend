@@ -1214,9 +1214,9 @@ export default function PartnerDutyPage() {
             {/* 2. Step Progress Bar */}
             <Box sx={{ display: 'flex', bgcolor: '#F1F5F9', p: 0.5, borderRadius: '8px', mb: 2, gap: 0.5 }}>
               <Button
-                disabled={step === 2 || step === 3}
+                disabled={step !== 1}
                 onClick={() => {
-                  if (step === 2 || step === 3) return;
+                  if (step !== 1) return;
                   setStep(1);
                 }}
                 sx={{
@@ -1226,16 +1226,28 @@ export default function PartnerDutyPage() {
                   fontWeight: 600,
                   py: 0.5,
                   bgcolor: step === 1 ? '#FFFFFF' : 'transparent',
-                  color: (step === 2 || step === 3) ? '#94A3B8' : (step === 1 ? '#0F172A' : '#64748B'),
+                  color: step === 1 ? '#0F172A' : '#94A3B8',
                   border: step === 1 ? '1px solid #E2E8F0' : 'none',
+                  boxShadow: step === 1 ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
                   textTransform: 'none',
-                  cursor: (step === 2 || step === 3) ? 'not-allowed' : 'pointer'
+                  cursor: step === 1 ? 'default' : 'not-allowed',
+                  '&.Mui-disabled': {
+                    color: '#94A3B8',
+                    cursor: 'not-allowed',
+                    bgcolor: 'transparent',
+                    border: 'none',
+                    opacity: 0.6
+                  }
                 }}
               >
-                1. Requests {(step === 2 || step === 3) && ''}
+                1. Requests
               </Button>
               <Button
-                onClick={() => setStep(2)}
+                disabled={step !== 2}
+                onClick={() => {
+                  if (step !== 2) return;
+                  setStep(2);
+                }}
                 sx={{
                   flex: 1,
                   borderRadius: '6px',
@@ -1243,15 +1255,28 @@ export default function PartnerDutyPage() {
                   fontWeight: 600,
                   py: 0.5,
                   bgcolor: step === 2 ? '#FFFFFF' : 'transparent',
-                  color: step === 2 ? '#0F172A' : '#64748B',
+                  color: step === 2 ? '#0F172A' : '#94A3B8',
                   border: step === 2 ? '1px solid #E2E8F0' : 'none',
-                  textTransform: 'none'
+                  boxShadow: step === 2 ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                  textTransform: 'none',
+                  cursor: step === 2 ? 'default' : 'not-allowed',
+                  '&.Mui-disabled': {
+                    color: '#94A3B8',
+                    cursor: 'not-allowed',
+                    bgcolor: 'transparent',
+                    border: 'none',
+                    opacity: 0.6
+                  }
                 }}
               >
                 2. In transit
               </Button>
               <Button
-                onClick={() => setStep(3)}
+                disabled={step !== 3}
+                onClick={() => {
+                  if (step !== 3) return;
+                  setStep(3);
+                }}
                 sx={{
                   flex: 1,
                   borderRadius: '6px',
@@ -1259,9 +1284,18 @@ export default function PartnerDutyPage() {
                   fontWeight: 600,
                   py: 0.5,
                   bgcolor: step === 3 ? '#FFFFFF' : 'transparent',
-                  color: step === 3 ? '#0F172A' : '#64748B',
+                  color: step === 3 ? '#0F172A' : '#94A3B8',
                   border: step === 3 ? '1px solid #E2E8F0' : 'none',
-                  textTransform: 'none'
+                  boxShadow: step === 3 ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                  textTransform: 'none',
+                  cursor: step === 3 ? 'default' : 'not-allowed',
+                  '&.Mui-disabled': {
+                    color: '#94A3B8',
+                    cursor: 'not-allowed',
+                    bgcolor: 'transparent',
+                    border: 'none',
+                    opacity: 0.6
+                  }
                 }}
               >
                 3. Diagnostic & quote

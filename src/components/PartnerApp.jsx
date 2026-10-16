@@ -95,22 +95,25 @@ export default function PartnerApp({ currentStep, setStep }) {
             icon={<TwoWheelerIcon fontSize="small" />}
             label={isTa ? '1. பயணம்' : '1. Travel'}
             color={dutyStep === 1 ? 'primary' : 'default'}
-            sx={{ flex: 1, fontWeight: 700 }}
-            onClick={() => setDutyStep(1)}
+            disabled={dutyStep !== 1}
+            sx={{ flex: 1, fontWeight: 700, cursor: dutyStep === 1 ? 'default' : 'not-allowed' }}
+            onClick={() => { if (dutyStep === 1) setDutyStep(1); }}
           />
           <Chip
             icon={<SearchIcon fontSize="small" />}
             label={isTa ? '2. ஆய்வு' : '2. Inspect'}
             color={dutyStep === 2 ? 'primary' : 'default'}
-            sx={{ flex: 1, fontWeight: 700 }}
-            onClick={() => { setDutyStep(2); setStep('quote_review'); }}
+            disabled={dutyStep !== 2}
+            sx={{ flex: 1, fontWeight: 700, cursor: dutyStep === 2 ? 'default' : 'not-allowed' }}
+            onClick={() => { if (dutyStep === 2) { setDutyStep(2); setStep('quote_review'); } }}
           />
           <Chip
             icon={<ReceiptLongIcon fontSize="small" />}
             label={isTa ? '3. பில்' : '3. Bill'}
             color={dutyStep === 3 ? 'primary' : 'default'}
-            sx={{ flex: 1, fontWeight: 700 }}
-            onClick={() => { setDutyStep(3); setStep('payment'); }}
+            disabled={dutyStep !== 3}
+            sx={{ flex: 1, fontWeight: 700, cursor: dutyStep === 3 ? 'default' : 'not-allowed' }}
+            onClick={() => { if (dutyStep === 3) { setDutyStep(3); setStep('payment'); } }}
           />
         </Box>
 
