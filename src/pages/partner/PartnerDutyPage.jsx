@@ -96,6 +96,7 @@ import VoipCallModal from '../../components/VoipCallModal';
 import ProcessingBackdrop from '../../components/ProcessingBackdrop';
 import DocumentUploadControl from '../../components/DocumentUploadControl';
 import LeadAudioPlayer from '../../components/LeadAudioPlayer';
+import Modal, { ModalHeader, ModalBody, ModalFooter } from '../../components/Modal';
 import SalemLottie from '../../components/SalemLottie';
 import { useAuth } from '../../context/AuthContext';
 import { NativeNotifier } from '../../services/nativeNotify';
@@ -1772,14 +1773,14 @@ export default function PartnerDutyPage() {
                               </Box>
                               <Chip
                                 icon={<LockIcon sx={{ fontSize: '12px !important', color: '#92400E !important' }} />}
-                                label="Awaiting ₹99"
+                                label={`Awaiting ₹${activeJob.visit_fee || activeJob.visitFee || 99}`}
                                 size="small"
                                 sx={{ bgcolor: '#FEF3C7', color: '#92400E', fontWeight: 800, fontSize: '10.5px', height: 22 }}
                               />
                             </Box>
 
                             <Typography variant="body2" sx={{ color: '#E2E8F0', fontSize: 'clamp(0.75rem, 1.5vw, 0.875rem)', mb: 1.5, lineHeight: 1.5 }}>
-                              You accepted booking <strong>#{activeJob.id}</strong>. Customer <strong>{activeJob.customerName || 'Customer'}</strong> ({activeJob.locality || 'Fairlands, Salem'}) is currently completing the <strong>₹99.00 Doorstep Travel & Inspection Advance</strong> via Razorpay.
+                              You accepted booking <strong>#{activeJob.id}</strong>. Customer <strong>{activeJob.customerName || 'Customer'}</strong> ({activeJob.locality || 'Fairlands, Salem'}) is currently completing the <strong>₹{activeJob.visit_fee || activeJob.visitFee || 99}.00 Doorstep Travel & Inspection Advance</strong> via Razorpay.
                             </Typography>
 
                             <Paper elevation={0} sx={{ p: 1.4, bgcolor: '#1E293B', border: '1px solid #334155', borderRadius: '8px', mb: 1.5 }}>
@@ -1789,7 +1790,7 @@ export default function PartnerDutyPage() {
                               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.6, fontSize: 'clamp(0.75rem, 1.5vw, 0.875rem)' }}>
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                                   <span style={{ color: '#94A3B8' }}>Doorstep Travel & Fuel Advance:</span>
-                                  <strong style={{ color: '#34D399' }}>₹99.00 (100% to your wallet)</strong>
+                                  <strong style={{ color: '#34D399' }}>₹{activeJob.visit_fee || activeJob.visitFee || 99}.00 (100% to your wallet)</strong>
                                 </Box>
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                                   <span style={{ color: '#94A3B8' }}>SalemSeva Platform Cut:</span>
@@ -1799,7 +1800,7 @@ export default function PartnerDutyPage() {
                             </Paper>
 
                             <Alert severity="warning" sx={{ bgcolor: 'rgba(245, 158, 11, 0.12)', color: '#FCD34D', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '8px', fontSize: 'clamp(0.75rem, 1.5vw, 0.8125rem)', mb: 2, py: 0.5 }}>
-                              <strong>கவனம்:</strong> வாடிக்கையாளர் Razorpay மூலம் ₹99 செலுத்திய பின்பே அழைப்பு (Call), செய்தி (Chat), மற்றும் GPS வழித்தடம் (Navigation) திறக்கப்படும். அதுவரை பைக்கை எடுக்க வேண்டாம்.
+                              <strong>கவனம்:</strong> வாடிக்கையாளர் Razorpay மூலம் ₹{activeJob.visit_fee || activeJob.visitFee || 99} செலுத்திய பின்பே அழைப்பு (Call), செய்தி (Chat), மற்றும் GPS வழித்தடம் (Navigation) திறக்கப்படும். அதுவரை பைக்கை எடுக்க வேண்டாம்.
                             </Alert>
 
                             {/* Locked Action Buttons with visual indicators */}
@@ -2633,7 +2634,7 @@ export default function PartnerDutyPage() {
                   </Typography>
 
                   <Alert severity="success" sx={{ mb: 1.5, bgcolor: '#ECFDF5', color: '#065F46', border: '1px solid #A7F3D0', borderRadius: '8px', fontSize: '11.5px', py: 0.5 }}>
-                    <strong>₹99.00 Payment Confirmed via Razorpay Gateway:</strong> 100% credited to your wallet for Salem travel & fuel allowance. Call, Message, and GPS directions are now unlocked.
+                    <strong>₹{activeJob?.visit_fee || activeJob?.visitFee || 99}.00 Payment Confirmed via Razorpay Gateway:</strong> 100% credited to your wallet for Salem travel & fuel allowance. Call, Message, and GPS directions are now unlocked.
                   </Alert>
 
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -3637,75 +3638,69 @@ export default function PartnerDutyPage() {
         )}
 
         {/* DIGITAL SETTLEMENT SLIP MODAL */}
-        <Dialog open={Boolean(selectedSlipJob)} onClose={() => setSelectedSlipJob(null)} maxWidth="xs" fullWidth>
-          <DialogTitle sx={{ bgcolor: '#0F172A', color: '#FFF', p: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-              <ReceiptLongIcon sx={{ color: '#38BDF8', fontSize: 20 }} />
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#FFF', fontSize: '14px' }}>
-                Technician Payout Settlement Slip
-              </Typography>
-            </Box>
-            <IconButton size="small" onClick={() => setSelectedSlipJob(null)} sx={{ color: '#94A3B8', '&:hover': { color: '#FFF' } }}>
-              <CloseIcon sx={{ fontSize: 18 }} />
-            </IconButton>
-          </DialogTitle>
+        <Modal open={Boolean(selectedSlipJob)} onClose={() => setSelectedSlipJob(null)} maxWidth="xs">
+          <ModalHeader
+            title="Payout settlement slip"
+            subtitle={selectedSlipJob ? `Booking #${selectedSlipJob.id} • ${selectedSlipJob.serviceName}` : 'Settlement details'}
+            onClose={() => setSelectedSlipJob(null)}
+          />
 
           {selectedSlipJob && (
-            <DialogContent sx={{ p: 2, bgcolor: '#F8FAFC' }}>
-              <Paper elevation={0} sx={{ p: 1.5, bgcolor: '#FFF', borderRadius: '8px', border: '1px solid #E2E8F0', mb: 2 }}>
-                <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontSize: '10.5px' }}>
-                  BOOKING REFERENCE & SERVICE
+            <ModalBody>
+              <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0', mb: 2 }}>
+                <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontSize: '12px' }}>
+                  Booking reference & service
                 </Typography>
-                <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '14px' }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '15px' }}>
                   #{selectedSlipJob.id} • {selectedSlipJob.serviceName}
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#0F172A', fontWeight: 700, display: 'block', mt: 0.4 }}>
-                  Service Date & Time: {formatDateTime(selectedSlipJob.completedAt || selectedSlipJob.created_at)}
+                <Typography variant="caption" sx={{ color: '#0F172A', fontWeight: 600, display: 'block', mt: 0.5, fontSize: '13px' }}>
+                  Service date: {formatDateTime(selectedSlipJob.completedAt || selectedSlipJob.created_at)}
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mt: 0.2 }}>
+                <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mt: 0.3, fontSize: '12px' }}>
                   Customer: {selectedSlipJob.customerName} ({selectedSlipJob.locality})
                 </Typography>
               </Paper>
 
-              <Typography variant="caption" sx={{ fontWeight: 700, color: '#0F172A', display: 'block', mb: 0.8, fontSize: '11px' }}>
-                ITEMIZED SETTLEMENT CALCULATION:
+              <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748B', display: 'block', mb: 1, fontSize: '12px' }}>
+                Itemized settlement calculation
               </Typography>
 
-              <Paper elevation={0} sx={{ p: 1.5, bgcolor: '#FFF', borderRadius: '8px', border: '1px solid #E2E8F0', mb: 2 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.5, borderBottom: '1px dashed #E2E8F0', fontSize: '12px' }}>
-                  <span>Customer Gross Payment</span>
+              <Paper elevation={0} sx={{ p: 2, bgcolor: '#FFFFFF', borderRadius: '12px', border: '1px solid #E2E8F0', mb: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.8, borderBottom: '1px dashed #E2E8F0', fontSize: '13px' }}>
+                  <span>Customer gross payment</span>
                   <strong>₹{selectedSlipJob.grossAmount.toFixed(2)}</strong>
                 </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.5, borderBottom: '1px dashed #E2E8F0', fontSize: '12px', color: '#16A34A' }}>
-                  <span>Technician Base Share (95%)</span>
-                  <strong>₹{((selectedSlipJob.grossAmount - 99) * 0.95).toFixed(2)}</strong>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.8, borderBottom: '1px dashed #E2E8F0', fontSize: '13px', color: '#16A34A' }}>
+                  <span>Technician base share (95%)</span>
+                  <strong>₹{(Math.max(0, (selectedSlipJob.grossAmount - (selectedSlipJob.visit_fee || selectedSlipJob.visitFee || 99))) * 0.95).toFixed(2)}</strong>
                 </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.5, borderBottom: '1px dashed #E2E8F0', fontSize: '12px', color: '#16A34A' }}>
-                  <span>100% Visit & Travel Allowance</span>
-                  <strong>₹99.00</strong>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.8, borderBottom: '1px dashed #E2E8F0', fontSize: '13px', color: '#16A34A' }}>
+                  <span>Visit & travel allowance (100%)</span>
+                  <strong>₹{parseFloat(selectedSlipJob.visit_fee || selectedSlipJob.visitFee || 99).toFixed(2)}</strong>
                 </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.5, borderBottom: '1px dashed #E2E8F0', fontSize: '12px', color: '#DC2626' }}>
-                  <span>SalemSeva Platform Cut (5%)</span>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.8, borderBottom: '1px dashed #E2E8F0', fontSize: '13px', color: '#DC2626' }}>
+                  <span>Platform fee (5%)</span>
                   <span>-₹{selectedSlipJob.platformCommission.toFixed(2)}</span>
                 </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.8, mt: 0.5, fontSize: '13.5px', color: '#0F172A' }}>
-                  <strong>Net Bank Deposit:</strong>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1, mt: 0.5, fontSize: '15px', color: '#0F172A' }}>
+                  <strong>Net bank deposit:</strong>
                   <strong style={{ color: '#16A34A' }}>₹{selectedSlipJob.techPayout.toFixed(2)}</strong>
                 </Box>
               </Paper>
 
-              <Paper elevation={0} sx={{ p: 1.2, bgcolor: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '8px' }}>
-                <Typography variant="caption" sx={{ color: '#166534', fontWeight: 600, display: 'block', fontSize: '11px' }}>
-                  Transfer Method: Razorpay Route Direct Transfer
+              <Box sx={{ p: 1.5, bgcolor: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '10px' }}>
+                <Typography variant="caption" sx={{ color: '#166534', fontWeight: 600, display: 'block', fontSize: '12px' }}>
+                  Transfer method: Razorpay route direct transfer
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#166534', display: 'block', fontSize: '10.5px', mt: 0.2 }}>
+                <Typography variant="caption" sx={{ color: '#166534', display: 'block', fontSize: '11px', mt: 0.4 }}>
                   Settled into: HDFC Bank (UPI: {selectedSlipJob.settlementUpi}) • Ref: {selectedSlipJob.bankRef}
                 </Typography>
-              </Paper>
-            </DialogContent>
+              </Box>
+            </ModalBody>
           )}
 
-          <DialogActions sx={{ p: 1.5, bgcolor: '#FFF', borderTop: '1px solid #E2E8F0' }}>
+          <ModalFooter>
             <Button
               fullWidth
               variant="contained"
@@ -3714,12 +3709,21 @@ export default function PartnerDutyPage() {
                 setTechToast('Settlement slip receipt downloaded / printed successfully.');
                 setSelectedSlipJob(null);
               }}
-              sx={{ bgcolor: '#0F172A', color: '#FFF', borderRadius: '6px', fontWeight: 600, fontSize: '12px', textTransform: 'none' }}
+              sx={{
+                bgcolor: '#0A66C2',
+                color: '#FFF',
+                borderRadius: '14px',
+                fontWeight: 700,
+                fontSize: '14px',
+                height: 48,
+                textTransform: 'none',
+                '&:hover': { bgcolor: '#084e96' }
+              }}
             >
-              Print / Save Settlement Receipt
+              Print / save settlement receipt
             </Button>
-          </DialogActions>
-        </Dialog>
+          </ModalFooter>
+        </Modal>
 
         {/* ===================== TAB 2: HELP (உதவி) ===================== */}
         {bottomNav === 2 && (
@@ -4196,117 +4200,108 @@ export default function PartnerDutyPage() {
         </BottomNavigation>
       </Paper>
 
-      {/* Transparent Customer Cancellation Notice Dialog */}
-      <Dialog
+      {/* Transparent Customer Cancellation Notice Modal */}
+      <Modal
         open={Boolean(cancellationNotice)}
         onClose={handleAcknowledgeCancellation}
-        PaperProps={{
-          sx: {
-            bgcolor: '#0F172A',
-            color: '#FFFFFF',
-            borderRadius: '14px',
-            border: '1px solid #334155',
-            maxWidth: 440,
-            p: 1
-          }
-        }}
+        maxWidth="xs"
       >
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, pb: 1, color: '#F87171' }}>
-          <WarningAmberIcon sx={{ color: '#EF4444', fontSize: 24 }} />
-          <Typography variant="h6" sx={{ fontWeight: 800, fontSize: '16px' }}>
-            Customer Cancelled Booking
-          </Typography>
-        </DialogTitle>
-        <DialogContent sx={{ pb: 1.5 }}>
-          <Typography variant="body2" sx={{ color: '#CBD5E1', fontSize: '13px', mb: 2, lineHeight: 1.5 }}>
+        <ModalHeader
+          title="Customer cancelled booking"
+          subtitle={cancellationNotice ? `Booking #${cancellationNotice.bookingId}` : 'Cancellation notice'}
+          onClose={handleAcknowledgeCancellation}
+        />
+        <ModalBody>
+          <Typography variant="body2" sx={{ color: '#0F172A', fontSize: '14px', mb: 2, lineHeight: 1.5 }}>
             Customer <strong>{cancellationNotice?.customerName || 'Customer'}</strong> ({cancellationNotice?.locality || 'Fairlands, Salem'}) has cancelled booking <strong>#{cancellationNotice?.bookingId}</strong>.
           </Typography>
 
-          <Paper elevation={0} sx={{ p: 1.5, bgcolor: '#1E293B', border: '1px solid #334155', borderRadius: '10px', mb: 2 }}>
-            <Typography variant="caption" sx={{ color: '#94A3B8', fontWeight: 700, display: 'block', mb: 1, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '10px' }}>
-              TRANSPARENT SETTLEMENT & COMPENSATION BREAKDOWN
+          <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', mb: 2 }}>
+            <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700, display: 'block', mb: 1, fontSize: '12px' }}>
+              Settlement and compensation breakdown
             </Typography>
 
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.8, fontSize: '12.5px' }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, fontSize: '13px' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: '#94A3B8' }}>Cancellation Reason:</span>
-                <strong style={{ color: '#F1F5F9' }}>{cancellationNotice?.reason || 'Customer request'}</strong>
+                <span style={{ color: '#64748B' }}>Cancellation reason:</span>
+                <strong style={{ color: '#0F172A' }}>{cancellationNotice?.reason || 'Customer request'}</strong>
               </Box>
-              <Divider sx={{ borderColor: '#334155', my: 0.4 }} />
+              <Divider sx={{ borderColor: '#E2E8F0' }} />
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ color: '#94A3B8' }}>Travel & Fuel Compensation:</span>
-                <strong style={{ color: '#34D399', fontSize: '13.5px' }}>
+                <span style={{ color: '#64748B' }}>Travel & fuel compensation:</span>
+                <strong style={{ color: '#16A34A', fontSize: '14px' }}>
                   ₹{cancellationNotice?.technicianTravelDisbursal || 99}.00 (100%)
                 </strong>
               </Box>
-              <Divider sx={{ borderColor: '#334155', my: 0.4 }} />
+              <Divider sx={{ borderColor: '#E2E8F0' }} />
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: '#94A3B8' }}>Platform Commission:</span>
-                <strong style={{ color: '#94A3B8' }}>₹0.00 (Zero cut)</strong>
+                <span style={{ color: '#64748B' }}>Platform commission:</span>
+                <strong style={{ color: '#64748B' }}>₹0.00 (Zero deduction)</strong>
               </Box>
             </Box>
           </Paper>
 
-          <Alert severity="success" sx={{ bgcolor: 'rgba(16, 185, 129, 0.12)', color: '#6EE7B7', border: '1px solid rgba(52, 211, 153, 0.3)', borderRadius: '8px', fontSize: '11px', py: 0.5 }}>
-            ₹{cancellationNotice?.technicianTravelDisbursal || 99}.00 visit fee has been disbursed to your UPI. Your duty radar is unlocked for new leads.
-          </Alert>
-        </DialogContent>
-        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Box sx={{ bgcolor: '#F0FDF4', color: '#166534', border: '1px solid #BBF7D0', borderRadius: '8px', p: 1.5 }}>
+            <Typography variant="caption" sx={{ fontSize: '12px', lineHeight: 1.4, display: 'block' }}>
+              ₹{cancellationNotice?.technicianTravelDisbursal || 99}.00 visit fee has been disbursed to your UPI. Your duty radar is unlocked for new leads.
+            </Typography>
+          </Box>
+        </ModalBody>
+        <ModalFooter>
           <Button
             fullWidth
             variant="contained"
             onClick={handleAcknowledgeCancellation}
             sx={{
-              bgcolor: '#2563EB',
+              bgcolor: '#0A66C2',
               color: '#FFFFFF',
-              borderRadius: '8px',
+              borderRadius: '14px',
               fontWeight: 700,
-              fontSize: '13px',
-              py: 1,
+              fontSize: '14px',
+              height: 48,
               textTransform: 'none',
-              '&:hover': { bgcolor: '#1D4ED8' }
+              '&:hover': { bgcolor: '#084e96' }
             }}
           >
-            Acknowledge & Continue Duty (வேலைக்கு திரும்புக)
+            Acknowledge and continue duty
           </Button>
-        </DialogActions>
-      </Dialog>
+        </ModalFooter>
+      </Modal>
 
-      {/* Location Permission Request Dialog */}
-      <Dialog 
+      {/* Location Permission Request Modal */}
+      <Modal 
         open={locationModalOpen} 
         onClose={() => setLocationModalOpen(false)}
         maxWidth="xs"
-        fullWidth
-        PaperProps={{ sx: { borderRadius: '16px', p: 1 } }}
       >
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 900, color: '#0F172A', pb: 1 }}>
-          <LocationOnIcon sx={{ color: '#0284C7', fontSize: 24 }} />
-          Location Access Required
-        </DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" sx={{ color: '#475569', mb: 2, lineHeight: 1.5 }}>
-            SalemSeva requires your device location <strong>only while you are ON DUTY</strong> to calculate live customer ETAs, doorstep route navigation in Salem, and dispatch nearby high-paying jobs.
+        <ModalHeader
+          title="Location access required"
+          subtitle="Required for live navigation and job dispatch"
+          onClose={() => setLocationModalOpen(false)}
+        />
+        <ModalBody>
+          <Typography variant="body2" sx={{ color: '#0F172A', mb: 2, lineHeight: 1.5, fontSize: '14px' }}>
+            SalemSeva requires device location <strong>only while you are on duty</strong> to calculate live customer ETAs, doorstep route navigation in Salem, and dispatch nearby high-paying jobs.
           </Typography>
-          <Paper elevation={0} sx={{ p: 1.5, bgcolor: '#F0F9FF', border: '1px solid #BAE6FD', borderRadius: '10px', mb: 1 }}>
-            <Typography variant="caption" sx={{ color: '#0369A1', fontWeight: 700, display: 'block' }}>
-              Privacy Guaranteed:
+          <Box sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px' }}>
+            <Typography variant="caption" sx={{ color: '#0A66C2', fontWeight: 700, display: 'block', mb: 0.5, fontSize: '12px' }}>
+              Privacy guaranteed
             </Typography>
-            <Typography variant="caption" sx={{ color: '#0C4A6E', display: 'block' }}>
-              Your location is never tracked when you go Offline. Turning duty off stops all GPS broadcasting immediately.
+            <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontSize: '12px', lineHeight: 1.4 }}>
+              Your location is never tracked when offline. Turning duty off stops all GPS broadcasting immediately.
             </Typography>
-          </Paper>
-        </DialogContent>
-        <DialogActions sx={{ p: 2, pt: 0, gap: 1 }}>
+          </Box>
+        </ModalBody>
+        <ModalFooter>
           <Button 
             onClick={() => {
               setLocationModalOpen(false);
               setIsOnline(false);
               setIsGpsBroadcasting(false);
             }} 
-            sx={{ color: '#64748B', fontWeight: 700, textTransform: 'none' }}
+            sx={{ color: '#64748B', fontWeight: 600, textTransform: 'none', height: 48 }}
           >
-            Stay Offline
+            Stay offline
           </Button>
           <Button
             variant="contained"
@@ -4317,150 +4312,147 @@ export default function PartnerDutyPage() {
               setIsGpsBroadcasting(true);
               requestLocationPermission();
             }}
-            sx={{ bgcolor: '#0284C7', color: '#FFF', fontWeight: 800, borderRadius: '8px', textTransform: 'none' }}
+            sx={{
+              bgcolor: '#0A66C2',
+              color: '#FFF',
+              fontWeight: 700,
+              borderRadius: '14px',
+              height: 48,
+              minWidth: 150,
+              textTransform: 'none',
+              '&:hover': { bgcolor: '#084e96' }
+            }}
           >
-            Allow Location & Go Online
+            Allow and go online
           </Button>
-        </DialogActions>
-      </Dialog>
+        </ModalFooter>
+      </Modal>
 
-      {/* Edit Profile & KYC Documents Dialog */}
-      <Dialog
+      {/* Edit Profile & KYC Documents Modal */}
+      <Modal
         open={editProfileOpen}
         onClose={() => setEditProfileOpen(false)}
         maxWidth="sm"
-        fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: '16px',
-            p: 1
-          }
-        }}
       >
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <EditIcon sx={{ color: '#0284C7', fontSize: 22 }} />
-            <Typography variant="h6" sx={{ fontWeight: 800, fontSize: '16px', color: '#0F172A' }}>
-              சுயவிவரம் & ஆவணங்களை மாற்று (Edit Profile & KYC)
-            </Typography>
-          </Box>
-          <IconButton size="small" onClick={() => setEditProfileOpen(false)}>
-            <CloseIcon sx={{ fontSize: 18 }} />
-          </IconButton>
-        </DialogTitle>
+        <ModalHeader
+          title="Edit profile & KYC"
+          subtitle="Update payout UPI and verified identity documents"
+          onClose={() => setEditProfileOpen(false)}
+        />
 
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 1 }}>
-          <Typography variant="body2" sx={{ color: '#64748B', fontSize: '12.5px' }}>
-            உங்கள் UPI ID மற்றும் KYC அடையாள அட்டையை மாற்றலாம். தினசரி வருமானம் இந்த UPI கணக்கிற்கு செலுத்தப்படும்.
-          </Typography>
+        <ModalBody>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+            {/* Full Name */}
+            <Box>
+              <Typography variant="caption" sx={{ fontWeight: 600, color: '#64748B', display: 'block', mb: 0.6, fontSize: '13px' }}>
+                Full name
+              </Typography>
+              <TextField
+                fullWidth
+                size="small"
+                value={profileName}
+                onChange={(e) => setProfileName(e.target.value)}
+                placeholder="e.g. K. Ramesh"
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', fontSize: '14px' } }}
+              />
+            </Box>
 
-          {/* Full Name */}
-          <Box>
-            <Typography variant="caption" sx={{ fontWeight: 800, color: '#334155', display: 'block', mb: 0.6 }}>
-              முழுப் பெயர் (FULL NAME) *
-            </Typography>
-            <TextField
-              fullWidth
-              size="small"
-              value={profileName}
-              onChange={(e) => setProfileName(e.target.value)}
-              placeholder="e.g. K. Ramesh"
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', fontWeight: 600 } }}
-            />
-          </Box>
+            {/* Trade Category Selection */}
+            <Box>
+              <Typography variant="caption" sx={{ fontWeight: 600, color: '#64748B', display: 'block', mb: 0.8, fontSize: '13px' }}>
+                Primary trade
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {[
+                  { id: 'ac', label: 'AC Repair' },
+                  { id: 'electrician', label: 'Electrician' },
+                  { id: 'plumber', label: 'Plumbing' },
+                  { id: 'cleaning', label: 'Cleaning' }
+                ].map((t) => (
+                  <Chip
+                    key={t.id}
+                    label={t.label}
+                    clickable
+                    onClick={() => setProfileTrade(t.id)}
+                    variant={profileTrade === t.id ? 'filled' : 'outlined'}
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: '13px',
+                      borderRadius: '999px',
+                      minHeight: 40,
+                      px: 1,
+                      bgcolor: profileTrade === t.id ? '#0A66C2' : 'transparent',
+                      color: profileTrade === t.id ? '#FFFFFF' : '#0F172A',
+                      borderColor: '#CBD5E1',
+                      '&:hover': { bgcolor: profileTrade === t.id ? '#084e96' : '#F1F5F9' }
+                    }}
+                  />
+                ))}
+              </Box>
+            </Box>
 
-          {/* Trade Category Selection */}
-          <Box>
-            <Typography variant="caption" sx={{ fontWeight: 800, color: '#334155', display: 'block', mb: 0.8 }}>
-              முதன்மைத் தொழில் (PRIMARY TRADE) *
-            </Typography>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-              {[
-                { id: 'ac', label: 'AC Repair' },
-                { id: 'electrician', label: 'Electrician' },
-                { id: 'plumber', label: 'Plumbing' },
-                { id: 'cleaning', label: 'Cleaning' }
-              ].map((t) => (
-                <Chip
-                  key={t.id}
-                  label={t.label}
-                  clickable
-                  onClick={() => setProfileTrade(t.id)}
-                  variant={profileTrade === t.id ? 'filled' : 'outlined'}
-                  sx={{
-                    fontWeight: 700,
-                    fontSize: '12px',
-                    borderRadius: '8px',
-                    bgcolor: profileTrade === t.id ? '#0284C7' : 'transparent',
-                    color: profileTrade === t.id ? '#FFFFFF' : '#334155',
-                    borderColor: '#CBD5E1',
-                    '&:hover': { bgcolor: profileTrade === t.id ? '#0369A1' : '#F1F5F9' }
-                  }}
-                />
-              ))}
+            {/* UPI ID */}
+            <Box>
+              <Typography variant="caption" sx={{ fontWeight: 600, color: '#64748B', display: 'block', mb: 0.6, fontSize: '13px' }}>
+                Direct payout UPI ID
+              </Typography>
+              <TextField
+                fullWidth
+                size="small"
+                value={profileUpi}
+                onChange={(e) => setProfileUpi(e.target.value)}
+                placeholder="e.g. 9842789012@upi or partner@okaxis"
+                helperText="Daily earnings will be deposited directly to this UPI address."
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', fontSize: '14px' } }}
+              />
+            </Box>
+
+            {/* KYC Document Upload / Re-upload */}
+            <Box>
+              <Typography variant="caption" sx={{ fontWeight: 600, color: '#64748B', display: 'block', mb: 0.6, fontSize: '13px' }}>
+                KYC identity photo (Aadhaar / Govt ID)
+              </Typography>
+              <DocumentUploadControl
+                label="Aadhaar / Govt ID photo"
+                sublabel="Direct camera or gallery upload (up to 5 MB)"
+                folder="aadhaar"
+                referenceId={user?.phone || 'partner'}
+                existingUrl={profileAadhaarUrl}
+                onUploadSuccess={(url) => setProfileAadhaarUrl(url)}
+                onRemove={() => setProfileAadhaarUrl(null)}
+                maxSizeMb={5}
+              />
             </Box>
           </Box>
+        </ModalBody>
 
-          {/* UPI ID */}
-          <Box>
-            <Typography variant="caption" sx={{ fontWeight: 800, color: '#334155', display: 'block', mb: 0.6 }}>
-              வருமானம் பெறும் UPI ID (DIRECT 98% PAYOUT) *
-            </Typography>
-            <TextField
-              fullWidth
-              size="small"
-              value={profileUpi}
-              onChange={(e) => setProfileUpi(e.target.value)}
-              placeholder="e.g. 9842789012@upi or partner@okaxis"
-              helperText="SalemSeva தினசரி நேரடி வருமானம் இந்த UPI ஐடிக்கு உடனே வரவு வைக்கப்படும்."
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', fontWeight: 700 } }}
-            />
-          </Box>
-
-          {/* KYC Document Upload / Re-upload */}
-          <Box>
-            <Typography variant="caption" sx={{ fontWeight: 800, color: '#334155', display: 'block', mb: 0.6 }}>
-              KYC அடையாள அட்டை அசல் புகைப்படம் (AADHAAR / GOVT ID PHOTO)
-            </Typography>
-            <DocumentUploadControl
-              label="ஆதார் / அடையாள அட்டை புகைப்படம் (Re-upload ID)"
-              sublabel="நேரடி கேமரா அல்லது புதிய படம் பதிவேற்றவும் (<= 5 MB)"
-              folder="aadhaar"
-              referenceId={user?.phone || 'partner'}
-              existingUrl={profileAadhaarUrl}
-              onUploadSuccess={(url) => setProfileAadhaarUrl(url)}
-              onRemove={() => setProfileAadhaarUrl(null)}
-              maxSizeMb={5}
-            />
-          </Box>
-        </DialogContent>
-
-        <DialogActions sx={{ p: 2, pt: 1, gap: 1 }}>
+        <ModalFooter>
           <Button
             onClick={() => setEditProfileOpen(false)}
-            sx={{ color: '#64748B', fontWeight: 700, textTransform: 'none' }}
+            sx={{ color: '#64748B', fontWeight: 600, textTransform: 'none', height: 48 }}
           >
-            ரத்துசெய் (Cancel)
+            Cancel
           </Button>
           <Button
             variant="contained"
             onClick={handleSaveProfile}
             disabled={isSavingProfile}
             sx={{
-              bgcolor: '#0284C7',
+              bgcolor: '#0A66C2',
               color: '#FFFFFF',
-              fontWeight: 800,
-              borderRadius: '8px',
+              fontWeight: 700,
+              borderRadius: '14px',
               textTransform: 'none',
-              px: 2.5,
-              py: 0.9,
-              '&:hover': { bgcolor: '#0369A1' }
+              height: 48,
+              minWidth: 140,
+              fontSize: '14px',
+              '&:hover': { bgcolor: '#084e96' }
             }}
           >
-            {isSavingProfile ? 'சேமிக்கப்படுகிறது...' : 'மாற்றங்களைச் சேமி (Save Changes)'}
+            {isSavingProfile ? 'Saving...' : 'Save changes'}
           </Button>
-        </DialogActions>
-      </Dialog>
+        </ModalFooter>
+      </Modal>
 
       {/* Processing Loader */}
       <ProcessingBackdrop

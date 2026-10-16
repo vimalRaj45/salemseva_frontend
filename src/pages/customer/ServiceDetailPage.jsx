@@ -29,10 +29,12 @@ import {
   Step,
   StepLabel,
   Tooltip,
+  MenuItem,
   CardActionArea
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { Modal, ModalHeader, ModalBody, ModalFooter } from '../../components/Modal';
 
 import AcUnitIcon from '@mui/icons-material/AcUnit';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
@@ -82,24 +84,12 @@ const loadRazorpayScript = () => {
 
 export default function ServiceDetailPage({ onStartBooking }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, loginAsCustomer, loginWithCredentials, registerAccount, walletBalance, debitWallet } = useAuth();
   const { serviceId = 'ac' } = useParams();
   const [selectedIssue, setSelectedIssue] = useState('not_cooling');
   const [customDescription, setCustomDescription] = useState('');
   const [voiceNoteAudio, setVoiceNoteAudio] = useState(null);
-
-  // Guest Auth Intercept Modal state
-  const [guestAuthModalOpen, setGuestAuthModalOpen] = useState(false);
-  const [guestAuthMode, setGuestAuthMode] = useState('signin'); // 'signin' | 'signup'
-  const [guestIdentifier, setGuestIdentifier] = useState('');
-  const [guestPassword, setGuestPassword] = useState('');
-  const [guestSignUpName, setGuestSignUpName] = useState('');
-  const [guestSignUpPhone, setGuestSignUpPhone] = useState('');
-  const [guestSignUpLocality, setGuestSignUpLocality] = useState('Fairlands, Salem');
-  const [guestSignUpPassword, setGuestSignUpPassword] = useState('');
-  const [guestSignUpConfirmPassword, setGuestSignUpConfirmPassword] = useState('');
-  const [guestAuthLoading, setGuestAuthLoading] = useState(false);
-  const [guestAuthError, setGuestAuthError] = useState('');
   
   // Coupon state
   const [couponCode, setCouponCode] = useState('');
@@ -175,11 +165,15 @@ export default function ServiceDetailPage({ onStartBooking }) {
     async function loadServiceData() {
       setIsLoadingIssues(true);
       try {
+        let dynamicFee = 99;
         // Fetch Service Info from DB
         const svcRes = await fetch(`${API_V1_URL}/services/${serviceId || 'ac'}`);
         const svcData = await svcRes.json();
         if (svcData.success && svcData.service) {
           setServiceInfo(svcData.service);
+          if (svcData.service.visitFee !== undefined && !isNaN(Number(svcData.service.visitFee))) {
+            dynamicFee = Number(svcData.service.visitFee);
+          }
         }
 
         // Fetch Issues from DB
@@ -189,7 +183,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
             id: i.id || 'issue_default',
             title: i.name || i.issue_name || 'Inspection & Repair',
             estRange: i.estRange || 'Quote on Inspection',
-            visitFee: '₹99'
+            visitFee: `₹${dynamicFee}`
           }));
           setIssuesList(list);
           setSelectedIssue(list[0].id);
@@ -246,10 +240,11 @@ export default function ServiceDetailPage({ onStartBooking }) {
     }
     setCouponLoading(true);
     try {
+      const currentBookingAmount = Number(serviceInfo?.visitFee ?? 99);
       const res = await fetch(`${API_V1_URL}/coupons/validate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, bookingAmount: 99 })
+        body: JSON.stringify({ code, bookingAmount: currentBookingAmount })
       });
       const data = await res.json();
       if (data.valid) {
@@ -320,7 +315,8 @@ export default function ServiceDetailPage({ onStartBooking }) {
 
     const activeUser = overrideUser || user;
     if (!activeUser) {
-      setGuestAuthModalOpen(true);
+      toast.error('Please sign in to proceed with your booking.');
+      navigate(`/login?redirect=${encodeURIComponent(location.pathname + location.search)}`);
       return;
     }
 
@@ -376,84 +372,18 @@ export default function ServiceDetailPage({ onStartBooking }) {
     }
   };
 
-  const handleGuestCredentialsLogin = async (e) => {
-    if (e) e.preventDefault();
-    setGuestAuthError('');
-    setGuestAuthLoading(true);
-    try {
-      const loggedUser = await loginWithCredentials({ identifier: guestIdentifier, password: guestPassword });
-      setGuestAuthLoading(false);
-      setGuestAuthModalOpen(false);
-      setTimeout(() => {
-        if (bookingMode === 'scheduled') {
-          setScheduledPaymentModalOpen(true);
-        } else {
-          handleProceed(loggedUser);
-        }
-      }, 150);
-    } catch (err) {
-      setGuestAuthLoading(false);
-      setGuestAuthError(err.message || 'Invalid mobile number or password');
-    }
-  };
-
-  const handleGuestSignUp = async (e) => {
-    if (e) e.preventDefault();
-    setGuestAuthError('');
-
-    if (!guestSignUpName.trim()) {
-      setGuestAuthError('Please enter your full name');
-      return;
-    }
-    const cleanPhone = guestSignUpPhone.replace(/[\s\-\(\)\+]/g, '').slice(-10);
-    if (!cleanPhone || cleanPhone.length !== 10) {
-      setGuestAuthError('Please enter a valid 10-digit mobile number');
-      return;
-    }
-    if (!guestSignUpPassword || guestSignUpPassword.length < 6) {
-      setGuestAuthError('Password must be at least 6 characters long');
-      return;
-    }
-    if (guestSignUpPassword !== guestSignUpConfirmPassword) {
-      setGuestAuthError('Passwords do not match. Please re-enter your password');
-      return;
-    }
-
-    setGuestAuthLoading(true);
-    try {
-      const createdUser = await registerAccount({
-        name: guestSignUpName.trim(),
-        phone: cleanPhone,
-        password: guestSignUpPassword.trim(),
-        role: 'customer',
-        locality: guestSignUpLocality
-      });
-      setGuestAuthLoading(false);
-      setGuestAuthModalOpen(false);
-      setTimeout(() => {
-        if (bookingMode === 'scheduled') {
-          setScheduledPaymentModalOpen(true);
-        } else {
-          handleProceed(createdUser);
-        }
-      }, 150);
-    } catch (err) {
-      setGuestAuthLoading(false);
-      setGuestAuthError(err.message || 'Unable to register account. Please try again.');
-    }
-  };
-
   const handlePayAndConfirmScheduled = async () => {
     if (!checkSalemPincode()) return;
 
     if (!user) {
-      setGuestAuthModalOpen(true);
+      toast.error('Please sign in to proceed with your booking.');
+      navigate(`/login?redirect=${encodeURIComponent(location.pathname + location.search)}`);
       return;
     }
 
     setIsPayingScheduled(true);
     const finalSlot = `${getFormattedDateString()} • ${getEffectiveSlot()}`;
-    const visitFeeAmount = 49;
+    const visitFeeAmount = Number(serviceInfo?.visitFee ?? 99);
     const discount = couponApplied ? couponDiscount : 0;
     const payableNow = Math.max(0, visitFeeAmount - discount);
 
@@ -979,7 +909,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
                       {item.estRange}
                     </Typography>
                     <Typography variant="caption" sx={{ color: '#16A34A', fontSize: { xs: '11.5px', sm: '12.5px' }, fontWeight: 600 }}>
-                      Visit fee: ₹49
+                      Visit fee: ₹{serviceInfo?.visitFee ?? 99}
                     </Typography>
                   </Box>
                 </Card>
@@ -1463,7 +1393,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
         <Container maxWidth="md" disableGutters sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box>
             <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: { xs: '15px', sm: '17px' }, color: '#0F172A' }}>
-              Inspection fee: ₹49
+              Inspection fee: ₹{serviceInfo?.visitFee ?? 99}
             </Typography>
             <Typography variant="caption" sx={{ color: bookingMode === 'scheduled' ? '#0066CC' : couponApplied ? '#16A34A' : '#64748B', fontSize: { xs: '12.5px', sm: '13.5px' }, fontWeight: 600 }}>
               {bookingMode === 'scheduled'
@@ -1489,7 +1419,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
               '&:hover': { bgcolor: bookingMode === 'instant' ? '#0052A3' : '#0369A1' }
             }}
           >
-            {bookingMode === 'instant' ? 'Search Tech Now' : 'Pay ₹49 & Reserve Slot'}
+            {bookingMode === 'instant' ? 'Search Tech Now' : `Pay ₹${Math.max(0, Number(serviceInfo?.visitFee ?? 99) - (couponApplied ? couponDiscount : 0))} & Reserve Slot`}
           </Button>
         </Container>
       </Paper>
@@ -1523,176 +1453,170 @@ export default function ServiceDetailPage({ onStartBooking }) {
       />
 
       {/* SCHEDULED BOOKING PRE-PAYMENT MODAL */}
-      <Dialog
+      <Modal
         open={scheduledPaymentModalOpen}
         onClose={() => !isPayingScheduled && setScheduledPaymentModalOpen(false)}
-        maxWidth="xs"
-        fullWidth
-        PaperProps={{
-          sx: { borderRadius: '16px', overflow: 'hidden' }
-        }}
+        maxWidth="sm"
+        ariaLabelledBy="scheduled-payment-title"
       >
-        <DialogTitle sx={{ pb: 1, pt: 2.5, px: 2.5 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <CalendarMonthIcon sx={{ color: '#0284C7', fontSize: 26 }} />
-              <Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A', fontSize: { xs: '16.5px', sm: '18px' } }}>
-                Reserve Scheduled Slot
-              </Typography>
-            </Box>
-            <Button
-              size="small"
-              onClick={() => setScheduledPaymentModalOpen(false)}
-              disabled={isPayingScheduled}
-              sx={{ minWidth: 28, p: 0.5, color: '#94A3B8' }}
-            >
-              <CloseIcon fontSize="small" />
-            </Button>
-          </Box>
-          <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mt: 0.3, fontSize: { xs: '12px', sm: '13px' } }}>
-            Salem Central Operations Guaranteed Doorstep Slot
-          </Typography>
-        </DialogTitle>
+        <ModalHeader
+          id="scheduled-payment-title"
+          title="Reserve scheduled slot"
+          subtitle="Salem Central Operations guaranteed doorstep slot"
+          onClose={() => !isPayingScheduled && setScheduledPaymentModalOpen(false)}
+          icon={<CalendarMonthIcon sx={{ color: '#0A66C2', fontSize: 20 }} />}
+        />
 
-        <DialogContent sx={{ px: 2.5, py: 1 }}>
+        <ModalBody>
           {/* Appointment Summary Card */}
-          <Paper elevation={0} sx={{ p: 2, bgcolor: '#F0F9FF', border: '1.5px solid #BAE6FD', borderRadius: '12px', mb: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 1 }}>
-              <EventIcon sx={{ color: '#0284C7', fontSize: 20 }} />
-              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0369A1', fontSize: { xs: '14px', sm: '15px' } }}>
+          <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+              <EventIcon sx={{ color: '#0A66C2', fontSize: 18 }} />
+              <Typography sx={{ fontWeight: 700, color: '#0A66C2', fontSize: '14px' }}>
                 {getFormattedDateString()} • {getEffectiveSlot()}
               </Typography>
             </Box>
-            <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: { xs: '13.5px', sm: '14.5px' } }}>
+            <Typography sx={{ fontWeight: 700, color: '#0F172A', fontSize: '14px' }}>
               {currentServiceName}
             </Typography>
-            <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mt: 0.3, fontSize: { xs: '12px', sm: '13px' } }}>
+            <Typography sx={{ color: '#64748B', display: 'block', mt: 0.3, fontSize: '12px' }}>
               {userLocation.address || 'Fairlands, Salem - 636016'}
             </Typography>
           </Paper>
 
           {/* Price Breakdown */}
-          <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', mb: 2 }}>
-            <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 1.2, fontSize: { xs: '11.5px', sm: '12.5px' } }}>
-              Payment Breakdown
+          <Paper elevation={0} sx={{ p: 2, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px' }}>
+            <Typography sx={{ fontWeight: 600, color: '#64748B', fontSize: '12px', mb: 1.5 }}>
+              Payment breakdown
             </Typography>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.8 }}>
-              <Typography variant="body2" sx={{ color: '#475569', fontSize: { xs: '13px', sm: '14px' } }}>
-                Doorstep Diagnostic & Inspection Visit:
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+              <Typography sx={{ color: '#64748B', fontSize: '13px' }}>
+                Doorstep diagnostic & inspection visit
               </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: { xs: '13px', sm: '14px' } }}>
-                ₹49.00
+              <Typography sx={{ fontWeight: 600, color: '#0F172A', fontSize: '13px' }}>
+                ₹{(Number(serviceInfo?.visitFee ?? 99)).toFixed(2)}
               </Typography>
             </Box>
             {couponApplied && couponDiscount > 0 && (
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.8 }}>
-                <Typography variant="body2" sx={{ color: '#16A34A', fontSize: { xs: '13px', sm: '14px' } }}>
-                  Coupon Discount ({couponCode}):
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                <Typography sx={{ color: '#16A34A', fontSize: '13px', fontWeight: 600 }}>
+                  Coupon discount ({couponCode})
                 </Typography>
-                <Typography variant="body2" sx={{ fontWeight: 700, color: '#16A34A', fontSize: { xs: '13px', sm: '14px' } }}>
+                <Typography sx={{ fontWeight: 700, color: '#16A34A', fontSize: '13px' }}>
                   -₹{couponDiscount}.00
                 </Typography>
               </Box>
             )}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.8 }}>
-              <Typography variant="body2" sx={{ color: '#475569', fontSize: { xs: '13px', sm: '14px' } }}>
-                Central Ops Slot Reservation:
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+              <Typography sx={{ color: '#64748B', fontSize: '13px' }}>
+                Slot reservation fee
               </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 800, color: '#16A34A', fontSize: { xs: '13px', sm: '14px' } }}>
+              <Typography sx={{ fontWeight: 600, color: '#16A34A', fontSize: '13px' }}>
                 FREE
               </Typography>
             </Box>
-            <Divider sx={{ my: 1, borderColor: '#E2E8F0' }} />
+            <Divider sx={{ my: 1.5, borderColor: '#E2E8F0' }} />
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: { xs: '14.5px', sm: '15.5px' } }}>
-                Total Payable Now:
+              <Typography sx={{ fontWeight: 700, color: '#0F172A', fontSize: '14px' }}>
+                Total payable now
               </Typography>
-              <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0284C7', fontSize: { xs: '17px', sm: '19px' } }}>
-                ₹{Math.max(0, 49 - (couponApplied ? couponDiscount : 0))}.00
+              <Typography sx={{ fontWeight: 700, color: '#0A66C2', fontSize: '18px' }}>
+                ₹{Math.max(0, Number(serviceInfo?.visitFee ?? 99) - (couponApplied ? couponDiscount : 0))}.00
               </Typography>
             </Box>
           </Paper>
 
           {/* Payment Method Selector */}
-          <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 1, fontSize: { xs: '11.5px', sm: '12.5px' } }}>
-            Select Payment Method
-          </Typography>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
-            <Paper
-              elevation={0}
-              onClick={() => setSelectedPayMethod('upi')}
-              sx={{
-                p: { xs: 1.4, sm: 1.6 },
-                borderRadius: '10px',
-                cursor: 'pointer',
-                border: '1.5px solid',
-                borderColor: selectedPayMethod === 'upi' ? '#0284C7' : '#E2E8F0',
-                bgcolor: selectedPayMethod === 'upi' ? '#F0F9FF' : '#FFFFFF',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                transition: 'all 0.15s ease'
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
-                <QrCode2Icon sx={{ color: '#0284C7', fontSize: 24 }} />
-                <Box>
-                  <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: { xs: '13.5px', sm: '14.5px' } }}>
-                    UPI / GPay / PhonePe / Cards
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: '#64748B', fontSize: { xs: '11.5px', sm: '12.5px' } }}>
-                    Instant verification via Razorpay Escrow
-                  </Typography>
+          <Box>
+            <Typography sx={{ fontWeight: 600, color: '#64748B', fontSize: '13px', mb: 1 }}>
+              Select payment method
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Paper
+                elevation={0}
+                onClick={() => setSelectedPayMethod('upi')}
+                sx={{
+                  p: 1.5,
+                  borderRadius: '12px',
+                  cursor: 'pointer',
+                  border: selectedPayMethod === 'upi' ? '1.5px solid #0A66C2' : '1px solid #E2E8F0',
+                  bgcolor: selectedPayMethod === 'upi' ? '#EFF6FF' : '#FFFFFF',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                  <QrCode2Icon sx={{ color: '#0A66C2', fontSize: 20 }} />
+                  <Box>
+                    <Typography sx={{ fontWeight: 600, color: '#0F172A', fontSize: '13px' }}>
+                      UPI / GPay / PhonePe / Cards
+                    </Typography>
+                    <Typography sx={{ color: '#64748B', fontSize: '11px' }}>
+                      Instant verification via Razorpay Escrow
+                    </Typography>
+                  </Box>
                 </Box>
-              </Box>
-              <Radio checked={selectedPayMethod === 'upi'} size="small" sx={{ p: 0, color: '#0284C7' }} />
-            </Paper>
+                <Radio checked={selectedPayMethod === 'upi'} size="small" sx={{ p: 0, color: '#0A66C2' }} />
+              </Paper>
 
-            <Paper
-              elevation={0}
-              onClick={() => setSelectedPayMethod('wallet')}
-              sx={{
-                p: { xs: 1.4, sm: 1.6 },
-                borderRadius: '10px',
-                cursor: 'pointer',
-                border: '1.5px solid',
-                borderColor: selectedPayMethod === 'wallet' ? '#10B981' : '#E2E8F0',
-                bgcolor: selectedPayMethod === 'wallet' ? '#ECFDF5' : '#FFFFFF',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                transition: 'all 0.15s ease'
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
-                <AccountBalanceWalletIcon sx={{ color: '#059669', fontSize: 24 }} />
-                <Box>
-                  <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: { xs: '13.5px', sm: '14.5px' } }}>
-                    Seva Credits Wallet
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: '#059669', fontWeight: 700, fontSize: { xs: '11.5px', sm: '12.5px' } }}>
-                    Available: {walletBalance ?? user?.walletBalance ?? 150} Credits (₹{(((walletBalance ?? user?.walletBalance ?? 150) / 10)).toFixed(2)}) • 10 Credits = ₹1
-                  </Typography>
+              <Paper
+                elevation={0}
+                onClick={() => setSelectedPayMethod('wallet')}
+                sx={{
+                  p: 1.5,
+                  borderRadius: '12px',
+                  cursor: 'pointer',
+                  border: selectedPayMethod === 'wallet' ? '1.5px solid #0A66C2' : '1px solid #E2E8F0',
+                  bgcolor: selectedPayMethod === 'wallet' ? '#EFF6FF' : '#FFFFFF',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                  <AccountBalanceWalletIcon sx={{ color: '#0A66C2', fontSize: 20 }} />
+                  <Box>
+                    <Typography sx={{ fontWeight: 600, color: '#0F172A', fontSize: '13px' }}>
+                      Seva Credits Wallet
+                    </Typography>
+                    <Typography sx={{ color: '#16A34A', fontWeight: 600, fontSize: '11px' }}>
+                      Available: {walletBalance ?? user?.walletBalance ?? 150} credits
+                    </Typography>
+                  </Box>
                 </Box>
-              </Box>
-              <Radio checked={selectedPayMethod === 'wallet'} size="small" sx={{ p: 0, color: '#10B981' }} />
-            </Paper>
+                <Radio checked={selectedPayMethod === 'wallet'} size="small" sx={{ p: 0, color: '#0A66C2' }} />
+              </Paper>
+            </Box>
           </Box>
 
           <Alert
             severity="info"
-            icon={<ShieldIcon sx={{ fontSize: 20, color: '#0284C7' }} />}
-            sx={{ bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px', fontSize: { xs: '12px', sm: '13px' }, color: '#475569', py: 0.6 }}
+            icon={<ShieldIcon sx={{ fontSize: 18, color: '#0A66C2' }} />}
+            sx={{ bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', fontSize: '12px', color: '#475569' }}
           >
-            Salem Central Operations will allocate a verified specialist prior to your slot. When the technician starts heading to your home, you will receive an automatic notification and live tracking.
+            A verified specialist will be allocated prior to your slot. You will receive live GPS tracking once the technician starts traveling.
           </Alert>
-        </DialogContent>
+        </ModalBody>
 
-        <DialogActions sx={{ p: 2.5, pt: 1, gap: 1 }}>
+        <ModalFooter>
           <Button
+            variant="outlined"
             onClick={() => setScheduledPaymentModalOpen(false)}
             disabled={isPayingScheduled}
-            sx={{ color: '#64748B', fontWeight: 700, textTransform: 'none' }}
+            sx={{
+              color: '#64748B',
+              borderColor: '#E2E8F0',
+              fontWeight: 600,
+              textTransform: 'none',
+              fontSize: '13px',
+              borderRadius: '12px',
+              minHeight: 44,
+              px: 2,
+              '&:hover': { bgcolor: '#F8FAFC', borderColor: '#CBD5E1' }
+            }}
           >
             Cancel
           </Button>
@@ -1701,84 +1625,91 @@ export default function ServiceDetailPage({ onStartBooking }) {
             onClick={handlePayAndConfirmScheduled}
             disabled={isPayingScheduled}
             sx={{
-              flex: 1,
-              bgcolor: '#0284C7',
+              bgcolor: '#0A66C2',
               color: '#FFFFFF',
-              fontWeight: 800,
-              borderRadius: '10px',
-              py: 1,
+              fontWeight: 700,
+              borderRadius: '14px',
+              minHeight: 48,
+              px: 2.5,
+              fontSize: '14px',
               textTransform: 'none',
-              '&:hover': { bgcolor: '#0369A1' }
+              '&:hover': { bgcolor: '#084E96' }
             }}
           >
-            {isPayingScheduled ? 'Processing Payment...' : `Pay ₹${Math.max(0, 49 - (couponApplied ? couponDiscount : 0))} & Confirm`}
+            {isPayingScheduled ? 'Processing payment...' : `Pay ₹${Math.max(0, Number(serviceInfo?.visitFee ?? 99) - (couponApplied ? couponDiscount : 0))} & confirm`}
           </Button>
-        </DialogActions>
-      </Dialog>
+        </ModalFooter>
+      </Modal>
 
       {/* SCHEDULED BOOKING SUCCESS CONFIRMATION MODAL */}
-      <Dialog
+      <Modal
         open={scheduledSuccessModalOpen}
         onClose={() => setScheduledSuccessModalOpen(false)}
-        maxWidth="xs"
-        fullWidth
+        maxWidth="sm"
+        ariaLabelledBy="scheduled-success-title"
       >
-        <DialogTitle sx={{ textAlign: 'center', pt: 3, pb: 1 }}>
-          {/* LottieFiles Booking Success Animation */}
-          <SalemLottie
-            name="success"
-            width={110}
-            height={110}
-            loop={false}
-            ariaLabel="Scheduled booking payment verified and confirmed"
-            style={{ mb: 1 }}
-          />
-          <Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '18px' }}>
-            Scheduled Booking Confirmed & Paid!
-          </Typography>
-          <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mt: 0.5 }}>
-            Booking ID: <strong>#{confirmedBooking?.id || 'SLM-84920'}</strong>
-          </Typography>
-        </DialogTitle>
+        <ModalHeader
+          id="scheduled-success-title"
+          title="Scheduled booking confirmed"
+          subtitle={`Booking #${confirmedBooking?.id || 'SLM-84920'}`}
+          onClose={() => setScheduledSuccessModalOpen(false)}
+        />
 
-        <DialogContent sx={{ px: 3, py: 1 }}>
-          <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0', mb: 2 }}>
+        <ModalBody>
+          <Box sx={{ textAlign: 'center', py: 1 }}>
+            <SalemLottie
+              name="success"
+              width={80}
+              height={80}
+              loop={false}
+              ariaLabel="Scheduled booking payment verified and confirmed"
+              style={{ mb: 1 }}
+            />
+            <Typography sx={{ fontWeight: 700, color: '#0F172A', fontSize: '16px' }}>
+              Booking confirmed & paid
+            </Typography>
+            <Typography sx={{ color: '#64748B', fontSize: '12px', mt: 0.5 }}>
+              Booking #{confirmedBooking?.id || 'SLM-84920'}
+            </Typography>
+          </Box>
+
+          <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
             <Box sx={{ mb: 1.5 }}>
-              <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontWeight: 600 }}>
-                SCHEDULED APPOINTMENT SLOT
+              <Typography sx={{ color: '#64748B', fontWeight: 600, fontSize: '12px' }}>
+                Scheduled appointment slot
               </Typography>
-              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0284C7' }}>
+              <Typography sx={{ fontWeight: 700, color: '#0A66C2', fontSize: '14px' }}>
                 {confirmedBooking?.scheduled_slot || `${getFormattedDateString()} • ${selectedSlot}`}
               </Typography>
             </Box>
 
             <Box sx={{ mb: 1.5 }}>
-              <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontWeight: 600 }}>
-                SERVICE & LOCATION
+              <Typography sx={{ color: '#64748B', fontWeight: 600, fontSize: '12px' }}>
+                Service & location
               </Typography>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A' }}>
+              <Typography sx={{ fontWeight: 600, color: '#0F172A', fontSize: '13px' }}>
                 {currentServiceName}
               </Typography>
-              <Typography variant="caption" sx={{ color: '#64748B', display: 'block' }}>
+              <Typography sx={{ color: '#64748B', fontSize: '12px' }}>
                 {userLocation.address}
               </Typography>
             </Box>
 
-            <Divider sx={{ my: 1 }} />
+            <Divider sx={{ my: 1.5, borderColor: '#E2E8F0' }} />
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <AdminPanelSettingsIcon sx={{ color: '#0284C7', fontSize: 20 }} />
-              <Typography variant="caption" sx={{ color: '#0F172A', fontWeight: 700 }}>
+              <AdminPanelSettingsIcon sx={{ color: '#0A66C2', fontSize: 18 }} />
+              <Typography sx={{ color: '#0F172A', fontWeight: 600, fontSize: '12px' }}>
                 Sent to Salem Central Operations Desk
               </Typography>
             </Box>
-            <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mt: 0.5 }}>
-              Salem Central Operations team is allocating a verified technician for your scheduled time slot. Prior to your appointment window, when the technician starts traveling to your home, you will receive an instant notification with live GPS tracking.
+            <Typography sx={{ color: '#64748B', fontSize: '12px', mt: 0.5, lineHeight: 1.4 }}>
+              Our operations desk is allocating a verified technician for your slot. You will receive an instant notification with live GPS tracking prior to arrival.
             </Typography>
           </Paper>
-        </DialogContent>
+        </ModalBody>
 
-        <DialogActions sx={{ p: 2.5, pt: 0, flexDirection: 'column', gap: 1 }}>
+        <ModalFooter sx={{ flexDirection: 'column !important', gap: 1 }}>
           <Button
             fullWidth
             variant="contained"
@@ -1787,16 +1718,17 @@ export default function ServiceDetailPage({ onStartBooking }) {
               navigate(`/track?bookingId=${confirmedBooking?.id || 'SLM-84920'}`);
             }}
             sx={{
-              bgcolor: '#0284C7',
+              bgcolor: '#0A66C2',
               color: '#FFFFFF',
-              fontWeight: 800,
-              borderRadius: '10px',
-              py: 1,
+              fontWeight: 700,
+              borderRadius: '14px',
+              minHeight: 48,
+              fontSize: '14px',
               textTransform: 'none',
-              '&:hover': { bgcolor: '#0369A1' }
+              '&:hover': { bgcolor: '#084E96' }
             }}
           >
-            Track Status Now
+            Track status now
           </Button>
 
           <Button
@@ -1807,266 +1739,20 @@ export default function ServiceDetailPage({ onStartBooking }) {
               navigate('/history');
             }}
             sx={{
-              borderColor: '#CBD5E1',
+              borderColor: '#E2E8F0',
               color: '#475569',
-              fontWeight: 700,
-              borderRadius: '10px',
-              py: 0.8,
-              textTransform: 'none'
+              fontWeight: 600,
+              borderRadius: '12px',
+              minHeight: 44,
+              fontSize: '13px',
+              textTransform: 'none',
+              '&:hover': { bgcolor: '#F8FAFC', borderColor: '#CBD5E1' }
             }}
           >
-            View in My Bookings
+            View in my bookings
           </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* GUEST SIGN IN TO BOOK MODAL */}
-      <Dialog
-        open={guestAuthModalOpen}
-        onClose={() => setGuestAuthModalOpen(false)}
-        maxWidth="xs"
-        fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: '20px',
-            p: 1,
-            boxShadow: '0 25px 50px rgba(15, 23, 42, 0.25)',
-            border: '1.5px solid #BFDBFE'
-          }
-        }}
-      >
-        <DialogTitle sx={{ pb: 1, display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <Box sx={{ width: 40, height: 40, borderRadius: '12px', bgcolor: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0066CC', flexShrink: 0 }}>
-            <LockIcon sx={{ fontSize: 22 }} />
-          </Box>
-          <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '16px', lineHeight: 1.2 }}>
-              {guestAuthMode === 'signin' ? 'Sign In to Confirm Booking' : 'Create Account to Confirm Booking'}
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#0066CC', fontWeight: 700, fontSize: '11px' }}>
-              {guestAuthMode === 'signin' ? 'உள்நுழைந்து முன்பதிவை முடிக்கவும்' : 'புதிய கணக்கு உருவாக்கி தொடரவும்'}
-            </Typography>
-          </Box>
-        </DialogTitle>
-
-        <DialogContent sx={{ pt: 1, pb: 2 }}>
-          {/* Mode Tabs */}
-          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, mb: 2 }}>
-            <Button
-              size="small"
-              variant={guestAuthMode === 'signin' ? 'contained' : 'outlined'}
-              onClick={() => {
-                setGuestAuthMode('signin');
-                setGuestAuthError('');
-              }}
-              sx={{
-                borderRadius: '10px',
-                textTransform: 'none',
-                fontWeight: 700,
-                fontSize: { xs: '13px', sm: '14px' },
-                py: 1,
-                bgcolor: guestAuthMode === 'signin' ? '#0284C7' : 'transparent',
-                color: guestAuthMode === 'signin' ? '#FFF' : '#64748B',
-                borderColor: '#E2E8F0',
-                '&:hover': { bgcolor: guestAuthMode === 'signin' ? '#0369A1' : '#F8FAFC' }
-              }}
-            >
-              Sign In
-            </Button>
-            <Button
-              size="small"
-              variant={guestAuthMode === 'signup' ? 'contained' : 'outlined'}
-              onClick={() => {
-                setGuestAuthMode('signup');
-                setGuestAuthError('');
-              }}
-              sx={{
-                borderRadius: '10px',
-                textTransform: 'none',
-                fontWeight: 700,
-                fontSize: { xs: '13px', sm: '14px' },
-                py: 1,
-                bgcolor: guestAuthMode === 'signup' ? '#0284C7' : 'transparent',
-                color: guestAuthMode === 'signup' ? '#FFF' : '#64748B',
-                borderColor: '#E2E8F0',
-                '&:hover': { bgcolor: guestAuthMode === 'signup' ? '#0369A1' : '#F8FAFC' }
-              }}
-            >
-              Create Account
-            </Button>
-          </Box>
-
-          {guestAuthError && (
-            <Alert severity="error" sx={{ mb: 2, borderRadius: '10px', fontSize: { xs: '12.5px', sm: '13.5px' } }}>
-              {guestAuthError}
-            </Alert>
-          )}
-
-          {guestAuthMode === 'signin' ? (
-            /* ================= SIGN IN TAB ================= */
-            <Box component="form" onSubmit={handleGuestCredentialsLogin} sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', fontSize: { xs: '12px', sm: '13px' } }}>
-                Mobile Number or Username:
-              </Typography>
-              <TextField
-                fullWidth
-                size="small"
-                placeholder="e.g. 98420 12345"
-                value={guestIdentifier}
-                onChange={(e) => setGuestIdentifier(e.target.value)}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', fontSize: { xs: '13.5px', sm: '14.5px' } } }}
-              />
-
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', fontSize: { xs: '12px', sm: '13px' } }}>
-                Password:
-              </Typography>
-              <TextField
-                fullWidth
-                size="small"
-                type="password"
-                placeholder="Enter your account password"
-                value={guestPassword}
-                onChange={(e) => setGuestPassword(e.target.value)}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', fontSize: { xs: '13.5px', sm: '14.5px' } } }}
-              />
-
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                disabled={guestAuthLoading || !guestIdentifier.trim() || !guestPassword}
-                sx={{
-                  bgcolor: '#0284C7',
-                  color: '#FFFFFF',
-                  fontWeight: 800,
-                  fontSize: { xs: '14px', sm: '15px' },
-                  py: 1.2,
-                  borderRadius: '10px',
-                  textTransform: 'none',
-                  boxShadow: '0 4px 12px rgba(2, 132, 199, 0.25)',
-                  '&:hover': { bgcolor: '#0369A1' }
-                }}
-              >
-                {guestAuthLoading ? 'Signing In...' : 'Sign In & Proceed to Book'}
-              </Button>
-            </Box>
-          ) : (
-            /* ================= CREATE ACCOUNT TAB ================= */
-            <Box component="form" onSubmit={handleGuestSignUp} sx={{ display: 'flex', flexDirection: 'column', gap: 1.4 }}>
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', fontSize: { xs: '12px', sm: '13px' } }}>
-                Full Name:
-              </Typography>
-              <TextField
-                fullWidth
-                size="small"
-                placeholder="e.g. Vimal Raj"
-                value={guestSignUpName}
-                onChange={(e) => setGuestSignUpName(e.target.value)}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', fontSize: { xs: '13.5px', sm: '14.5px' } } }}
-              />
-
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', fontSize: { xs: '12px', sm: '13px' } }}>
-                Mobile Number (10 digits):
-              </Typography>
-              <TextField
-                fullWidth
-                size="small"
-                placeholder="e.g. 98427 11234"
-                value={guestSignUpPhone}
-                onChange={(e) => setGuestSignUpPhone(e.target.value)}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', fontSize: { xs: '13.5px', sm: '14.5px' } } }}
-              />
-
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', fontSize: { xs: '12px', sm: '13px' } }}>
-                Salem Locality:
-              </Typography>
-              <TextField
-                select
-                fullWidth
-                size="small"
-                value={guestSignUpLocality}
-                onChange={(e) => setGuestSignUpLocality(e.target.value)}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', fontSize: { xs: '13.5px', sm: '14.5px' } } }}
-              >
-                {[
-                  'Fairlands, Salem',
-                  'Hasthampatti, Salem',
-                  'Alagapuram, Salem',
-                  'Suramangalam, Salem',
-                  'Ammapet, Salem',
-                  'Meyyanur, Salem',
-                  'Shevapet, Salem',
-                  'Kandhampatti, Salem',
-                  'Kannankurichi, Salem',
-                  'Gorimedu, Salem'
-                ].map((loc) => (
-                  <MenuItem key={loc} value={loc} sx={{ fontSize: { xs: '13px', sm: '14px' } }}>
-                    {loc}
-                  </MenuItem>
-                ))}
-              </TextField>
-
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', fontSize: { xs: '12px', sm: '13px' } }}>
-                Create Password (min 6 characters):
-              </Typography>
-              <TextField
-                fullWidth
-                size="small"
-                type="password"
-                placeholder="Choose password"
-                value={guestSignUpPassword}
-                onChange={(e) => setGuestSignUpPassword(e.target.value)}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', fontSize: { xs: '13.5px', sm: '14.5px' } } }}
-              />
-
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', fontSize: { xs: '12px', sm: '13px' } }}>
-                Confirm Password:
-              </Typography>
-              <TextField
-                fullWidth
-                size="small"
-                type="password"
-                placeholder="Re-enter password"
-                value={guestSignUpConfirmPassword}
-                onChange={(e) => setGuestSignUpConfirmPassword(e.target.value)}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', fontSize: { xs: '13.5px', sm: '14.5px' } } }}
-              />
-
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                disabled={guestAuthLoading || !guestSignUpName.trim() || !guestSignUpPhone.trim() || !guestSignUpPassword}
-                sx={{
-                  bgcolor: '#0284C7',
-                  color: '#FFFFFF',
-                  fontWeight: 800,
-                  fontSize: { xs: '14px', sm: '15px' },
-                  py: 1.2,
-                  borderRadius: '10px',
-                  textTransform: 'none',
-                  mt: 0.5,
-                  boxShadow: '0 4px 12px rgba(2, 132, 199, 0.25)',
-                  '&:hover': { bgcolor: '#0369A1' }
-                }}
-              >
-                {guestAuthLoading ? 'Creating Account...' : 'Register Account & Book Service'}
-              </Button>
-            </Box>
-          )}
-        </DialogContent>
-
-        <DialogActions sx={{ px: 3, pb: 2, pt: 0, justifyContent: 'flex-end' }}>
-          <Button
-            size="small"
-            onClick={() => setGuestAuthModalOpen(false)}
-            sx={{ textTransform: 'none', fontWeight: 600, fontSize: { xs: '12.5px', sm: '13.5px' }, color: '#64748B' }}
-          >
-            Cancel
-          </Button>
-        </DialogActions>
-      </Dialog>
-
+        </ModalFooter>
+      </Modal>
     </Box>
   );
 }

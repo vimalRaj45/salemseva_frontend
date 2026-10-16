@@ -82,6 +82,11 @@ export default function AuthPage({ initialMode = 'login' }) {
   const location = useLocation();
   const { user, loginWithCredentials, registerAccount, continueAsGuest, loginAsCustomer, loginAsTechnician, loginAsAdmin } = useAuth();
 
+  // Role selection for onboarding: 'customer' | 'technician'
+  const queryParams = new URLSearchParams(location.search);
+  const initialRoleParam = queryParams.get('role');
+  const redirectTarget = queryParams.get('redirect') || '/';
+
   // If already logged in, redirect to appropriate role portal
   useEffect(() => {
     if (user) {
@@ -90,19 +95,15 @@ export default function AuthPage({ initialMode = 'login' }) {
       } else if (user.role === 'admin') {
         navigate('/admin', { replace: true });
       } else {
-        navigate('/', { replace: true });
+        navigate(redirectTarget, { replace: true });
       }
     }
-  }, [user, navigate]);
+  }, [user, navigate, redirectTarget]);
 
   // Mode: 'login' | 'register'
   const isRegisterRoute = location.pathname === '/register' || initialMode === 'register';
   const [authMode, setAuthMode] = useState(isRegisterRoute ? 'register' : 'login');
 
-  // Role selection for onboarding: 'customer' | 'technician'
-  const queryParams = new URLSearchParams(location.search);
-  const initialRoleParam = queryParams.get('role');
-  const redirectTarget = queryParams.get('redirect') || '/';
   const [selectedRole, setSelectedRole] = useState(
     initialRoleParam === 'partner' || initialRoleParam === 'technician' ? 'technician' : 'customer'
   );

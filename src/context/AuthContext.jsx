@@ -1,15 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Button,
   Typography,
   Box,
   Avatar,
   Paper
 } from '@mui/material';
+import Modal, { ModalHeader, ModalBody, ModalFooter } from '../components/Modal';
 import DevicesIcon from '@mui/icons-material/Devices';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
@@ -668,59 +665,41 @@ export function AuthProvider({ children }) {
       {children}
 
       {/* SINGLE-DEVICE CONCURRENT LOGIN LOGOUT MODAL */}
-      <Dialog
+      <Modal
         open={sessionTerminatedModalOpen}
         onClose={() => setSessionTerminatedModalOpen(false)}
         maxWidth="xs"
-        fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: '20px',
-            p: 1,
-            boxShadow: '0 25px 50px rgba(15, 23, 42, 0.35)',
-            border: '1.5px solid #FCD34D'
-          }
-        }}
       >
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.2, pb: 1 }}>
-          <Box sx={{ bgcolor: '#FEF3C7', color: '#D97706', p: 1, borderRadius: '12px', display: 'flex' }}>
-            <DevicesIcon sx={{ fontSize: 24 }} />
-          </Box>
-          <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0F172A', fontSize: '16px', lineHeight: 1.2 }}>
-              Logged In on Another Device
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#D97706', fontWeight: 700, fontSize: '11px' }}>
-              மற்றொரு சாதனத்தில் உள்நுழைந்துள்ளீர்கள்
-            </Typography>
-          </Box>
-        </DialogTitle>
+        <ModalHeader
+          title="Logged in on another device"
+          subtitle="Account security notification"
+          onClose={() => setSessionTerminatedModalOpen(false)}
+        />
 
-        <DialogContent sx={{ pt: 1, pb: 2 }}>
-          <Paper
-            elevation={0}
+        <ModalBody>
+          <Box
             sx={{
               p: 2,
-              bgcolor: '#FFFBEB',
-              border: '1px solid #FDE68A',
+              bgcolor: '#F8FAFC',
+              border: '1px solid #E2E8F0',
               borderRadius: '12px',
               mb: 2
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-              <WarningAmberIcon sx={{ color: '#D97706', fontSize: 20, mt: 0.2 }} />
-              <Typography variant="body2" sx={{ color: '#92400E', fontSize: '13px', lineHeight: 1.5, fontWeight: 600 }}>
-                Your SalemSeva account was accessed from a new phone/browser. To protect your data and security, you have been automatically logged out from this device.
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+              <WarningAmberIcon sx={{ color: '#D97706', fontSize: 22, mt: 0.2 }} />
+              <Typography variant="body2" sx={{ color: '#0F172A', fontSize: '13px', lineHeight: 1.5, fontWeight: 500 }}>
+                Your SalemSeva account was accessed from a new phone or browser. To protect your data, you have been automatically logged out from this device.
               </Typography>
             </Box>
-          </Paper>
+          </Box>
 
-          <Typography variant="caption" sx={{ color: '#64748B', fontSize: '12px', display: 'block', textAlign: 'center' }}>
+          <Typography variant="caption" sx={{ color: '#64748B', fontSize: '13px', display: 'block', textAlign: 'center' }}>
             If this was you, you can log back in on this device anytime.
           </Typography>
-        </DialogContent>
+        </ModalBody>
 
-        <DialogActions sx={{ px: 2, pb: 2 }}>
+        <ModalFooter>
           <Button
             fullWidth
             variant="contained"
@@ -729,20 +708,20 @@ export function AuthProvider({ children }) {
               setAuthModalOpen(true);
             }}
             sx={{
-              bgcolor: '#0F172A',
+              bgcolor: '#0A66C2',
               color: '#FFF',
-              borderRadius: '10px',
-              py: 1.2,
-              fontWeight: 800,
-              fontSize: '13px',
+              borderRadius: '14px',
+              height: 48,
+              fontWeight: 700,
+              fontSize: '14px',
               textTransform: 'none',
-              '&:hover': { bgcolor: '#1E293B' }
+              '&:hover': { bgcolor: '#084e96' }
             }}
           >
-            Log In Again on This Device (மீண்டும் உள்நுழைய)
+            Log in again
           </Button>
-        </DialogActions>
-      </Dialog>
+        </ModalFooter>
+      </Modal>
     </AuthContext.Provider>
   );
 }

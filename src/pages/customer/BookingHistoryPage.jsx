@@ -60,6 +60,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import CurrencyRupeeIcon from '@mui/icons-material/CurrencyRupee';
 
 import CancelBookingModal from '../../components/CancelBookingModal';
+import Modal, { ModalHeader, ModalBody, ModalFooter } from '../../components/Modal';
 import { useAuth } from '../../context/AuthContext';
 
 function BookingStageStepper({ status }) {
@@ -717,76 +718,78 @@ export default function BookingHistoryPage() {
 
       {/* Digital Receipt / Invoice Modal */}
       {invoiceModalBooking && (
-        <Dialog
+        <Modal
           open={Boolean(invoiceModalBooking)}
           onClose={() => setInvoiceModalBooking(null)}
           maxWidth="xs"
-          fullWidth
-          PaperProps={{ sx: { borderRadius: '16px', p: 1 } }}
         >
-          <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <ReceiptIcon sx={{ color: '#0284C7', fontSize: 24 }} />
-              <Box>
-                <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0F172A', fontSize: '15px' }}>
-                  SalemSeva Tax Invoice & Receipt
-                </Typography>
-                <Typography variant="caption" sx={{ color: '#64748B' }}>
-                  Booking #{invoiceModalBooking.id}
-                </Typography>
-              </Box>
-            </Box>
-            <IconButton size="small" onClick={() => setInvoiceModalBooking(null)}>
-              <CloseIcon sx={{ fontSize: 18 }} />
-            </IconButton>
-          </DialogTitle>
-          <DialogContent dividers sx={{ py: 2 }}>
-            <Box sx={{ bgcolor: '#F8FAFC', p: 1.5, borderRadius: '8px', border: '1px solid #E2E8F0', mb: 2 }}>
-              <Typography variant="caption" sx={{ color: '#64748B', display: 'block' }}>Service Date & Time:</Typography>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A', mb: 1 }}>{formatDateTime(invoiceModalBooking.created_at)}</Typography>
+          <ModalHeader
+            title="Tax invoice & receipt"
+            subtitle={`Booking #${invoiceModalBooking.id}`}
+            onClose={() => setInvoiceModalBooking(null)}
+          />
+          <ModalBody>
+            <Box sx={{ bgcolor: '#F8FAFC', p: 2, borderRadius: '12px', border: '1px solid #E2E8F0', mb: 2 }}>
+              <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontSize: '12px' }}>Service date and time</Typography>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A', mb: 1.5, fontSize: '14px' }}>{formatDateTime(invoiceModalBooking.created_at)}</Typography>
 
-              <Typography variant="caption" sx={{ color: '#64748B', display: 'block' }}>Assigned Certified Technician:</Typography>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A', mb: 1 }}>{invoiceModalBooking.technician_name || 'K. Ramesh (Salem Verified)'}</Typography>
+              <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontSize: '12px' }}>Assigned partner</Typography>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A', mb: 1.5, fontSize: '14px' }}>{invoiceModalBooking.technician_name || 'K. Ramesh (Salem Verified)'}</Typography>
 
-              <Typography variant="caption" sx={{ color: '#64748B', display: 'block' }}>Doorstep Address:</Typography>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A' }}>{invoiceModalBooking.address_line || invoiceModalBooking.locality || 'Fairlands, Salem'}</Typography>
+              <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontSize: '12px' }}>Doorstep address</Typography>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '14px' }}>{invoiceModalBooking.address_line || invoiceModalBooking.locality || 'Fairlands, Salem'}</Typography>
             </Box>
 
-            <Typography variant="caption" sx={{ fontWeight: 800, color: '#0F172A', display: 'block', mb: 0.8, textTransform: 'uppercase' }}>
-              Itemized Charges:
+            <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748B', display: 'block', mb: 1, fontSize: '12px' }}>
+              Itemized charges
             </Typography>
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.6 }}>
-              <Typography variant="body2" sx={{ color: '#334155', fontSize: '12.5px' }}>Part 1: Inspection & Doorstep Travel Fee:</Typography>
-              <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '12.5px' }}>₹99.00</Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+              <Typography variant="body2" sx={{ color: '#334155', fontSize: '13px' }}>Part 1: Inspection & doorstep travel fee</Typography>
+              <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '13px' }}>₹99.00</Typography>
             </Box>
 
-              {invoiceModalBooking.status === 'completed' && (
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.6 }}>
-                  <Typography variant="body2" sx={{ color: '#334155', fontSize: '12.5px' }}>Part 2: Repair Workmanship & Skilled Labour:</Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '12.5px' }}>₹{invoiceModalBooking.quote_subtotal || 800}.00</Typography>
-                </Box>
-              )}
+            {invoiceModalBooking.status === 'completed' && (
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                <Typography variant="body2" sx={{ color: '#334155', fontSize: '13px' }}>Part 2: Repair workmanship & skilled labour</Typography>
+                <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '13px' }}>₹{invoiceModalBooking.quote_subtotal || 800}.00</Typography>
+              </Box>
+            )}
 
-            <Divider sx={{ my: 1 }} />
+            <Divider sx={{ my: 1.5 }} />
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A' }}>Total Amount Paid:</Typography>
-              <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#16A34A' }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '14px' }}>Total amount paid</Typography>
+              <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#16A34A', fontSize: '18px' }}>
                 ₹{invoiceModalBooking.status === 'completed' ? (parseFloat(invoiceModalBooking.quote_subtotal || 800) + 99) : 99}.00
               </Typography>
             </Box>
 
-            <Alert severity="success" sx={{ mt: 2, borderRadius: '8px', fontSize: '11px' }}>
-              Protected by 30-Day Free Warranty Guarantee across Salem Corporation limits.
-            </Alert>
-          </DialogContent>
-          <DialogActions sx={{ p: 2 }}>
-            <Button fullWidth variant="contained" onClick={() => setInvoiceModalBooking(null)} sx={{ bgcolor: '#0F172A', borderRadius: '8px', textTransform: 'none', fontWeight: 700 }}>
-              Close Receipt
+            <Box sx={{ mt: 2, p: 1.5, bgcolor: '#F0FDF4', borderRadius: '8px', border: '1px solid #BBF7D0' }}>
+              <Typography variant="caption" sx={{ color: '#166534', display: 'block', fontSize: '12px', lineHeight: 1.4 }}>
+                Protected by 30-day warranty guarantee across Salem Corporation limits.
+              </Typography>
+            </Box>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              fullWidth
+              variant="contained"
+              onClick={() => setInvoiceModalBooking(null)}
+              sx={{
+                bgcolor: '#0A66C2',
+                borderRadius: '14px',
+                textTransform: 'none',
+                fontWeight: 700,
+                height: 48,
+                fontSize: '14px',
+                '&:hover': { bgcolor: '#084e96' }
+              }}
+            >
+              Close receipt
             </Button>
-          </DialogActions>
-        </Dialog>
+          </ModalFooter>
+        </Modal>
       )}
 
       {/* Universal Cancel Booking Modal */}

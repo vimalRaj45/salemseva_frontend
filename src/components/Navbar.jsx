@@ -1380,10 +1380,7 @@ export default function Navbar({
           ) : (
             <button
               type="button"
-              onClick={() => {
-                if (openAuthModal) openAuthModal('customer');
-                else navigate('/login');
-              }}
+              onClick={() => navigate('/login')}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',

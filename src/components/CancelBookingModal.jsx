@@ -1,10 +1,6 @@
 import { API_V1_URL } from '../config';
 import React, { useState } from 'react';
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Box,
   Typography,
   Button,
@@ -13,15 +9,11 @@ import {
   TextField,
   Alert,
   Divider,
-  CircularProgress,
-  IconButton
+  CircularProgress
 } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
-import TwoWheelerIcon from '@mui/icons-material/TwoWheeler';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import { AlertTriangle, CheckCircle, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Modal, ModalHeader, ModalBody, ModalFooter } from './Modal';
 
 const CANCEL_REASONS = [
   { id: 'change_plans', label: 'Plans changed / No longer required', desc: 'Request will be closed immediately' },
@@ -100,176 +92,115 @@ export default function CancelBookingModal({
   };
 
   return (
-    <Dialog 
-      open={open} 
-      onClose={handleClose} 
-      maxWidth="xs" 
-      fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: '16px',
-          p: 0.5,
-          boxShadow: '0 20px 40px rgba(15, 23, 42, 0.25)'
-        }
-      }}
-    >
-      <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Box sx={{ bgcolor: cancelResult ? '#DCFCE7' : '#FEE2E2', color: cancelResult ? '#16A34A' : '#DC2626', p: 0.8, borderRadius: '8px', display: 'flex' }}>
-            {cancelResult ? <CheckCircleOutlineIcon sx={{ fontSize: 22 }} /> : <CancelOutlinedIcon sx={{ fontSize: 22 }} />}
-          </Box>
-          <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '16px', lineHeight: 1.2 }}>
-              {cancelResult ? 'Booking Cancelled' : (isMatchingStage ? 'Cancel Search Request' : 'Cancel Doorstep Request')}
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11.5px' }}>
-              Booking #{bookingId}
-            </Typography>
-          </Box>
-        </Box>
-        <IconButton size="small" onClick={handleClose} sx={{ color: '#94A3B8' }}>
-          <CloseIcon sx={{ fontSize: 20 }} />
-        </IconButton>
-      </DialogTitle>
+    <Modal open={open} onClose={handleClose} maxWidth="sm" ariaLabelledBy="cancel-modal-title">
+      <ModalHeader
+        id="cancel-modal-title"
+        title={cancelResult ? 'Booking cancelled' : (isMatchingStage ? 'Cancel search request' : 'Cancel doorstep request')}
+        subtitle={`Booking #${bookingId}`}
+        onClose={handleClose}
+        icon={cancelResult ? <CheckCircle size={20} color="#16A34A" /> : <AlertTriangle size={20} color="#DC2626" />}
+      />
 
-      <DialogContent sx={{ pt: 1, pb: 2 }}>
+      <ModalBody>
         {cancelResult ? (
           /* Cancellation Success View */
-          <Box sx={{ textAlign: 'center', py: 1 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {cancelResult.isPreMatching ? (
-              /* Success View for Pre-Assignment (Matching) Cancellation */
               <Paper
                 elevation={0}
                 sx={{
                   bgcolor: '#F8FAFC',
                   border: '1px solid #E2E8F0',
                   borderRadius: '12px',
-                  p: 2,
-                  mb: 2,
-                  textAlign: 'left'
+                  p: 2.5
                 }}
               >
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', mb: 0.5 }}>
-                  Search Request Cancelled
+                <Typography sx={{ fontWeight: 600, color: '#0F172A', fontSize: '14px', mb: 0.5 }}>
+                  Search request stopped
                 </Typography>
-                <Typography variant="body2" sx={{ color: '#64748B', fontSize: '12.5px', lineHeight: 1.4 }}>
-                  Your search has been stopped. No technician was assigned, and <strong>no amount has been charged</strong>.
+                <Typography sx={{ color: '#64748B', fontSize: '13px', lineHeight: 1.5 }}>
+                  Your search has been stopped. No technician was assigned, and no charges have been deducted.
                 </Typography>
               </Paper>
             ) : (
-              /* Success View for Post-Assignment / Refunded Cancellation */
               <Paper
                 elevation={0}
                 sx={{
                   bgcolor: '#F8FAFC',
                   border: '1px solid #E2E8F0',
                   borderRadius: '12px',
-                  p: 2,
-                  mb: 2,
-                  textAlign: 'left'
+                  p: 2.5
                 }}
               >
-                <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 1 }}>
-                  Cancellation & Refund Summary
+                <Typography sx={{ color: '#64748B', fontWeight: 600, fontSize: '12px', mb: 1.5 }}>
+                  Cancellation and refund summary
                 </Typography>
                 
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.8 }}>
-                  <Typography variant="body2" sx={{ color: '#475569', fontSize: '13px' }}>Original Paid Amount:</Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 600, color: '#0F172A', fontSize: '13px' }}>₹{Number(cancelResult.originalPaid || visitFee).toFixed(2)}</Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                  <Typography sx={{ color: '#64748B', fontSize: '13px' }}>Original paid amount</Typography>
+                  <Typography sx={{ fontWeight: 600, color: '#0F172A', fontSize: '13px' }}>
+                    ₹{Number(cancelResult.originalPaid || visitFee).toFixed(2)}
+                  </Typography>
                 </Box>
 
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.8 }}>
-                  <Typography variant="body2" sx={{ color: '#DC2626', fontSize: '12.5px' }}>SalemSeva Platform Cut (2%):</Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 600, color: '#DC2626', fontSize: '12.5px' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                  <Typography sx={{ color: '#DC2626', fontSize: '13px' }}>Platform fee (2%)</Typography>
+                  <Typography sx={{ fontWeight: 600, color: '#DC2626', fontSize: '13px' }}>
                     -₹{Number(cancelResult.platformFeeDeduction ?? (Number(cancelResult.originalPaid || visitFee) * 0.02)).toFixed(2)}
                   </Typography>
                 </Box>
 
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.8 }}>
-                  <Typography variant="body2" sx={{ color: '#DC2626', fontSize: '12.5px' }}>Razorpay Service Charge (2%):</Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 600, color: '#DC2626', fontSize: '12.5px' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                  <Typography sx={{ color: '#DC2626', fontSize: '13px' }}>Payment gateway charge (2%)</Typography>
+                  <Typography sx={{ fontWeight: 600, color: '#DC2626', fontSize: '13px' }}>
                     -₹{Number(cancelResult.gatewayChargeDeduction ?? (Number(cancelResult.originalPaid || visitFee) * 0.02)).toFixed(2)}
                   </Typography>
                 </Box>
 
-                <Divider sx={{ my: 1 }} />
+                <Divider sx={{ my: 1.5, borderColor: '#E2E8F0' }} />
 
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#16A34A', fontSize: '13.5px' }}>
-                    Net Refund Initiated:
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+                  <Typography sx={{ fontWeight: 700, color: '#16A34A', fontSize: '14px' }}>
+                    Net refund initiated
                   </Typography>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#16A34A', fontSize: '14px' }}>
+                  <Typography sx={{ fontWeight: 700, color: '#16A34A', fontSize: '16px' }}>
                     ₹{Number(cancelResult.refundAmount ?? (Number(cancelResult.originalPaid || visitFee) * 0.96)).toFixed(2)}
                   </Typography>
                 </Box>
 
-                <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontSize: '11px', lineHeight: 1.4, bgcolor: '#F1F5F9', p: 1, borderRadius: '8px' }}>
-                  Refund credited back to original payment source within 3-5 banking days in accordance with the SalemSeva Cancellation & Refund Policy.
+                <Typography sx={{ color: '#64748B', fontSize: '12px', lineHeight: 1.5, bgcolor: '#FFFFFF', p: 1.5, borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                  Refund will be credited to your original payment method within 3 to 5 banking days.
                 </Typography>
               </Paper>
             )}
-
-            <Button
-              fullWidth
-              variant="contained"
-              onClick={() => {
-                onClose();
-                navigate('/');
-              }}
-              sx={{
-                bgcolor: '#0F172A',
-                color: '#FFFFFF',
-                borderRadius: '8px',
-                py: 1.1,
-                fontWeight: 700,
-                textTransform: 'none',
-                '&:hover': { bgcolor: '#1E293B' }
-              }}
-            >
-              Back to SalemSeva Home
-            </Button>
           </Box>
         ) : (
-          /* Cancellation Confirmation & Reason Selection */
-          <Box>
+          /* Confirmation & Reason Selection */
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {errorMessage && (
-              <Alert severity="error" sx={{ mb: 1.5, borderRadius: '8px', fontSize: '12px' }}>
+              <Alert severity="error" sx={{ borderRadius: '10px', fontSize: '13px' }}>
                 {errorMessage}
               </Alert>
             )}
 
-            {/* Stage-aware Policy Banner */}
-            {isMatchingStage ? (
-              /* Pre-Assignment Banner: Clean Zero Charge Message */
-              <Box sx={{ bgcolor: '#F0FDF4', p: 1.4, borderRadius: '10px', border: '1px solid #BBF7D0', mb: 2 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#166534', fontSize: '12.5px', mb: 0.3 }}>
-                  No Charges Apply
-                </Typography>
-                <Typography variant="caption" sx={{ color: '#15803D', fontSize: '11.5px', display: 'block', lineHeight: 1.4 }}>
-                  Technician has not accepted yet and no payment has been charged. You can cancel your search anytime with zero fees.
-                </Typography>
-              </Box>
-            ) : (
-              /* Post-Assignment / Post-Payment Banner: Fair Cancellation & Refund Policy */
-              <Box sx={{ bgcolor: '#FFFBEB', p: 1.4, borderRadius: '10px', border: '1px solid #FDE68A', mb: 2 }}>
-                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 0.6 }}>
-                  <TwoWheelerIcon sx={{ color: '#D97706', fontSize: 20 }} />
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#92400E', fontSize: '12.5px' }}>
-                    Cancellation & Refund Deduction
-                  </Typography>
-                </Box>
-                <Typography variant="caption" sx={{ color: '#78350F', fontSize: '11.5px', display: 'block', lineHeight: 1.45 }}>
-                  Cancelling will initiate a refund to your original payment method. As per SalemSeva policy, <strong>2% platform facilitation fee</strong> and <strong>2% Razorpay transaction charge</strong> will be retained, and the remaining <strong>96% net amount will be credited back</strong>.
-                </Typography>
-              </Box>
-            )}
+            {/* Policy Notice Card */}
+            <Box sx={{ bgcolor: '#F8FAFC', p: 2, borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+              <Typography sx={{ fontWeight: 600, color: isMatchingStage ? '#16A34A' : '#0F172A', fontSize: '13px', mb: 0.5 }}>
+                {isMatchingStage ? 'Zero charges apply' : 'Cancellation policy'}
+              </Typography>
+              <Typography sx={{ color: '#64748B', fontSize: '12px', lineHeight: 1.5 }}>
+                {isMatchingStage
+                  ? 'Technician has not been assigned yet. You can cancel your search anytime with zero fees.'
+                  : 'A 2% platform fee and 2% payment gateway fee are retained. The remaining 96% will be automatically refunded.'}
+              </Typography>
+            </Box>
 
-            <Typography variant="caption" sx={{ color: '#475569', fontWeight: 700, display: 'block', mb: 1, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '11px' }}>
-              Please select a reason for cancellation:
+            <Typography sx={{ color: '#64748B', fontWeight: 600, fontSize: '13px' }}>
+              Select reason for cancellation
             </Typography>
 
             {/* Reasons List */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.8, mb: 1.5 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               {CANCEL_REASONS.map(reason => {
                 const isSelected = selectedReason === reason.id;
                 return (
@@ -278,28 +209,32 @@ export default function CancelBookingModal({
                     elevation={0}
                     onClick={() => setSelectedReason(reason.id)}
                     sx={{
-                      p: 1.1,
-                      borderRadius: '8px',
+                      p: 1.5,
+                      borderRadius: '12px',
                       cursor: 'pointer',
-                      border: isSelected ? '1.5px solid #DC2626' : '1px solid #E2E8F0',
-                      bgcolor: isSelected ? '#FEF2F2' : '#FFFFFF',
+                      border: isSelected ? '1.5px solid #0A66C2' : '1px solid #E2E8F0',
+                      bgcolor: isSelected ? '#EFF6FF' : '#FFFFFF',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 1,
-                      transition: 'all 0.15s ease'
+                      gap: 1.5,
+                      minHeight: 48,
+                      transition: 'all 0.15s ease',
+                      '&:hover': {
+                        borderColor: isSelected ? '#0A66C2' : '#CBD5E1'
+                      }
                     }}
                   >
                     <Radio
                       checked={isSelected}
                       onChange={() => setSelectedReason(reason.id)}
                       size="small"
-                      sx={{ p: 0, '&.Mui-checked': { color: '#DC2626' } }}
+                      sx={{ p: 0, '&.Mui-checked': { color: '#0A66C2' } }}
                     />
                     <Box sx={{ flex: 1 }}>
-                      <Typography variant="subtitle2" sx={{ fontWeight: isSelected ? 700 : 500, color: '#0F172A', fontSize: '12.5px' }}>
+                      <Typography sx={{ fontWeight: isSelected ? 600 : 500, color: '#0F172A', fontSize: '13px' }}>
                         {reason.label}
                       </Typography>
-                      <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontSize: '10.5px' }}>
+                      <Typography sx={{ color: '#64748B', fontSize: '12px' }}>
                         {reason.desc}
                       </Typography>
                     </Box>
@@ -315,14 +250,13 @@ export default function CancelBookingModal({
                 size="small"
                 multiline
                 rows={2}
-                placeholder="Optional details (helps improve Salem service)..."
+                placeholder="Optional details (helps us improve Salem service)..."
                 value={customNote}
                 onChange={(e) => setCustomNote(e.target.value)}
                 sx={{
-                  mb: 1,
                   '& .MuiOutlinedInput-root': {
-                    fontSize: '12px',
-                    borderRadius: '8px',
+                    fontSize: '13px',
+                    borderRadius: '12px',
                     bgcolor: '#F8FAFC'
                   }
                 }}
@@ -330,46 +264,74 @@ export default function CancelBookingModal({
             )}
           </Box>
         )}
-      </DialogContent>
+      </ModalBody>
 
-      {!cancelResult && (
-        <DialogActions sx={{ px: 2, pb: 2, pt: 0, gap: 1 }}>
+      <ModalFooter>
+        {cancelResult ? (
           <Button
-            onClick={onClose}
-            disabled={isSubmitting}
-            sx={{
-              color: '#64748B',
-              fontWeight: 600,
-              textTransform: 'none',
-              fontSize: '13px',
-              borderRadius: '8px'
-            }}
-          >
-            {isMatchingStage ? 'Keep searching' : 'Keep booking'}
-          </Button>
-
-          <Button
+            fullWidth
             variant="contained"
-            onClick={handleCancelSubmit}
-            disabled={isSubmitting}
-            startIcon={isSubmitting ? <CircularProgress size={16} color="inherit" /> : <CancelOutlinedIcon sx={{ fontSize: 16 }} />}
+            onClick={() => {
+              onClose();
+              navigate('/');
+            }}
             sx={{
-              bgcolor: '#DC2626',
+              bgcolor: '#0A66C2',
               color: '#FFFFFF',
+              borderRadius: '14px',
+              height: 48,
               fontWeight: 700,
+              fontSize: '14px',
               textTransform: 'none',
-              fontSize: '13px',
-              borderRadius: '8px',
-              px: 2,
-              py: 0.9,
-              boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)',
-              '&:hover': { bgcolor: '#B91C1C' }
+              '&:hover': { bgcolor: '#084E96' }
             }}
           >
-            {isSubmitting ? 'Cancelling...' : (isMatchingStage ? 'Stop Search & Cancel' : 'Confirm Cancel (Fee to Tech)')}
+            Back to home
           </Button>
-        </DialogActions>
-      )}
-    </Dialog>
+        ) : (
+          <>
+            <Button
+              variant="outlined"
+              onClick={onClose}
+              disabled={isSubmitting}
+              sx={{
+                color: '#64748B',
+                borderColor: '#E2E8F0',
+                fontWeight: 600,
+                textTransform: 'none',
+                fontSize: '13px',
+                borderRadius: '12px',
+                minHeight: 44,
+                px: 2,
+                '&:hover': { bgcolor: '#F8FAFC', borderColor: '#CBD5E1' }
+              }}
+            >
+              {isMatchingStage ? 'Keep searching' : 'Keep booking'}
+            </Button>
+
+            <Button
+              variant="contained"
+              onClick={handleCancelSubmit}
+              disabled={isSubmitting}
+              startIcon={isSubmitting ? <CircularProgress size={16} color="inherit" /> : null}
+              sx={{
+                bgcolor: '#DC2626',
+                color: '#FFFFFF',
+                fontWeight: 700,
+                textTransform: 'none',
+                fontSize: '14px',
+                borderRadius: '14px',
+                minHeight: 48,
+                px: 2.5,
+                '&:hover': { bgcolor: '#B91C1C' },
+                '&:disabled': { bgcolor: '#FCA5A5', color: '#FFFFFF' }
+              }}
+            >
+              {isSubmitting ? 'Cancelling...' : (isMatchingStage ? 'Stop search & cancel' : 'Confirm cancellation')}
+            </Button>
+          </>
+        )}
+      </ModalFooter>
+    </Modal>
   );
 }

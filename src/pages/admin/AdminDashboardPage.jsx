@@ -121,6 +121,7 @@ import AdminServicesModule from './AdminServicesModule';
 import AdminTeamModule from './AdminTeamModule';
 import AdminDispatchDrawer from './AdminDispatchDrawer';
 import AdminTrackingModal from './AdminTrackingModal';
+import Modal, { ModalHeader, ModalBody, ModalFooter } from '../../components/Modal';
 import { useAuth } from '../../context/AuthContext';
 
 import { API_V1_URL } from '../../config';
@@ -2208,106 +2209,6 @@ export default function AdminDashboardPage() {
               </Box>
             )}
             </Card>
-
-            {/*  SECTION 3: DIGITAL KYC QUEUE & DISPUTE ARBITRATION */}
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
-                <Card elevation={0} sx={{ bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '20px', p: 2.5, boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-                    <VerifiedUserIcon sx={{ color: '#D97706', fontSize: 22 }} />
-                    <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0F172A' }}>
-                      Technician Digital KYC Queue (DigiLocker)
-                    </Typography>
-                  </Box>
-
-                  <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '14px', mb: 2 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A' }}>
-                        M. Senthil Nathan (AC Mechanic)
-                      </Typography>
-                      <Chip
-                        icon={<CheckCircleIcon sx={{ color: '#166534 !important', fontSize: '13px !important' }} />}
-                        label="DigiLocker: Verified"
-                        size="small"
-                        sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 900, fontSize: '10px' }}
-                      />
-                    </Box>
-                    <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 1.5 }}>
-                      Aadhaar e-KYC & 6-year trade certificate verified online. Zero physical center visit needed.
-                    </Typography>
-
-                    <Box sx={{ display: 'flex', gap: 1.2 }}>
-                      <Button
-                        variant="contained"
-                        size="small"
-                        startIcon={<CheckCircleIcon sx={{ fontSize: 14 }} />}
-                        onClick={() => setToast({ open: true, message: 'M. Senthil Nathan approved and activated for Salem dispatch queue.', severity: 'success' })}
-                        sx={{ bgcolor: '#10B981', color: '#FFF', borderRadius: '10px', fontWeight: 800, fontSize: '11.5px', textTransform: 'none', '&:hover': { bgcolor: '#059669' } }}
-                      >
-                        Approve & Activate
-                      </Button>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        startIcon={<ClearIcon sx={{ fontSize: 14 }} />}
-                        sx={{ color: '#64748B', borderColor: '#CBD5E1', borderRadius: '10px', fontWeight: 800, fontSize: '11.5px', textTransform: 'none' }}
-                      >
-                        Reject
-                      </Button>
-                    </Box>
-                  </Paper>
-                </Card>
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <Card elevation={0} sx={{ bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '20px', p: 2.5, boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-                    <GavelIcon sx={{ color: '#EA580C', fontSize: 22 }} />
-                    <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0F172A' }}>
-                      Dispute Arbitration Desk (Salem Escalation)
-                    </Typography>
-                  </Box>
-
-                  <Paper elevation={0} sx={{ p: 2, bgcolor: '#FFF7ED', border: '1px solid #FDBA74', borderRadius: '14px', mb: 2 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#9A3412' }}>
-                        Booking #SLM-84905
-                      </Typography>
-                      <Chip
-                        icon={<GavelIcon sx={{ color: '#7C2D12 !important', fontSize: '13px !important' }} />}
-                        label="Cooling issue persist"
-                        size="small"
-                        sx={{ bgcolor: '#FDBA74', color: '#7C2D12', fontWeight: 900, fontSize: '10px' }}
-                      />
-                    </Box>
-                    <Typography variant="caption" sx={{ color: '#7C2D12', display: 'block', mb: 1.5 }}>
-                      Customer reported cooling was ineffective after gas charge.
-                    </Typography>
-
-                    <Box sx={{ display: 'flex', gap: 1.2 }}>
-                      <Button
-                        variant="contained"
-                        size="small"
-                        startIcon={<TwoWheelerIcon sx={{ fontSize: 14 }} />}
-                        onClick={() => setToast({ open: true, message: 'Free Warranty Revisit Dispatched with Senior Supervisor.', severity: 'info' })}
-                        sx={{ bgcolor: '#0284C7', color: '#FFF', borderRadius: '10px', fontWeight: 800, fontSize: '11.5px', textTransform: 'none', '&:hover': { bgcolor: '#0369A1' } }}
-                      >
-                        Dispatch Free Revisit
-                      </Button>
-                      <Button
-                        variant="contained"
-                        size="small"
-                        startIcon={<AccountBalanceWalletIcon sx={{ fontSize: 14 }} />}
-                        onClick={() => setToast({ open: true, message: 'Escrow Refund Initiated to Customer Bank Account via Razorpay.', severity: 'warning' })}
-                        sx={{ bgcolor: '#D97706', color: '#FFF', borderRadius: '10px', fontWeight: 800, fontSize: '11.5px', textTransform: 'none', '&:hover': { bgcolor: '#B45309' } }}
-                      >
-                        Issue Razorpay Refund
-                      </Button>
-                    </Box>
-                  </Paper>
-                </Card>
-              </Grid>
-            </Grid>
           </>
         )}
 
@@ -3870,39 +3771,38 @@ export default function AdminDashboardPage() {
             )}
             </Card>
 
-            {/* CREATE / EDIT COUPON DIALOG */}
-            <Dialog open={couponModalOpen} onClose={() => setCouponModalOpen(false)} maxWidth="sm" fullWidth>
-              <DialogTitle sx={{ fontWeight: 800, color: '#0F172A', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <ConfirmationNumberIcon sx={{ color: '#0284C7' }} />
-                  <span>{editingCoupon ? `Edit Coupon: ${editingCoupon.code}` : 'Create New Promotional Coupon'}</span>
-                </Box>
-                <IconButton onClick={() => setCouponModalOpen(false)} size="small">
-                  <ClearIcon />
-                </IconButton>
-              </DialogTitle>
-              <DialogContent dividers>
+            {/* CREATE / EDIT COUPON MODAL */}
+            <Modal open={couponModalOpen} onClose={() => setCouponModalOpen(false)} maxWidth="sm">
+              <ModalHeader
+                title={editingCoupon ? `Edit coupon: ${editingCoupon.code}` : 'Create promotional coupon'}
+                subtitle="Set discount value, usage limits, and activation status"
+                onClose={() => setCouponModalOpen(false)}
+              />
+              <ModalBody>
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
-                      label="Coupon Code"
+                      label="Coupon code"
                       placeholder="e.g. FESTIVE50"
                       size="small"
                       value={couponFormData.code}
                       onChange={(e) => setCouponFormData({ ...couponFormData, code: e.target.value.toUpperCase() })}
                       helperText="Must be unique alphanumeric characters"
+                      InputProps={{ sx: { borderRadius: '12px' } }}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <FormControl fullWidth size="small">
-                      <InputLabel>Discount Type</InputLabel>
+                      <InputLabel>Discount type</InputLabel>
+                      {/* ds-allow-native-select */}
                       <Select
-                        label="Discount Type"
+                        label="Discount type"
                         value={couponFormData.discountType}
                         onChange={(e) => setCouponFormData({ ...couponFormData, discountType: e.target.value })}
+                        sx={{ borderRadius: '12px' }}
                       >
-                        <MenuItem value="flat">Flat Amount (INR)</MenuItem>
+                        <MenuItem value="flat">Flat amount (INR)</MenuItem>
                         <MenuItem value="percent">Percentage (%)</MenuItem>
                       </Select>
                     </FormControl>
@@ -3911,21 +3811,23 @@ export default function AdminDashboardPage() {
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
-                      label={couponFormData.discountType === 'percent' ? 'Discount Percentage (%)' : 'Discount Amount (INR)'}
+                      label={couponFormData.discountType === 'percent' ? 'Discount percentage (%)' : 'Discount amount (INR)'}
                       size="small"
                       type="number"
                       value={couponFormData.discountValue}
                       onChange={(e) => setCouponFormData({ ...couponFormData, discountValue: e.target.value })}
+                      InputProps={{ sx: { borderRadius: '12px' } }}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
-                      label="Min Order Amount (INR)"
+                      label="Min order amount (INR)"
                       size="small"
                       type="number"
                       value={couponFormData.minOrderAmount}
                       onChange={(e) => setCouponFormData({ ...couponFormData, minOrderAmount: e.target.value })}
+                      InputProps={{ sx: { borderRadius: '12px' } }}
                     />
                   </Grid>
 
@@ -3933,12 +3835,13 @@ export default function AdminDashboardPage() {
                     <Grid item xs={12} sm={6}>
                       <TextField
                         fullWidth
-                        label="Max Discount Cap (INR)"
+                        label="Max discount cap (INR)"
                         placeholder="e.g. 50"
                         size="small"
                         type="number"
                         value={couponFormData.maxDiscountCap}
                         onChange={(e) => setCouponFormData({ ...couponFormData, maxDiscountCap: e.target.value })}
+                        InputProps={{ sx: { borderRadius: '12px' } }}
                       />
                     </Grid>
                   )}
@@ -3946,12 +3849,13 @@ export default function AdminDashboardPage() {
                   <Grid item xs={12} sm={couponFormData.discountType === 'percent' ? 6 : 12}>
                     <TextField
                       fullWidth
-                      label="Max Usage Limit (Optional)"
+                      label="Max usage limit (optional)"
                       placeholder="e.g. 100 uses"
                       size="small"
                       type="number"
                       value={couponFormData.usageLimit}
                       onChange={(e) => setCouponFormData({ ...couponFormData, usageLimit: e.target.value })}
+                      InputProps={{ sx: { borderRadius: '12px' } }}
                     />
                   </Grid>
 
@@ -3959,10 +3863,11 @@ export default function AdminDashboardPage() {
                     <TextField
                       fullWidth
                       label="Description / Purpose"
-                      placeholder="e.g. Salem Diwali promotional discount for all doorstep services"
+                      placeholder="e.g. Salem promotional discount for doorstep services"
                       size="small"
                       value={couponFormData.description}
                       onChange={(e) => setCouponFormData({ ...couponFormData, description: e.target.value })}
+                      InputProps={{ sx: { borderRadius: '12px' } }}
                     />
                   </Grid>
 
@@ -3973,31 +3878,34 @@ export default function AdminDashboardPage() {
                         onChange={(e) => setCouponFormData({ ...couponFormData, isActive: e.target.checked })}
                       />
                       <Typography variant="body2" sx={{ fontWeight: 600, color: '#334155' }}>
-                        Coupon Active & Ready for Customer Redemption
+                        Coupon active & ready for customer redemption
                       </Typography>
                     </Box>
                   </Grid>
                 </Grid>
-              </DialogContent>
-              <DialogActions sx={{ p: 2 }}>
-                <Button onClick={() => setCouponModalOpen(false)} sx={{ textTransform: 'none', fontWeight: 700 }}>
+              </ModalBody>
+              <ModalFooter>
+                <Button onClick={() => setCouponModalOpen(false)} sx={{ textTransform: 'none', fontWeight: 600, color: '#64748B', height: 48 }}>
                   Cancel
                 </Button>
                 <Button
                   variant="contained"
                   onClick={handleSaveCoupon}
                   sx={{
-                    bgcolor: '#0284C7',
-                    '&:hover': { bgcolor: '#0369A1' },
+                    bgcolor: '#0A66C2',
+                    '&:hover': { bgcolor: '#084e96' },
                     textTransform: 'none',
-                    fontWeight: 800,
-                    px: 3
+                    fontWeight: 700,
+                    borderRadius: '14px',
+                    height: 48,
+                    minWidth: 140,
+                    fontSize: '14px'
                   }}
                 >
-                  Save Coupon
+                  Save coupon
                 </Button>
-              </DialogActions>
-            </Dialog>
+              </ModalFooter>
+            </Modal>
           </Box>
         )}
 
@@ -4159,48 +4067,43 @@ export default function AdminDashboardPage() {
         )}
 
         {/* ========================================================================= */}
-        {/*  CUSTOMER 360 DEEP HISTORY DIALOG */}
-        {/* ========================================================================= */}
-        <Dialog open={customerModalOpen} onClose={() => setCustomerModalOpen(false)} maxWidth="md" fullWidth>
-          <DialogTitle sx={{ fontWeight: 900, color: '#0F172A', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
-              <PeopleAltIcon sx={{ color: '#0284C7' }} />
-              <span>Customer Order History & 360 Profile</span>
-            </Box>
-            <IconButton onClick={() => setCustomerModalOpen(false)} size="small">
-              <ClearIcon />
-            </IconButton>
-          </DialogTitle>
-          <DialogContent dividers>
+        {/* CUSTOMER 360 DEEP HISTORY MODAL */}
+        <Modal open={customerModalOpen} onClose={() => setCustomerModalOpen(false)} maxWidth="md">
+          <ModalHeader
+            title="Customer order history & 360 profile"
+            subtitle={customerDetails ? `${customerDetails.customer_name} • ${customerDetails.customer_phone} • ${customerDetails.locality}` : 'Customer dossier'}
+            onClose={() => setCustomerModalOpen(false)}
+          />
+          <ModalBody>
             {customerDetails && (
               <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '14px', mb: 2.5 }}>
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={4}>
-                    <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700 }}>CUSTOMER NAME</Typography>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0F172A' }}>{customerDetails.customer_name}</Typography>
+                    <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 600, fontSize: '12px' }}>Customer name</Typography>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '14px' }}>{customerDetails.customer_name}</Typography>
                     <Typography variant="caption" sx={{ color: '#64748B' }}>{customerDetails.customer_phone}</Typography>
                   </Grid>
                   <Grid item xs={12} sm={4}>
-                    <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700 }}>SALEM LOCALITY</Typography>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0284C7' }}>{customerDetails.locality}</Typography>
+                    <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 600, fontSize: '12px' }}>Salem locality</Typography>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0A66C2', fontSize: '14px' }}>{customerDetails.locality}</Typography>
                     <Typography variant="caption" sx={{ color: '#64748B' }}>{customerDetails.service_address || 'Salem Doorstep'}</Typography>
                   </Grid>
                   <Grid item xs={12} sm={4}>
-                    <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700 }}>LIFETIME SPEND & ORDERS</Typography>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#059669' }}>₹{parseFloat(customerDetails.total_spent || 0).toLocaleString()}</Typography>
-                    <Typography variant="caption" sx={{ color: '#64748B' }}>{customerDetails.total_orders || customerHistory.length} Total Orders Placed</Typography>
+                    <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 600, fontSize: '12px' }}>Lifetime spend & orders</Typography>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#16A34A', fontSize: '14px' }}>₹{parseFloat(customerDetails.total_spent || 0).toLocaleString()}</Typography>
+                    <Typography variant="caption" sx={{ color: '#64748B' }}>{customerDetails.total_orders || customerHistory.length} total orders placed</Typography>
                   </Grid>
                 </Grid>
               </Paper>
             )}
 
-            <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0F172A', mb: 1.5 }}>
-              Chronological Booking History ({customerHistory.length} Jobs)
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', mb: 1.5, fontSize: '14px' }}>
+              Booking history ({customerHistory.length} jobs)
             </Typography>
 
             {customerHistoryLoading ? (
               <Box sx={{ py: 4, textAlign: 'center' }}>
-                <CircularProgress size={32} sx={{ color: '#0284C7' }} />
+                <CircularProgress size={32} sx={{ color: '#0A66C2' }} />
               </Box>
             ) : customerHistory.length === 0 ? (
               <Paper elevation={0} sx={{ p: 3, textAlign: 'center', bgcolor: '#F8FAFC', borderRadius: '12px' }}>
@@ -4210,11 +4113,11 @@ export default function AdminDashboardPage() {
               <Box sx={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: '12px', border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
                 <Table size="small" sx={{ minWidth: 560 }}>
                 <TableHead>
-                  <TableRow sx={{ bgcolor: '#F8FAFC', '& th': { color: '#475569', fontWeight: 800 } }}>
+                  <TableRow sx={{ bgcolor: '#F8FAFC', '& th': { color: '#475569', fontWeight: 700 } }}>
                     <TableCell>Booking ID</TableCell>
                     <TableCell>Service</TableCell>
-                    <TableCell>Assigned Tech</TableCell>
-                    <TableCell>Order Date</TableCell>
+                    <TableCell>Assigned partner</TableCell>
+                    <TableCell>Order date</TableCell>
                     <TableCell align="center">Stage</TableCell>
                     <TableCell align="right">Amount</TableCell>
                   </TableRow>
@@ -4223,7 +4126,7 @@ export default function AdminDashboardPage() {
                   {customerHistory.map(job => (
                     <TableRow key={job.id} hover>
                       <TableCell 
-                        sx={{ fontWeight: 800, color: '#0284C7', cursor: 'pointer', textDecoration: 'underline' }}
+                        sx={{ fontWeight: 700, color: '#0A66C2', cursor: 'pointer', textDecoration: 'underline' }}
                         onClick={() => {
                           setCustomerModalOpen(false);
                           handleOpenBookingTrace(job);
@@ -4232,11 +4135,11 @@ export default function AdminDashboardPage() {
                       >
                         #{job.id}
                       </TableCell>
-                      <TableCell sx={{ fontWeight: 700, color: '#0F172A' }}>{job.service_id?.toUpperCase()}</TableCell>
+                      <TableCell sx={{ fontWeight: 600, color: '#0F172A' }}>{job.service_id?.toUpperCase()}</TableCell>
                       <TableCell>
                         <Typography 
                           variant="body2" 
-                          sx={{ fontWeight: 700, color: job.technician_name ? '#0284C7' : '#0F172A', cursor: job.technician_name ? 'pointer' : 'default', textDecoration: job.technician_name ? 'underline' : 'none' }}
+                          sx={{ fontWeight: 600, color: job.technician_name ? '#0A66C2' : '#0F172A', cursor: job.technician_name ? 'pointer' : 'default', textDecoration: job.technician_name ? 'underline' : 'none' }}
                           onClick={() => {
                             if (job.technician_name) {
                               const matched = technicians.find(t => t.id === job.technician_id || t.full_name === job.technician_name);
@@ -4250,63 +4153,74 @@ export default function AdminDashboardPage() {
                           {job.technician_name || 'Unassigned'}
                         </Typography>
                         {job.technician_rating && (
-                          <Typography variant="caption" sx={{ color: '#059669' }}>{job.technician_rating} / 5.0</Typography>
+                          <Typography variant="caption" sx={{ color: '#16A34A' }}>{job.technician_rating} / 5.0</Typography>
                         )}
                       </TableCell>
                       <TableCell sx={{ color: '#64748B', fontSize: '12px' }}>{new Date(job.created_at).toLocaleDateString()}</TableCell>
                       <TableCell align="center">{getStatusChip(job.status)}</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 900, color: '#0F172A' }}>₹{job.final_amount}</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 800, color: '#0F172A' }}>₹{job.final_amount}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             </Box>
           )}
-          </DialogContent>
-          <DialogActions sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            {customerDetails && (
-              <Box>
-                {customerDetails.is_blocked ? (
-                  <Button
-                    variant="contained"
-                    color="success"
-                    size="small"
-                    onClick={() => handleToggleCustomerBlock(customerDetails, false)}
-                    sx={{ textTransform: 'none', fontWeight: 800, borderRadius: '8px' }}
-                  >
-                    Unblock Customer Account
-                  </Button>
-                ) : (
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    size="small"
-                    onClick={() => handleToggleCustomerBlock(customerDetails, true)}
-                    sx={{ textTransform: 'none', fontWeight: 800, borderRadius: '8px' }}
-                  >
-                    Suspend / Block Customer
-                  </Button>
-                )}
-              </Box>
-            )}
-            <Button onClick={() => setCustomerModalOpen(false)} sx={{ fontWeight: 700, color: '#64748B' }}>Close</Button>
-          </DialogActions>
-        </Dialog>
+          </ModalBody>
+          <ModalFooter>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+              {customerDetails && (
+                <Box>
+                  {customerDetails.is_blocked ? (
+                    <Button
+                      variant="contained"
+                      color="success"
+                      onClick={() => handleToggleCustomerBlock(customerDetails, false)}
+                      sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '12px', height: 44 }}
+                    >
+                      Unblock customer
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      onClick={() => handleToggleCustomerBlock(customerDetails, true)}
+                      sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '12px', height: 44 }}
+                    >
+                      Suspend / block customer
+                    </Button>
+                  )}
+                </Box>
+              )}
+              <Button
+                variant="contained"
+                onClick={() => setCustomerModalOpen(false)}
+                sx={{
+                  bgcolor: '#0A66C2',
+                  color: '#FFF',
+                  fontWeight: 700,
+                  borderRadius: '14px',
+                  height: 48,
+                  minWidth: 120,
+                  textTransform: 'none',
+                  '&:hover': { bgcolor: '#084e96' }
+                }}
+              >
+                Close
+              </Button>
+            </Box>
+          </ModalFooter>
+        </Modal>
 
         {/* ========================================================================= */}
         {/* TECHNICIAN 360 DOSSIER & SERVICE LOGS DIALOG */}
         {/* ========================================================================= */}
-        <Dialog open={techDossierModalOpen} onClose={() => setTechDossierModalOpen(false)} maxWidth="md" fullWidth>
-          <DialogTitle sx={{ fontWeight: 900, color: '#0F172A', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
-              <EngineeringIcon sx={{ color: '#0284C7' }} />
-              <span>Technician Performance Dossier & Service Logs</span>
-            </Box>
-            <IconButton onClick={() => setTechDossierModalOpen(false)} size="small">
-              <ClearIcon />
-            </IconButton>
-          </DialogTitle>
-          <DialogContent dividers>
+        <Modal open={techDossierModalOpen} onClose={() => setTechDossierModalOpen(false)} maxWidth="md">
+          <ModalHeader
+            title="Technician performance dossier & service logs"
+            subtitle={selectedTechDossier ? `${selectedTechDossier.full_name} • ${getTradeLabel(selectedTechDossier.primary_trade)}` : 'Technician dossier'}
+            onClose={() => setTechDossierModalOpen(false)}
+          />
+          <ModalBody>
             {selectedTechDossier && (
               <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '14px', mb: 2.5 }}>
                 <Grid container spacing={2}>
@@ -4519,142 +4433,157 @@ export default function AdminDashboardPage() {
               </Table>
             </Box>
           )}
-          </DialogContent>
-          <DialogActions sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            {selectedTechDossier && (
-              <Box>
-                {selectedTechDossier.is_blocked ? (
-                  <Button
-                    variant="contained"
-                    color="success"
-                    size="small"
-                    onClick={() => handleToggleTechnicianBlock(selectedTechDossier, false)}
-                    sx={{ textTransform: 'none', fontWeight: 800, borderRadius: '8px' }}
-                  >
-                    Restore / Unblock Partner
-                  </Button>
-                ) : (
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    size="small"
-                    onClick={() => handleToggleTechnicianBlock(selectedTechDossier, true)}
-                    sx={{ textTransform: 'none', fontWeight: 800, borderRadius: '8px' }}
-                  >
-                    Suspend / Block Partner
-                  </Button>
-                )}
-              </Box>
-            )}
-            <Button onClick={() => setTechDossierModalOpen(false)} sx={{ fontWeight: 700, color: '#64748B' }}>Close</Button>
-          </DialogActions>
-        </Dialog>
+          </ModalBody>
+          <ModalFooter>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+              {selectedTechDossier && (
+                <Box>
+                  {selectedTechDossier.is_blocked ? (
+                    <Button
+                      variant="contained"
+                      color="success"
+                      onClick={() => handleToggleTechnicianBlock(selectedTechDossier, false)}
+                      sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '12px', height: 44 }}
+                    >
+                      Restore / unblock partner
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      onClick={() => handleToggleTechnicianBlock(selectedTechDossier, true)}
+                      sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '12px', height: 44 }}
+                    >
+                      Suspend / block partner
+                    </Button>
+                  )}
+                </Box>
+              )}
+              <Button
+                variant="contained"
+                onClick={() => setTechDossierModalOpen(false)}
+                sx={{
+                  bgcolor: '#0A66C2',
+                  color: '#FFF',
+                  fontWeight: 700,
+                  borderRadius: '14px',
+                  height: 48,
+                  minWidth: 120,
+                  textTransform: 'none',
+                  '&:hover': { bgcolor: '#084e96' }
+                }}
+              >
+                Close
+              </Button>
+            </Box>
+          </ModalFooter>
+        </Modal>
 
-        {/*  MANUAL DISPATCH DIALOG */}
-        <Dialog open={dispatchDialogOpen} onClose={() => setDispatchDialogOpen(false)} maxWidth="sm" fullWidth>
-          <DialogTitle sx={{ fontWeight: 900, color: '#0F172A', display: 'flex', alignItems: 'center', gap: 1 }}>
-            <SendIcon sx={{ color: '#0284C7', fontSize: 22 }} />
-            Dispatch Technician to Booking #{targetBooking?.id}
-          </DialogTitle>
-          <DialogContent>
+        {/* MANUAL DISPATCH MODAL */}
+        <Modal open={dispatchDialogOpen} onClose={() => setDispatchDialogOpen(false)} maxWidth="sm">
+          <ModalHeader
+            title={`Dispatch technician to booking #${targetBooking?.id}`}
+            subtitle="Assign verified partner according to duty schedule"
+            onClose={() => setDispatchDialogOpen(false)}
+          />
+          <ModalBody>
             {targetBooking?.scheduled_slot && targetBooking.scheduled_slot !== 'instant_now' && (
-              <Paper elevation={0} sx={{ p: 1.5, mb: 2, bgcolor: '#EFF6FF', border: '1.5px solid #93C5FD', borderRadius: '10px' }}>
+              <Paper elevation={0} sx={{ p: 1.5, mb: 2, bgcolor: '#F0F9FF', border: '1px solid #BAE6FD', borderRadius: '12px' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <EventIcon sx={{ color: '#0284C7', fontSize: 18 }} />
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0369A1', fontSize: '12.5px' }}>
-                    Customer Scheduled Window: {targetBooking.scheduled_slot}
+                  <EventIcon sx={{ color: '#0A66C2', fontSize: 18 }} />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0369A1', fontSize: '13px' }}>
+                    Scheduled window: {targetBooking.scheduled_slot}
                   </Typography>
                 </Box>
-                <Typography variant="caption" sx={{ color: '#0284C7', display: 'block', mt: 0.5 }}>
-                  Assigning this technician reserves their duty schedule and connects the customer with the partner.
+                <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mt: 0.5, fontSize: '12px' }}>
+                  Assigning reserves partner duty schedule and notifies the customer immediately.
                 </Typography>
               </Paper>
             )}
 
-            <Typography variant="body2" sx={{ color: '#64748B', mb: 2 }}>
+            <Typography variant="body2" sx={{ color: '#0F172A', mb: 2, fontSize: '14px' }}>
               Customer: <strong>{targetBooking?.customer_name}</strong> • Locality: <strong>{targetBooking?.locality}</strong> • Service: <strong>{targetBooking?.service_id}</strong>
             </Typography>
 
             <FormControl fullWidth size="small" sx={{ mt: 1 }}>
-              <InputLabel>Select Online Verified Technician</InputLabel>
+              <InputLabel>Select online verified technician</InputLabel>
               {/* ds-allow-native-select */}
               <Select
                 value={selectedTechForDispatch}
-                label="Select Online Verified Technician"
+                label="Select online verified technician"
                 onChange={(e) => setSelectedTechForDispatch(e.target.value)}
                 sx={{ borderRadius: '12px' }}
               >
                 {technicians.map(t => (
                   <MenuItem key={t.id} value={t.id}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <SensorsIcon sx={{ color: t.is_online ? '#10B981' : '#94A3B8', fontSize: 16 }} />
-                      <span>{t.full_name} ({getTradeLabel(t.primary_trade)}) - {t.rating_avg} [{t.is_online ? 'Available' : 'Offline'}]</span>
+                      <SensorsIcon sx={{ color: t.is_online ? '#16A34A' : '#94A3B8', fontSize: 16 }} />
+                      <span>{t.full_name} ({getTradeLabel(t.primary_trade)}) • Rating {t.rating_avg} [{t.is_online ? 'Available' : 'Offline'}]</span>
                     </Box>
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
-          </DialogContent>
-          <DialogActions sx={{ p: 2.5 }}>
-            <Button onClick={() => setDispatchDialogOpen(false)} sx={{ color: '#64748B', fontWeight: 700 }}>
+          </ModalBody>
+          <ModalFooter>
+            <Button onClick={() => setDispatchDialogOpen(false)} sx={{ color: '#64748B', fontWeight: 600, textTransform: 'none', height: 48 }}>
               Cancel
             </Button>
             <Button
               variant="contained"
-              startIcon={<SendIcon sx={{ fontSize: 14 }} />}
+              startIcon={<SendIcon sx={{ fontSize: 16 }} />}
               onClick={handleExecuteDispatch}
               disabled={dispatchLoading || !selectedTechForDispatch}
-              sx={{ bgcolor: '#0284C7', color: '#FFF', fontWeight: 800, borderRadius: '10px', textTransform: 'none', px: 3, '&:hover': { bgcolor: '#0369A1' } }}
+              sx={{
+                bgcolor: '#0A66C2',
+                color: '#FFF',
+                fontWeight: 700,
+                borderRadius: '14px',
+                textTransform: 'none',
+                height: 48,
+                minWidth: 160,
+                fontSize: '14px',
+                '&:hover': { bgcolor: '#084e96' }
+              }}
             >
-              {dispatchLoading ? <CircularProgress size={20} sx={{ color: '#FFF' }} /> : 'Confirm & Dispatch'}
+              {dispatchLoading ? <CircularProgress size={20} sx={{ color: '#FFF' }} /> : 'Confirm & dispatch'}
             </Button>
-          </DialogActions>
-        </Dialog>
+          </ModalFooter>
+        </Modal>
 
-        {/* ========================================================================= */}
-        {/* IN-APP DOCUMENT VIEWER DIALOG (AADHAAR CARD & PARTS BILL RECEIPT) */}
-        {/* ========================================================================= */}
-        <Dialog
+        {/* IN-APP DOCUMENT VIEWER MODAL (AADHAAR CARD & PARTS BILL RECEIPT) */}
+        <Modal
           open={docPreviewModal.open}
           onClose={() => setDocPreviewModal(prev => ({ ...prev, open: false }))}
           maxWidth="md"
-          fullWidth
-          PaperProps={{
-            sx: { borderRadius: '16px', overflow: 'hidden' }
-          }}
         >
-          <DialogTitle sx={{ fontWeight: 900, color: '#0F172A', display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: '#F8FAFC', borderBottom: '1px solid #E2E8F0', py: 1.5 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              {docPreviewModal.type === 'aadhaar' ? (
-                <FingerprintIcon sx={{ color: '#0284C7' }} />
-              ) : (
-                <ReceiptLongIcon sx={{ color: '#059669' }} />
-              )}
-              <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0F172A', fontSize: '15px' }}>
-                {docPreviewModal.title || 'Document Inspection'}
-              </Typography>
-            </Box>
+          <ModalHeader
+            title={docPreviewModal.title || 'Document inspection'}
+            subtitle="Verified secure storage document vault"
+            onClose={() => setDocPreviewModal(prev => ({ ...prev, open: false }))}
+          />
 
-            {/* Zoom Controls & Close Button */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+          <ModalBody sx={{ p: 0, bgcolor: '#0F172A', minHeight: 400, display: 'flex', flexDirection: 'column' }}>
+            {/* Zoom toolbar */}
+            <Box sx={{ p: 1, bgcolor: '#1E293B', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1, borderBottom: '1px solid #334155' }}>
               <IconButton
                 size="small"
                 onClick={() => setDocZoom(prev => Math.max(0.5, prev - 0.25))}
                 title="Zoom Out"
-                sx={{ bgcolor: '#FFFFFF', border: '1px solid #CBD5E1' }}
+                sx={{ bgcolor: '#0F172A', color: '#FFF', border: '1px solid #475569' }}
               >
                 <ZoomOutIcon sx={{ fontSize: 18 }} />
               </IconButton>
               <Chip
                 label={`${Math.round(docZoom * 100)}%`}
                 size="small"
-                sx={{ fontWeight: 800, fontSize: '11px', bgcolor: '#FFFFFF', border: '1px solid #CBD5E1' }}
+                sx={{ fontWeight: 700, fontSize: '11px', bgcolor: '#0F172A', color: '#FFF', border: '1px solid #475569' }}
               />
               <IconButton
                 size="small"
                 onClick={() => setDocZoom(prev => Math.min(3, prev + 0.25))}
                 title="Zoom In"
-                sx={{ bgcolor: '#FFFFFF', border: '1px solid #CBD5E1' }}
+                sx={{ bgcolor: '#0F172A', color: '#FFF', border: '1px solid #475569' }}
               >
                 <ZoomInIcon sx={{ fontSize: 18 }} />
               </IconButton>
@@ -4662,7 +4591,7 @@ export default function AdminDashboardPage() {
                 size="small"
                 onClick={() => setDocZoom(1)}
                 title="Reset Zoom"
-                sx={{ bgcolor: '#FFFFFF', border: '1px solid #CBD5E1' }}
+                sx={{ bgcolor: '#0F172A', color: '#FFF', border: '1px solid #475569' }}
               >
                 <RestartAltIcon sx={{ fontSize: 18 }} />
               </IconButton>
@@ -4670,29 +4599,19 @@ export default function AdminDashboardPage() {
                 size="small"
                 onClick={() => window.open(docPreviewModal.url, '_blank')}
                 title="Open Original in New Tab"
-                sx={{ bgcolor: '#FFFFFF', border: '1px solid #CBD5E1', color: '#0284C7' }}
+                sx={{ bgcolor: '#0F172A', color: '#38BDF8', border: '1px solid #475569' }}
               >
                 <OpenInNewIcon sx={{ fontSize: 18 }} />
               </IconButton>
-              <IconButton
-                size="small"
-                onClick={() => setDocPreviewModal(prev => ({ ...prev, open: false }))}
-                sx={{ ml: 1 }}
-              >
-                <ClearIcon />
-              </IconButton>
             </Box>
-          </DialogTitle>
 
-          <DialogContent sx={{ p: 0, bgcolor: '#0F172A', minHeight: 420, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'auto' }}>
             <Box
               sx={{
                 p: 2,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: '100%',
-                height: '100%',
+                flex: 1,
                 overflow: 'auto'
               }}
             >
@@ -4701,7 +4620,7 @@ export default function AdminDashboardPage() {
                 alt="Document Preview"
                 style={{
                   maxWidth: '100%',
-                  maxHeight: '68vh',
+                  maxHeight: '62vh',
                   objectFit: 'contain',
                   borderRadius: '8px',
                   boxShadow: '0 8px 30px rgba(0,0,0,0.5)',
@@ -4711,87 +4630,78 @@ export default function AdminDashboardPage() {
                 }}
               />
             </Box>
-          </DialogContent>
+          </ModalBody>
 
-          <DialogActions sx={{ p: 2, bgcolor: '#F8FAFC', borderTop: '1px solid #E2E8F0', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
-            {docPreviewModal.type === 'aadhaar' && docPreviewModal.data ? (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Avatar sx={{ bgcolor: docPreviewModal.data.is_kyc_verified ? '#DCFCE7' : '#FEF3C7', color: docPreviewModal.data.is_kyc_verified ? '#166534' : '#92400E', width: 32, height: 32 }}>
-                  <FingerprintIcon sx={{ fontSize: 18 }} />
-                </Avatar>
+          <ModalFooter>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', flexWrap: 'wrap', gap: 1 }}>
+              {docPreviewModal.type === 'aadhaar' && docPreviewModal.data ? (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Avatar sx={{ bgcolor: docPreviewModal.data.is_kyc_verified ? '#DCFCE7' : '#FEF3C7', color: docPreviewModal.data.is_kyc_verified ? '#166534' : '#92400E', width: 32, height: 32 }}>
+                    <FingerprintIcon sx={{ fontSize: 18 }} />
+                  </Avatar>
+                  <Box>
+                    <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A' }}>
+                      {docPreviewModal.data.full_name || docPreviewModal.data.name} • {docPreviewModal.data.phone}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#64748B' }}>
+                      Status: {docPreviewModal.data.is_kyc_verified ? 'Verified Partner' : 'Aadhaar Verification Pending'}
+                    </Typography>
+                  </Box>
+                </Box>
+              ) : (
                 <Box>
-                  <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A' }}>
-                    {docPreviewModal.data.full_name || docPreviewModal.data.name} • {docPreviewModal.data.phone}
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: '#64748B' }}>
-                    Status: {docPreviewModal.data.is_kyc_verified ? 'Verified Partner' : 'Aadhaar Verification Pending'}
+                  <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 600 }}>
+                    Salem S3 secure document vault
                   </Typography>
                 </Box>
-              </Box>
-            ) : (
-              <Box>
-                <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700 }}>
-                  Salem S3 Secure Storage Document Vault
-                </Typography>
-              </Box>
-            )}
-
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-              {docPreviewModal.type === 'aadhaar' && docPreviewModal.data && !docPreviewModal.data.is_kyc_verified && (
-                <>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    startIcon={<CheckCircleIcon sx={{ fontSize: 15 }} />}
-                    onClick={() => handleKycDecision(docPreviewModal.data.id, 'approve')}
-                    sx={{ bgcolor: '#16A34A', color: '#FFF', fontWeight: 800, textTransform: 'none', borderRadius: '8px', px: 2, '&:hover': { bgcolor: '#15803D' } }}
-                  >
-                    Approve KYC
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    startIcon={<CancelIcon sx={{ fontSize: 15 }} />}
-                    onClick={() => handleKycDecision(docPreviewModal.data.id, 'reject')}
-                    sx={{ color: '#DC2626', borderColor: '#FCA5A5', fontWeight: 700, textTransform: 'none', borderRadius: '8px', px: 2 }}
-                  >
-                    Reject KYC
-                  </Button>
-                </>
               )}
-              <Button
-                onClick={() => setDocPreviewModal(prev => ({ ...prev, open: false }))}
-                sx={{ color: '#64748B', fontWeight: 700 }}
-              >
-                Close
-              </Button>
-            </Box>
-          </DialogActions>
-        </Dialog>
 
-        {/* ========================================================================= */}
-        {/* DEEP BOOKING TRACEABILITY & AUDIT DOSSIER DIALOG */}
-        {/* ========================================================================= */}
-        <Dialog
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                {docPreviewModal.type === 'aadhaar' && docPreviewModal.data && !docPreviewModal.data.is_kyc_verified && (
+                  <>
+                    <Button
+                      variant="contained"
+                      startIcon={<CheckCircleIcon sx={{ fontSize: 16 }} />}
+                      onClick={() => handleKycDecision(docPreviewModal.data.id, 'approve')}
+                      sx={{ bgcolor: '#16A34A', color: '#FFF', fontWeight: 700, textTransform: 'none', borderRadius: '12px', height: 44, px: 2, '&:hover': { bgcolor: '#15803D' } }}
+                    >
+                      Approve KYC
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      startIcon={<CancelIcon sx={{ fontSize: 16 }} />}
+                      onClick={() => handleKycDecision(docPreviewModal.data.id, 'reject')}
+                      sx={{ color: '#DC2626', borderColor: '#FCA5A5', fontWeight: 700, textTransform: 'none', borderRadius: '12px', height: 44, px: 2 }}
+                    >
+                      Reject KYC
+                    </Button>
+                  </>
+                )}
+                <Button
+                  variant="outlined"
+                  onClick={() => setDocPreviewModal(prev => ({ ...prev, open: false }))}
+                  sx={{ color: '#0F172A', borderColor: '#E2E8F0', fontWeight: 600, borderRadius: '14px', height: 44, px: 2.5, textTransform: 'none' }}
+                >
+                  Close
+                </Button>
+              </Box>
+            </Box>
+          </ModalFooter>
+        </Modal>
+
+        {/* DEEP BOOKING TRACEABILITY & AUDIT DOSSIER MODAL */}
+        <Modal
           open={bookingTraceModalOpen}
           onClose={() => setBookingTraceModalOpen(false)}
           maxWidth="md"
-          fullWidth
-          PaperProps={{ sx: { borderRadius: '16px' } }}
         >
-          <DialogTitle sx={{ fontWeight: 900, color: '#0F172A', display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: '#F8FAFC', borderBottom: '1px solid #E2E8F0', py: 1.5 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <ArticleIcon sx={{ color: '#0284C7' }} />
-              <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0F172A', fontSize: '15px' }}>
-                Booking Deep Traceability Dossier #{selectedBookingTrace?.id}
-              </Typography>
-            </Box>
-            <IconButton onClick={() => setBookingTraceModalOpen(false)} size="small">
-              <ClearIcon />
-            </IconButton>
-          </DialogTitle>
+          <ModalHeader
+            title={`Booking traceability dossier #${selectedBookingTrace?.id}`}
+            subtitle="End-to-end operational dispatch, escrow, and audit trail"
+            onClose={() => setBookingTraceModalOpen(false)}
+          />
 
-          <DialogContent dividers sx={{ p: 2.5 }}>
+          <ModalBody sx={{ p: 2.5 }}>
             {selectedBookingTrace && (
               <Box>
                 {/* 1. Top Status & Overview Banner */}
@@ -5012,13 +4922,27 @@ export default function AdminDashboardPage() {
                 </Paper>
               </Box>
             )}
-          </DialogContent>
-          <DialogActions sx={{ p: 2 }}>
-            <Button onClick={() => setBookingTraceModalOpen(false)} sx={{ fontWeight: 700, color: '#64748B' }}>
-              Close Dossier
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              variant="contained"
+              onClick={() => setBookingTraceModalOpen(false)}
+              sx={{
+                bgcolor: '#0A66C2',
+                color: '#FFF',
+                fontWeight: 700,
+                borderRadius: '14px',
+                height: 48,
+                minWidth: 140,
+                textTransform: 'none',
+                fontSize: '14px',
+                '&:hover': { bgcolor: '#084e96' }
+              }}
+            >
+              Close dossier
             </Button>
-          </DialogActions>
-        </Dialog>
+          </ModalFooter>
+        </Modal>
 
         {/* Smart Technician Dispatch Drawer ("give tech to customer requested") */}
         <AdminDispatchDrawer

@@ -12,10 +12,6 @@ import {
   Button,
   IconButton,
   TextField,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   FormControl,
   InputLabel,
   Select,
@@ -27,6 +23,7 @@ import {
   Avatar,
   CircularProgress
 } from '@mui/material';
+import Modal, { ModalHeader, ModalBody, ModalFooter } from '../../components/Modal';
 import GroupIcon from '@mui/icons-material/Group';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -458,61 +455,61 @@ export default function AdminTeamModule({ currentRole = 'super_admin', onToast =
       </Card>
 
       {/* Add / Edit Staff Modal */}
-      <Dialog
+      <Modal
         open={dialogOpen}
         onClose={() => !saving && setDialogOpen(false)}
         maxWidth="sm"
-        fullWidth
-        PaperProps={{ sx: { borderRadius: '16px', p: 1 } }}
       >
-        <DialogTitle sx={{ fontWeight: 900, color: '#0F172A', pb: 0.5 }}>
-          {editingMember ? `Edit Staff Member: ${editingMember.name}` : 'Add Operations Staff Member'}
-        </DialogTitle>
-        <form onSubmit={handleSave}>
-          <DialogContent>
+        <ModalHeader
+          title={editingMember ? `Edit staff member: ${editingMember.name}` : 'Add operations staff member'}
+          subtitle="Configure operations role, hub locality, and permissions"
+          onClose={() => !saving && setDialogOpen(false)}
+        />
+        <Box component="form" onSubmit={handleSave} sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+          <ModalBody>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Full Name"
+                  label="Full name"
                   placeholder="e.g. Anand M."
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
-                  InputProps={{ sx: { borderRadius: '10px' } }}
+                  InputProps={{ sx: { borderRadius: '12px' } }}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Official Email"
+                  label="Official email"
                   type="email"
                   placeholder="e.g. anand@salemseva.in"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
-                  InputProps={{ sx: { borderRadius: '10px' } }}
+                  InputProps={{ sx: { borderRadius: '12px' } }}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Phone Number"
+                  label="Phone number"
                   placeholder="+91 98421 00000"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  InputProps={{ sx: { borderRadius: '10px' } }}
+                  InputProps={{ sx: { borderRadius: '12px' } }}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
-                  <InputLabel>Operational Role</InputLabel>
+                  <InputLabel>Operational role</InputLabel>
                   {/* ds-allow-native-select */}
                   <Select
                     value={formData.role}
-                    label="Operational Role"
+                    label="Operational role"
                     onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                    sx={{ borderRadius: '10px' }}
+                    sx={{ borderRadius: '12px' }}
                   >
                     <MenuItem value="super_admin">Super Admin (Root)</MenuItem>
                     <MenuItem value="ops_dispatcher">Ops Dispatcher</MenuItem>
@@ -527,7 +524,7 @@ export default function AdminTeamModule({ currentRole = 'super_admin', onToast =
                   label="Hub / Locality"
                   value={formData.hub_locality}
                   onChange={(e) => setFormData({ ...formData, hub_locality: e.target.value })}
-                  InputProps={{ sx: { borderRadius: '10px' } }}
+                  InputProps={{ sx: { borderRadius: '12px' } }}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -538,7 +535,7 @@ export default function AdminTeamModule({ currentRole = 'super_admin', onToast =
                     value={formData.status}
                     label="Status"
                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    sx={{ borderRadius: '10px' }}
+                    sx={{ borderRadius: '12px' }}
                   >
                     <MenuItem value="active">Active</MenuItem>
                     <MenuItem value="suspended">Suspended</MenuItem>
@@ -546,12 +543,12 @@ export default function AdminTeamModule({ currentRole = 'super_admin', onToast =
                 </FormControl>
               </Grid>
             </Grid>
-          </DialogContent>
-          <DialogActions sx={{ p: 2, pt: 0 }}>
+          </ModalBody>
+          <ModalFooter>
             <Button
               onClick={() => setDialogOpen(false)}
               disabled={saving}
-              sx={{ fontWeight: 700, color: '#64748B', textTransform: 'none' }}
+              sx={{ fontWeight: 600, color: '#64748B', textTransform: 'none', height: 48 }}
             >
               Cancel
             </Button>
@@ -560,20 +557,22 @@ export default function AdminTeamModule({ currentRole = 'super_admin', onToast =
               variant="contained"
               disabled={saving}
               sx={{
-                bgcolor: '#0284C7',
+                bgcolor: '#0A66C2',
                 color: '#FFFFFF',
-                fontWeight: 800,
-                borderRadius: '8px',
+                fontWeight: 700,
+                borderRadius: '14px',
                 textTransform: 'none',
-                px: 2.5,
-                '&:hover': { bgcolor: '#0369A1' }
+                height: 48,
+                minWidth: 150,
+                fontSize: '14px',
+                '&:hover': { bgcolor: '#084e96' }
               }}
             >
-              {saving ? 'Saving...' : editingMember ? 'Update Staff Member' : 'Save Staff Member'}
+              {saving ? 'Saving...' : editingMember ? 'Update staff member' : 'Save staff member'}
             </Button>
-          </DialogActions>
-        </form>
-      </Dialog>
+          </ModalFooter>
+        </Box>
+      </Modal>
     </Box>
   );
 }

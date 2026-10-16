@@ -365,8 +365,7 @@ export default function SideNavbar({
                   type="button"
                   onClick={() => {
                     onClose();
-                    if (onOpenAuthModal) onOpenAuthModal('customer');
-                    else handleNav('/login');
+                    handleNav('/login');
                   }}
                   style={{
                     width: '100%',

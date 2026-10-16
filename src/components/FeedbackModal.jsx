@@ -1,10 +1,6 @@
 import { API_V1_URL } from '../config';
 import React, { useState } from 'react';
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Box,
   Typography,
   Button,
@@ -13,24 +9,23 @@ import {
   Rating,
   CircularProgress,
   Paper,
-  Alert,
-  IconButton
+  Alert
 } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import StarIcon from '@mui/icons-material/Star';
-import BugReportIcon from '@mui/icons-material/BugReport';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import HandymanIcon from '@mui/icons-material/Handyman';
-import PersonIcon from '@mui/icons-material/Person';
-import SendIcon from '@mui/icons-material/Send';
-import LightbulbIcon from '@mui/icons-material/Lightbulb';
-import PaymentIcon from '@mui/icons-material/Payment';
-import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
-import GpsFixedIcon from '@mui/icons-material/GpsFixed';
-import SupportAgentIcon from '@mui/icons-material/SupportAgent';
-import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
-import SalemLottie from './SalemLottie';
+import {
+  MessageSquare,
+  Star,
+  Bug,
+  Calendar,
+  CreditCard,
+  Wrench,
+  Lightbulb,
+  Headphones,
+  MapPin,
+  CheckCircle,
+  Send
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { Modal, ModalHeader, ModalBody, ModalFooter } from './Modal';
 
 export default function FeedbackModal({ open, onClose, user, userRole = 'customer' }) {
   const { rewardSettings, updateWalletBalance } = useAuth();
@@ -49,38 +44,38 @@ export default function FeedbackModal({ open, onClose, user, userRole = 'custome
   const [error, setError] = useState('');
 
   const customerCategories = [
-    { id: 'app_glitch', label: 'App Glitch / Freeze', icon: <BugReportIcon fontSize="small" /> },
-    { id: 'booking_slot', label: 'Booking & Slot Issue', icon: <CalendarMonthIcon fontSize="small" /> },
-    { id: 'pricing_payment', label: 'Pricing or Payment Issue', icon: <PaymentIcon fontSize="small" /> },
-    { id: 'technician_matching', label: 'Technician Matching Delay', icon: <HandymanIcon fontSize="small" /> },
-    { id: 'feature_request', label: 'Feature Suggestion', icon: <LightbulbIcon fontSize="small" /> },
-    { id: 'general', label: 'General Feedback', icon: <SupportAgentIcon fontSize="small" /> }
+    { id: 'app_glitch', label: 'App glitch or freeze', icon: <Bug size={14} /> },
+    { id: 'booking_slot', label: 'Booking & slot issue', icon: <Calendar size={14} /> },
+    { id: 'pricing_payment', label: 'Pricing or payment', icon: <CreditCard size={14} /> },
+    { id: 'technician_matching', label: 'Partner matching delay', icon: <Wrench size={14} /> },
+    { id: 'feature_request', label: 'Feature suggestion', icon: <Lightbulb size={14} /> },
+    { id: 'general', label: 'General feedback', icon: <Headphones size={14} /> }
   ];
 
   const technicianCategories = [
-    { id: 'radar_gps', label: 'Duty Radar / GPS Location', icon: <GpsFixedIcon fontSize="small" /> },
-    { id: 'payout_settlement', label: 'Payout / Commission Query', icon: <PaymentIcon fontSize="small" /> },
-    { id: 'quote_builder', label: 'Quote Builder / Invoice Bug', icon: <BugReportIcon fontSize="small" /> },
-    { id: 'customer_contact', label: 'Masked Call / Contact Issue', icon: <SupportAgentIcon fontSize="small" /> },
-    { id: 'partner_idea', label: 'Partner Platform Suggestion', icon: <LightbulbIcon fontSize="small" /> },
-    { id: 'general', label: 'General Partner Feedback', icon: <HandymanIcon fontSize="small" /> }
+    { id: 'radar_gps', label: 'Duty radar & GPS', icon: <MapPin size={14} /> },
+    { id: 'payout_settlement', label: 'Payout or commission', icon: <CreditCard size={14} /> },
+    { id: 'quote_builder', label: 'Quote builder', icon: <Bug size={14} /> },
+    { id: 'customer_contact', label: 'Masked contact issue', icon: <Headphones size={14} /> },
+    { id: 'partner_idea', label: 'Platform suggestion', icon: <Lightbulb size={14} /> },
+    { id: 'general', label: 'General partner feedback', icon: <Wrench size={14} /> }
   ];
 
   const categories = isTechnician ? technicianCategories : customerCategories;
 
   const getRatingLabel = (val) => {
     switch (val) {
-      case 1: return 'Very Poor / Critical Bug';
-      case 2: return 'Facing Difficulties';
-      case 3: return 'Average / Needs Improvement';
-      case 4: return 'Good Platform Experience';
-      case 5: return 'Excellent & Highly Reliable';
-      default: return 'Rate Platform Experience';
+      case 1: return 'Very poor experience';
+      case 2: return 'Facing difficulties';
+      case 3: return 'Average / Needs improvement';
+      case 4: return 'Good platform experience';
+      case 5: return 'Excellent and reliable';
+      default: return 'Rate platform experience';
     }
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (!message.trim()) {
       setError('Please provide feedback details or issue description');
       return;
@@ -112,7 +107,6 @@ export default function FeedbackModal({ open, onClose, user, userRole = 'custome
         updateWalletBalance(data.newBalance);
       }
 
-      // Store in localStorage backup as well
       const saved = JSON.parse(localStorage.getItem('salemseva_feedbacks_list') || '[]');
       const newRecord = {
         ...payload,
@@ -123,7 +117,6 @@ export default function FeedbackModal({ open, onClose, user, userRole = 'custome
       };
       localStorage.setItem('salemseva_feedbacks_list', JSON.stringify([newRecord, ...saved]));
 
-      // Dispatch global event so Admin dashboard updates immediately
       window.dispatchEvent(new CustomEvent('salemseva_new_feedback_received', { detail: newRecord }));
       window.dispatchEvent(new Event('storage'));
 
@@ -131,10 +124,9 @@ export default function FeedbackModal({ open, onClose, user, userRole = 'custome
       setSuccess(true);
       setTimeout(() => {
         handleModalClose();
-      }, 2000);
+      }, 1800);
     } catch (err) {
       console.warn('Backend feedback sync fallback to local store:', err);
-      // Offline fallback
       const saved = JSON.parse(localStorage.getItem('salemseva_feedbacks_list') || '[]');
       const newRecord = {
         ...payload,
@@ -150,7 +142,7 @@ export default function FeedbackModal({ open, onClose, user, userRole = 'custome
       setSuccess(true);
       setTimeout(() => {
         handleModalClose();
-      }, 2000);
+      }, 1800);
     }
   };
 
@@ -163,218 +155,254 @@ export default function FeedbackModal({ open, onClose, user, userRole = 'custome
   };
 
   return (
-    <Dialog open={open} onClose={handleModalClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1, borderBottom: '1px solid #E2E8F0' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <SalemLottie name="customerCare" width={42} height={42} style={{ margin: 0, flexShrink: 0 }} />
-          <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '16px', lineHeight: 1.2 }}>
-              {isTechnician ? 'Technician Platform Feedback' : 'Customer Platform Feedback'}
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11px' }}>
-              Direct line to Salem Central Operations Desk (HQ)
-            </Typography>
-          </Box>
-        </Box>
+    <Modal open={open} onClose={handleModalClose} maxWidth="sm" ariaLabelledBy="feedback-modal-title">
+      <ModalHeader
+        id="feedback-modal-title"
+        title={isTechnician ? 'Partner feedback' : 'Platform feedback'}
+        subtitle="Direct to Salem Central Operations Desk"
+        onClose={handleModalClose}
+        icon={<MessageSquare size={20} color="#0A66C2" />}
+      />
 
-        <IconButton size="small" onClick={handleModalClose} sx={{ color: '#64748B' }}>
-          <CloseIcon fontSize="small" />
-        </IconButton>
-      </DialogTitle>
-
-      <DialogContent sx={{ pt: 2.5 }}>
+      <ModalBody>
         {success ? (
-          <Box sx={{ textAlign: 'center', py: 4 }}>
+          <Box sx={{ textAlign: 'center', py: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5 }}>
             <Box
               sx={{
-                width: 60,
-                height: 60,
+                width: 56,
+                height: 56,
                 borderRadius: '50%',
-                bgcolor: '#ECFDF5',
-                color: '#10B981',
+                bgcolor: '#DCFCE7',
+                color: '#16A34A',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                margin: '0 auto 16px auto',
-                border: '2px solid #A7F3D0'
+                border: '1px solid #BBF7D0'
               }}
             >
-              <CheckCircleIcon sx={{ fontSize: 36 }} />
+              <CheckCircle size={32} />
             </Box>
-            <Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A', mb: 0.5 }}>
-              Thank You for Your Feedback!
+            <Typography sx={{ fontWeight: 700, color: '#0F172A', fontSize: '16px' }}>
+              Thank you for your feedback
             </Typography>
             {feedbackCreditsEnabled && feedbackRewardCredits > 0 && (
               <Chip
-                label={`+${feedbackRewardCredits} Seva Credits (₹${(feedbackRewardCredits / 10).toFixed(0)}) Credited to Wallet`}
+                label={`+${feedbackRewardCredits} Seva credits added to wallet`}
                 size="small"
-                sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 800, mb: 1 }}
+                sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 600, fontSize: '12px', height: 26, borderRadius: '9999px' }}
               />
             )}
-            <Typography variant="body2" sx={{ color: '#64748B', maxWidth: '340px', margin: '0 auto' }}>
-              Your report has been forwarded directly to the Salem Operations Admin Dashboard. Our central operations team will review it immediately.
+            <Typography sx={{ color: '#64748B', fontSize: '13px', maxWidth: '360px', lineHeight: 1.5 }}>
+              Your feedback has been sent to our Salem Operations Desk. Our team reviews every report.
             </Typography>
           </Box>
         ) : (
-          <form onSubmit={handleSubmit}>
-            {error && <Alert severity="error" sx={{ mb: 2, borderRadius: '8px', fontSize: '12.5px' }}>{error}</Alert>}
+          <Box component="form" id="feedback-form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {error && (
+              <Alert severity="error" sx={{ borderRadius: '10px', fontSize: '13px' }}>
+                {error}
+              </Alert>
+            )}
 
-            {/* Role Indicator Banner */}
+            {/* User Info Bar */}
             <Paper
               elevation={0}
               sx={{
-                p: 1.2,
-                mb: 2,
-                borderRadius: '10px',
-                bgcolor: isTechnician ? '#F0FDF4' : '#EFF6FF',
-                border: isTechnician ? '1px solid #BBF7D0' : '1px solid #BFDBFE',
+                p: 1.5,
+                borderRadius: '12px',
+                bgcolor: '#F8FAFC',
+                border: '1px solid #E2E8F0',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between'
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Chip
-                  label={isTechnician ? 'PARTNER PRO FLEET' : 'REGISTERED CUSTOMER'}
-                  size="small"
-                  sx={{
-                    bgcolor: isTechnician ? '#10B981' : '#2563EB',
-                    color: '#FFFFFF',
-                    fontWeight: 800,
-                    fontSize: '10px',
-                    height: 20
-                  }}
-                />
-                <Typography variant="caption" sx={{ fontWeight: 700, color: '#0F172A' }}>
-                  {userName} ({userPhone})
-                </Typography>
-              </Box>
-              {feedbackCreditsEnabled && feedbackRewardCredits > 0 && (
-                <Chip
-                  label={`+${feedbackRewardCredits} Credits`}
-                  size="small"
-                  sx={{
-                    bgcolor: '#FEF3C7',
-                    color: '#92400E',
-                    fontWeight: 800,
-                    fontSize: '10px',
-                    height: 20
-                  }}
-                />
-              )}
+              <Typography sx={{ fontWeight: 600, color: '#0F172A', fontSize: '13px' }}>
+                {userName || (isTechnician ? 'Partner' : 'Customer')} {userPhone ? `(${userPhone})` : ''}
+              </Typography>
+              <Chip
+                label={isTechnician ? 'Partner' : 'Customer'}
+                size="small"
+                sx={{
+                  bgcolor: isTechnician ? '#DCFCE7' : '#EFF6FF',
+                  color: isTechnician ? '#166534' : '#0A66C2',
+                  fontWeight: 600,
+                  fontSize: '11px',
+                  height: 24,
+                  borderRadius: '9999px'
+                }}
+              />
             </Paper>
 
             {/* 1. Star Rating */}
-            <Box sx={{ mb: 2.5, textAlign: 'center', p: 1.5, bgcolor: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', display: 'block', mb: 0.8, textTransform: 'uppercase' }}>
+            <Box sx={{ textAlign: 'center', p: 2, bgcolor: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+              <Typography sx={{ fontWeight: 600, color: '#64748B', fontSize: '13px', mb: 1 }}>
                 How would you rate your platform experience?
               </Typography>
               <Rating
                 value={rating}
                 onChange={(e, val) => setRating(val || 5)}
                 size="large"
-                emptyIcon={<StarIcon style={{ opacity: 0.3 }} fontSize="inherit" />}
+                emptyIcon={<Star style={{ opacity: 0.3 }} fontSize="inherit" />}
                 sx={{
                   color: '#F59E0B',
                   '& .MuiRating-iconFilled': { color: '#F59E0B' },
                   '& .MuiRating-iconHover': { color: '#D97706' }
                 }}
               />
-              <Typography variant="caption" sx={{ display: 'block', mt: 0.5, fontWeight: 700, color: rating <= 2 ? '#DC2626' : rating === 3 ? '#D97706' : '#16A34A' }}>
+              <Typography sx={{ mt: 0.5, fontWeight: 600, fontSize: '12px', color: rating <= 2 ? '#DC2626' : rating === 3 ? '#D97706' : '#16A34A' }}>
                 {getRatingLabel(rating)}
               </Typography>
             </Box>
 
-            {/* 2. Feedback Issue Category Chips */}
-            <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', display: 'block', mb: 1, textTransform: 'uppercase' }}>
-              Select What You Want to Report:
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 0.8, flexWrap: 'wrap', mb: 2.5 }}>
-              {categories.map((c) => {
-                const isSelected = category === c.id;
-                return (
-                  <Chip
-                    key={c.id}
-                    icon={c.icon}
-                    label={c.label}
-                    clickable
-                    onClick={() => setCategory(c.id)}
-                    sx={{
-                      fontWeight: 700,
-                      fontSize: '11.5px',
-                      borderRadius: '8px',
-                      py: 1.8,
-                      bgcolor: isSelected ? (isTechnician ? '#10B981' : '#2563EB') : '#F1F5F9',
-                      color: isSelected ? '#FFFFFF' : '#475569',
-                      border: isSelected ? 'none' : '1px solid #CBD5E1',
-                      '& .MuiChip-icon': {
-                        color: isSelected ? '#FFFFFF !important' : '#64748B !important'
-                      },
-                      '&:hover': {
-                        bgcolor: isSelected ? (isTechnician ? '#059669' : '#1D4ED8') : '#E2E8F0'
-                      }
-                    }}
-                  />
-                );
-              })}
+            {/* 2. Issue Category */}
+            <Box>
+              <Typography sx={{ fontWeight: 600, color: '#64748B', fontSize: '13px', mb: 1 }}>
+                Select category
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                {categories.map((c) => {
+                  const isSelected = category === c.id;
+                  return (
+                    <Chip
+                      key={c.id}
+                      icon={c.icon}
+                      label={c.label}
+                      clickable
+                      onClick={() => setCategory(c.id)}
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: '12px',
+                        borderRadius: '9999px',
+                        height: 36,
+                        px: 1,
+                        bgcolor: isSelected ? '#0A66C2' : '#F1F5F9',
+                        color: isSelected ? '#FFFFFF' : '#334155',
+                        border: isSelected ? 'none' : '1px solid #E2E8F0',
+                        '& .MuiChip-icon': {
+                          color: isSelected ? '#FFFFFF !important' : '#64748B !important'
+                        },
+                        '&:hover': {
+                          bgcolor: isSelected ? '#084E96' : '#E2E8F0'
+                        }
+                      }}
+                    />
+                  );
+                })}
+              </Box>
             </Box>
 
-            {/* 3. Subject / Title */}
-            <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', display: 'block', mb: 0.5 }}>
-              Short Title (Optional):
-            </Typography>
-            <TextField
-              fullWidth
-              size="small"
-              placeholder={isTechnician ? "e.g. GPS coordinates inaccurate near Hasthampatti" : "e.g. Booking screen took long to load"}
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: '8px', fontSize: '13px', bgcolor: '#F8FAFC' } }}
-            />
+            {/* 3. Short Subject */}
+            <Box>
+              <Typography sx={{ fontWeight: 600, color: '#64748B', fontSize: '13px', mb: 0.5 }}>
+                Title (optional)
+              </Typography>
+              <TextField
+                fullWidth
+                size="small"
+                placeholder={isTechnician ? "e.g. GPS coordinates inaccurate near Hasthampatti" : "e.g. Booking screen took long to load"}
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '12px',
+                    fontSize: '13px',
+                    bgcolor: '#F8FAFC'
+                  }
+                }}
+              />
+            </Box>
 
             {/* 4. Detailed Description */}
-            <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', display: 'block', mb: 0.5 }}>
-              Describe the problem or suggestion in detail: *
-            </Typography>
-            <TextField
-              fullWidth
-              multiline
-              rows={3}
-              placeholder={isTechnician ? "Tell us what happened, when it occurred, or any issues with earnings/jobs..." : "Tell us about any error, delay, feature idea, or feedback..."}
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              required
-              sx={{ mb: 1, '& .MuiOutlinedInput-root': { borderRadius: '8px', fontSize: '13px', bgcolor: '#F8FAFC' } }}
-            />
-            <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '11px', display: 'block', mb: 2 }}>
-              Submitted feedbacks are forwarded in real time to the Salem Central Admin Operations Desk.
-            </Typography>
-
-            <DialogActions sx={{ px: 0, pb: 0 }}>
-              <Button onClick={handleModalClose} sx={{ color: '#64748B', fontWeight: 700 }}>
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                variant="contained"
-                disabled={isSubmitting || !message.trim()}
-                startIcon={isSubmitting ? <CircularProgress size={16} sx={{ color: '#FFF' }} /> : <SendIcon sx={{ fontSize: 16 }} />}
+            <Box>
+              <Typography sx={{ fontWeight: 600, color: '#64748B', fontSize: '13px', mb: 0.5 }}>
+                Describe your issue or suggestion *
+              </Typography>
+              <TextField
+                fullWidth
+                multiline
+                rows={3}
+                placeholder={isTechnician ? "Tell us what happened, when it occurred, or any issues with earnings..." : "Tell us about any error, delay, feature idea, or feedback..."}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                required
                 sx={{
-                  bgcolor: isTechnician ? '#10B981' : '#2563EB',
-                  color: '#FFFFFF',
-                  fontWeight: 800,
-                  borderRadius: '10px',
-                  px: 2.5,
-                  textTransform: 'none',
-                  '&:hover': { bgcolor: isTechnician ? '#059669' : '#1D4ED8' }
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '12px',
+                    fontSize: '13px',
+                    bgcolor: '#F8FAFC'
+                  }
                 }}
-              >
-                {isSubmitting ? 'Sending...' : 'Submit to Admin Desk'}
-              </Button>
-            </DialogActions>
-          </form>
+              />
+            </Box>
+          </Box>
         )}
-      </DialogContent>
-    </Dialog>
+      </ModalBody>
+
+      <ModalFooter>
+        {success ? (
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={handleModalClose}
+            sx={{
+              bgcolor: '#0A66C2',
+              color: '#FFFFFF',
+              borderRadius: '14px',
+              height: 48,
+              fontWeight: 700,
+              fontSize: '14px',
+              textTransform: 'none',
+              '&:hover': { bgcolor: '#084E96' }
+            }}
+          >
+            Close
+          </Button>
+        ) : (
+          <>
+            <Button
+              variant="outlined"
+              onClick={handleModalClose}
+              disabled={isSubmitting}
+              sx={{
+                color: '#64748B',
+                borderColor: '#E2E8F0',
+                fontWeight: 600,
+                textTransform: 'none',
+                fontSize: '13px',
+                borderRadius: '12px',
+                minHeight: 44,
+                px: 2,
+                '&:hover': { bgcolor: '#F8FAFC', borderColor: '#CBD5E1' }
+              }}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              form="feedback-form"
+              type="submit"
+              variant="contained"
+              disabled={isSubmitting || !message.trim()}
+              startIcon={isSubmitting ? <CircularProgress size={16} color="inherit" /> : <Send size={16} />}
+              sx={{
+                bgcolor: '#0A66C2',
+                color: '#FFFFFF',
+                fontWeight: 700,
+                textTransform: 'none',
+                fontSize: '14px',
+                borderRadius: '14px',
+                minHeight: 48,
+                px: 2.5,
+                '&:hover': { bgcolor: '#084E96' },
+                '&:disabled': { bgcolor: '#CBD5E1', color: '#94A3B8' }
+              }}
+            >
+              {isSubmitting ? 'Sending...' : 'Submit feedback'}
+            </Button>
+          </>
+        )}
+      </ModalFooter>
+    </Modal>
   );
 }

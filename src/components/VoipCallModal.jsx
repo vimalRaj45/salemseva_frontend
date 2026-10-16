@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  Dialog,
-  DialogContent,
   Box,
   Typography,
   IconButton,
@@ -10,21 +8,19 @@ import {
   Button,
   Alert
 } from '@mui/material';
-
-import CallEndIcon from '@mui/icons-material/CallEnd';
-import CallIcon from '@mui/icons-material/Call';
-import MicIcon from '@mui/icons-material/Mic';
-import MicOffIcon from '@mui/icons-material/MicOff';
-import VolumeUpIcon from '@mui/icons-material/VolumeUp';
-import VolumeOffIcon from '@mui/icons-material/VolumeOff';
-import SecurityIcon from '@mui/icons-material/Security';
-import GraphicEqIcon from '@mui/icons-material/GraphicEq';
-import PhoneInTalkIcon from '@mui/icons-material/PhoneInTalk';
-import LockIcon from '@mui/icons-material/Lock';
-
+import {
+  Phone,
+  PhoneOff,
+  PhoneCall,
+  Mic,
+  MicOff,
+  Volume2,
+  VolumeX,
+  Shield,
+  Activity
+} from 'lucide-react';
 import { API_BASE_URL } from '../config';
-import SalemLottie from './SalemLottie';
-import { ILLUSTRATIONS } from '../constants/visualAssets';
+import { Modal, ModalHeader, ModalBody, ModalFooter } from './Modal';
 
 const DEFAULT_ICE_SERVERS = [
   { urls: 'stun:stun.l.google.com:19302' },
@@ -42,7 +38,7 @@ export default function VoipCallModal({
   role = 'Customer',
   isIncoming = false
 }) {
-  const [callState, setCallState] = useState(isIncoming ? 'INCOMING' : 'RINGING'); // INCOMING | RINGING | CONNECTED | ENDED | PERMISSION_REQUIRED
+  const [callState, setCallState] = useState(isIncoming ? 'INCOMING' : 'RINGING');
   const [seconds, setSeconds] = useState(0);
   const [muted, setMuted] = useState(false);
   const [speaker, setSpeaker] = useState(true);
@@ -58,7 +54,6 @@ export default function VoipCallModal({
   const ringtoneOscillatorRef = useRef(null);
   const audioContextRef = useRef(null);
 
-  // Synthesized ringtone using Web Audio API
   const startRingtone = () => {
     try {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -94,7 +89,6 @@ export default function VoipCallModal({
     } catch (e) {}
   };
 
-  // Cleanup WebRTC Peer Connection & Media Streams
   const cleanupMedia = () => {
     stopRingtone();
     if (localStreamRef.current) {
@@ -109,7 +103,6 @@ export default function VoipCallModal({
     pendingIceCandidatesQueueRef.current = [];
   };
 
-  // Request Microphone Media Stream with standard noise suppression
   const acquireMicrophone = async () => {
     setMicRequesting(true);
     setAudioError(null);
@@ -130,12 +123,11 @@ export default function VoipCallModal({
       console.warn('Microphone permission error:', err);
       setMicRequesting(false);
       setMicGranted(false);
-      setAudioError('Microphone permission was denied. Please allow microphone access in your browser to speak, or use Direct Phone Call.');
+      setAudioError('Microphone permission was denied. Please allow microphone access in your browser settings.');
       return null;
     }
   };
 
-  // Setup WebRTC Connection & Attach Audio Transceivers
   const setupPeerConnection = async (localStream, isCaller) => {
     try {
       let iceServers = DEFAULT_ICE_SERVERS;
@@ -150,329 +142,198 @@ export default function VoipCallModal({
       const pc = new RTCPeerConnection({ iceServers });
       pcRef.current = pc;
 
-      // Attach Local Microphone Tracks
       if (localStream) {
-        localStream.getTracks().forEach(track => {
+        localStream.getAudioTracks().forEach(track => {
           pc.addTrack(track, localStream);
         });
       }
 
-      // Ensure Bidirectional Audio Transceiver
-      try {
-        const transceivers = pc.getTransceivers();
-        const audioTrans = transceivers.find(t => t.receiver && t.receiver.track && t.receiver.track.kind === 'audio');
-        if (audioTrans) {
-          audioTrans.direction = 'sendrecv';
-        } else {
-          pc.addTransceiver('audio', { direction: 'sendrecv' });
-        }
-      } catch (tErr) {}
-
-      // Handle Inbound Remote Audio Stream
       pc.ontrack = (event) => {
-        const stream = (event.streams && event.streams[0]) ? event.streams[0] : new MediaStream([event.track]);
-        if (remoteAudioRef.current) {
-          remoteAudioRef.current.srcObject = stream;
-          remoteAudioRef.current.muted = false;
-          remoteAudioRef.current.volume = 1.0;
-          remoteAudioRef.current.play().catch(e => {
-            console.warn('Remote audio autoplay catch:', e);
-          });
+        if (remoteAudioRef.current && event.streams && event.streams[0]) {
+          remoteAudioRef.current.srcObject = event.streams[0];
+          remoteAudioRef.current.play().catch(e => console.warn('Remote audio play error:', e));
+          stopRingtone();
+          setCallState('CONNECTED');
         }
       };
 
-      // Handle Local ICE Candidates
-      pc.onicecandidate = (event) => {
-        if (event.candidate) {
-          fetch(`${API_BASE_URL}/api/v1/webrtc/call/candidate`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              bookingId,
-              candidate: event.candidate,
-              senderRole: isCaller ? 'caller' : 'callee'
-            })
-          }).catch(() => {});
+      pc.onicecandidate = async (event) => {
+        if (event.candidate && bookingId) {
+          try {
+            await fetch(`${API_BASE_URL}/api/v1/webrtc/candidate`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                bookingId,
+                candidate: event.candidate,
+                role
+              })
+            });
+          } catch (e) {}
+        }
+      };
+
+      pc.onconnectionstatechange = () => {
+        if (pc.connectionState === 'connected') {
+          stopRingtone();
+          setCallState('CONNECTED');
+        } else if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed' || pc.connectionState === 'closed') {
+          setCallState('ENDED');
+          cleanupMedia();
         }
       };
 
       return pc;
     } catch (err) {
-      console.error('Failed to create RTCPeerConnection:', err);
+      console.error('Peer connection error:', err);
       return null;
     }
   };
 
-  // Start Outbound Call Flow
   const startOutboundCall = async () => {
+    cleanupMedia();
+    const stream = await acquireMicrophone();
+    if (!stream) {
+      setCallState('PERMISSION_REQUIRED');
+      return;
+    }
     setCallState('RINGING');
     startRingtone();
 
-    // 1. Acquire Local Mic
-    const stream = await acquireMicrophone();
-    if (!stream) {
-      setCallState('PERMISSION_REQUIRED');
-      stopRingtone();
-      return;
-    }
-
-    // 2. Setup RTCPeerConnection with local track
     const pc = await setupPeerConnection(stream, true);
     if (!pc) return;
 
-    // 3. Initiate Call Signal on Backend
     try {
-      await fetch(`${API_BASE_URL}/api/v1/webrtc/call/initiate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          bookingId,
-          caller: role.toLowerCase(),
-          callerName: role === 'Customer' ? 'Customer' : 'Technician',
-          calleeName
-        })
-      });
-
-      // 4. Create and send SDP Offer (sendrecv)
       const offer = await pc.createOffer({ offerToReceiveAudio: true });
       await pc.setLocalDescription(offer);
 
-      await fetch(`${API_BASE_URL}/api/v1/webrtc/call/offer`, {
+      await fetch(`${API_BASE_URL}/api/v1/webrtc/offer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bookingId, sdp: offer })
+        body: JSON.stringify({ bookingId, sdp: offer.sdp, role })
       });
-    } catch (e) {
-      console.warn('Initiate call error:', e);
+    } catch (err) {
+      console.error('Failed to create/send offer:', err);
+      stopRingtone();
+      setCallState('ENDED');
     }
   };
 
-  // Lifecycle on modal open
-  useEffect(() => {
-    if (!open) {
-      cleanupMedia();
-      return;
-    }
-
-    setSeconds(0);
-    setAudioError(null);
-
-    if (isIncoming) {
-      setCallState('INCOMING');
-    } else {
-      startOutboundCall();
-    }
-
-    return () => {
-      cleanupMedia();
-    };
-  }, [open, isIncoming, bookingId, role, calleeName]);
-
-  // Poller for WebRTC Signaling (Offer/Answer/Candidates)
-  useEffect(() => {
-    if (!open) return;
-    let isMounted = true;
-
-    const pollSignals = async () => {
-      try {
-        // 1. Poll Call Status
-        const statusRes = await fetch(`${API_BASE_URL}/api/v1/webrtc/call/status?bookingId=${bookingId}`);
-        const statusData = await statusRes.json();
-        if (statusData.success && statusData.call && isMounted) {
-          const call = statusData.call;
-
-          if (call.status === 'CONNECTED' && callState !== 'CONNECTED') {
-            stopRingtone();
-            setCallState('CONNECTED');
-          } else if (call.status === 'ENDED' && callState !== 'ENDED') {
-            stopRingtone();
-            setCallState('ENDED');
-            cleanupMedia();
-            setTimeout(() => onClose(), 800);
-            return;
-          }
-        }
-
-        const pc = pcRef.current;
-        if (!pc) return;
-
-        // 2. If Caller, check for Callee's SDP Answer
-        if (!isIncoming && pc.signalingState === 'have-local-offer') {
-          const ansRes = await fetch(`${API_BASE_URL}/api/v1/webrtc/call/answer?bookingId=${bookingId}`);
-          const ansData = await ansRes.json();
-          if (ansData.success && ansData.answer) {
-            await pc.setRemoteDescription(new RTCSessionDescription(ansData.answer));
-            stopRingtone();
-            setCallState('CONNECTED');
-
-            // Drain any pending queued candidates
-            for (const cand of pendingIceCandidatesQueueRef.current) {
-              try {
-                await pc.addIceCandidate(new RTCIceCandidate(cand));
-              } catch (e) {}
-            }
-            pendingIceCandidatesQueueRef.current = [];
-          }
-        }
-
-        // 3. Poll Pending ICE Candidates
-        const targetRole = isIncoming ? 'callee' : 'caller';
-        const candRes = await fetch(`${API_BASE_URL}/api/v1/webrtc/call/candidates?bookingId=${bookingId}&targetRole=${targetRole}`);
-        const candData = await candRes.json();
-        if (candData.success && candData.candidates) {
-          for (const c of candData.candidates) {
-            const cKey = JSON.stringify(c);
-            if (!processedCandidatesRef.current.has(cKey)) {
-              processedCandidatesRef.current.add(cKey);
-              if (pc.remoteDescription && pc.remoteDescription.type) {
-                try {
-                  await pc.addIceCandidate(new RTCIceCandidate(c));
-                } catch (e) {}
-              } else {
-                pendingIceCandidatesQueueRef.current.push(c);
-              }
-            }
-          }
-        }
-      } catch (err) {}
-    };
-
-    const interval = setInterval(pollSignals, 900);
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-    };
-  }, [open, bookingId, isIncoming, callState, onClose]);
-
-  // Duration Timer
-  useEffect(() => {
-    let timer;
-    if (open && callState === 'CONNECTED') {
-      timer = setInterval(() => setSeconds(s => s + 1), 1000);
-    }
-    return () => clearInterval(timer);
-  }, [open, callState]);
-
-  const formatTime = (sec) => {
-    const m = Math.floor(sec / 60);
-    const s = sec % 60;
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  };
-
-  // Handle Callee Accepting Call
   const handleAcceptIncoming = async () => {
     stopRingtone();
-    
-    // 1. Acquire Local Microphone
     const stream = await acquireMicrophone();
     if (!stream) {
       setCallState('PERMISSION_REQUIRED');
       return;
     }
+    setCallState('RINGING');
 
-    setCallState('CONNECTED');
+    const pc = await setupPeerConnection(stream, false);
+    if (!pc) return;
 
     try {
-      // 2. Notify Backend Call Accepted
-      await fetch(`${API_BASE_URL}/api/v1/webrtc/call/accept`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bookingId })
-      });
-
-      // 3. Setup Callee PeerConnection
-      const pc = await setupPeerConnection(stream, false);
-      if (!pc) return;
-
-      // 4. Fetch Caller's SDP Offer
-      const offerRes = await fetch(`${API_BASE_URL}/api/v1/webrtc/call/offer?bookingId=${bookingId}`);
+      const offerRes = await fetch(`${API_BASE_URL}/api/v1/webrtc/offer?bookingId=${bookingId}`);
       const offerData = await offerRes.json();
       if (offerData.success && offerData.offer) {
-        await pc.setRemoteDescription(new RTCSessionDescription(offerData.offer));
-        
-        // 5. Create & Send SDP Answer
+        await pc.setRemoteDescription(new RTCSessionDescription({ type: 'offer', sdp: offerData.offer.sdp }));
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
 
-        await fetch(`${API_BASE_URL}/api/v1/webrtc/call/answer`, {
+        await fetch(`${API_BASE_URL}/api/v1/webrtc/answer`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ bookingId, sdp: answer })
+          body: JSON.stringify({ bookingId, sdp: answer.sdp, role })
         });
-
-        // Drain pending candidates
-        for (const cand of pendingIceCandidatesQueueRef.current) {
-          try {
-            await pc.addIceCandidate(new RTCIceCandidate(cand));
-          } catch (e) {}
-        }
-        pendingIceCandidatesQueueRef.current = [];
       }
-    } catch (e) {
-      console.warn('Accept call error:', e);
+    } catch (err) {
+      console.error('Accept incoming error:', err);
+      setCallState('ENDED');
     }
   };
 
-  // Terminate Call
   const handleEndCall = async () => {
     stopRingtone();
     setCallState('ENDED');
     cleanupMedia();
 
-    try {
-      await fetch(`${API_BASE_URL}/api/v1/webrtc/call/end`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bookingId })
-      });
-    } catch (e) {}
+    if (bookingId) {
+      try {
+        await fetch(`${API_BASE_URL}/api/v1/webrtc/hangup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ bookingId, role })
+        });
+      } catch (e) {}
+    }
 
-    setTimeout(() => onClose(), 400);
+    setTimeout(() => {
+      onClose();
+    }, 600);
   };
 
-  // Toggle Mute / Unmute
   const toggleMute = () => {
     if (localStreamRef.current) {
-      const audioTracks = localStreamRef.current.getAudioTracks();
-      if (audioTracks.length > 0) {
-        const nextState = !muted;
-        audioTracks[0].enabled = !nextState;
-        setMuted(nextState);
+      const audioTrack = localStreamRef.current.getAudioTracks()[0];
+      if (audioTrack) {
+        audioTrack.enabled = !audioTrack.enabled;
+        setMuted(!audioTrack.enabled);
       }
-    } else {
-      setMuted(!muted);
     }
   };
 
-  // Toggle Speaker / Earpiece
   const toggleSpeaker = () => {
-    if (remoteAudioRef.current) {
-      remoteAudioRef.current.muted = speaker;
-      setSpeaker(!speaker);
+    setSpeaker(prev => !prev);
+  };
+
+  // Timer counter when connected
+  useEffect(() => {
+    let timer = null;
+    if (callState === 'CONNECTED') {
+      timer = setInterval(() => {
+        setSeconds(s => s + 1);
+      }, 1000);
     } else {
-      setSpeaker(!speaker);
+      setSeconds(0);
     }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [callState]);
+
+  // Handle call opening
+  useEffect(() => {
+    if (open) {
+      if (isIncoming) {
+        setCallState('INCOMING');
+        startRingtone();
+      } else {
+        startOutboundCall();
+      }
+    } else {
+      cleanupMedia();
+    }
+    return () => {
+      cleanupMedia();
+    };
+  }, [open, isIncoming]);
+
+  const formatTime = (totalSeconds) => {
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    return `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={handleEndCall}
-      maxWidth="xs"
-      fullWidth
-      PaperProps={{
-        sx: {
-          bgcolor: '#0F172A',
-          color: '#FFFFFF',
-          borderRadius: '24px',
-          p: 2.5,
-          textAlign: 'center',
-          boxShadow: '0 25px 60px rgba(0,0,0,0.85)'
-        }
-      }}
-    >
-      <DialogContent sx={{ p: 1 }}>
-        {/* Hidden Audio element for remote audio stream - NOT display:none so browser audio engine processes it */}
+    <Modal open={open} onClose={handleEndCall} maxWidth="xs" ariaLabelledBy="voip-modal-title">
+      <ModalHeader
+        id="voip-modal-title"
+        title="VoIP Voice Call"
+        subtitle={`Masked privacy relay • Booking #${bookingId}`}
+        onClose={handleEndCall}
+        icon={<Phone size={20} color="#0A66C2" />}
+      />
+
+      <ModalBody sx={{ alignItems: 'center', textAlign: 'center', py: 4 }}>
         <audio
           ref={remoteAudioRef}
           autoPlay
@@ -481,225 +342,198 @@ export default function VoipCallModal({
           style={{ position: 'fixed', top: '-1000px', left: '-1000px', width: '1px', height: '1px', opacity: 0, pointerEvents: 'none' }}
         />
 
-        {/* Privacy Masked Badge */}
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1, mb: 1.5 }}>
+        <Box sx={{ mb: 1 }}>
           <Chip
-            icon={<SecurityIcon sx={{ color: '#34D399 !important', fontSize: 16 }} />}
-            label="SalemSeva Masked VoIP • Zero Phone Number Leak"
+            icon={<Shield size={12} color="#16A34A" />}
+            label="Masked VoIP • Zero phone number disclosure"
             size="small"
-            sx={{ bgcolor: 'rgba(52, 211, 153, 0.15)', color: '#34D399', fontWeight: 700, fontSize: '11px' }}
+            sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 600, fontSize: '11px', height: 24, borderRadius: '9999px' }}
           />
         </Box>
 
-        {/* Visual Call Animation & Callee Display */}
-        <Box sx={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', my: 1 }}>
-          {callState === 'CONNECTED' ? (
-            <Box sx={{ position: 'relative', mb: 1.5 }}>
-              <Avatar
-                sx={{
-                  width: 76,
-                  height: 76,
-                  bgcolor: '#2563EB',
-                  fontSize: '26px',
-                  fontWeight: 800,
-                  mx: 'auto',
-                  border: '3px solid #38BDF8',
-                  boxShadow: '0 0 25px rgba(56, 189, 248, 0.6)'
-                }}
-              >
-                {calleeName.substring(0, 2).toUpperCase()}
-              </Avatar>
-            </Box>
-          ) : (
-            <Box sx={{ mb: 1, position: 'relative' }}>
-              <SalemLottie name="supportCall" width={110} height={110} />
-            </Box>
-          )}
+        <Avatar
+          sx={{
+            width: 72,
+            height: 72,
+            bgcolor: '#0A66C2',
+            fontSize: '24px',
+            fontWeight: 700,
+            mx: 'auto',
+            my: 2,
+            border: '3px solid #BFDBFE'
+          }}
+        >
+          {calleeName.substring(0, 2).toUpperCase()}
+        </Avatar>
 
-          <Box
-            component="img"
-            src={ILLUSTRATIONS.calling}
-            alt="Masked VoIP Phone Call"
-            sx={{
-              width: 80,
-              height: 48,
-              objectFit: 'contain',
-              opacity: 0.8,
-              mb: 1
-            }}
-          />
-        </Box>
-
-        <Typography variant="h6" sx={{ fontWeight: 800, color: '#FFFFFF', mb: 0.3, fontSize: '17px' }}>
+        <Typography sx={{ fontWeight: 700, color: '#0F172A', fontSize: '16px', mb: 0.5 }}>
           {calleeName}
         </Typography>
-        <Typography variant="caption" sx={{ color: '#94A3B8', display: 'block', mb: 1.5, fontSize: '12px' }}>
+        <Typography sx={{ color: '#64748B', fontSize: '12px', mb: 2 }}>
           {role === 'Customer' ? 'Technician • Fairlands & Salem Zone' : 'Customer • Fairlands, Salem'}
         </Typography>
 
-        {/* Call State / Duration Display */}
+        {/* Call State Display */}
         <Box sx={{ my: 1 }}>
           {callState === 'INCOMING' && (
-            <Typography variant="subtitle2" sx={{ color: '#34D399', fontWeight: 800, fontSize: '14px' }}>
-              Incoming VoIP Call (அழைப்பு வருகிறது)...
+            <Typography sx={{ color: '#0A66C2', fontWeight: 600, fontSize: '14px' }}>
+              Incoming VoIP call...
             </Typography>
           )}
           {callState === 'RINGING' && (
-            <Typography variant="subtitle2" sx={{ color: '#FCD34D', fontWeight: 800, fontSize: '14px' }}>
-              Calling & Ringing (ரிங் ஆகிறது)...
+            <Typography sx={{ color: '#D97706', fontWeight: 600, fontSize: '14px' }}>
+              Ringing...
             </Typography>
           )}
           {callState === 'CONNECTED' && (
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-              <GraphicEqIcon sx={{ color: '#10B981', fontSize: 24 }} />
-              <Typography variant="h6" sx={{ color: '#10B981', fontWeight: 800, fontSize: '20px' }}>
+              <Activity size={18} color="#16A34A" />
+              <Typography sx={{ color: '#16A34A', fontWeight: 700, fontSize: '20px' }}>
                 {formatTime(seconds)}
               </Typography>
             </Box>
           )}
           {callState === 'ENDED' && (
-            <Typography variant="subtitle2" sx={{ color: '#F87171', fontWeight: 800 }}>
-              Call Ended
+            <Typography sx={{ color: '#DC2626', fontWeight: 600, fontSize: '14px' }}>
+              Call ended
             </Typography>
           )}
           {callState === 'PERMISSION_REQUIRED' && (
-            <Typography variant="subtitle2" sx={{ color: '#FCD34D', fontWeight: 800, fontSize: '13px' }}>
-              Microphone Permission Needed
+            <Typography sx={{ color: '#D97706', fontWeight: 600, fontSize: '13px' }}>
+              Microphone permission needed
             </Typography>
           )}
         </Box>
 
-        {/* Permission Required State Banner */}
         {callState === 'PERMISSION_REQUIRED' && (
-          <Box sx={{ bgcolor: 'rgba(234, 179, 8, 0.12)', border: '1px solid #FCD34D', borderRadius: '12px', p: 1.5, my: 2 }}>
-            <Typography variant="body2" sx={{ color: '#FDE047', fontWeight: 600, fontSize: '12px', mb: 1.2 }}>
-              SalemSeva needs microphone access so both you and the other party can talk and hear clearly.
+          <Box sx={{ bgcolor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '12px', p: 2, my: 1 }}>
+            <Typography sx={{ color: '#92400E', fontSize: '12px', mb: 1.5, lineHeight: 1.4 }}>
+              Microphone access is required to connect audio.
             </Typography>
             <Button
               variant="contained"
               fullWidth
-              startIcon={<MicIcon />}
+              startIcon={<Mic size={16} />}
               onClick={isIncoming ? handleAcceptIncoming : startOutboundCall}
               disabled={micRequesting}
               sx={{
-                bgcolor: '#2563EB',
+                bgcolor: '#0A66C2',
                 color: '#FFF',
-                fontWeight: 800,
-                borderRadius: '10px',
-                py: 1,
+                fontWeight: 600,
+                borderRadius: '12px',
+                height: 44,
                 fontSize: '13px',
                 textTransform: 'none',
-                '&:hover': { bgcolor: '#1D4ED8' }
+                '&:hover': { bgcolor: '#084E96' }
               }}
             >
-              {micRequesting ? 'Requesting Permission...' : ' Allow Microphone & Connect'}
+              {micRequesting ? 'Requesting access...' : 'Allow microphone'}
             </Button>
           </Box>
         )}
 
         {audioError && callState !== 'PERMISSION_REQUIRED' && (
-          <Alert severity="warning" sx={{ bgcolor: 'rgba(234, 179, 8, 0.1)', color: '#FDE047', borderRadius: '10px', fontSize: '11px', my: 1, p: 0.5 }}>
+          <Alert severity="warning" sx={{ borderRadius: '10px', fontSize: '12px', my: 1 }}>
             {audioError}
           </Alert>
         )}
 
-        {/* Action Controls */}
+        {/* Audio Controls */}
+        {callState === 'CONNECTED' && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mt: 2 }}>
+            <IconButton
+              onClick={toggleMute}
+              sx={{
+                bgcolor: muted ? '#DC2626' : '#F1F5F9',
+                color: muted ? '#FFFFFF' : '#0F172A',
+                width: 48,
+                height: 48,
+                borderRadius: '12px',
+                '&:hover': { bgcolor: muted ? '#B91C1C' : '#E2E8F0' }
+              }}
+            >
+              {muted ? <MicOff size={20} /> : <Mic size={20} />}
+            </IconButton>
+
+            <IconButton
+              onClick={toggleSpeaker}
+              sx={{
+                bgcolor: speaker ? '#0A66C2' : '#F1F5F9',
+                color: speaker ? '#FFFFFF' : '#0F172A',
+                width: 48,
+                height: 48,
+                borderRadius: '12px',
+                '&:hover': { bgcolor: speaker ? '#084E96' : '#E2E8F0' }
+              }}
+            >
+              {speaker ? <Volume2 size={20} /> : <VolumeX size={20} />}
+            </IconButton>
+          </Box>
+        )}
+      </ModalBody>
+
+      <ModalFooter sx={{ justifyContent: 'center' }}>
         {callState === 'INCOMING' ? (
-          <Box sx={{ display: 'flex', gap: 2, mt: 3, justifyContent: 'center' }}>
+          <Box sx={{ display: 'flex', gap: 1.5, width: '100%' }}>
+            <Button
+              variant="outlined"
+              fullWidth
+              startIcon={<PhoneOff size={16} />}
+              onClick={handleEndCall}
+              sx={{
+                color: '#DC2626',
+                borderColor: '#FCA5A5',
+                borderRadius: '12px',
+                height: 48,
+                fontWeight: 600,
+                fontSize: '14px',
+                textTransform: 'none',
+                '&:hover': { bgcolor: '#FEF2F2', borderColor: '#DC2626' }
+              }}
+            >
+              Decline
+            </Button>
             <Button
               variant="contained"
-              startIcon={<CallIcon />}
+              fullWidth
+              startIcon={<PhoneCall size={16} />}
               onClick={handleAcceptIncoming}
               disabled={micRequesting}
               sx={{
                 bgcolor: '#16A34A',
                 color: '#FFF',
-                borderRadius: '12px',
-                px: 2.5,
-                py: 1.1,
-                fontWeight: 800,
-                fontSize: '13.5px',
+                borderRadius: '14px',
+                height: 48,
+                fontWeight: 700,
+                fontSize: '14px',
                 textTransform: 'none',
                 '&:hover': { bgcolor: '#15803D' }
               }}
             >
-              {micRequesting ? 'Connecting...' : 'Accept Call (பதில் கொடு)'}
-            </Button>
-            <Button
-              variant="contained"
-              startIcon={<CallEndIcon />}
-              onClick={handleEndCall}
-              sx={{
-                bgcolor: '#DC2626',
-                color: '#FFF',
-                borderRadius: '12px',
-                px: 2,
-                py: 1.1,
-                fontWeight: 800,
-                fontSize: '13px',
-                textTransform: 'none',
-                '&:hover': { bgcolor: '#B91C1C' }
-              }}
-            >
-              Decline
+              {micRequesting ? 'Connecting...' : 'Accept'}
             </Button>
           </Box>
-        ) : callState !== 'PERMISSION_REQUIRED' && (
-          <>
-            {/* Audio Controls */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2.5, my: 2 }}>
-              <IconButton
-                onClick={toggleMute}
-                sx={{
-                  bgcolor: muted ? '#EF4444' : 'rgba(255,255,255,0.12)',
-                  color: '#FFFFFF',
-                  width: 48,
-                  height: 48,
-                  '&:hover': { bgcolor: muted ? '#DC2626' : 'rgba(255,255,255,0.2)' }
-                }}
-              >
-                {muted ? <MicOffIcon sx={{ fontSize: 22 }} /> : <MicIcon sx={{ fontSize: 22 }} />}
-              </IconButton>
-
-              <IconButton
-                onClick={toggleSpeaker}
-                sx={{
-                  bgcolor: speaker ? '#2563EB' : 'rgba(255,255,255,0.12)',
-                  color: '#FFFFFF',
-                  width: 48,
-                  height: 48,
-                  '&:hover': { bgcolor: speaker ? '#1D4ED8' : 'rgba(255,255,255,0.2)' }
-                }}
-              >
-                {speaker ? <VolumeUpIcon sx={{ fontSize: 22 }} /> : <VolumeOffIcon sx={{ fontSize: 22 }} />}
-              </IconButton>
-            </Box>
-
-            {/* End Call Button */}
-            <Button
-              variant="contained"
-              fullWidth
-              size="medium"
-              startIcon={<CallEndIcon />}
-              onClick={handleEndCall}
-              sx={{
-                bgcolor: '#EF4444',
-                color: '#FFFFFF',
-                borderRadius: '12px',
-                py: 1.2,
-                fontWeight: 800,
-                fontSize: '13.5px',
-                boxShadow: '0 4px 14px rgba(239, 68, 68, 0.4)',
-                textTransform: 'none',
-                mt: 1,
-                '&:hover': { bgcolor: '#DC2626' }
-              }}
-            >
-              End Call (அழைப்பை முடி)
-            </Button>
-          </>
+        ) : (
+          <Button
+            variant="contained"
+            fullWidth
+            startIcon={<PhoneOff size={18} />}
+            onClick={handleEndCall}
+            sx={{
+              bgcolor: '#DC2626',
+              color: '#FFFFFF',
+              borderRadius: '14px',
+              height: 48,
+              fontWeight: 700,
+              fontSize: '14px',
+              textTransform: 'none',
+              '&:hover': { bgcolor: '#B91C1C' }
+            }}
+          >
+            End call
+          </Button>
         )}
-      </DialogContent>
-    </Dialog>
+      </ModalFooter>
+    </Modal>
   );
 }

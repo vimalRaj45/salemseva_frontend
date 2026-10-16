@@ -13,10 +13,6 @@ import {
   FormControlLabel,
   Switch,
   TextField,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Rating,
   Avatar,
   Divider,
@@ -47,6 +43,7 @@ import toast from 'react-hot-toast';
 import ChatIcon from '@mui/icons-material/Chat';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import StarsIcon from '@mui/icons-material/Stars';
+import Modal, { ModalHeader, ModalBody, ModalFooter } from './Modal';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import CurrencyRupeeIcon from '@mui/icons-material/CurrencyRupee';
 import BuildCircleOutlinedIcon from '@mui/icons-material/BuildCircleOutlined';
@@ -182,32 +179,37 @@ export default function CustomerApp({ currentStep, setStep, activeBooking, setAc
               </CardContent>
             </Card>
 
-            {/* 4 Core Services Grid */}
-            <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 1.5, color: '#0F172A' }}>Our 4 Core Services</Typography>
+            {/* Core Services Grid */}
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 1.5, color: '#0F172A' }}>Our Services</Typography>
             <Grid container spacing={1.5}>
-              {[
-                { id: 'ac', name: 'AC Repair & Svc', price: '₹99', eta: '25m', icon: <AcUnitIcon />, color: '#0284C7', bg: '#E0F2FE' },
-                { id: 'electrician', name: 'Electrician', price: '₹99', eta: '20m', icon: <ElectricBoltIcon />, color: '#D97706', bg: '#FEF3C7' },
-                { id: 'plumber', name: 'Plumber Leakage', price: '₹99', eta: '30m', icon: <PlumbingIcon />, color: '#4F46E5', bg: '#E0E7FF' },
-                { id: 'cleaning', name: 'Home Deep Clean', price: '₹149', eta: '35m', icon: <CleaningServicesIcon />, color: '#059669', bg: '#DCFCE7' }
-              ].map(svc => (
-                <Grid item xs={6} key={svc.id}>
-                  <Card 
-                    sx={{ p: 1.5, cursor: 'pointer', '&:hover': { borderColor: '#0284C7' } }}
-                    onClick={() => {
-                      setActiveBooking(prev => ({ ...prev, selectedService: svc }));
-                      setStep('service_detail');
-                    }}
-                  >
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                      <Avatar sx={{ bgcolor: svc.bg, color: svc.color, width: 36, height: 36 }}>{svc.icon}</Avatar>
-                      <Chip label={`${svc.eta} ETA`} size="small" sx={{ fontSize: 9, height: 18, bgcolor: '#F1F5F9' }} />
-                    </Box>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>{svc.name}</Typography>
-                    <Typography variant="caption" sx={{ color: svc.color, fontWeight: 700 }}>From {svc.price} Visit</Typography>
-                  </Card>
-                </Grid>
-              ))}
+              {(services.length > 0 ? services : [
+                { id: 'ac', name: 'AC Repair & Svc', visitFee: 99, eta: '25m', icon: <AcUnitIcon />, color: '#0284C7', bg: '#E0F2FE' },
+                { id: 'electrician', name: 'Electrician', visitFee: 99, eta: '20m', icon: <ElectricBoltIcon />, color: '#D97706', bg: '#FEF3C7' },
+                { id: 'plumber', name: 'Plumber Leakage', visitFee: 99, eta: '30m', icon: <PlumbingIcon />, color: '#4F46E5', bg: '#E0E7FF' },
+                { id: 'cleaning', name: 'Home Deep Clean', visitFee: 149, eta: '35m', icon: <CleaningServicesIcon />, color: '#059669', bg: '#DCFCE7' }
+              ]).map(svc => {
+                const fee = svc.visitFee || 99;
+                return (
+                  <Grid item xs={6} key={svc.id}>
+                    <Card 
+                      sx={{ p: 1.5, cursor: 'pointer', '&:hover': { borderColor: '#0284C7' } }}
+                      onClick={() => {
+                        setActiveBooking(prev => ({ ...prev, selectedService: svc, visitFee: fee }));
+                        setStep('service_detail');
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Avatar sx={{ bgcolor: svc.bg || '#EFF6FF', color: svc.colorHex || svc.color || '#0284C7', width: 36, height: 36 }}>
+                          {svc.icon && typeof svc.icon === 'object' ? svc.icon : <HomeRepairServiceIcon />}
+                        </Avatar>
+                        <Chip label={`${svc.eta || '25m'} ETA`} size="small" sx={{ fontSize: 9, height: 18, bgcolor: '#F1F5F9' }} />
+                      </Box>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>{svc.name}</Typography>
+                      <Typography variant="caption" sx={{ color: svc.color || '#0284C7', fontWeight: 700 }}>₹{fee} Visit Fee</Typography>
+                    </Card>
+                  </Grid>
+                );
+              })}
             </Grid>
 
             {/* Trust Strip */}
@@ -253,7 +255,9 @@ export default function CustomerApp({ currentStep, setStep, activeBooking, setAc
             <Card sx={{ p: 2, mb: 2.5 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                 <Typography variant="body2">Inspection Base Fee</Typography>
-                <Typography variant="body2" sx={{ fontWeight: 700 }}>₹99.00</Typography>
+                <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                  ₹{(activeBooking?.selectedService?.visitFee || activeBooking?.visitFee || 99).toFixed(2)}
+                </Typography>
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1, color: '#10B981' }}>
                 <Typography variant="body2">SALEM100 Promo Discount</Typography>
@@ -262,12 +266,14 @@ export default function CustomerApp({ currentStep, setStep, activeBooking, setAc
               <Divider sx={{ my: 1 }} />
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>Payable Now (Escrow Deposit)</Typography>
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0284C7' }}>₹49.00</Typography>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0284C7' }}>
+                  ₹{Math.max(0, (activeBooking?.selectedService?.visitFee || activeBooking?.visitFee || 99) - 50).toFixed(2)}
+                </Typography>
               </Box>
             </Card>
 
             <Button variant="contained" fullWidth size="large" onClick={() => setStep('matching')}>
-              Proceed to Match Technician (₹49)
+              Proceed to Match Technician (₹{Math.max(0, (activeBooking?.selectedService?.visitFee || activeBooking?.visitFee || 99) - 50)})
             </Button>
           </Box>
         )}
@@ -374,11 +380,17 @@ export default function CustomerApp({ currentStep, setStep, activeBooking, setAc
                   </TableRow>
                   <TableRow>
                     <TableCell sx={{ color: '#10B981' }}>Inspection Fee Credit</TableCell>
-                    <TableCell align="right" sx={{ color: '#10B981' }}>-₹49.00</TableCell>
+                    <TableCell align="right" sx={{ color: '#10B981' }}>
+                      -₹{(activeBooking?.selectedService?.visitFee || activeBooking?.visitFee || 99).toFixed(2)}
+                    </TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell><strong>Final Balance Due</strong></TableCell>
-                    <TableCell align="right"><strong>{partsSourcing === 'tech_buys' ? '₹851.00' : '₹401.00'}</strong></TableCell>
+                    <TableCell align="right">
+                      <strong>
+                        ₹{(partsSourcing === 'tech_buys' ? 900 : 450) - (activeBooking?.selectedService?.visitFee || activeBooking?.visitFee || 99)}.00
+                      </strong>
+                    </TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
@@ -389,7 +401,7 @@ export default function CustomerApp({ currentStep, setStep, activeBooking, setAc
                 Accept & Authorize (OTP)
               </Button>
               <Button variant="outlined" color="error" fullWidth onClick={() => setStep('home')}>
-                Decline (Pay ₹49 Only)
+                Decline (Pay ₹{activeBooking?.selectedService?.visitFee || activeBooking?.visitFee || 99} Only)
               </Button>
             </Box>
           </Box>
@@ -503,24 +515,41 @@ export default function CustomerApp({ currentStep, setStep, activeBooking, setAc
       </Box>
 
       {/* Operations Escalation Modal */}
-      <Dialog open={escalationDialogOpen} onClose={() => { setEscalationDialogOpen(false); setStep('home'); }}>
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#EA580C' }}>
-          <SecurityIcon /> Salem Ops Escalated
-        </DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" sx={{ mb: 1 }}>
+      <Modal open={escalationDialogOpen} onClose={() => { setEscalationDialogOpen(false); setStep('home'); }} maxWidth="xs">
+        <ModalHeader
+          title="Operations escalated"
+          subtitle="Salem central resolution team"
+          onClose={() => { setEscalationDialogOpen(false); setStep('home'); }}
+        />
+        <ModalBody>
+          <Typography variant="body2" sx={{ mb: 2, color: '#0F172A', fontSize: '14px', lineHeight: 1.5 }}>
             Your feedback has triggered an immediate investigation by <strong>Salem Operations Manager Anand</strong>.
           </Typography>
-          <Typography variant="body2" sx={{ color: '#166534', bgcolor: '#F0FDF4', p: 1.5, borderRadius: 1.5 }}>
-            Under SalemSeva Escrow Policy, you are entitled to a <strong>100% Free Warranty Revisit or Diagnostic Refund</strong>.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => { setEscalationDialogOpen(false); setStep('home'); }} autoFocus>
+          <Box sx={{ color: '#166534', bgcolor: '#F0FDF4', p: 2, borderRadius: '12px', border: '1px solid #BBF7D0' }}>
+            <Typography variant="body2" sx={{ fontSize: '13px', lineHeight: 1.4 }}>
+              Under SalemSeva Escrow Policy, you are entitled to a <strong>100% free warranty revisit or diagnostic refund</strong>.
+            </Typography>
+          </Box>
+        </ModalBody>
+        <ModalFooter>
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={() => { setEscalationDialogOpen(false); setStep('home'); }}
+            sx={{
+              bgcolor: '#0A66C2',
+              color: '#FFF',
+              fontWeight: 700,
+              borderRadius: '14px',
+              height: 48,
+              textTransform: 'none',
+              '&:hover': { bgcolor: '#084e96' }
+            }}
+          >
             Understood
           </Button>
-        </DialogActions>
-      </Dialog>
+        </ModalFooter>
+      </Modal>
 
       {/* Bottom Navigation */}
       <Paper elevation={3}>

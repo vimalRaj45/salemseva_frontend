@@ -27,6 +27,7 @@ import {
   Grid,
   CircularProgress
 } from '@mui/material';
+import Modal, { ModalHeader, ModalBody, ModalFooter } from '../../components/Modal';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -136,32 +137,15 @@ const formatServicePrice = (srv) => {
 
     try {
       setSavingFee(true);
-      const payload = JSON.stringify({ visitFee: feeNum, visit_fee: feeNum });
-      let res;
-      try {
-        res = await fetch(`${API_V1_URL}/admin/services/${selectedServiceForFee.id}/fee`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: payload
-        });
-      } catch (e) {
-        res = await fetch(`${API_V1_URL}/admin/services/${selectedServiceForFee.id}/fee`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: payload
-        });
-      }
-
-      if (!res || !res.ok) {
-        res = await fetch(`${API_V1_URL}/admin/services/${selectedServiceForFee.id}/fee`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: payload
-        });
-      }
+      const payload = JSON.stringify({ visitFee: feeNum, visit_fee: feeNum, fee: feeNum });
+      const res = await fetch(`${API_V1_URL}/admin/services/${selectedServiceForFee.id}/fee`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload
+      });
 
       const data = await res.json();
-      if (data.success) {
+      if (res.ok && data.success) {
         const formattedFee = feeNum.toFixed(2);
         onToast(`Inspection fee updated to ₹${formattedFee} for ${selectedServiceForFee.name}`, 'success');
         setServices(prev => prev.map(s => (s.id === selectedServiceForFee.id ? {
@@ -171,8 +155,9 @@ const formatServicePrice = (srv) => {
           inspectionFee: feeNum
         } : s)));
         setFeeDialogOpen(false);
+        fetchServices();
       } else {
-        onToast(data.error || 'Failed to update inspection fee', 'error');
+        onToast(data.error || 'Failed to update inspection fee in database', 'error');
       }
     } catch (err) {
       onToast(err.message || 'Error updating fee', 'error');
@@ -202,7 +187,7 @@ const formatServicePrice = (srv) => {
       name: srv.name_en || srv.name || '',
       category: srv.category || 'ac',
       base_price: srv.base_price || (srv.est_price_range_en ? srv.est_price_range_en.split('-')[0].replace(/[^0-9]/g, '') : '299.00'),
-      visit_fee: srv.visit_fee || '99.00',
+      visit_fee: srv.visit_fee ? String(srv.visit_fee) : '99.00',
       description: srv.description || '',
       rating_avg: srv.rating_avg || '4.85'
     });
@@ -223,14 +208,27 @@ const formatServicePrice = (srv) => {
         : `${API_V1_URL}/admin/services`;
       const method = editingService ? 'PUT' : 'POST';
 
+      const payload = {
+        id: formData.id,
+        name: formData.name,
+        name_en: formData.name,
+        category: formData.category,
+        base_price: formData.base_price,
+        estPriceRangeEn: formData.base_price ? `INR ${formData.base_price}` : undefined,
+        visit_fee: parseFloat(formData.visit_fee) || 99.00,
+        visitFee: parseFloat(formData.visit_fee) || 99.00,
+        fee: parseFloat(formData.visit_fee) || 99.00,
+        description: formData.description
+      };
+
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
-      if (data.success) {
-        onToast(editingService ? 'Service updated successfully' : 'Service created successfully', 'success');
+      if (res.ok && data.success) {
+        onToast(editingService ? 'Service updated successfully in database' : 'Service created successfully in database', 'success');
         setServiceModalOpen(false);
         fetchServices();
       } else {
@@ -568,38 +566,38 @@ const formatServicePrice = (srv) => {
       )}
       </Card>
 
-      {/* Quick Edit Visit/Inspection Fee Dialog */}
-      <Dialog
+      {/* Quick Edit Visit/Inspection Fee Modal */}
+      <Modal
         open={feeDialogOpen}
         onClose={() => !savingFee && setFeeDialogOpen(false)}
         maxWidth="xs"
-        fullWidth
-        PaperProps={{ sx: { borderRadius: '16px', p: 1 } }}
       >
-        <DialogTitle sx={{ fontWeight: 900, color: '#0F172A', pb: 0.5 }}>
-          Update Inspection Fee (Visit Fee)
-        </DialogTitle>
-        <DialogContent>
-          <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 2 }}>
-            This fee is charged to customer for doorstep diagnostic visit for {selectedServiceForFee?.name}.
+        <ModalHeader
+          title="Update inspection fee"
+          subtitle={selectedServiceForFee ? `Doorstep visit charge for ${selectedServiceForFee.name}` : 'Inspection fee'}
+          onClose={() => !savingFee && setFeeDialogOpen(false)}
+        />
+        <ModalBody>
+          <Typography variant="body2" sx={{ color: '#64748B', mb: 2, fontSize: '13px' }}>
+            This diagnostic fee is charged to customer for doorstep diagnostic assessment.
           </Typography>
 
           <TextField
             fullWidth
-            label="Doorstep Inspection Fee (₹)"
+            label="Doorstep inspection fee (₹)"
             type="number"
             value={newVisitFee}
             onChange={(e) => setNewVisitFee(e.target.value)}
             InputProps={{
               startAdornment: <InputAdornment position="start">₹</InputAdornment>,
-              sx: { borderRadius: '10px', fontWeight: 800, fontSize: '15px' }
+              sx: { borderRadius: '12px', fontWeight: 700, fontSize: '15px' }
             }}
-            sx={{ mb: 2 }}
+            sx={{ mb: 2.5 }}
           />
 
           {/* Quick preset chips */}
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1 }}>
-            <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700, width: '100%' }}>
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+            <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 600, width: '100%', fontSize: '12px' }}>
               Quick presets:
             </Typography>
             {['49.00', '79.00', '99.00', '149.00', '199.00'].map(preset => (
@@ -608,22 +606,24 @@ const formatServicePrice = (srv) => {
                 label={`₹${preset}`}
                 clickable
                 onClick={() => setNewVisitFee(preset)}
-                size="small"
                 sx={{
-                  fontWeight: 800,
-                  fontSize: '11px',
-                  bgcolor: newVisitFee === preset ? '#0284C7' : '#F1F5F9',
-                  color: newVisitFee === preset ? '#FFFFFF' : '#475569'
+                  fontWeight: 600,
+                  fontSize: '12px',
+                  borderRadius: '999px',
+                  minHeight: 36,
+                  bgcolor: newVisitFee === preset ? '#0A66C2' : '#F1F5F9',
+                  color: newVisitFee === preset ? '#FFFFFF' : '#475569',
+                  '&:hover': { bgcolor: newVisitFee === preset ? '#084e96' : '#E2E8F0' }
                 }}
               />
             ))}
           </Box>
-        </DialogContent>
-        <DialogActions sx={{ p: 2, pt: 0 }}>
+        </ModalBody>
+        <ModalFooter>
           <Button
             onClick={() => setFeeDialogOpen(false)}
             disabled={savingFee}
-            sx={{ fontWeight: 700, color: '#64748B', textTransform: 'none' }}
+            sx={{ fontWeight: 600, color: '#64748B', textTransform: 'none', height: 48 }}
           >
             Cancel
           </Button>
@@ -632,43 +632,45 @@ const formatServicePrice = (srv) => {
             onClick={handleSaveVisitFee}
             disabled={savingFee}
             sx={{
-              bgcolor: '#0284C7',
+              bgcolor: '#0A66C2',
               color: '#FFFFFF',
-              fontWeight: 800,
-              borderRadius: '8px',
+              fontWeight: 700,
+              borderRadius: '14px',
               textTransform: 'none',
-              px: 2.5,
-              '&:hover': { bgcolor: '#0369A1' }
+              height: 48,
+              minWidth: 160,
+              fontSize: '14px',
+              '&:hover': { bgcolor: '#084e96' }
             }}
           >
-            {savingFee ? 'Saving...' : 'Save Inspection Fee'}
+            {savingFee ? 'Saving...' : 'Save inspection fee'}
           </Button>
-        </DialogActions>
-      </Dialog>
+        </ModalFooter>
+      </Modal>
 
       {/* Full Create / Edit Service Modal */}
-      <Dialog
+      <Modal
         open={serviceModalOpen}
         onClose={() => !savingService && setServiceModalOpen(false)}
         maxWidth="sm"
-        fullWidth
-        PaperProps={{ sx: { borderRadius: '16px', p: 1 } }}
       >
-        <DialogTitle sx={{ fontWeight: 900, color: '#0F172A', pb: 0.5 }}>
-          {editingService ? `Edit Service: ${editingService.name}` : 'Create New Service'}
-        </DialogTitle>
-        <form onSubmit={handleSaveService}>
-          <DialogContent>
+        <ModalHeader
+          title={editingService ? `Edit service: ${editingService.name}` : 'Create new service'}
+          subtitle="Configure pricing, categories, and service details"
+          onClose={() => !savingService && setServiceModalOpen(false)}
+        />
+        <Box component="form" onSubmit={handleSaveService} sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+          <ModalBody>
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <TextField
                   fullWidth
-                  label="Service Name"
+                  label="Service name"
                   placeholder="e.g., Water Purifier Full Service"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
-                  InputProps={{ sx: { borderRadius: '10px' } }}
+                  InputProps={{ sx: { borderRadius: '12px' } }}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -679,7 +681,7 @@ const formatServicePrice = (srv) => {
                     value={formData.category}
                     label="Category"
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    sx={{ borderRadius: '10px' }}
+                    sx={{ borderRadius: '12px' }}
                   >
                     <MenuItem value="ac">AC Repair</MenuItem>
                     <MenuItem value="electrical">Electrician</MenuItem>
@@ -694,7 +696,7 @@ const formatServicePrice = (srv) => {
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Base Price (₹)"
+                  label="Base price (₹)"
                   type="number"
                   placeholder="299.00"
                   value={formData.base_price}
@@ -702,14 +704,14 @@ const formatServicePrice = (srv) => {
                   required
                   InputProps={{
                     startAdornment: <InputAdornment position="start">₹</InputAdornment>,
-                    sx: { borderRadius: '10px' }
+                    sx: { borderRadius: '12px' }
                   }}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Inspection Visit Fee (₹)"
+                  label="Inspection visit fee (₹)"
                   type="number"
                   placeholder="99.00"
                   value={formData.visit_fee}
@@ -717,7 +719,7 @@ const formatServicePrice = (srv) => {
                   required
                   InputProps={{
                     startAdornment: <InputAdornment position="start">₹</InputAdornment>,
-                    sx: { borderRadius: '10px' }
+                    sx: { borderRadius: '12px' }
                   }}
                   helperText="Doorstep assessment charge"
                 />
@@ -725,31 +727,31 @@ const formatServicePrice = (srv) => {
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Display Rating"
+                  label="Display rating"
                   value={formData.rating_avg}
                   onChange={(e) => setFormData({ ...formData, rating_avg: e.target.value })}
-                  InputProps={{ sx: { borderRadius: '10px' } }}
+                  InputProps={{ sx: { borderRadius: '12px' } }}
                   helperText="Default rating score (e.g. 4.85)"
                 />
               </Grid>
               <Grid item xs={12}>
                 <TextField
                   fullWidth
-                  label="Description / Scope of Work"
+                  label="Description / Scope of work"
                   multiline
                   rows={3}
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  InputProps={{ sx: { borderRadius: '10px' } }}
+                  InputProps={{ sx: { borderRadius: '12px' } }}
                 />
               </Grid>
             </Grid>
-          </DialogContent>
-          <DialogActions sx={{ p: 2, pt: 0 }}>
+          </ModalBody>
+          <ModalFooter>
             <Button
               onClick={() => setServiceModalOpen(false)}
               disabled={savingService}
-              sx={{ fontWeight: 700, color: '#64748B', textTransform: 'none' }}
+              sx={{ fontWeight: 600, color: '#64748B', textTransform: 'none', height: 48 }}
             >
               Cancel
             </Button>
@@ -758,20 +760,22 @@ const formatServicePrice = (srv) => {
               variant="contained"
               disabled={savingService}
               sx={{
-                bgcolor: '#0284C7',
+                bgcolor: '#0A66C2',
                 color: '#FFFFFF',
-                fontWeight: 800,
-                borderRadius: '8px',
+                fontWeight: 700,
+                borderRadius: '14px',
                 textTransform: 'none',
-                px: 2.5,
-                '&:hover': { bgcolor: '#0369A1' }
+                height: 48,
+                minWidth: 150,
+                fontSize: '14px',
+                '&:hover': { bgcolor: '#084e96' }
               }}
             >
-              {savingService ? 'Saving...' : editingService ? 'Update Service' : 'Create Service'}
+              {savingService ? 'Saving...' : editingService ? 'Update service' : 'Create service'}
             </Button>
-          </DialogActions>
-        </form>
-      </Dialog>
+          </ModalFooter>
+        </Box>
+      </Modal>
     </Box>
   );
 }

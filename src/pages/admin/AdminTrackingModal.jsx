@@ -1,9 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Box,
   Typography,
   IconButton,
@@ -16,6 +12,7 @@ import {
   Tooltip,
   Alert
 } from '@mui/material';
+import { Modal, ModalHeader, ModalBody, ModalFooter } from '../../components/Modal';
 import CloseIcon from '@mui/icons-material/Close';
 import BoltIcon from '@mui/icons-material/Bolt';
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
@@ -95,61 +92,21 @@ export default function AdminTrackingModal({
   const custCoords = [11.6643, 78.1460]; // Fairlands, Salem
 
   return (
-    <Dialog
+    <Modal
       open={open}
       onClose={onClose}
       maxWidth="md"
-      fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: '16px',
-          bgcolor: '#FFFFFF',
-          overflow: 'hidden'
-        }
-      }}
+      ariaLabelledBy="admin-tracking-title"
     >
-      {/* Modal Header */}
-      <DialogTitle
-        sx={{
-          p: 2.5,
-          bgcolor: '#0F172A',
-          color: '#FFFFFF',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
-          <Box
-            sx={{
-              width: 36,
-              height: 36,
-              borderRadius: '8px',
-              bgcolor: '#0284C7',
-              color: '#FFFFFF',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-          >
-            <NavigationIcon sx={{ fontSize: 20 }} />
-          </Box>
-          <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 900, lineHeight: 1.1 }}>
-              End-to-End Live Tracking Console
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#94A3B8', fontWeight: 600 }}>
-              Booking #{booking.id} • {booking.service_name || booking.service_id}
-            </Typography>
-          </Box>
-        </Box>
+      <ModalHeader
+        id="admin-tracking-title"
+        title="Live tracking console"
+        subtitle={`Booking #${booking.id} • ${booking.service_name || booking.service_id}`}
+        onClose={onClose}
+        icon={<NavigationIcon sx={{ fontSize: 20 }} />}
+      />
 
-        <IconButton onClick={onClose} sx={{ color: '#94A3B8', '&:hover': { color: '#FFFFFF' } }}>
-          <CloseIcon sx={{ fontSize: 20 }} />
-        </IconButton>
-      </DialogTitle>
-
-      <DialogContent sx={{ p: 3, bgcolor: '#F8FAFC' }}>
+      <ModalBody sx={{ bgcolor: '#F8FAFC' }}>
         {errorMsg && (
           <Alert severity="error" sx={{ mb: 2, borderRadius: '8px' }}>
             {errorMsg}
@@ -475,13 +432,27 @@ export default function AdminTrackingModal({
             </Paper>
           </Grid>
         </Grid>
-      </DialogContent>
+      </ModalBody>
 
-      <DialogActions sx={{ p: 2, bgcolor: '#F8FAFC', borderTop: '1px solid #E2E8F0' }}>
-        <Button onClick={onClose} sx={{ fontWeight: 700, color: '#64748B', textTransform: 'none' }}>
-          Close Tracking Console
+      <ModalFooter sx={{ bgcolor: '#FFFFFF' }}>
+        <Button
+          variant="contained"
+          onClick={onClose}
+          sx={{
+            bgcolor: '#0A66C2',
+            color: '#FFFFFF',
+            borderRadius: '12px',
+            minHeight: 44,
+            px: 3,
+            fontWeight: 700,
+            fontSize: '13px',
+            textTransform: 'none',
+            '&:hover': { bgcolor: '#084E96' }
+          }}
+        >
+          Close console
         </Button>
-      </DialogActions>
-    </Dialog>
+      </ModalFooter>
+    </Modal>
   );
 }

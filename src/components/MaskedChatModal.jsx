@@ -1,31 +1,22 @@
 import { API_V1_URL } from '../config';
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Typography,
   Box,
   IconButton,
   TextField,
-  Button,
   Chip,
   Avatar,
   CircularProgress
 } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import SendIcon from '@mui/icons-material/Send';
-import SecurityIcon from '@mui/icons-material/Security';
-import LockIcon from '@mui/icons-material/Lock';
-import SalemLottie from './SalemLottie';
-import { ILLUSTRATIONS } from '../constants/visualAssets';
+import { Shield, Send, Lock } from 'lucide-react';
+import { Modal, ModalHeader, ModalBody, ModalFooter } from './Modal';
 
 export default function MaskedChatModal({
   open,
   onClose,
   bookingId = '',
-  userRole = 'customer', // 'customer' | 'technician'
+  userRole = 'customer',
   peerName = 'Assigned Partner',
   peerSubtitle = 'Verified Salem Specialist'
 }) {
@@ -76,7 +67,6 @@ export default function MaskedChatModal({
 
     const mySenderName = userRole === 'customer' ? 'Customer' : 'Technician';
 
-    // Optimistic UI insert
     const tempMsg = {
       id: `temp-${Date.now()}`,
       sender: userRole,
@@ -97,7 +87,6 @@ export default function MaskedChatModal({
           text: textToSend
         })
       });
-      // Re-fetch instantly
       const res = await fetch(`${API_V1_URL}/bookings/${bookingId}/messages`);
       const data = await res.json();
       if (data.success) {
@@ -113,99 +102,77 @@ export default function MaskedChatModal({
   const quickReplies = userRole === 'customer' ? [
     'I am waiting at the doorstep',
     'Near Salem Co-op Bank 5th Cross',
-    'Please bring 45uF AC capacitor',
+    'Please bring AC capacitor',
     'Please call once arrived'
   ] : [
     'En route now on two-wheeler (5 mins)',
     'At your doorstep in Fairlands',
     'Spare parts and diagnostic kit ready',
-    'Testing AC airflow & compressor terminal'
+    'Testing AC airflow & compressor'
   ];
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      maxWidth="xs"
-      fullWidth
-      PaperProps={{
-        sx: {
-          bgcolor: '#F8FAFC',
-          borderRadius: '16px',
-          height: 520,
-          display: 'flex',
-          flexDirection: 'column'
-        }
-      }}
-    >
-      {/* Header */}
-      <DialogTitle
-        sx={{
-          p: 1.5,
-          bgcolor: '#0F172A',
-          color: '#FFFFFF',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
-          <Avatar sx={{ width: 34, height: 34, bgcolor: '#2563EB', fontWeight: 700, fontSize: '13px' }}>
+    <Modal open={open} onClose={onClose} maxWidth="sm" ariaLabelledBy="chat-modal-title">
+      <ModalHeader
+        id="chat-modal-title"
+        title={peerName}
+        subtitle={`Masked privacy relay • Booking #${bookingId}`}
+        onClose={onClose}
+        icon={
+          <Avatar sx={{ width: 32, height: 32, bgcolor: '#0A66C2', fontWeight: 700, fontSize: '13px' }}>
             {peerName.substring(0, 2).toUpperCase()}
           </Avatar>
-          <Box>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: '13.5px', color: '#FFFFFF' }}>
-              {peerName}
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{ color: '#34D399', display: 'flex', alignItems: 'center', gap: 0.4, fontSize: '10.5px' }}
-            >
-              <SecurityIcon sx={{ fontSize: 12 }} /> Masked Privacy Relay • Booking #{bookingId}
-            </Typography>
-          </Box>
-        </Box>
-        <IconButton size="small" onClick={onClose} sx={{ color: '#94A3B8', '&:hover': { color: '#FFFFFF' } }}>
-          <CloseIcon sx={{ fontSize: 18 }} />
-        </IconButton>
-      </DialogTitle>
+        }
+      />
 
-      {/* Messages Feed */}
-      <DialogContent
+      <ModalBody
         ref={scrollRef}
         sx={{
-          p: 1.5,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 1,
-          flex: 1,
-          overflowY: 'auto',
-          bgcolor: '#F1F5F9'
+          bgcolor: '#F8FAFC',
+          gap: 1.5,
+          minHeight: 280,
+          maxHeight: '52vh'
         }}
       >
         {/* Encrypted Notice Banner */}
-        <Box sx={{ textAlign: 'center', my: 0.5 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
           <Chip
-            icon={<LockIcon sx={{ fontSize: 12, color: '#64748B !important' }} />}
+            icon={<Lock size={12} color="#64748B" />}
             label="Masked end-to-end communication • Zero phone number disclosure"
             size="small"
-            sx={{ bgcolor: '#E2E8F0', color: '#475569', fontSize: '10px', height: 22 }}
+            sx={{
+              bgcolor: '#FFFFFF',
+              border: '1px solid #E2E8F0',
+              color: '#64748B',
+              fontSize: '11px',
+              height: 24,
+              borderRadius: '9999px'
+            }}
           />
         </Box>
 
         {messages.length === 0 ? (
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, py: 3, textAlign: 'center' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, py: 4, textAlign: 'center' }}>
             <Box
-              component="img"
-              src={ILLUSTRATIONS.chat}
-              alt="In-App Secure Messaging"
-              sx={{ width: 140, height: 110, objectFit: 'contain', mb: 1.5, opacity: 0.9 }}
-            />
-            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '13px' }}>
-              In-App Secure Masked Messaging
+              sx={{
+                width: 44,
+                height: 44,
+                borderRadius: '12px',
+                bgcolor: '#EFF6FF',
+                color: '#0A66C2',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mb: 1.5
+              }}
+            >
+              <Shield size={24} />
+            </Box>
+            <Typography sx={{ fontWeight: 700, color: '#0F172A', fontSize: '14px', mb: 0.5 }}>
+              Secure masked messaging
             </Typography>
-            <Typography variant="caption" sx={{ color: '#64748B', maxWidth: 260, fontSize: '11px', mt: 0.3 }}>
-              Send real-time updates safely. Both your mobile number and the partner's number remain 100% private.
+            <Typography sx={{ color: '#64748B', maxWidth: 280, fontSize: '12px', lineHeight: 1.4 }}>
+              Send real-time updates safely. Your mobile number and partner details remain completely private.
             </Typography>
           </Box>
         ) : (
@@ -217,28 +184,27 @@ export default function MaskedChatModal({
                 sx={{
                   alignSelf: isMe ? 'flex-end' : 'flex-start',
                   maxWidth: '82%',
-                  bgcolor: isMe ? '#2563EB' : '#FFFFFF',
+                  bgcolor: isMe ? '#0A66C2' : '#FFFFFF',
                   color: isMe ? '#FFFFFF' : '#0F172A',
                   px: 1.5,
                   py: 1,
-                  borderRadius: isMe ? '14px 14px 2px 14px' : '14px 14px 14px 2px',
+                  borderRadius: isMe ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
                   border: isMe ? 'none' : '1px solid #E2E8F0',
-                  boxShadow: '0 1px 3px rgba(15, 23, 42, 0.06)'
+                  boxShadow: '0 1px 2px rgba(15, 23, 42, 0.05)'
                 }}
               >
                 {!isMe && (
-                  <Typography variant="caption" sx={{ color: '#2563EB', fontWeight: 700, fontSize: '10.5px', display: 'block', mb: 0.2 }}>
+                  <Typography sx={{ color: '#0A66C2', fontWeight: 600, fontSize: '11px', mb: 0.2 }}>
                     {m.senderName || peerName}
                   </Typography>
                 )}
-                <Typography variant="body2" sx={{ fontSize: '12.5px', lineHeight: 1.4 }}>
+                <Typography sx={{ fontSize: '13px', lineHeight: 1.4 }}>
                   {m.text}
                 </Typography>
                 <Typography
-                  variant="caption"
                   sx={{
-                    fontSize: '9.5px',
-                    color: isMe ? 'rgba(255,255,255,0.75)' : '#94A3B8',
+                    fontSize: '10px',
+                    color: isMe ? 'rgba(255, 255, 255, 0.8)' : '#94A3B8',
                     display: 'block',
                     textAlign: 'right',
                     mt: 0.3
@@ -250,10 +216,21 @@ export default function MaskedChatModal({
             );
           })
         )}
-      </DialogContent>
+      </ModalBody>
 
       {/* Quick Replies */}
-      <Box sx={{ px: 1.2, py: 0.8, bgcolor: '#FFFFFF', borderTop: '1px solid #E2E8F0', display: 'flex', gap: 0.6, overflowX: 'auto' }}>
+      <Box
+        sx={{
+          px: 2,
+          py: 1,
+          bgcolor: '#FFFFFF',
+          borderTop: '1px solid #E2E8F0',
+          display: 'flex',
+          gap: 1,
+          overflowX: 'auto',
+          WebkitOverflowScrolling: 'touch'
+        }}
+      >
         {quickReplies.map((qr) => (
           <Chip
             key={qr}
@@ -261,20 +238,22 @@ export default function MaskedChatModal({
             size="small"
             onClick={() => handleSend(qr)}
             sx={{
-              fontSize: '10.5px',
-              bgcolor: '#EFF6FF',
-              color: '#1D4ED8',
-              borderRadius: '6px',
+              fontSize: '11px',
+              bgcolor: '#F8FAFC',
+              color: '#0F172A',
+              border: '1px solid #E2E8F0',
+              borderRadius: '9999px',
               cursor: 'pointer',
               flexShrink: 0,
-              '&:hover': { bgcolor: '#DBEAFE' }
+              height: 28,
+              '&:hover': { bgcolor: '#EFF6FF', borderColor: '#BFDBFE' }
             }}
           />
         ))}
       </Box>
 
       {/* Input Action Bar */}
-      <DialogActions sx={{ p: 1, bgcolor: '#FFFFFF', borderTop: '1px solid #E2E8F0', gap: 0.5 }}>
+      <ModalFooter sx={{ flexDirection: 'row !important', p: 1.5, gap: 1 }}>
         <TextField
           fullWidth
           size="small"
@@ -286,34 +265,33 @@ export default function MaskedChatModal({
           }}
           sx={{
             '& .MuiOutlinedInput-root': {
-              borderRadius: '8px',
-              fontSize: '12.5px',
+              borderRadius: '12px',
+              fontSize: '13px',
               bgcolor: '#F8FAFC'
             }
           }}
         />
         <IconButton
-          color="primary"
           onClick={() => handleSend()}
           disabled={!input.trim() || isSending}
           sx={{
-            bgcolor: '#2563EB',
+            bgcolor: '#0A66C2',
             color: '#FFFFFF',
-            borderRadius: '8px',
-            p: 1,
-            '&:hover': { bgcolor: '#1D4ED8' },
+            borderRadius: '12px',
+            width: 44,
+            height: 44,
+            flexShrink: 0,
+            '&:hover': { bgcolor: '#084E96' },
             '&.Mui-disabled': { bgcolor: '#E2E8F0', color: '#94A3B8' }
           }}
         >
           {isSending ? (
             <CircularProgress size={18} sx={{ color: '#FFF' }} />
-          ) : input.trim() ? (
-            <SalemLottie name="send" width={22} height={22} />
           ) : (
-            <SendIcon sx={{ fontSize: 18 }} />
+            <Send size={18} />
           )}
         </IconButton>
-      </DialogActions>
-    </Dialog>
+      </ModalFooter>
+    </Modal>
   );
 }

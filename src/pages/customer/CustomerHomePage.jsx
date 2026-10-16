@@ -599,7 +599,7 @@ export default function CustomerHomePage() {
             Available services in Salem
           </Typography>
           <Typography variant="caption" sx={{ color: '#64748B', fontSize: '12px' }}>
-            Visit fee ₹99
+            Doorstep inspection
           </Typography>
         </Box>
 

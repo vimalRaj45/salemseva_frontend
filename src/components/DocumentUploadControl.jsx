@@ -8,10 +8,9 @@ import {
   CircularProgress,
   Alert,
   IconButton,
-  Dialog,
-  DialogContent,
   Chip
 } from '@mui/material';
+import Modal, { ModalHeader, ModalBody, ModalFooter } from './Modal';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -546,30 +545,44 @@ export default function DocumentUploadControl({
       )}
 
       {/* ================= LIGHTBOX / FULL-SIZE INSPECTION MODAL ================= */}
-      <Dialog open={zoomOpen} onClose={() => setZoomOpen(false)} maxWidth="sm" fullWidth>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1.5, borderBottom: '1px solid #E2E8F0' }}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A' }}>
-            {label} (முழு பார்வை • Full Resolution Inspection)
-          </Typography>
-          <IconButton size="small" onClick={() => setZoomOpen(false)}>
-            <CloseIcon fontSize="small" />
-          </IconButton>
-        </Box>
-        <DialogContent sx={{ p: 1, bgcolor: '#0F172A', textAlign: 'center' }}>
+      <Modal open={zoomOpen} onClose={() => setZoomOpen(false)} maxWidth="sm">
+        <ModalHeader
+          title={label || 'Document preview'}
+          subtitle="Full resolution inspection"
+          onClose={() => setZoomOpen(false)}
+        />
+        <ModalBody sx={{ p: 2, bgcolor: '#0F172A', textAlign: 'center' }}>
           {activeDisplayUrl && (
             <img
               src={activeDisplayUrl}
               alt="Full Preview"
-              style={{ maxWidth: '100%', maxHeight: '75vh', objectFit: 'contain', borderRadius: '8px' }}
+              style={{ maxWidth: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: '8px' }}
             />
           )}
-          <Box sx={{ mt: 1, display: 'flex', justifyContent: 'center' }}>
-            <Typography variant="caption" sx={{ color: '#94A3B8' }}>
-              {stagedFile ? 'பதிவேற்றத்திற்கு முந்தைய பார்வை (Pre-Upload Inspection)' : 'S3 கிளவுட் ஆவணம் (Verified S3 Document)'}
+          <Box sx={{ mt: 1.5, display: 'flex', justifyContent: 'center' }}>
+            <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '12px' }}>
+              {stagedFile ? 'Pre-upload inspection' : 'Verified cloud document'}
             </Typography>
           </Box>
-        </DialogContent>
-      </Dialog>
+        </ModalBody>
+        <ModalFooter>
+          <Button
+            variant="outlined"
+            onClick={() => setZoomOpen(false)}
+            sx={{
+              width: '100%',
+              height: 48,
+              borderRadius: '14px',
+              borderColor: '#E2E8F0',
+              color: '#0F172A',
+              fontWeight: 600,
+              textTransform: 'none'
+            }}
+          >
+            Close preview
+          </Button>
+        </ModalFooter>
+      </Modal>
     </Box>
   );
 }

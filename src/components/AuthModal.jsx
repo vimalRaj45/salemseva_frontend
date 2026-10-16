@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import Modal, { ModalHeader, ModalBody, ModalFooter } from './Modal';
 import {
-  Dialog,
-  DialogContent,
   Box,
   Typography,
   Tabs,
@@ -166,23 +165,12 @@ export default function AuthModal() {
   ];
 
   return (
-    <Dialog
+    <Modal
       open={authModalOpen}
       onClose={() => {
         if (user) closeAuthModal();
       }}
       maxWidth="xs"
-      fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: '12px',
-          bgcolor: '#0F172A',
-          color: '#FFFFFF',
-          border: '1px solid #334155',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
-          overflow: 'hidden'
-        }
-      }}
     >
       {/* Header Bar */}
       <Box sx={{ px: 2.5, pt: 2, pb: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #1E293B' }}>
@@ -255,7 +243,7 @@ export default function AuthModal() {
         <Tab label="Admin" value="admin" />
       </Tabs>
 
-      <DialogContent sx={{ p: 2.5 }}>
+      <ModalBody sx={{ p: 2.5, bgcolor: '#0F172A', color: '#FFFFFF' }}>
         
         {/* Quick Demo Selector */}
         <Paper
@@ -858,19 +846,19 @@ export default function AuthModal() {
             type="submit"
             variant="contained"
             fullWidth
-            size="medium"
+            size="large"
             disabled={loading}
-            endIcon={loading ? <CircularProgress size={16} color="inherit" /> : <ArrowForwardIcon sx={{ fontSize: 16 }} />}
+            endIcon={loading ? <CircularProgress size={18} color="inherit" /> : <ArrowForwardIcon sx={{ fontSize: 18 }} />}
             sx={{
-              bgcolor: activeTab === 'technician' ? '#059669' : activeTab === 'admin' ? '#D97706' : '#2563EB',
-              borderRadius: '6px',
-              py: 1,
-              fontWeight: 600,
-              fontSize: '13px',
+              bgcolor: activeTab === 'technician' ? '#16A34A' : activeTab === 'admin' ? '#D97706' : '#0A66C2',
+              borderRadius: '14px',
+              height: 50,
+              fontWeight: 700,
+              fontSize: '14px',
               textTransform: 'none',
-              mt: 1,
+              mt: 2,
               '&:hover': {
-                bgcolor: activeTab === 'technician' ? '#047857' : activeTab === 'admin' ? '#B45309' : '#1D4ED8'
+                bgcolor: activeTab === 'technician' ? '#15803D' : activeTab === 'admin' ? '#B45309' : '#084e96'
               }
             }}
           >
@@ -883,7 +871,7 @@ export default function AuthModal() {
 
         </Box>
 
-      </DialogContent>
-    </Dialog>
+      </ModalBody>
+    </Modal>
   );
 }

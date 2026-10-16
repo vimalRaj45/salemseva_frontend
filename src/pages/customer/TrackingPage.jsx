@@ -62,6 +62,7 @@ import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import MaskedChatModal from '../../components/MaskedChatModal';
 import VoipCallModal from '../../components/VoipCallModal';
 import CancelBookingModal from '../../components/CancelBookingModal';
+import Modal, { ModalHeader, ModalBody, ModalFooter } from '../../components/Modal';
 import SalemLottie from '../../components/SalemLottie';
 import SalemSeamlessLoader from '../../components/SalemSeamlessLoader';
 import { NativeNotifier } from '../../services/nativeNotify';
@@ -1458,60 +1459,75 @@ export default function TrackingPage() {
 
 
       {/* RESCHEDULE SLOT MODAL */}
-      <Dialog open={rescheduleOpen} onClose={() => setRescheduleOpen(false)} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ fontWeight: 900, color: '#0F172A' }}>
-          Update Preferred Inspection Time
-        </DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" sx={{ color: '#64748B', mb: 2 }}>
-            Salem Central Ops will assign a verified partner according to your selected time slot:
-          </Typography>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2 }}>
+      <Modal open={rescheduleOpen} onClose={() => setRescheduleOpen(false)} maxWidth="xs">
+        <ModalHeader
+          title="Update preferred inspection time"
+          subtitle="Salem Central Ops will assign a verified partner according to your slot"
+          onClose={() => setRescheduleOpen(false)}
+        />
+        <ModalBody>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
             {[
-              { id: 'priority_12h', title: 'Priority 12-Hour Window', subtitle: 'First available technician' },
-              { id: 'morning_9_11', title: 'Tomorrow Morning', subtitle: '09:00 AM - 11:00 AM' },
-              { id: 'afternoon_2_4', title: 'Tomorrow Afternoon', subtitle: '02:00 PM - 04:00 PM' },
-              { id: 'evening_5_7', title: 'Tomorrow Evening', subtitle: '05:00 PM - 07:00 PM' }
+              { id: 'priority_12h', title: 'Priority 12-hour window', subtitle: 'First available technician' },
+              { id: 'morning_9_11', title: 'Tomorrow morning', subtitle: '09:00 AM - 11:00 AM' },
+              { id: 'afternoon_2_4', title: 'Tomorrow afternoon', subtitle: '02:00 PM - 04:00 PM' },
+              { id: 'evening_5_7', title: 'Tomorrow evening', subtitle: '05:00 PM - 07:00 PM' }
             ].map(slot => (
               <Paper
                 key={slot.id}
                 elevation={0}
                 onClick={() => setNewSlot(slot.id)}
                 sx={{
-                  p: 1.4,
+                  p: 1.5,
                   borderRadius: '12px',
                   cursor: 'pointer',
+                  minHeight: 48,
                   border: '1.5px solid',
-                  borderColor: newSlot === slot.id ? '#0284C7' : '#E2E8F0',
-                  bgcolor: newSlot === slot.id ? '#F0F9FF' : '#FFFFFF',
+                  borderColor: newSlot === slot.id ? '#0A66C2' : '#E2E8F0',
+                  bgcolor: newSlot === slot.id ? '#F0F7FF' : '#FFFFFF',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 1
+                  gap: 1.5,
+                  transition: 'border-color 0.15s ease'
                 }}
               >
-                <Radio checked={newSlot === slot.id} size="small" sx={{ p: 0, color: '#0284C7' }} />
+                <Radio checked={newSlot === slot.id} size="small" sx={{ p: 0, color: '#0A66C2' }} />
                 <Box>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '13px' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '14px' }}>
                     {slot.title}
                   </Typography>
-                  <Typography variant="caption" sx={{ color: '#64748B' }}>{slot.subtitle}</Typography>
+                  <Typography variant="caption" sx={{ color: '#64748B', fontSize: '12px' }}>{slot.subtitle}</Typography>
                 </Box>
               </Paper>
             ))}
           </Box>
-        </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setRescheduleOpen(false)} sx={{ fontWeight: 700, color: '#64748B' }}>Cancel</Button>
+        </ModalBody>
+        <ModalFooter>
+          <Button
+            onClick={() => setRescheduleOpen(false)}
+            sx={{ fontWeight: 600, color: '#64748B', textTransform: 'none', height: 48 }}
+          >
+            Cancel
+          </Button>
           <Button
             variant="contained"
             onClick={handleUpdateSlot}
             disabled={slotUpdating}
-            sx={{ bgcolor: '#0284C7', color: '#FFF', fontWeight: 800, borderRadius: '10px' }}
+            sx={{
+              bgcolor: '#0A66C2',
+              color: '#FFF',
+              fontWeight: 700,
+              borderRadius: '14px',
+              height: 48,
+              minWidth: 140,
+              textTransform: 'none',
+              '&:hover': { bgcolor: '#084e96' }
+            }}
           >
-            {slotUpdating ? 'Saving...' : 'Confirm Update'}
+            {slotUpdating ? 'Saving...' : 'Confirm update'}
           </Button>
-        </DialogActions>
-      </Dialog>
+        </ModalFooter>
+      </Modal>
 
 
 
@@ -1573,78 +1589,75 @@ export default function TrackingPage() {
         </Alert>
       </Snackbar>
 
-      {/* Customer Work Finished Confirmation & Escrow Release Dialog (Without Duplicate Review Form) */}
-      <Dialog
+      {/* Customer Work Finished Confirmation & Escrow Release Modal */}
+      <Modal
         open={confirmCompletionModalOpen}
         onClose={() => setConfirmCompletionModalOpen(false)}
         maxWidth="xs"
-        fullWidth
-        PaperProps={{ sx: { borderRadius: '16px', p: 1 } }}
       >
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, pb: 1 }}>
-          <CheckCircleIcon sx={{ color: '#16A34A', fontSize: 26 }} />
-          <Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '16px' }}>
-            Confirm Work Finished (வேலை முடிந்தது)
-          </Typography>
-        </DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" sx={{ color: '#475569', mb: 2, fontSize: '13px', lineHeight: 1.5 }}>
+        <ModalHeader
+          title="Confirm work finished"
+          subtitle="Verify completion and release escrow payment"
+          onClose={() => setConfirmCompletionModalOpen(false)}
+        />
+        <ModalBody>
+          <Typography variant="body2" sx={{ color: '#0F172A', mb: 2, fontSize: '14px', lineHeight: 1.5 }}>
             Did technician <strong>{tech?.name || 'the assigned partner'}</strong> complete the service and demonstrate the working unit properly?
           </Typography>
 
-          <Paper elevation={0} sx={{ p: 1.5, bgcolor: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '10px', mb: 1 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
-              <Typography variant="caption" sx={{ color: '#166534', fontWeight: 800 }}>
-                Escrow Settlement Breakdown:
+          <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', mb: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+              <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700, fontSize: '12px' }}>
+                Escrow settlement breakdown
               </Typography>
-              <Typography variant="subtitle2" sx={{ color: '#166534', fontWeight: 900, fontSize: '15px' }}>
+              <Typography variant="subtitle1" sx={{ color: '#16A34A', fontWeight: 800, fontSize: '16px' }}>
                 ₹{parseFloat(billDetails?.totalAmount || trackData?.booking?.final_amount || 262.50).toFixed(2)}
               </Typography>
             </Box>
 
             {billDetails?.partsMode !== 'user_buys' && billDetails?.billAmount ? (
-              <Box sx={{ pl: 0.5, mb: 0.8, fontSize: '11px', color: '#166534', display: 'flex', flexDirection: 'column', gap: 0.2 }}>
+              <Box sx={{ fontSize: '13px', color: '#475569', display: 'flex', flexDirection: 'column', gap: 0.8, mb: 1.5 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span>• கடை பில் (Store Receipt):</span>
+                  <span>Store receipt:</span>
                   <strong>₹{parseFloat(billDetails.billAmount).toFixed(2)}</strong>
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span>• தொழிலாளர் கட்டணம் (Labour):</span>
+                  <span>Labour charge:</span>
                   <strong>₹{parseFloat(billDetails.laborCost || 250).toFixed(2)}</strong>
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span>• தள கட்டணம் (5% Platform Fee):</span>
+                  <span>Platform fee (5%):</span>
                   <strong>+₹{parseFloat(billDetails.platformFee || 0).toFixed(2)}</strong>
                 </Box>
               </Box>
             ) : (
-              <Box sx={{ pl: 0.5, mb: 0.8, fontSize: '11px', color: '#166534', display: 'flex', flexDirection: 'column', gap: 0.2 }}>
+              <Box sx={{ fontSize: '13px', color: '#475569', display: 'flex', flexDirection: 'column', gap: 0.8, mb: 1.5 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span>• பாகங்கள் (Customer Sourced):</span>
+                  <span>Customer-sourced parts:</span>
                   <strong>₹0.00</strong>
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span>• தொழிலாளர் கட்டணம் (Labour):</span>
+                  <span>Labour charge:</span>
                   <strong>₹{parseFloat(billDetails?.laborCost || 250).toFixed(2)}</strong>
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span>• தள கட்டணம் (5% Platform Fee):</span>
+                  <span>Platform fee (5%):</span>
                   <strong>+₹{parseFloat(billDetails?.platformFee || 12.50).toFixed(2)}</strong>
                 </Box>
               </Box>
             )}
 
-            <Typography variant="caption" sx={{ color: '#15803D', display: 'block', fontSize: '10.5px' }}>
-              Releases payment directly to technician's verified UPI and activates your <strong>30-day SalemSeva warranty</strong>.
+            <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontSize: '12px', lineHeight: 1.4 }}>
+              Releases payment directly to partner's verified UPI and activates your 30-day warranty.
             </Typography>
           </Paper>
-        </DialogContent>
-        <DialogActions sx={{ p: 2, pt: 1, gap: 1 }}>
+        </ModalBody>
+        <ModalFooter>
           <Button
             onClick={() => setConfirmCompletionModalOpen(false)}
-            sx={{ color: '#64748B', fontWeight: 700, textTransform: 'none' }}
+            sx={{ color: '#64748B', fontWeight: 600, textTransform: 'none', height: 48 }}
           >
-            Not Yet Finished
+            Not yet finished
           </Button>
           <Button
             variant="contained"
@@ -1692,150 +1705,154 @@ export default function TrackingPage() {
             sx={{
               bgcolor: '#16A34A',
               color: '#FFF',
-              fontWeight: 800,
-              borderRadius: '8px',
+              fontWeight: 700,
+              borderRadius: '14px',
               textTransform: 'none',
-              py: 1.1,
-              px: 2,
+              height: 48,
+              minWidth: 160,
               '&:hover': { bgcolor: '#15803D' }
             }}
           >
-            {isReleasingEscrow ? 'Releasing Escrow...' : 'Yes, Finished • Release & Rate →'}
+            {isReleasingEscrow ? 'Releasing escrow...' : 'Confirm and release'}
           </Button>
-        </DialogActions>
-      </Dialog>
+        </ModalFooter>
+      </Modal>
 
       {/* High-Resolution Store Bill Viewer Modal */}
-      <Dialog
+      <Modal
         open={viewBillModalOpen}
         onClose={() => setViewBillModalOpen(false)}
         maxWidth="sm"
-        fullWidth
-        PaperProps={{ sx: { borderRadius: '14px', p: 1 } }}
       >
-        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <ReceiptLongIcon sx={{ color: '#0284C7', fontSize: 22 }} />
-            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A' }}>
-              அசல் கடை ரசீது (Original Store Receipt)
-            </Typography>
-          </Box>
-          <IconButton size="small" onClick={() => setViewBillModalOpen(false)}>
-            <CloseIcon fontSize="small" />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent sx={{ textAlign: 'center', pt: 1 }}>
-          {billDetails?.billUrl && (
+        <ModalHeader
+          title="Original store receipt"
+          subtitle="Itemized technician store purchase voucher"
+          onClose={() => setViewBillModalOpen(false)}
+        />
+        <ModalBody>
+          {billDetails?.billUrl ? (
             <Box
               component="img"
               src={billDetails.billUrl}
               alt="Store Bill"
               sx={{
                 width: '100%',
-                maxHeight: '65vh',
+                maxHeight: '60vh',
                 objectFit: 'contain',
-                borderRadius: '8px',
+                borderRadius: '12px',
                 border: '1px solid #E2E8F0',
                 bgcolor: '#0F172A'
               }}
             />
+          ) : (
+            <Box sx={{ p: 4, textAlign: 'center' }}>
+              <Typography variant="body2" sx={{ color: '#64748B' }}>
+                No receipt image attached
+              </Typography>
+            </Box>
           )}
-          <Box sx={{ mt: 1.5, p: 1.2, bgcolor: '#F0F9FF', borderRadius: '8px', border: '1px solid #BAE6FD', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="body2" sx={{ fontWeight: 700, color: '#0369A1' }}>
-              ரசீது பில் தொகை (Store Bill):
+          <Box sx={{ mt: 2, p: 2, bgcolor: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="body2" sx={{ fontWeight: 600, color: '#64748B' }}>
+              Store bill total:
             </Typography>
-            <Typography variant="h6" sx={{ fontWeight: 900, color: '#0284C7' }}>
+            <Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A' }}>
               ₹{parseFloat(billDetails?.billAmount || 0).toFixed(2)}
             </Typography>
           </Box>
-        </DialogContent>
-      </Dialog>
+        </ModalBody>
+        <ModalFooter>
+          <Button
+            variant="outlined"
+            onClick={() => setViewBillModalOpen(false)}
+            sx={{
+              width: '100%',
+              height: 48,
+              borderRadius: '14px',
+              borderColor: '#E2E8F0',
+              color: '#0F172A',
+              fontWeight: 600,
+              textTransform: 'none'
+            }}
+          >
+            Close
+          </Button>
+        </ModalFooter>
+      </Modal>
 
       {/* Digital Quote Arrival Instant Popup Modal */}
-      <Dialog
+      <Modal
         open={quoteAlertModalOpen && bookingStatus === 'quote_presented'}
         onClose={() => {
           quoteDismissedRef.current = true;
           setQuoteAlertModalOpen(false);
         }}
         maxWidth="xs"
-        fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: '16px',
-            p: 1,
-            border: '2px solid #0284C7',
-            boxShadow: '0 12px 36px rgba(2, 132, 199, 0.25)'
-          }
-        }}
       >
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, pb: 1 }}>
-          <ReceiptLongIcon sx={{ color: '#0284C7', fontSize: 26 }} />
-          <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0F172A', lineHeight: 1.2 }}>
-              Digital Estimate & Job Card Ready
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#0284C7', fontWeight: 700 }}>
-              மதிப்பீடு தயாராக உள்ளது
-            </Typography>
-          </Box>
-        </DialogTitle>
-        <DialogContent sx={{ pb: 1 }}>
-          <Paper elevation={0} sx={{ p: 2, bgcolor: '#F0F9FF', border: '1px solid #BAE6FD', borderRadius: '10px', mb: 2 }}>
+        <ModalHeader
+          title="Digital estimate ready"
+          subtitle="Doorstep diagnostic job card ready for approval"
+          onClose={() => {
+            quoteDismissedRef.current = true;
+            setQuoteAlertModalOpen(false);
+          }}
+        />
+        <ModalBody>
+          <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', mb: 2 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-              <Typography variant="caption" sx={{ color: '#0369A1', fontWeight: 800 }}>
-                DIAGNOSED SUB-TOTAL:
+              <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700, fontSize: '12px' }}>
+                Diagnosed sub-total
               </Typography>
-              <Typography variant="h6" sx={{ color: '#0C4A6E', fontWeight: 900 }}>
+              <Typography variant="h6" sx={{ color: '#0F172A', fontWeight: 800, fontSize: '20px' }}>
                 ₹{trackData?.booking?.quote_subtotal ? parseFloat(trackData.booking.quote_subtotal).toFixed(2) : '900.00'}
               </Typography>
             </Box>
-            <Typography variant="caption" sx={{ color: '#475569', display: 'block', lineHeight: 1.4 }}>
-              Technician <strong>{tech?.name || 'Assigned Partner'}</strong> has completed doorstep diagnosis and prepared an itemized breakdown with genuine warranty parts.
+            <Typography variant="caption" sx={{ color: '#64748B', display: 'block', lineHeight: 1.5, fontSize: '13px' }}>
+              Technician <strong>{tech?.name || 'Assigned Partner'}</strong> has completed doorstep diagnosis and prepared an itemized breakdown with warranty-backed parts.
             </Typography>
           </Paper>
 
-          <Typography variant="caption" sx={{ color: '#166534', bgcolor: '#F0FDF4', p: 1, borderRadius: '6px', border: '1px solid #BBF7D0', display: 'block', fontSize: '11px', mb: 1 }}>
-            <strong>Cashless Escrow Protected:</strong> Funds are held safely and only disbursed to technician after you confirm work completion.
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ p: 2, pt: 0, gap: 1, flexDirection: 'column' }}>
-          <Button
-            variant="contained"
-            fullWidth
-            size="large"
-            endIcon={<ArrowForwardIcon />}
-            onClick={() => {
-              setQuoteAlertModalOpen(false);
-              navigate(`/quote?bookingId=${bookingId}`);
-            }}
-            sx={{
-              bgcolor: '#0284C7',
-              color: '#FFF',
-              fontWeight: 800,
-              fontSize: '13.5px',
-              borderRadius: '8px',
-              py: 1.2,
-              textTransform: 'none',
-              boxShadow: '0 4px 14px rgba(2, 132, 199, 0.4)',
-              '&:hover': { bgcolor: '#0369A1' }
-            }}
-          >
-            Review Line Items & Approve Escrow →
-          </Button>
-          <Button
-            fullWidth
-            size="small"
-            onClick={() => {
-              quoteDismissedRef.current = true;
-              setQuoteAlertModalOpen(false);
-            }}
-            sx={{ color: '#64748B', fontWeight: 700, textTransform: 'none', fontSize: '12px' }}
-          >
-            Review on Tracking Screen
-          </Button>
-        </DialogActions>
-      </Dialog>
+          <Box sx={{ p: 1.5, borderRadius: '8px', border: '1px solid #BBF7D0', bgcolor: '#F0FDF4' }}>
+            <Typography variant="caption" sx={{ color: '#166534', display: 'block', fontSize: '12px', lineHeight: 1.4 }}>
+              <strong>Cashless escrow protection:</strong> Funds are reserved safely and only disbursed after you confirm completion.
+            </Typography>
+          </Box>
+        </ModalBody>
+        <ModalFooter>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>
+            <Button
+              variant="contained"
+              fullWidth
+              endIcon={<ArrowForwardIcon />}
+              onClick={() => {
+                setQuoteAlertModalOpen(false);
+                navigate(`/quote?bookingId=${bookingId}`);
+              }}
+              sx={{
+                bgcolor: '#0A66C2',
+                color: '#FFF',
+                fontWeight: 700,
+                fontSize: '14px',
+                borderRadius: '14px',
+                height: 50,
+                textTransform: 'none',
+                '&:hover': { bgcolor: '#084e96' }
+              }}
+            >
+              Review line items and approve
+            </Button>
+            <Button
+              fullWidth
+              onClick={() => {
+                quoteDismissedRef.current = true;
+                setQuoteAlertModalOpen(false);
+              }}
+              sx={{ color: '#64748B', fontWeight: 600, textTransform: 'none', fontSize: '13px', height: 44 }}
+            >
+              Review on tracking screen
+            </Button>
+          </Box>
+        </ModalFooter>
+      </Modal>
 
       {/* Bottom Navigation */}
       <Paper elevation={8} sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, bgcolor: '#FFFFFF', borderTop: '1px solid #E2E8F0', zIndex: 1000, display: { xs: 'block', md: 'none' } }}>

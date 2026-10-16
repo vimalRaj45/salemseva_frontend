@@ -1,33 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Box,
   Typography,
   Button,
   TextField,
   Chip,
-  IconButton,
   CircularProgress,
-  Paper,
   InputAdornment
 } from '@mui/material';
-import MyLocationIcon from '@mui/icons-material/MyLocation';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import CloseIcon from '@mui/icons-material/Close';
-import SearchIcon from '@mui/icons-material/Search';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import { ILLUSTRATIONS } from '../constants/visualAssets';
+import { MapPin, Navigation, Search, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
-
+import { Modal, ModalHeader, ModalBody, ModalFooter } from './Modal';
 import {
   SALEM_LOCALITIES,
-  SALEM_CENTER,
-  getLiveAccurateLocation,
-  calculateDistanceKm,
-  verifySalemBoundary
+  getLiveAccurateLocation
 } from '../utils/geoUtils';
 
 export default function LocationPickerModal({
@@ -74,9 +60,8 @@ export default function LocationPickerModal({
       if (geo.isSalem) {
         setDetectedOutsideRegion(false);
         setDetectedPlaceInfo(null);
-        setGeoStatus(`GPS Locked: ${geo.lat.toFixed(4)} N, ${geo.lng.toFixed(4)} E (${geo.localityName || 'Salem Grid'})`);
+        setGeoStatus(`GPS locked: ${geo.lat.toFixed(4)} N, ${geo.lng.toFixed(4)} E`);
 
-        // Find closest locality in Salem
         const closest = SALEM_LOCALITIES.reduce((prev, curr) => {
           const prevDist = Math.hypot(prev.lat - geo.lat, prev.lng - geo.lng);
           const currDist = Math.hypot(curr.lat - geo.lat, curr.lng - geo.lng);
@@ -90,43 +75,40 @@ export default function LocationPickerModal({
           : `Live GPS Doorstep (${geo.lat.toFixed(4)}, ${geo.lng.toFixed(4)}), ${closest.name}, Salem - ${closest.pin}`;
         setDoorAddress(resolvedAddr);
       } else {
-        // Accurately acknowledge that user is outside Salem
         setDetectedOutsideRegion(true);
         setDetectedPlaceInfo({
           name: geo.localityName || geo.city || 'Outside Salem',
           distanceKm: geo.distanceKmFromCenter || 0,
           pincode: geo.pincode || ''
         });
-        setGeoStatus(
-          `Live GPS: ${geo.lat.toFixed(4)} N, ${geo.lng.toFixed(4)} E (${geo.city || geo.district || 'Outside Region'}, ~${Math.round(geo.distanceKmFromCenter || 0)} km from Salem)`
-        );
-        if (geo.pincode) {
-          setCustomPin(geo.pincode);
-        }
-        setDoorAddress(geo.fullAddress || `Live Location: ${geo.lat.toFixed(4)}, ${geo.lng.toFixed(4)} (${geo.city})`);
+        setGeoStatus('Current device location is outside Salem operational boundary');
       }
-    } catch (error) {
+    } catch (err) {
+      console.warn('GPS detection failed:', err);
       setIsDetecting(false);
-      setGeoStatus(`Location detection notice: ${error.message || 'Please select a Salem locality below.'}`);
+      setGeoStatus('Could not detect location. Please select your locality below.');
     }
   };
 
   const handleConfirm = () => {
     if (isOutOfRegion) {
-      toast.error(`Service Unavailable: PIN (${activePin}) is outside Salem district. SalemSeva operates exclusively in Salem (636xxx). Please select a Salem locality.`);
+      toast.error('SalemSeva exclusively serves the Salem region (PIN 636xxx). Please select a valid Salem locality.');
       return;
     }
+
     const locObj = SALEM_LOCALITIES.find(l => l.name === selectedLocality) || SALEM_LOCALITIES[0];
-    const finalPin = activePin && activePin.length === 6 ? activePin : locObj.pin;
-    const locationData = {
+    const finalLocation = {
       locality: selectedLocality,
-      pincode: finalPin,
-      lat: detectedCoords ? detectedCoords.lat : locObj.lat,
-      lng: detectedCoords ? detectedCoords.lng : locObj.lng,
-      address: doorAddress || `${selectedLocality}, Salem - ${finalPin}`
+      address: doorAddress.trim() || `${selectedLocality}, Salem - ${customPin}`,
+      pincode: activePin || locObj.pin,
+      lat: detectedCoords?.lat || locObj.lat,
+      lng: detectedCoords?.lng || locObj.lng
     };
-    localStorage.setItem('salemseva_user_location', JSON.stringify(locationData));
-    onSelectLocation(locationData);
+
+    if (onSelectLocation) {
+      onSelectLocation(finalLocation);
+    }
+    toast.success(`Service address set to ${selectedLocality}, Salem`);
     onClose();
   };
 
@@ -136,215 +118,195 @@ export default function LocationPickerModal({
   );
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      fullWidth
-      maxWidth="sm"
-      PaperProps={{
-        sx: {
-          borderRadius: '24px',
-          p: 1,
-          bgcolor: '#FFFFFF',
-          boxShadow: '0 25px 50px rgba(15, 23, 42, 0.25)'
-        }
-      }}
-    >
-      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <LocationOnIcon sx={{ color: '#0284C7', fontSize: 28 }} />
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 900, color: '#0F172A', fontSize: '18px' }}>
-              Select Salem Service Location
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#64748B' }}>
-              Technicians dispatch from nearest local hub within 25 mins
-            </Typography>
-          </Box>
-        </Box>
-        <IconButton onClick={onClose} size="small" sx={{ color: '#94A3B8' }}>
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
+    <Modal open={open} onClose={onClose} maxWidth="sm" ariaLabelledBy="location-modal-title">
+      <ModalHeader
+        id="location-modal-title"
+        title="Set service location"
+        subtitle="Technician dispatch across Salem city (PIN 636xxx)"
+        onClose={onClose}
+        icon={<MapPin size={20} color="#0A66C2" />}
+      />
 
-      <DialogContent sx={{ pt: 1.5 }}>
-        {/* Salem Live Service Map Illustration Banner */}
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            bgcolor: '#F0F9FF',
-            border: '1px solid #BAE6FD',
-            borderRadius: '16px',
-            p: 1.5,
-            mb: 2
-          }}
-        >
-          <Box sx={{ maxWidth: '65%' }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0369A1', fontSize: '13px' }}>
-              Salem Citywide Live Coverage
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#0284C7', fontSize: '11px', display: 'block', lineHeight: 1.35, mt: 0.3 }}>
-              Select your ward or tap GPS for verified local technician auto-dispatch within 25 minutes.
-            </Typography>
-          </Box>
-          <Box
-            component="img"
-            src={ILLUSTRATIONS.salemMap}
-            alt="Salem Live Service Map"
-            sx={{ width: 80, height: 60, objectFit: 'contain' }}
-          />
-        </Box>
-
-        {/* GPS Auto Detect Button */}
+      <ModalBody>
+        {/* GPS Auto Detect Action Button */}
         <Button
           fullWidth
           variant="contained"
-          startIcon={isDetecting ? <CircularProgress size={18} sx={{ color: '#FFF' }} /> : <MyLocationIcon />}
+          startIcon={isDetecting ? <CircularProgress size={18} sx={{ color: '#FFF' }} /> : <Navigation size={18} />}
           onClick={handleDetectGPS}
           disabled={isDetecting}
           sx={{
-            py: 1.3,
-            borderRadius: '16px',
-            bgcolor: '#0284C7',
-            fontWeight: 800,
+            py: 1.5,
+            borderRadius: '14px',
+            bgcolor: '#0A66C2',
+            fontWeight: 700,
             fontSize: '14px',
-            mb: 2,
-            boxShadow: '0 4px 14px rgba(2, 132, 199, 0.3)',
+            minHeight: 48,
+            boxShadow: '0 2px 8px rgba(10, 102, 194, 0.25)',
             textTransform: 'none',
-            '&:hover': { bgcolor: '#0369A1' }
+            '&:hover': { bgcolor: '#084E96' }
           }}
         >
-          {isDetecting ? 'Detecting Live GPS Pin...' : 'Use My Current Live GPS Location'}
+          {isDetecting ? 'Detecting live GPS location...' : 'Use current GPS location'}
         </Button>
 
         {geoStatus && (
-          <Typography variant="caption" sx={{ display: 'block', mb: 2, color: detectedOutsideRegion ? '#B91C1C' : '#059669', fontWeight: 700, bgcolor: detectedOutsideRegion ? '#FEF2F2' : '#ECFDF5', p: 1, borderRadius: '8px', border: detectedOutsideRegion ? '1px solid #FECACA' : '1px solid #A7F3D0' }}>
-             {geoStatus}
-          </Typography>
+          <Box
+            sx={{
+              p: 1.5,
+              borderRadius: '10px',
+              bgcolor: detectedOutsideRegion ? '#FEF2F2' : '#F0FDF4',
+              border: `1px solid ${detectedOutsideRegion ? '#FECACA' : '#BBF7D0'}`
+            }}
+          >
+            <Typography sx={{ fontSize: '12px', fontWeight: 600, color: detectedOutsideRegion ? '#DC2626' : '#16A34A' }}>
+              {geoStatus}
+            </Typography>
+          </Box>
         )}
 
         {detectedOutsideRegion && (
-          <Box sx={{ mb: 2, p: 1.5, borderRadius: '12px', bgcolor: '#FEF2F2', border: '1.5px solid #FCA5A5' }}>
-            <Typography variant="subtitle2" sx={{ color: '#991B1B', fontWeight: 800, fontSize: '13px', mb: 0.5 }}>
-              Live GPS Detected Outside Salem Region
+          <Box sx={{ p: 2, borderRadius: '12px', bgcolor: '#FEF2F2', border: '1px solid #FCA5A5' }}>
+            <Typography sx={{ color: '#991B1B', fontWeight: 700, fontSize: '13px', mb: 0.5 }}>
+              Location outside Salem region
             </Typography>
-            <Typography variant="caption" sx={{ color: '#7F1D1D', display: 'block', lineHeight: 1.4 }}>
-              Your current device location ({detectedPlaceInfo?.name || 'Outside Area'}) is approximately {Math.round(detectedPlaceInfo?.distanceKm || 0)} km from Salem. SalemSeva technician doorstep service is exclusively available within Salem (PIN 636xxx). To schedule service for a home or property in Salem, select a Salem locality below.
+            <Typography sx={{ color: '#7F1D1D', fontSize: '12px', lineHeight: 1.45 }}>
+              Your device ({detectedPlaceInfo?.name || 'Outside Area'}) is ~{Math.round(detectedPlaceInfo?.distanceKm || 0)} km from Salem. SalemSeva doorstep service is available within Salem PINs (636xxx). Please select a Salem locality below.
             </Typography>
           </Box>
         )}
 
         {/* Search localities */}
-        <TextField
-          fullWidth
-          size="small"
-          placeholder="Search Salem locality (e.g. Fairlands, Hasthampatti, Ammapet)..."
-          value={searchFilter}
-          onChange={(e) => setSearchFilter(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon sx={{ color: '#94A3B8', fontSize: 20 }} />
-              </InputAdornment>
-            )
-          }}
-          sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
-        />
+        <Box>
+          <Typography sx={{ fontWeight: 600, color: '#64748B', fontSize: '13px', mb: 0.8 }}>
+            Choose Salem locality hub
+          </Typography>
+          <TextField
+            fullWidth
+            size="small"
+            placeholder="Search Salem locality (e.g. Fairlands, Ammapet)..."
+            value={searchFilter}
+            onChange={(e) => setSearchFilter(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search size={18} color="#94A3B8" />
+                </InputAdornment>
+              )
+            }}
+            sx={{ mb: 1.5, '& .MuiOutlinedInput-root': { borderRadius: '12px', fontSize: '13px' } }}
+          />
 
-        {/* Salem Localities Grid */}
-        <Typography variant="caption" sx={{ fontWeight: 800, color: '#64748B', display: 'block', mb: 1, letterSpacing: 0.5 }}>
-          CHOOSE SALEM LOCALITY HUB:
-        </Typography>
-
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2.5, maxHeight: 160, overflowY: 'auto', pr: 0.5 }}>
-          {filteredLocalities.map((loc) => {
-            const isSelected = selectedLocality === loc.name && !detectedOutsideRegion;
-            return (
-              <Chip
-                key={loc.name}
-                label={`${loc.name} (${loc.pin})`}
-                onClick={() => {
-                  setDetectedOutsideRegion(false);
-                  setSelectedLocality(loc.name);
-                  setCustomPin(loc.pin);
-                  setDetectedCoords({ lat: loc.lat, lng: loc.lng });
-                  setDoorAddress(`Plot/House No., ${loc.name}, Salem - ${loc.pin}`);
-                }}
-                icon={isSelected ? <CheckCircleIcon sx={{ fontSize: 16, color: '#0284C7 !important' }} /> : undefined}
-                sx={{
-                  fontWeight: isSelected ? 900 : 600,
-                  fontSize: '12px',
-                  bgcolor: isSelected ? '#E0F2FE' : '#F1F5F9',
-                  color: isSelected ? '#0284C7' : '#334155',
-                  border: isSelected ? '1.5px solid #0284C7' : '1px solid #E2E8F0',
-                  borderRadius: '10px',
-                  cursor: 'pointer'
-                }}
-              />
-            );
-          })}
+          {/* Salem Localities: Clean wrapped chips without inner scrollbox */}
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+            {filteredLocalities.map((loc) => {
+              const isSelected = selectedLocality === loc.name && !detectedOutsideRegion;
+              return (
+                <Chip
+                  key={loc.name}
+                  label={`${loc.name} (${loc.pin})`}
+                  onClick={() => {
+                    setDetectedOutsideRegion(false);
+                    setSelectedLocality(loc.name);
+                    setCustomPin(loc.pin);
+                    setDetectedCoords({ lat: loc.lat, lng: loc.lng });
+                    setDoorAddress(`Plot/House No., ${loc.name}, Salem - ${loc.pin}`);
+                  }}
+                  icon={isSelected ? <CheckCircle size={14} color="#0A66C2" /> : undefined}
+                  sx={{
+                    fontWeight: isSelected ? 700 : 500,
+                    fontSize: '12px',
+                    bgcolor: isSelected ? '#EFF6FF' : '#F8FAFC',
+                    color: isSelected ? '#0A66C2' : '#334155',
+                    border: isSelected ? '1.5px solid #0A66C2' : '1px solid #E2E8F0',
+                    borderRadius: '9999px',
+                    height: 36,
+                    cursor: 'pointer',
+                    '&:hover': {
+                      bgcolor: isSelected ? '#EFF6FF' : '#F1F5F9'
+                    }
+                  }}
+                />
+              );
+            })}
+          </Box>
         </Box>
 
-        {/* Postal PIN Code & Service Coverage Verification */}
-        <Box sx={{ mb: 2, p: 1.5, borderRadius: '14px', bgcolor: isOutOfRegion ? '#FEF2F2' : '#F0FDF4', border: isOutOfRegion ? '1.5px solid #FCA5A5' : '1px solid #BBF7D0' }}>
+        {/* Postal PIN Code Verification */}
+        <Box sx={{ p: 2, borderRadius: '12px', bgcolor: '#F8FAFC', border: '1px solid #E2E8F0' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-            <Typography variant="caption" sx={{ fontWeight: 800, color: isOutOfRegion ? '#991B1B' : '#166534', letterSpacing: 0.5 }}>
-              POSTAL PIN CODE (SERVICE REGION):
+            <Typography sx={{ fontWeight: 600, color: '#64748B', fontSize: '13px' }}>
+              Postal PIN code (service region)
             </Typography>
             <Chip
               size="small"
-              label={isOutOfRegion ? 'Outside Service Area' : 'Salem Active Grid'}
+              label={isOutOfRegion ? 'Outside service area' : 'Active Salem region'}
               sx={{
-                fontWeight: 800,
+                fontWeight: 600,
                 fontSize: '11px',
-                bgcolor: isOutOfRegion ? '#EF4444' : '#10B981',
-                color: '#FFFFFF'
+                height: 22,
+                borderRadius: '9999px',
+                bgcolor: isOutOfRegion ? '#FEE2E2' : '#DCFCE7',
+                color: isOutOfRegion ? '#DC2626' : '#166534'
               }}
             />
           </Box>
-          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
             <TextField
               size="small"
               value={activePin}
               onChange={(e) => {
                 const val = e.target.value.replace(/\D/g, '').slice(0, 6);
                 setCustomPin(val);
-                // Also update pin in address
                 if (doorAddress.match(/\b\d{6}\b/)) {
                   setDoorAddress(doorAddress.replace(/\b\d{6}\b/, val));
                 }
               }}
-              placeholder="e.g. 636016"
+              placeholder="636xxx"
               inputProps={{ maxLength: 6 }}
-              sx={{ width: 140, '& .MuiOutlinedInput-root': { borderRadius: '10px', bgcolor: '#FFFFFF', fontWeight: 700 } }}
+              sx={{ width: 120, '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: '#FFFFFF', fontWeight: 600, fontSize: '13px' } }}
             />
-            <Typography variant="caption" sx={{ color: isOutOfRegion ? '#DC2626' : '#15803D', fontWeight: 600, fontSize: '11.5px', lineHeight: 1.3 }}>
+            <Typography sx={{ color: isOutOfRegion ? '#DC2626' : '#16A34A', fontSize: '12px', lineHeight: 1.4 }}>
               {isOutOfRegion
-                ? `PIN ${activePin} is outside our working region. SalemSeva only serves Salem (PINs: 636xxx).`
-                : `Verified Salem hub (${activePin}). Technicians arrive within 25 mins.`}
+                ? `PIN ${activePin} is outside our coverage area (Salem: 636xxx only).`
+                : `Verified Salem hub (${activePin}). Doorstep dispatch ready.`}
             </Typography>
           </Box>
         </Box>
 
         {/* Doorstep Full Address Field */}
-        <Typography variant="caption" sx={{ fontWeight: 800, color: '#64748B', display: 'block', mb: 0.8, letterSpacing: 0.5 }}>
-          COMPLETE DOORSTEP / STREET ADDRESS:
-        </Typography>
-        <TextField
-          fullWidth
-          multiline
-          rows={2}
-          value={doorAddress}
-          onChange={(e) => setDoorAddress(e.target.value)}
-          placeholder="House/Flat No., Street Name, Landmark (e.g. Opp Reliance Smart)"
-          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px', bgcolor: '#F8FAFC' } }}
-        />
-      </DialogContent>
+        <Box>
+          <Typography sx={{ fontWeight: 600, color: '#64748B', fontSize: '13px', mb: 0.8 }}>
+            Complete doorstep address
+          </Typography>
+          <TextField
+            fullWidth
+            multiline
+            rows={2}
+            value={doorAddress}
+            onChange={(e) => setDoorAddress(e.target.value)}
+            placeholder="House/flat no., street name, landmark"
+            sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', fontSize: '13px', bgcolor: '#F8FAFC' } }}
+          />
+        </Box>
+      </ModalBody>
 
-      <DialogActions sx={{ p: 2, pt: 0 }}>
-        <Button onClick={onClose} sx={{ color: '#64748B', fontWeight: 700, textTransform: 'none' }}>
+      <ModalFooter>
+        <Button
+          variant="outlined"
+          onClick={onClose}
+          sx={{
+            color: '#64748B',
+            borderColor: '#E2E8F0',
+            fontWeight: 600,
+            textTransform: 'none',
+            fontSize: '13px',
+            borderRadius: '12px',
+            minHeight: 44,
+            px: 2,
+            '&:hover': { bgcolor: '#F8FAFC', borderColor: '#CBD5E1' }
+          }}
+        >
           Cancel
         </Button>
         <Button
@@ -352,18 +314,21 @@ export default function LocationPickerModal({
           onClick={handleConfirm}
           disabled={isOutOfRegion}
           sx={{
-            bgcolor: isOutOfRegion ? '#94A3B8' : '#10B981',
+            bgcolor: '#0A66C2',
+            color: '#FFFFFF',
             borderRadius: '14px',
+            minHeight: 48,
             px: 3,
-            py: 1,
-            fontWeight: 900,
+            fontWeight: 700,
+            fontSize: '14px',
             textTransform: 'none',
-            '&:hover': { bgcolor: isOutOfRegion ? '#94A3B8' : '#059669' }
+            '&:hover': { bgcolor: '#084E96' },
+            '&:disabled': { bgcolor: '#CBD5E1', color: '#94A3B8' }
           }}
         >
-          {isOutOfRegion ? 'Cannot Accept (Outside Salem)' : 'Confirm Location'}
+          {isOutOfRegion ? 'Cannot accept (outside Salem)' : 'Confirm location'}
         </Button>
-      </DialogActions>
-    </Dialog>
+      </ModalFooter>
+    </Modal>
   );
 }
