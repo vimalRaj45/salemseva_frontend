@@ -16,7 +16,9 @@ import {
   IconButton,
   Stepper,
   Step,
-  StepLabel
+  StepLabel,
+  Checkbox,
+  FormControlLabel
 } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -53,6 +55,7 @@ export default function PartnerOnboardingPage() {
   const [mobile, setMobile] = useState(() => searchParams.get('phone') || user?.phone || '');
   const [name, setName] = useState(() => searchParams.get('name') || user?.name || '');
   const [trade, setTrade] = useState(() => searchParams.get('trade') || user?.trade || 'ac');
+  const [yearsExperience, setYearsExperience] = useState(() => searchParams.get('exp') || user?.years_experience || user?.experienceYears || '');
   const [aadhaar, setAadhaar] = useState(() => user?.aadhaarNumber || '');
   const [aadhaarCardUrl, setAadhaarCardUrl] = useState(() => user?.aadhaarCardUrl || null);
   const [upiId, setUpiId] = useState(() => user?.upiId || user?.upi_vpa || '');
@@ -61,6 +64,7 @@ export default function PartnerOnboardingPage() {
   const [confirmPassword, setConfirmPassword] = useState(() => searchParams.get('password') || '');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [noPoliceCaseAccepted, setNoPoliceCaseAccepted] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleNextStep = () => {
@@ -72,6 +76,10 @@ export default function PartnerOnboardingPage() {
       }
       if (!name.trim()) {
         toast.error('தயவுசெய்து உங்கள் பெயரை உள்ளிடவும் (Please enter your full name)');
+        return;
+      }
+      if (yearsExperience === '' || isNaN(parseInt(yearsExperience, 10)) || parseInt(yearsExperience, 10) < 0) {
+        toast.error('உங்கள் பணி அனுபவத்தை உள்ளிடவும் (Please enter valid work experience in years)');
         return;
       }
       setActiveStep(1);
@@ -103,6 +111,10 @@ export default function PartnerOnboardingPage() {
       toast.error('கடவுச்சொற்கள் பொருந்தவில்லை (Passwords do not match)');
       return;
     }
+    if (!noPoliceCaseAccepted) {
+      toast.error('காவல்துறை வழக்கு & நடத்தை உறுதிமொழியை ஏற்றுக்கொண்டு டிக் செய்யவும் (Please accept the legal declaration and background check statement)');
+      return;
+    }
     setIsProcessing(true);
     fetch(`${API_V1_URL}/partner/onboard`, {
       method: 'POST',
@@ -112,6 +124,8 @@ export default function PartnerOnboardingPage() {
         phone: mobile,
         password,
         trade,
+        yearsExperience: parseInt(yearsExperience, 10) || 0,
+        noPoliceCaseAccepted,
         aadhaar,
         upiId,
         referralCode,
@@ -135,6 +149,8 @@ export default function PartnerOnboardingPage() {
           email: data.technician?.email || `${(name || 'tech').toLowerCase().replace(/[^a-z]/g, '')}@salemseva.in`,
           trade: data.technician?.primary_trade || trade,
           tradeName: tradeNames[trade] || 'Home Services Specialist',
+          years_experience: parseInt(yearsExperience, 10) || 0,
+          experienceYears: parseInt(yearsExperience, 10) || 0,
           isKycVerified: Boolean(data.technician?.is_kyc_verified),
           isOnline: false,
           upiId: upiId || data.technician?.upi_vpa,
@@ -339,6 +355,34 @@ export default function PartnerOnboardingPage() {
                     <MenuItem value="cleaning">Deep Cleaning & Sanitization</MenuItem>
                   </Select>
                 </FormControl>
+              </Box>
+
+              {/* Work Experience */}
+              <Box>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: '#64748B', display: 'block', mb: 0.6 }}>
+                  பணி அனுபவம் (WORK EXPERIENCE IN YEARS) *
+                </Typography>
+                <TextField
+                  fullWidth
+                  size="small"
+                  type="number"
+                  inputProps={{ min: 0, max: 50, step: 1 }}
+                  value={yearsExperience}
+                  onChange={(e) => setYearsExperience(e.target.value.replace(/[^0-9]/g, ''))}
+                  placeholder="e.g. 5"
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <Typography sx={{ fontSize: '13px', fontWeight: 700, color: '#64748B' }}>
+                          வருடங்கள் (Years)
+                        </Typography>
+                      </InputAdornment>
+                    )
+                  }}
+                  helperText="உங்கள் முதன்மைத் தொழிலில் உள்ள மொத்த வருட அனுபவம் (Total experience in primary trade)"
+                  FormHelperTextProps={{ sx: { color: '#64748B', fontSize: '11px', mt: 0.3 } }}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', fontWeight: 700 } }}
+                />
               </Box>
 
               {/* Technician Referral Code Field */}
@@ -551,6 +595,73 @@ export default function PartnerOnboardingPage() {
                 />
               </Box>
 
+              {/* Police Case & Code of Conduct Legal Declaration Checkbox */}
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  borderRadius: '12px',
+                  bgcolor: noPoliceCaseAccepted ? '#F0FDF4' : '#FEF2F2',
+                  border: '1.5px solid',
+                  borderColor: noPoliceCaseAccepted ? '#BBF7D0' : '#FECACA',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={noPoliceCaseAccepted}
+                      onChange={(e) => setNoPoliceCaseAccepted(e.target.checked)}
+                      sx={{
+                        color: noPoliceCaseAccepted ? '#16A34A' : '#DC2626',
+                        '&.Mui-checked': { color: '#16A34A' },
+                        mt: 0.2,
+                        p: 0.5,
+                        alignSelf: 'flex-start'
+                      }}
+                    />
+                  }
+                  label={
+                    <Box sx={{ pl: 0.75 }}>
+                      <Typography
+                        sx={{
+                          fontSize: '13px',
+                          fontWeight: 700,
+                          color: '#0F172A',
+                          lineHeight: 1.4,
+                          mb: 0.5
+                        }}
+                      >
+                        காவல்துறை வழக்கு & ஒழுங்குமுறை உறுதிமொழி (Legal & Conduct Declaration) *
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontSize: '12px',
+                          color: '#334155',
+                          lineHeight: 1.5,
+                          display: 'block'
+                        }}
+                      >
+                        என் மீது எந்தவிதமான குற்றப்பின்னணியோ அல்லது நிலுவையில் உள்ள போலீஸ் வழக்கோ இல்லை என உறுதியளிக்கிறேன். வாடிக்கையாளர்களிடம் தகாத முறையில் நடந்துகொண்டாலோ, முறைகேடு, மோசடி அல்லது விதிமீறல்களில் ஈடுபட்டாலோ சட்டரீதியான நடவடிக்கை எடுக்கப்படுவதையும், சேலம்சேவா தளத்திலிருந்து எனது கணக்கு நிரந்தரமாக முடக்கப்படுவதையும் முழுமையாக ஏற்றுக்கொள்கிறேன்.
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontSize: '11px',
+                          color: '#64748B',
+                          lineHeight: 1.4,
+                          display: 'block',
+                          mt: 0.5,
+                          fontStyle: 'italic'
+                        }}
+                      >
+                        "I declare that I have no criminal background or pending police cases registered against me. In case of any misbehavior, fraud, or violation of conduct rules, I accept that strict legal action will be initiated and my account will be permanently banned."
+                      </Typography>
+                    </Box>
+                  }
+                  sx={{ alignItems: 'flex-start', m: 0 }}
+                />
+              </Paper>
+
               {/* Back and Submit Actions */}
               <Box sx={{ display: 'flex', gap: 1.5, mt: 1 }}>
                 <Button
@@ -572,6 +683,7 @@ export default function PartnerOnboardingPage() {
                   type="submit"
                   variant="contained"
                   size="large"
+                  disabled={!noPoliceCaseAccepted}
                   endIcon={<CheckCircleIcon />}
                   sx={{
                     flex: 1.8,
@@ -582,7 +694,11 @@ export default function PartnerOnboardingPage() {
                     fontSize: '14.5px',
                     boxShadow: '0 4px 14px rgba(22, 163, 74, 0.3)',
                     textTransform: 'none',
-                    '&:hover': { bgcolor: '#15803D' }
+                    '&:hover': { bgcolor: '#15803D' },
+                    '&.Mui-disabled': {
+                      bgcolor: '#E2E8F0',
+                      color: '#94A3B8'
+                    }
                   }}
                 >
                   பதிவு செய்து பணியில் சேரவும் (Start Duty)

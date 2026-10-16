@@ -17,6 +17,9 @@ import CloseIcon from '@mui/icons-material/Close';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import HandymanIcon from '@mui/icons-material/Handyman';
 import PersonIcon from '@mui/icons-material/Person';
+import { Globe } from 'lucide-react';
+import LanguageSelectorModal from '../../components/LanguageSelectorModal';
+import { getCurrentLanguage, SUPPORTED_LANGUAGES } from '../../services/languageService';
 import { ILLUSTRATIONS } from '../../constants/visualAssets';
 
 const CUSTOMER_SLIDES = [
@@ -101,6 +104,10 @@ export default function FirstTimeOnboardingPage() {
   const navigate = useNavigate();
   const [role, setRole] = useState('customer'); // 'customer' | 'partner'
   const [activeSlide, setActiveSlide] = useState(0);
+  const [isLangModalOpen, setIsLangModalOpen] = useState(false);
+
+  const currentLangCode = getCurrentLanguage();
+  const currentLangObj = SUPPORTED_LANGUAGES.find((l) => l.code === currentLangCode) || SUPPORTED_LANGUAGES[0];
 
   const slides = role === 'customer' ? CUSTOMER_SLIDES : PARTNER_SLIDES;
   const current = slides[activeSlide];
@@ -220,20 +227,42 @@ export default function FirstTimeOnboardingPage() {
               </Button>
             </Box>
 
-            <Button
-              size="small"
-              onClick={handleFinish}
-              sx={{
-                color: '#64748B',
-                fontWeight: 700,
-                fontSize: '12px',
-                textTransform: 'none',
-                minWidth: 'auto',
-                p: 0.5
-              }}
-            >
-              Skip
-            </Button>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Button
+                size="small"
+                onClick={() => setIsLangModalOpen(true)}
+                startIcon={<Globe size={13} color="#0284C7" />}
+                sx={{
+                  color: '#0F172A',
+                  fontWeight: 700,
+                  fontSize: '11px',
+                  textTransform: 'none',
+                  bgcolor: '#F1F5F9',
+                  borderRadius: '8px',
+                  px: 1,
+                  py: 0.3,
+                  minHeight: 28,
+                  border: '1px solid #E2E8F0',
+                  '&:hover': { bgcolor: '#E2E8F0' }
+                }}
+              >
+                {currentLangObj.badge}
+              </Button>
+              <Button
+                size="small"
+                onClick={handleFinish}
+                sx={{
+                  color: '#64748B',
+                  fontWeight: 700,
+                  fontSize: '12px',
+                  textTransform: 'none',
+                  minWidth: 'auto',
+                  p: 0.5
+                }}
+              >
+                Skip
+              </Button>
+            </Box>
           </Box>
 
           <LinearProgress
@@ -420,6 +449,12 @@ export default function FirstTimeOnboardingPage() {
           </Button>
         </Box>
       </Container>
+
+      {/* Language Selector Modal */}
+      <LanguageSelectorModal
+        open={isLangModalOpen}
+        onClose={() => setIsLangModalOpen(false)}
+      />
     </Box>
   );
 }

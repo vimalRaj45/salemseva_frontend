@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Box } from '@mui/material';
 
 import Navbar from './components/Navbar';
+import LanguageSelectorModal from './components/LanguageSelectorModal';
 
 // Customer Pages
 import CustomerHomePage from './pages/customer/CustomerHomePage';
@@ -182,6 +183,7 @@ function AppContent() {
   const { user } = useAuth();
   const [currentBooking, setCurrentBooking] = useState(null);
   const [showSplash, setShowSplash] = useState(true);
+  const [showFirstTimeLangModal, setShowFirstTimeLangModal] = useState(false);
 
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
@@ -194,6 +196,19 @@ function AppContent() {
       }
     }
   }, []);
+
+  useEffect(() => {
+    // When splash finishes, check if user has chosen their preferred language yet
+    if (!showSplash) {
+      const hasChosen = localStorage.getItem('salemseva_lang_chosen');
+      if (!hasChosen) {
+        const timer = setTimeout(() => {
+          setShowFirstTimeLangModal(true);
+        }, 300);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [showSplash]);
 
   const walletBalance = user?.walletBalance ?? 150;
 
@@ -208,6 +223,13 @@ function AppContent() {
           walletBalance={walletBalance}
           currentBooking={currentBooking}
           setCurrentBooking={setCurrentBooking}
+        />
+
+        {/* First-time Language Choice Modal */}
+        <LanguageSelectorModal
+          open={showFirstTimeLangModal}
+          onClose={() => setShowFirstTimeLangModal(false)}
+          isFirstTime
         />
 
       {/* Global React Hot Toast Notifier */}

@@ -12,17 +12,33 @@ export function getCurrentLanguage() {
   return localStorage.getItem('salemseva_lang') || 'en';
 }
 
+export function isLanguageChosen() {
+  return !!localStorage.getItem('salemseva_lang_chosen');
+}
+
+export function markLanguageChosen() {
+  localStorage.setItem('salemseva_lang_chosen', 'true');
+}
+
 export function changeAppLanguage(langCode) {
   try {
     localStorage.setItem('salemseva_lang', langCode);
+    localStorage.setItem('salemseva_lang_chosen', 'true');
 
     // Set Google Translate cookie for path=/
     const cookieVal = langCode === 'en' ? '' : `/en/${langCode}`;
     const hostname = window.location.hostname;
     
-    document.cookie = `googtrans=${cookieVal}; path=/;`;
-    if (hostname && hostname !== 'localhost' && !hostname.match(/^\d+\.\d+\.\d+\.\d+$/)) {
-      document.cookie = `googtrans=${cookieVal}; path=/; domain=.${hostname};`;
+    if (langCode === 'en') {
+      document.cookie = 'googtrans=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;';
+      if (hostname && hostname !== 'localhost' && !hostname.match(/^\d+\.\d+\.\d+\.\d+$/)) {
+        document.cookie = `googtrans=; path=/; domain=.${hostname}; expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
+      }
+    } else {
+      document.cookie = `googtrans=${cookieVal}; path=/;`;
+      if (hostname && hostname !== 'localhost' && !hostname.match(/^\d+\.\d+\.\d+\.\d+$/)) {
+        document.cookie = `googtrans=${cookieVal}; path=/; domain=.${hostname};`;
+      }
     }
 
     // Check if Google Translate widget select element is ready in DOM
@@ -37,10 +53,14 @@ export function changeAppLanguage(langCode) {
         }
       }, 300);
     } else {
-      window.location.reload();
+      if (langCode !== 'en') {
+        window.location.reload();
+      }
     }
   } catch (err) {
     console.warn('Language change error:', err);
-    window.location.reload();
+    if (langCode !== 'en') {
+      window.location.reload();
+    }
   }
 }
