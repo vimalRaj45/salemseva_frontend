@@ -100,8 +100,15 @@ export default function ServiceDetailPage({ onStartBooking }) {
   const [couponLoading, setCouponLoading] = useState(false);
   const [availableCoupons, setAvailableCoupons] = useState([]);
 
-  const [serviceInfo, setServiceInfo] = useState(null);
+  const [serviceInfo, setServiceInfo] = useState(() => location.state?.service || null);
   const [issuesList, setIssuesList] = useState([]);
+
+  // Inspection Fee strictly derived from DB serviceInfo, with service-specific initial fallback
+  const inspectionFeeNumber = Number(
+    serviceInfo?.visitFee ??
+    serviceInfo?.visit_fee ??
+    (serviceId === 'ac' || serviceId === 'electrician' ? 149 : 99)
+  );
   const [isLoadingIssues, setIsLoadingIssues] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   const [locationPickerOpen, setLocationPickerOpen] = useState(false);
@@ -165,7 +172,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
     async function loadServiceData() {
       setIsLoadingIssues(true);
       try {
-        let dynamicFee = 99;
+        let dynamicFee = inspectionFeeNumber;
         // Fetch Service Info from DB
         const svcRes = await fetch(`${API_V1_URL}/services/${serviceId || 'ac'}`);
         const svcData = await svcRes.json();
@@ -173,6 +180,8 @@ export default function ServiceDetailPage({ onStartBooking }) {
           setServiceInfo(svcData.service);
           if (svcData.service.visitFee !== undefined && !isNaN(Number(svcData.service.visitFee))) {
             dynamicFee = Number(svcData.service.visitFee);
+          } else if (svcData.service.visit_fee !== undefined && !isNaN(Number(svcData.service.visit_fee))) {
+            dynamicFee = Number(svcData.service.visit_fee);
           }
         }
 
@@ -240,7 +249,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
     }
     setCouponLoading(true);
     try {
-      const currentBookingAmount = Number(serviceInfo?.visitFee ?? 99);
+      const currentBookingAmount = inspectionFeeNumber;
       const res = await fetch(`${API_V1_URL}/coupons/validate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -383,7 +392,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
 
     setIsPayingScheduled(true);
     const finalSlot = `${getFormattedDateString()} • ${getEffectiveSlot()}`;
-    const visitFeeAmount = Number(serviceInfo?.visitFee ?? 99);
+    const visitFeeAmount = inspectionFeeNumber;
     const discount = couponApplied ? couponDiscount : 0;
     const payableNow = Math.max(0, visitFeeAmount - discount);
 
@@ -909,7 +918,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
                       {item.estRange}
                     </Typography>
                     <Typography variant="caption" sx={{ color: '#16A34A', fontSize: { xs: '11.5px', sm: '12.5px' }, fontWeight: 600 }}>
-                      Visit fee: ₹{serviceInfo?.visitFee ?? 99}
+                      Visit fee: ₹{inspectionFeeNumber}
                     </Typography>
                   </Box>
                 </Card>
@@ -1393,7 +1402,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
         <Container maxWidth="md" disableGutters sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box>
             <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: { xs: '15px', sm: '17px' }, color: '#0F172A' }}>
-              Inspection fee: ₹{serviceInfo?.visitFee ?? 99}
+              Inspection fee: ₹{inspectionFeeNumber}
             </Typography>
             <Typography variant="caption" sx={{ color: bookingMode === 'scheduled' ? '#0066CC' : couponApplied ? '#16A34A' : '#64748B', fontSize: { xs: '12.5px', sm: '13.5px' }, fontWeight: 600 }}>
               {bookingMode === 'scheduled'
@@ -1419,7 +1428,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
               '&:hover': { bgcolor: bookingMode === 'instant' ? '#0052A3' : '#0369A1' }
             }}
           >
-            {bookingMode === 'instant' ? 'Search Tech Now' : `Pay ₹${Math.max(0, Number(serviceInfo?.visitFee ?? 99) - (couponApplied ? couponDiscount : 0))} & Reserve Slot`}
+            {bookingMode === 'instant' ? 'Search Tech Now' : `Pay ₹${Math.max(0, inspectionFeeNumber - (couponApplied ? couponDiscount : 0))} & Reserve Slot`}
           </Button>
         </Container>
       </Paper>
@@ -1494,7 +1503,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
                 Doorstep diagnostic & inspection visit
               </Typography>
               <Typography sx={{ fontWeight: 600, color: '#0F172A', fontSize: '13px' }}>
-                ₹{(Number(serviceInfo?.visitFee ?? 99)).toFixed(2)}
+                ₹{inspectionFeeNumber.toFixed(2)}
               </Typography>
             </Box>
             {couponApplied && couponDiscount > 0 && (
@@ -1521,7 +1530,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
                 Total payable now
               </Typography>
               <Typography sx={{ fontWeight: 700, color: '#0A66C2', fontSize: '18px' }}>
-                ₹{Math.max(0, Number(serviceInfo?.visitFee ?? 99) - (couponApplied ? couponDiscount : 0))}.00
+                ₹{Math.max(0, inspectionFeeNumber - (couponApplied ? couponDiscount : 0))}.00
               </Typography>
             </Box>
           </Paper>
@@ -1636,7 +1645,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
               '&:hover': { bgcolor: '#084E96' }
             }}
           >
-            {isPayingScheduled ? 'Processing payment...' : `Pay ₹${Math.max(0, Number(serviceInfo?.visitFee ?? 99) - (couponApplied ? couponDiscount : 0))} & confirm`}
+            {isPayingScheduled ? 'Processing payment...' : `Pay ₹${Math.max(0, inspectionFeeNumber - (couponApplied ? couponDiscount : 0))} & confirm`}
           </Button>
         </ModalFooter>
       </Modal>

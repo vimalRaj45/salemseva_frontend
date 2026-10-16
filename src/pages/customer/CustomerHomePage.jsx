@@ -555,7 +555,10 @@ export default function CustomerHomePage() {
                 <Button
                   size="small"
                   variant="contained"
-                  onClick={() => navigate('/book/ac')}
+                  onClick={() => {
+                    const acService = activeServicesList.find(s => s.id === 'ac') || { id: 'ac', name: 'AC Repair & Service', visitFee: 149 };
+                    navigate('/book/ac', { state: { service: acService } });
+                  }}
                   sx={{
                     bgcolor: '#0066CC',
                     color: '#FFFFFF',
@@ -623,7 +626,7 @@ export default function CustomerHomePage() {
                 <Grid item xs={6} sm={4} md={3} key={svc.id}>
                   <Card
                     elevation={0}
-                    onClick={() => navigate(`/book/${svc.id}`)}
+                    onClick={() => navigate(`/book/${svc.id}`, { state: { service: svc } })}
                     sx={{
                       height: '100%',
                       borderRadius: '12px',
