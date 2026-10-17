@@ -1,260 +1,221 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import LegalLayout from './LegalLayout';
 import {
-  ShieldCheck,
   FileText,
-  Scale,
-  Clock,
-  ArrowLeft,
-  ChevronRight,
-  AlertTriangle,
-  Lock,
   Percent,
-  CheckCircle2,
-  Users
+  AlertTriangle,
+  ShieldCheck,
+  Scale,
+  Users,
+  ShieldAlert,
+  HelpCircle
 } from 'lucide-react';
 
+const termsSections = [
+  { id: 'sec-nature', title: '1. Platform Nature & Intermediary Status' },
+  { id: 'sec-commission', title: '2. Platform Cut, Commission & Settlement' },
+  { id: 'sec-suspension', title: '3. Suspension & Administrative Blocking' },
+  { id: 'sec-safety', title: '4. Partner Verification & Doorstep Safety' },
+  { id: 'sec-arbitration', title: '5. Governing Law & Dispute Redressal' }
+];
+
 export default function TermsPage() {
-  const navigate = useNavigate();
-
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#F8FAFC', paddingBottom: '80px' }}>
-      {/* Top Header / Breadcrumb */}
-      <div
-        style={{
-          backgroundColor: '#FFFFFF',
-          borderBottom: '1px solid #E2E8F0',
-          padding: '16px 20px',
-          position: 'sticky',
-          top: 0,
-          zIndex: 100,
-          boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
-        }}
-      >
-        <div style={{ maxWidth: '960px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              backgroundColor: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              color: '#0F172A',
-              fontWeight: 700,
-              fontSize: '14px'
-            }}
-          >
-            <ArrowLeft size={18} />
-            <span>Back</span>
-          </button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#0066CC', backgroundColor: '#EFF6FF', padding: '4px 10px', borderRadius: '12px', border: '1px solid #DBEAFE' }}>
-              Legal Document
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Document Body */}
-      <div style={{ maxWidth: '960px', margin: '32px auto', padding: '0 20px' }}>
-        {/* Document Hero */}
-        <div
-          style={{
-            backgroundColor: '#FFFFFF',
-            borderRadius: '16px',
-            border: '1px solid #E2E8F0',
-            padding: '32px 28px',
-            marginBottom: '28px',
-            boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
-            <div
-              style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: '12px',
-                backgroundColor: '#EFF6FF',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#0066CC',
-                border: '1px solid #DBEAFE'
-              }}
-            >
-              <Scale size={24} />
-            </div>
-            <div>
-              <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.5px' }}>
-                Terms & Conditions
-              </h1>
-              <span style={{ fontSize: '13px', color: '#64748B', fontWeight: 500 }}>
-                Master Service Agreement & Intermediary Platform Policies
-              </span>
-            </div>
-          </div>
-
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: '16px',
-              paddingTop: '16px',
-              borderTop: '1px solid #F1F5F9',
-              fontSize: '12px',
-              color: '#475569'
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Clock size={14} color="#64748B" />
-              <span>Effective Date: October 15, 2026</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <ShieldCheck size={14} color="#16A34A" />
-              <span>Jurisdiction: Salem District, Tamil Nadu</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Percent size={14} color="#0066CC" />
-              <span>Platform Facilitation: 2.0%</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Section 1: Introduction & Technology Intermediary Status */}
-        <div
-          style={{
-            backgroundColor: '#FFFFFF',
-            borderRadius: '16px',
-            border: '1px solid #E2E8F0',
-            padding: '28px',
-            marginBottom: '20px'
-          }}
-        >
-          <h2 style={{ fontSize: '17px', fontWeight: 800, color: '#0F172A', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <FileText size={18} color="#0066CC" />
+    <LegalLayout
+      title="Terms & Conditions"
+      subtitle="Master Service Agreement, Partner Conduct & Intermediary Marketplace Policies"
+      effectiveDate="October 15, 2026"
+      jurisdiction="Salem District, Tamil Nadu"
+      categoryBadge="Master Agreement"
+      sections={termsSections}
+    >
+      {/* Clause 1 */}
+      <section id="sec-nature" style={{ scrollMarginTop: '100px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+          <FileText size={18} color="#0284C7" />
+          <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px' }}>
             1. Platform Nature and Intermediary Status
           </h2>
-          <p style={{ fontSize: '14px', lineHeight: 1.7, color: '#334155', margin: '0 0 12px 0' }}>
-            SalemSeva ("Platform", "we", "us") functions exclusively as a technology-driven marketplace and intermediary under the Information Technology Act, 2000. SalemSeva connects consumers ("Users" or "Customers") residing within the municipal and district limits of Salem, Tamil Nadu, with vetted, independent service professionals ("Technicians", "Specialists", or "Partners").
-          </p>
-          <p style={{ fontSize: '14px', lineHeight: 1.7, color: '#334155', margin: 0 }}>
-            SalemSeva does not directly employ service technicians, nor does it control or direct their physical performance during on-site repairs. All service contracts for physical diagnostic, plumbing, electrical, carpentry, cleaning, or appliance repairs are entered into directly between the Customer and the assigned independent Technician.
-          </p>
         </div>
 
-        {/* Section 2: Financial Structure & 2% Platform Fee */}
-        <div
-          style={{
-            backgroundColor: '#FFFFFF',
-            borderRadius: '16px',
-            border: '1px solid #E2E8F0',
-            padding: '28px',
-            marginBottom: '20px'
-          }}
-        >
-          <h2 style={{ fontSize: '17px', fontWeight: 800, color: '#0F172A', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Percent size={18} color="#0066CC" />
-            2. Platform Cut, Commission & Settlement
+        <p style={{ fontSize: '14.5px', lineHeight: 1.75, color: '#334155', margin: '0 0 14px 0' }}>
+          SalemSeva ("Platform", "we", "us", or "our") functions exclusively as a technology-driven marketplace and an electronic intermediary as defined under Section 79 of the Information Technology Act, 2000, read alongside the Information Technology (Intermediary Guidelines and Digital Media Ethics Code) Rules, 2021. SalemSeva provides digital infrastructure enabling consumers ("Users" or "Customers") residing within the municipal, corporation, and rural district limits of Salem, Tamil Nadu, to discover, schedule, coordinate, and disburse payments to certified, independent service professionals ("Technicians", "Specialists", or "Partners").
+        </p>
+
+        <p style={{ fontSize: '14.5px', lineHeight: 1.75, color: '#334155', margin: '0 0 14px 0' }}>
+          SalemSeva does not directly employ service technicians, nor does it maintain master-servant, employer-employee, or principal-agent relationships with onboarded partners. All service agreements for physical diagnostic inspections, electrical maintenance, plumbing installations, air conditioning repairs, deep home sanitation, and carpentry works are entered into bilaterally and directly between the Customer and the assigned independent technician.
+        </p>
+
+        <p style={{ fontSize: '14px', lineHeight: 1.7, color: '#64748B', margin: 0 }}>
+          SalemSeva's responsibilities are limited to operating the digital booking catalog, real-time GPS telemetry routing, automated billing calculations, and acting as an escrow payment collection facilitator.
+        </p>
+
+        <hr style={{ border: 'none', borderTop: '1px solid #E2E8F0', margin: '32px 0 0 0' }} />
+      </section>
+
+      {/* Clause 2 */}
+      <section id="sec-commission" style={{ scrollMarginTop: '100px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+          <Percent size={18} color="#0284C7" />
+          <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px' }}>
+            2. Platform Cut, Commission & Settlement Structure
           </h2>
-          <p style={{ fontSize: '14px', lineHeight: 1.7, color: '#334155', margin: '0 0 12px 0' }}>
-            To sustain real-time dispatch, server infrastructure, map telemetry, secure escrow custody, and customer grievance desks, SalemSeva applies a standard fee structure:
-          </p>
-          <ul style={{ paddingLeft: '20px', margin: '0 0 14px 0', fontSize: '14px', lineHeight: 1.8, color: '#334155' }}>
-            <li>
-              <strong>SalemSeva Platform Cut:</strong> A non-negotiable fee of exactly <strong>2.0%</strong> is deducted from the gross booking amount.
-            </li>
-            <li>
-              <strong>Technician Payout:</strong> Independent technicians receive <strong>98.0%</strong> of the gross billable amount for all successfully completed services, disbursed directly via Razorpay automated bank settlement transfers.
-            </li>
-            <li>
-              <strong>Transparent Invoicing:</strong> Every booking invoice generated inside the application itemizes the diagnostic inspection fee, labor charges, materials or spare parts, and the platform facilitation cut.
-            </li>
-          </ul>
         </div>
 
-        {/* Section 3: Admin Authority & Account Blocking */}
-        <div
-          style={{
-            backgroundColor: '#FFFFFF',
-            borderRadius: '16px',
-            border: '1px solid #E2E8F0',
-            padding: '28px',
-            marginBottom: '20px'
-          }}
-        >
-          <h2 style={{ fontSize: '17px', fontWeight: 800, color: '#0F172A', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <AlertTriangle size={18} color="#D97706" />
+        <p style={{ fontSize: '14.5px', lineHeight: 1.75, color: '#334155', margin: '0 0 16px 0' }}>
+          To operate and maintain real-time dispatch telematics, cloud infrastructure, secure banking webhooks, customer support desks, and partner insurance coverage within the Salem territory, SalemSeva enforces an itemized fee model:
+        </p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px', marginBottom: '18px' }}>
+          <div style={{ backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+              <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>SalemSeva Platform Cut</span>
+              <span style={{ fontSize: '14px', fontWeight: 900, color: '#0284C7' }}>2.0%</span>
+            </div>
+            <p style={{ margin: 0, fontSize: '12.5px', color: '#64748B', lineHeight: 1.6 }}>
+              A standard deduction of exactly 2.0% applied to the gross billable service total for platform operational facilitation and dispatch coordination.
+            </p>
+          </div>
+
+          <div style={{ backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+              <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>Technician Direct Payout</span>
+              <span style={{ fontSize: '14px', fontWeight: 900, color: '#16A34A' }}>98.0%</span>
+            </div>
+            <p style={{ margin: 0, fontSize: '12.5px', color: '#64748B', lineHeight: 1.6 }}>
+              Independent technician partners receive 98.0% of billable labor and diagnostic amounts, disbursed directly to their verified UPI/bank account via automated Razorpay Route settlement.
+            </p>
+          </div>
+        </div>
+
+        <div style={{ backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '14px 16px' }}>
+          <strong style={{ fontSize: '13px', color: '#1E293B', display: 'block', marginBottom: '4px' }}>
+            Transparent Digital Invoicing
+          </strong>
+          <p style={{ margin: 0, fontSize: '13px', color: '#475569', lineHeight: 1.6 }}>
+            Every completed service booking produces a tamper-proof digital invoice within the customer and technician app view, distinctly itemizing the base diagnostic fee, labor additions, replacement spare parts, applicable GST, and the 2.0% platform facilitation cut.
+          </p>
+        </div>
+
+        <hr style={{ border: 'none', borderTop: '1px solid #E2E8F0', margin: '32px 0 0 0' }} />
+      </section>
+
+      {/* Clause 3 */}
+      <section id="sec-suspension" style={{ scrollMarginTop: '100px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+          <AlertTriangle size={18} color="#D97706" />
+          <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px' }}>
             3. Account Suspension & Administrative Blocking Rights
           </h2>
-          <p style={{ fontSize: '14px', lineHeight: 1.7, color: '#334155', margin: '0 0 12px 0' }}>
-            SalemSeva Central Operations Desk administrators reserve the absolute right to suspend, terminate, or indefinitely block any Customer or Partner account immediately upon discovery of:
-          </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px', marginTop: '12px' }}>
-            <div style={{ backgroundColor: '#FFFBEB', padding: '14px', borderRadius: '12px', border: '1px solid #FDE68A' }}>
-              <span style={{ fontSize: '13px', fontWeight: 800, color: '#92400E', display: 'block', marginBottom: '4px' }}>
-                Customer Grounds for Blocking
-              </span>
-              <span style={{ fontSize: '12.5px', color: '#78350F', lineHeight: 1.6 }}>
-                Verbal or physical misconduct towards partners, repeated fraudulent cancellations after arrival, chargeback evasion, or unauthorized bypassing of platform payments.
-              </span>
-            </div>
-            <div style={{ backgroundColor: '#FEF2F2', padding: '14px', borderRadius: '12px', border: '1px solid #FECACA' }}>
-              <span style={{ fontSize: '13px', fontWeight: 800, color: '#991B1B', display: 'block', marginBottom: '4px' }}>
-                Technician Grounds for Blocking
-              </span>
-              <span style={{ fontSize: '12.5px', color: '#7F1D1D', lineHeight: 1.6 }}>
-                Soliciting off-platform cash transactions, falsifying KYC or trade licenses, severe customer safety violations, recurring no-shows, or poor ratings below quality thresholds.
-              </span>
-            </div>
-          </div>
-          <p style={{ fontSize: '13px', lineHeight: 1.6, color: '#64748B', margin: '14px 0 0 0' }}>
-            Blocked individuals are restricted from logging in, dispatching jobs, going on duty, or initiating new service requests across all SalemSeva mobile and web interfaces.
-          </p>
         </div>
 
-        {/* Section 4: Doorstep Service Protocol & Safety */}
-        <div
-          style={{
-            backgroundColor: '#FFFFFF',
-            borderRadius: '16px',
-            border: '1px solid #E2E8F0',
-            padding: '28px',
-            marginBottom: '20px'
-          }}
-        >
-          <h2 style={{ fontSize: '17px', fontWeight: 800, color: '#0F172A', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <ShieldCheck size={18} color="#16A34A" />
+        <p style={{ fontSize: '14.5px', lineHeight: 1.75, color: '#334155', margin: '0 0 16px 0' }}>
+          SalemSeva Central Operations Desk administrators reserve the absolute authority to suspend, deactivate, or permanently blacklist any Customer or Technician profile across all platforms upon verified grounds:
+        </p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginBottom: '16px' }}>
+          <div style={{ backgroundColor: '#FFFDF5', border: '1px solid #FDE68A', borderRadius: '8px', padding: '16px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 800, color: '#92400E', display: 'block', marginBottom: '6px' }}>
+              Customer Violation Grounds
+            </span>
+            <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12.5px', color: '#78350F', lineHeight: 1.7 }}>
+              <li>Verbal, threatening, or physical harassment directed towards service partners.</li>
+              <li>Repeated unjustified cancellations after the technician has arrived at the location.</li>
+              <li>Attempting off-platform under-the-table cash transactions to evade warranty tracking.</li>
+              <li>Fraudulent chargebacks, forged UPI screenshots, or payment evasion.</li>
+            </ul>
+          </div>
+
+          <div style={{ backgroundColor: '#FEF8F8', border: '1px solid #FECACA', borderRadius: '8px', padding: '16px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 800, color: '#991B1B', display: 'block', marginBottom: '6px' }}>
+              Technician Partner Violation Grounds
+            </span>
+            <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12.5px', color: '#7F1D1D', lineHeight: 1.7 }}>
+              <li>Directly soliciting customers to cancel in-app bookings for off-platform cash payments.</li>
+              <li>Submitting forged government Aadhaar cards, fake trade credentials, or proxy workers.</li>
+              <li>Unexplained recurring no-shows after accepting dispatches.</li>
+              <li>Customer safety infringements or sustaining satisfaction ratings below 4.0 out of 5.</li>
+            </ul>
+          </div>
+        </div>
+
+        <p style={{ fontSize: '13.5px', color: '#64748B', lineHeight: 1.6, margin: 0 }}>
+          Blocked individuals are barred from initiating dispatches, going online for duty, or registering duplicate accounts using identical mobile numbers or hardware fingerprints.
+        </p>
+
+        <hr style={{ border: 'none', borderTop: '1px solid #E2E8F0', margin: '32px 0 0 0' }} />
+      </section>
+
+      {/* Clause 4 */}
+      <section id="sec-safety" style={{ scrollMarginTop: '100px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+          <ShieldCheck size={18} color="#16A34A" />
+          <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px' }}>
             4. Partner Verification & Doorstep Safety Standards
           </h2>
-          <p style={{ fontSize: '14px', lineHeight: 1.7, color: '#334155', margin: '0 0 12px 0' }}>
-            Every partner onboarded on the SalemSeva network must pass mandatory identity authentication, including DigiLocker government Aadhaar verification, trade skill vetting, and background checks. Customers agree to provide safe, unimpeded access to the premises for the technician during daytime service hours (8:00 AM to 8:00 PM).
-          </p>
         </div>
 
-        {/* Section 5: Governing Law & Jurisdiction */}
-        <div
-          style={{
-            backgroundColor: '#FFFFFF',
-            borderRadius: '16px',
-            border: '1px solid #E2E8F0',
-            padding: '28px'
-          }}
-        >
-          <h2 style={{ fontSize: '17px', fontWeight: 800, color: '#0F172A', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Scale size={18} color="#0F172A" />
+        <p style={{ fontSize: '14.5px', lineHeight: 1.75, color: '#334155', margin: '0 0 14px 0' }}>
+          To ensure uncompromised safety in households and commercial premises across Salem, every technician partner undergoes mandatory identity and credential verification prior to account activation:
+        </p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '12px 14px', backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px' }}>
+            <span style={{ fontSize: '12px', fontWeight: 800, color: '#0284C7', backgroundColor: '#E0F2FE', padding: '2px 8px', borderRadius: '4px', flexShrink: 0 }}>Step 1</span>
+            <div>
+              <strong style={{ fontSize: '13px', color: '#0F172A', display: 'block' }}>DigiLocker Government Aadhaar Verification</strong>
+              <span style={{ fontSize: '12.5px', color: '#475569' }}>Real-time cryptographic authentication of legal name, photo identity, and permanent address.</span>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '12px 14px', backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px' }}>
+            <span style={{ fontSize: '12px', fontWeight: 800, color: '#0284C7', backgroundColor: '#E0F2FE', padding: '2px 8px', borderRadius: '4px', flexShrink: 0 }}>Step 2</span>
+            <div>
+              <strong style={{ fontSize: '13px', color: '#0F172A', display: 'block' }}>Trade Skill Assessment & Tool Compliance</strong>
+              <span style={{ fontSize: '12.5px', color: '#475569' }}>Hands-on verification of professional competence in certified disciplines (AC, Electrical, Plumbing, Cleaning).</span>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '12px 14px', backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px' }}>
+            <span style={{ fontSize: '12px', fontWeight: 800, color: '#0284C7', backgroundColor: '#E0F2FE', padding: '2px 8px', borderRadius: '4px', flexShrink: 0 }}>Step 3</span>
+            <div>
+              <strong style={{ fontSize: '13px', color: '#0F172A', display: 'block' }}>Operating Protocol & Hours</strong>
+              <span style={{ fontSize: '12.5px', color: '#475569' }}>Doorstep visits are scheduled strictly between 8:00 AM and 8:00 PM. Customers must provide safe access to the work area.</span>
+            </div>
+          </div>
+        </div>
+
+        <hr style={{ border: 'none', borderTop: '1px solid #E2E8F0', margin: '32px 0 0 0' }} />
+      </section>
+
+      {/* Clause 5 */}
+      <section id="sec-arbitration" style={{ scrollMarginTop: '100px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+          <Scale size={18} color="#0F172A" />
+          <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px' }}>
             5. Governing Law and Dispute Arbitration
           </h2>
-          <p style={{ fontSize: '14px', lineHeight: 1.7, color: '#334155', margin: '0 0 12px 0' }}>
-            These terms are governed in accordance with the laws of the Republic of India. Any disputes, claims, or controversies arising out of or relating to SalemSeva platform services shall be subject to the exclusive jurisdiction of the competent courts of Salem City, Tamil Nadu.
-          </p>
-          <p style={{ fontSize: '14px', lineHeight: 1.7, color: '#334155', margin: 0 }}>
-            For grievance redressal or legal notices, contact our compliance officer at legal@salemseva.in or via our 24/7 hotline at 1800-425-7253.
-          </p>
         </div>
-      </div>
-    </div>
+
+        <p style={{ fontSize: '14.5px', lineHeight: 1.75, color: '#334155', margin: '0 0 14px 0' }}>
+          This Master Service Agreement is construed and governed under the substantive laws of the Republic of India. In the event of any dispute, disagreement, controversy, or claim arising out of or connecting with SalemSeva operations, the parties shall first attempt amicable settlement through SalemSeva's Central Operations Grievance Cell.
+        </p>
+
+        <p style={{ fontSize: '14.5px', lineHeight: 1.75, color: '#334155', margin: '0 0 16px 0' }}>
+          Failing amicable settlement within thirty (30) days of formal notice, the dispute shall be resolved through arbitration under the Arbitration and Conciliation Act, 1996, by a sole arbitrator mutually appointed by SalemSeva. The place and seat of arbitration shall be Salem City, Tamil Nadu, and the proceedings shall be conducted in English or Tamil.
+        </p>
+
+        <div style={{ backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+          <div>
+            <strong style={{ fontSize: '13px', color: '#0F172A', display: 'block' }}>Exclusive Judicial Forum</strong>
+            <span style={{ fontSize: '12.5px', color: '#64748B' }}>Courts having competent jurisdiction located within Salem District, Tamil Nadu.</span>
+          </div>
+          <div>
+            <strong style={{ fontSize: '13px', color: '#0F172A', display: 'block' }}>Grievance Desk Helpline</strong>
+            <span style={{ fontSize: '12.5px', color: '#0284C7', fontWeight: 600 }}>legal@salemseva.in • 1800-425-7253</span>
+          </div>
+        </div>
+      </section>
+    </LegalLayout>
   );
 }

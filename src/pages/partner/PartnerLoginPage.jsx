@@ -62,6 +62,11 @@ export default function PartnerLoginPage() {
       return;
     }
 
+    if (!password) {
+      setErrorMessage('Please enter your account password');
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
@@ -70,7 +75,7 @@ export default function PartnerLoginPage() {
         body: JSON.stringify({
           identifier: rawClean,
           phone: rawClean,
-          password: password || 'salem123',
+          password: password,
           role: 'technician'
         })
       });

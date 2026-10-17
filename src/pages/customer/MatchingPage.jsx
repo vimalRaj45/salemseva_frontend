@@ -134,9 +134,7 @@ export default function MatchingPage() {
           const currentStatus = data.booking?.status;
           if (['en_route', 'arrived', 'inspecting', 'quote_presented', 'quote_approved', 'completed'].includes(currentStatus)) {
             // Already paid inspection fee and technician is actively dispatched
-            setTimeout(() => {
-              if (isMounted) navigate(`/track?bookingId=${bookingId}`);
-            }, 300);
+            if (isMounted) navigate(`/track?bookingId=${bookingId}`);
           } else if (currentStatus === 'accepted') {
             // Technician accepted -> Prompt user for Part 1 (₹99) payment within 2 mins
             setMatchingState('accepted');

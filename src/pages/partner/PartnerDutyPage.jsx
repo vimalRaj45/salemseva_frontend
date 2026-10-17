@@ -198,14 +198,16 @@ export default function PartnerDutyPage() {
     let isMounted = true;
     const syncTechnicianState = async () => {
       try {
-        const cleanDigits = String(techPhone).replace(/[^0-9]/g, '').slice(-10);
-        const res = await fetch(`${API_V1_URL}/partner/duty?phone=${encodeURIComponent(cleanDigits)}`);
+        const techPhone = activeTech?.phone || user?.phone;
+        const techId = activeTech?.id || user?.id || '';
+        const cleanDigits = techPhone ? String(techPhone).replace(/[^0-9]/g, '').slice(-10) : '';
+        const res = await fetch(`${API_V1_URL}/partner/duty?phone=${encodeURIComponent(cleanDigits)}&technicianId=${encodeURIComponent(techId)}`);
         const data = await res.json();
         if (!isMounted) return;
 
         if (data.success && data.technician) {
           const t = data.technician;
-          const isDbVerified = Boolean(t.is_kyc_verified);
+          const isDbVerified = Boolean(t.is_kyc_verified ?? t.isKycVerified ?? (t.status === 'Verified'));
           const currentlyVerified = Boolean(
             activeTech?.is_kyc_verified === true ||
             activeTech?.isKycVerified === true ||
@@ -223,14 +225,14 @@ export default function PartnerDutyPage() {
               is_kyc_verified: isDbVerified,
               isKycVerified: isDbVerified,
               status: isDbVerified ? 'Verified' : 'Pending Verification',
-              isOnline: t.is_online,
+              isOnline: Boolean(t.is_online),
               aadhaarCardUrl: t.aadhaar_card_url || activeTech?.aadhaarCardUrl
             };
             await loginTech(updated);
             updateUser(updated);
             localStorage.setItem('salemseva_tech_user', JSON.stringify(updated));
             if (isDbVerified) {
-              setIsOnline(t.is_online);
+              setIsOnline(Boolean(t.is_online));
             }
           }
         }
@@ -264,6 +266,17 @@ export default function PartnerDutyPage() {
   const [callOpen, setCallOpen] = useState(false);
   const [isIncomingCall, setIsIncomingCall] = useState(false);
   const [incomingMessageToast, setIncomingMessageToast] = useState(null);
+  const [selectedCommunicationJob, setSelectedCommunicationJob] = useState(null);
+
+  const handleOpenCall = (job) => {
+    setSelectedCommunicationJob(job || activeJob);
+    setCallOpen(true);
+  };
+
+  const handleOpenChat = (job) => {
+    setSelectedCommunicationJob(job || activeJob);
+    setChatOpen(true);
+  };
 
   const chatOpenRef = useRef(chatOpen);
   chatOpenRef.current = chatOpen;
@@ -302,9 +315,9 @@ export default function PartnerDutyPage() {
 
   // Helper to determine if a scheduled slot is for today
   const isSlotToday = (slotText) => {
-    if (!slotText) return false;
+    if (!slotText) return true; // Instant booking or unscheduled slot is for today
     const s = String(slotText).toLowerCase();
-    if (s.includes('today') || s.includes('இன்று')) return true;
+    if (s.includes('today') || s.includes('இன்று') || s.includes('instant')) return true;
     const now = new Date();
     const d1 = now.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }).toLowerCase();
     const d2 = now.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }).toLowerCase();
@@ -454,19 +467,54 @@ export default function PartnerDutyPage() {
 
   // Helper to match a job's scheduledSlot or createdAt to an ISO date
   const jobMatchesDate = (job, targetIso) => {
-    if (!job) return false;
-    const slotStr = String(job.scheduledSlot || '');
+    if (!job || !targetIso) return false;
+    const slotStr = String(job.scheduledSlot || job.scheduled_slot || job.scheduledDate || job.scheduled_date || job.slot || '');
+    
+    // Direct ISO match (e.g., '2026-10-29')
     if (slotStr.includes(targetIso)) return true;
-    const nowIso = new Date().toISOString().split('T')[0];
+    if (job.scheduledDate === targetIso || job.scheduled_date === targetIso) return true;
+
+    // Check if target matches today or tomorrow keywords
+    const now = new Date();
+    const nowIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     if (targetIso === nowIso && isSlotToday(slotStr)) return true;
-    const targetDate = new Date(targetIso);
-    const d1 = targetDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }).toLowerCase();
-    const d2 = targetDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }).toLowerCase();
-    if (slotStr.toLowerCase().includes(d1) || slotStr.toLowerCase().includes(d2)) return true;
-    if (job.createdAt) {
-      const cIso = new Date(job.createdAt).toISOString().split('T')[0];
-      if (cIso === targetIso) return true;
+
+    const tom = new Date(now);
+    tom.setDate(tom.getDate() + 1);
+    const tomIso = `${tom.getFullYear()}-${String(tom.getMonth() + 1).padStart(2, '0')}-${String(tom.getDate()).padStart(2, '0')}`;
+    if (targetIso === tomIso && slotStr.toLowerCase().includes('tomorrow')) return true;
+
+    // Month and day name matching (e.g. '29 Oct', '29-Oct', 'Thu, 29 Oct')
+    const [y, m, day] = targetIso.split('-').map(Number);
+    const targetDate = new Date(y, m - 1, day);
+    const dayNumStr = String(day);
+    const monthShort = targetDate.toLocaleDateString('en-IN', { month: 'short' }).toLowerCase();
+    const lowerSlot = slotStr.toLowerCase();
+
+    if (lowerSlot.includes(monthShort)) {
+      if (
+        lowerSlot.includes(` ${dayNumStr} `) ||
+        lowerSlot.includes(` ${dayNumStr},`) ||
+        lowerSlot.includes(` ${dayNumStr} •`) ||
+        lowerSlot.includes(` ${dayNumStr}-`) ||
+        lowerSlot.includes(`${dayNumStr} ${monthShort}`) ||
+        lowerSlot.includes(`${String(day).padStart(2, '0')} ${monthShort}`) ||
+        lowerSlot.includes(`${monthShort} ${dayNumStr}`) ||
+        lowerSlot.includes(`${monthShort} ${String(day).padStart(2, '0')}`)
+      ) {
+        return true;
+      }
     }
+
+    // Only fallback to createdAt if no scheduledSlot was provided (e.g. instant dispatch)
+    if (!job.scheduledSlot && !job.scheduled_slot && (job.createdAt || job.created_at)) {
+      const createdDate = new Date(job.createdAt || job.created_at);
+      if (!isNaN(createdDate.getTime())) {
+        const cIso = `${createdDate.getFullYear()}-${String(createdDate.getMonth() + 1).padStart(2, '0')}-${String(createdDate.getDate()).padStart(2, '0')}`;
+        if (cIso === targetIso) return true;
+      }
+    }
+
     return false;
   };
 
@@ -758,8 +806,9 @@ export default function PartnerDutyPage() {
     const fetchDuty = async () => {
       try {
         const phone = activeTech?.phone || user?.phone || '';
-        if (!phone) return;
-        const res = await fetch(`${API_V1_URL}/partner/duty?phone=${encodeURIComponent(phone)}`);
+        const techId = activeTech?.id || user?.id || '';
+        if (!phone && !techId) return;
+        const res = await fetch(`${API_V1_URL}/partner/duty?phone=${encodeURIComponent(phone)}&technicianId=${encodeURIComponent(techId)}`);
         const data = await res.json();
         if (data.success && isMounted) {
           if (data.technician && typeof data.technician.is_online === 'boolean') {
@@ -839,12 +888,12 @@ export default function PartnerDutyPage() {
       window.removeEventListener('salemseva_new_booking_created', handleSync);
       window.removeEventListener('storage', handleSync);
     };
-  }, [user?.phone, acknowledgedCancelIds]);
+  }, [activeTech?.phone, user?.phone, acknowledgedCancelIds]);
 
   // Fetch Open Scheduled Leads (Autonomous Technician Visibility & Direct Claiming)
   const fetchScheduledLeads = async () => {
     try {
-      const phone = user?.phone || '';
+      const phone = activeTech?.phone || user?.phone || '';
       if (!phone) return;
       setLoadingScheduledLeads(true);
       const res = await fetch(`${API_V1_URL}/partner/scheduled-leads?phone=${encodeURIComponent(phone)}`);
@@ -870,30 +919,36 @@ export default function PartnerDutyPage() {
       window.removeEventListener('salemseva_new_booking_created', handleSync);
       window.removeEventListener('storage', handleSync);
     };
-  }, [user?.phone]);
+  }, [activeTech?.phone, user?.phone]);
 
   // Direct Acceptance of Open Scheduled Requests (No Central Admin Approval Required)
   const handleClaimScheduledSlot = async (leadId) => {
     setClaimingBookingId(leadId);
-    setLoadingMsg({
-      title: 'Claiming scheduled slot...',
-      subtitle: `Reserving booking #${leadId} directly into your duty schedule.`
-    });
-    setIsProcessing(true);
     try {
       const res = await fetch(`${API_V1_URL}/partner/duty/accept-scheduled-lead`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          phone: user?.phone || '',
-          technicianId: user?.id,
+          phone: activeTech?.phone || user?.phone || '',
+          technicianId: activeTech?.id || user?.id,
           bookingId: leadId
         })
       });
       const data = await res.json();
       if (data.success) {
-        setTechToast(`Scheduled booking #${leadId} claimed directly! Check 'My Scheduled Appointments'.`);
+        setTechToast(`Scheduled booking #${leadId} claimed directly! Check 'My Accepted Upcoming Appointments'.`);
         await fetchScheduledLeads();
+        try {
+          const ph = activeTech?.phone || user?.phone || '';
+          const tid = activeTech?.id || user?.id || '';
+          if (ph || tid) {
+            const dRes = await fetch(`${API_V1_URL}/partner/duty?phone=${encodeURIComponent(ph)}&technicianId=${encodeURIComponent(tid)}`);
+            const dJson = await dRes.json();
+            if (dJson.success && dJson.myScheduledJobs) {
+              setMyScheduledJobs(dJson.myScheduledJobs);
+            }
+          }
+        } catch (e) {}
       } else {
         setTechToast(data.error || data.message || 'Could not claim this booking. Please try another.');
         await fetchScheduledLeads();
@@ -927,11 +982,6 @@ export default function PartnerDutyPage() {
 
   // Start Trip to customer doorstep for a scheduled or accepted booking
   const handleStartTripForJob = async (jobId) => {
-    setLoadingMsg({
-      title: 'Starting journey...',
-      subtitle: `Setting trip status en route to customer doorstep.`
-    });
-    setIsProcessing(true);
     try {
       await fetch(`${API_V1_URL}/bookings/${jobId}/status`, {
         method: 'POST',
@@ -2228,9 +2278,11 @@ export default function PartnerDutyPage() {
                       <Box>
                         {/* UPCOMING / TODAY'S SCHEDULED APPOINTMENT BANNER */}
                         {myScheduledJobs && myScheduledJobs.length > 0 && (() => {
-                          const todayJob = myScheduledJobs.find(j => isSlotToday(j.scheduledSlot));
-                          const nextJob = todayJob || myScheduledJobs[0];
-                          const isToday = Boolean(todayJob);
+                          const activeScheduledJobs = myScheduledJobs.filter(j => !['completed', 'cancelled'].includes(j.status));
+                          if (activeScheduledJobs.length === 0) return null;
+                          const todayJob = activeScheduledJobs.find(j => isSlotToday(j.scheduledSlot));
+                          const nextJob = todayJob || activeScheduledJobs[0];
+                          const isToday = Boolean(todayJob || isSlotToday(nextJob.scheduledSlot));
 
                           return (
                             <Card
@@ -2544,11 +2596,6 @@ export default function PartnerDutyPage() {
                                     size="small"
                                     onClick={async () => {
                                       const leadId = activeJob.id;
-                                      setLoadingMsg({
-                                        title: 'Passing lead request...',
-                                        subtitle: 'Returning job to Salem matching queue for other specialists.'
-                                      });
-                                      setIsProcessing(true);
                                       try {
                                         await fetch(`${API_V1_URL}/partner/bookings/${leadId}/reject`, {
                                           method: 'POST',
@@ -2563,10 +2610,8 @@ export default function PartnerDutyPage() {
                                       }
                                       setActiveJob(null);
                                       setStep(1);
+                                      setIsProcessing(false);
                                       setTechToast('Request declined. This customer will not be shown to you for the rest of today. Other customer dispatches remain active.');
-                                      setTimeout(() => {
-                                        setIsProcessing(false);
-                                      }, 400);
                                     }}
                                     sx={{
                                       borderColor: '#475569',
@@ -2588,30 +2633,36 @@ export default function PartnerDutyPage() {
                                     variant="contained"
                                     size="small"
                                     onClick={async () => {
-                                      setLoadingMsg({
-                                        title: 'Accepting booking request...',
-                                        subtitle: `Notifying customer ${activeJob?.customerName || 'Customer'} of acceptance.`
-                                      });
-                                      setIsProcessing(true);
                                       try {
                                         await fetch(`${API_V1_URL}/bookings/${activeJob.id}/status`, {
                                           method: 'POST',
                                           headers: { 'Content-Type': 'application/json' },
                                           body: JSON.stringify({
                                             status: 'accepted',
-                                            technicianId: user?.id
+                                            technicianId: activeTech?.id || user?.id,
+                                            technicianPhone: activeTech?.phone || user?.phone
                                           })
                                         });
                                         setActiveJob(prev => prev ? { ...prev, status: 'accepted' } : null);
+                                        try {
+                                          const ph = activeTech?.phone || user?.phone || '';
+                                          const tid = activeTech?.id || user?.id || '';
+                                          if (ph || tid) {
+                                            const dRes = await fetch(`${API_V1_URL}/partner/duty?phone=${encodeURIComponent(ph)}&technicianId=${encodeURIComponent(tid)}`);
+                                            const dJson = await dRes.json();
+                                            if (dJson.success && dJson.myScheduledJobs) {
+                                              setMyScheduledJobs(dJson.myScheduledJobs);
+                                            }
+                                          }
+                                        } catch (e) {}
                                       } catch (err) {
                                         console.warn('Status update fallback:', err);
                                         setActiveJob(prev => prev ? { ...prev, status: 'accepted' } : null);
                                       }
                                       setStep(1);
                                       localStorage.removeItem('salemseva_partner_step');
-                                      setTimeout(() => {
-                                        setIsProcessing(false);
-                                      }, 500);
+                                      setIsProcessing(false);
+                                      setTechToast('கோரிக்கை ஏற்கப்பட்டது! வாடிக்கையாளருக்கு அறிவிக்கப்பட்டது (Request accepted! Customer notified).');
                                     }}
                                     sx={{
                                       bgcolor: '#16A34A',
@@ -2978,6 +3029,211 @@ export default function PartnerDutyPage() {
                           </Box>
                         )}
 
+                        {/* MY ACCEPTED UPCOMING APPOINTMENTS SECTION */}
+                        {(() => {
+                          const activeAcceptedJobs = (myScheduledJobs || []).filter(j => !['completed', 'cancelled'].includes(j.status));
+                          return (
+                            <Box sx={{ mt: 3, mb: 1 }}>
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5, flexWrap: 'wrap', gap: 1 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                                  <AssignmentTurnedInIcon sx={{ color: '#10B981', fontSize: 20 }} />
+                                  <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#FFFFFF', fontSize: 'clamp(0.9375rem, 2vw, 1.05rem)' }}>
+                                    My Accepted Upcoming Appointments ({activeAcceptedJobs.length})
+                                  </Typography>
+                                </Box>
+                                <Chip
+                                  label={activeAcceptedJobs.length > 0 ? `${activeAcceptedJobs.length} Confirmed` : 'No upcoming bookings'}
+                                  size="small"
+                                  sx={{
+                                    bgcolor: activeAcceptedJobs.length > 0 ? 'rgba(16, 185, 129, 0.15)' : '#1E293B',
+                                    color: activeAcceptedJobs.length > 0 ? '#34D399' : '#94A3B8',
+                                    border: activeAcceptedJobs.length > 0 ? '1px solid #059669' : '1px solid #334155',
+                                    fontWeight: 800,
+                                    fontSize: '11px'
+                                  }}
+                                />
+                              </Box>
+
+                              {activeAcceptedJobs.length === 0 ? (
+                                <Paper
+                                  elevation={0}
+                                  sx={{
+                                    p: 2.5,
+                                    bgcolor: '#1E293B',
+                                    border: '1px dashed #334155',
+                                    borderRadius: '10px',
+                                    textAlign: 'center',
+                                    mb: 2
+                                  }}
+                                >
+                                  <Typography variant="body2" sx={{ color: '#94A3B8', fontSize: '13px' }}>
+                                    You have no active upcoming appointments right now.
+                                  </Typography>
+                                  <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mt: 0.5, fontSize: '11px' }}>
+                                    Click 'Claim & Accept Slot' on any open request above to add it to your upcoming schedule.
+                                  </Typography>
+                                </Paper>
+                              ) : (
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mb: 3 }}>
+                                  {activeAcceptedJobs.map((job) => {
+                                    const jobIsToday = isSlotToday(job.scheduledSlot);
+                                    return (
+                                      <Card
+                                        key={job.id}
+                                        elevation={0}
+                                        sx={{
+                                          bgcolor: '#0F172A',
+                                          color: '#FFFFFF',
+                                          borderRadius: '12px',
+                                          p: 2,
+                                          border: jobIsToday ? '2px solid #10B981' : '1.5px solid #0284C7',
+                                          boxShadow: jobIsToday ? '0 4px 16px rgba(16, 185, 129, 0.25)' : '0 4px 14px rgba(2, 132, 199, 0.15)'
+                                        }}
+                                      >
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1, flexWrap: 'wrap', gap: 0.8 }}>
+                                          <Box>
+                                            <Box sx={{ display: 'flex', gap: 0.8, alignItems: 'center', mb: 0.5, flexWrap: 'wrap' }}>
+                                              <Chip
+                                                label={`#${job.id}`}
+                                                size="small"
+                                                sx={{ bgcolor: jobIsToday ? '#059669' : '#0284C7', color: '#FFFFFF', fontWeight: 800, fontSize: '10.5px', height: 20 }}
+                                              />
+                                              <Chip
+                                                icon={<ScheduleIcon sx={{ fontSize: '12px !important', color: jobIsToday ? '#065F46 !important' : '#0369A1 !important' }} />}
+                                                label={job.scheduledSlot || 'Instant Today'}
+                                                size="small"
+                                                sx={{
+                                                  bgcolor: jobIsToday ? '#D1FAE5' : '#E0F2FE',
+                                                  color: jobIsToday ? '#064E3B' : '#0369A1',
+                                                  fontWeight: 800,
+                                                  fontSize: '11px',
+                                                  height: 20
+                                                }}
+                                              />
+                                              <Chip
+                                                label={jobIsToday ? "Today's Appointment" : 'Upcoming Slot'}
+                                                size="small"
+                                                sx={{
+                                                  bgcolor: jobIsToday ? 'rgba(16, 185, 129, 0.15)' : 'rgba(56, 189, 248, 0.15)',
+                                                  color: jobIsToday ? '#34D399' : '#7DD3FC',
+                                                  fontWeight: 700,
+                                                  fontSize: '10px',
+                                                  height: 20
+                                                }}
+                                              />
+                                            </Box>
+                                            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#FFFFFF', fontSize: '14px' }}>
+                                              {job.customerName || 'Customer'}
+                                            </Typography>
+                                            <Typography variant="caption" sx={{ color: '#CBD5E1', display: 'flex', alignItems: 'center', gap: 0.4, mt: 0.3 }}>
+                                              <LocationOnIcon sx={{ color: '#F59E0B', fontSize: 13 }} />
+                                              {job.address || job.locality || 'Fairlands, Salem'}
+                                            </Typography>
+                                          </Box>
+
+                                          <Box sx={{ textAlign: 'right' }}>
+                                            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#34D399', fontSize: '15px' }}>
+                                              ₹{job.visitFee || 99}.00
+                                            </Typography>
+                                            <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '10px' }}>
+                                              Visit Fee Paid
+                                            </Typography>
+                                          </Box>
+                                        </Box>
+
+                                        <Typography variant="body2" sx={{ color: '#94A3B8', fontSize: '12px', mb: 1.5 }}>
+                                          <strong>Service Note:</strong> {job.issueDescription || 'Diagnostic Inspection & Repair'}
+                                        </Typography>
+
+                                        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                                          {jobIsToday ? (
+                                            <Button
+                                              variant="contained"
+                                              onClick={() => handleStartTripForJob(job.id)}
+                                              startIcon={<NavigationIcon sx={{ fontSize: 16 }} />}
+                                              sx={{
+                                                flex: 1,
+                                                bgcolor: '#10B981',
+                                                color: '#FFFFFF',
+                                                fontWeight: 800,
+                                                fontSize: '12px',
+                                                py: 0.8,
+                                                borderRadius: '8px',
+                                                textTransform: 'none',
+                                                '&:hover': { bgcolor: '#059669' }
+                                              }}
+                                            >
+                                              Start Ride Now (Live GPS)
+                                            </Button>
+                                          ) : (
+                                            <Button
+                                              variant="outlined"
+                                              onClick={() => handleOpenTechReschedule(job)}
+                                              startIcon={<SwapHorizIcon sx={{ fontSize: 16 }} />}
+                                              sx={{
+                                                flex: 1,
+                                                borderColor: '#0284C7',
+                                                color: '#38BDF8',
+                                                fontWeight: 700,
+                                                fontSize: '12px',
+                                                py: 0.8,
+                                                borderRadius: '8px',
+                                                textTransform: 'none',
+                                                '&:hover': { bgcolor: 'rgba(2, 132, 199, 0.1)', borderColor: '#38BDF8' }
+                                              }}
+                                            >
+                                              Reschedule / Propose Slot
+                                            </Button>
+                                          )}
+
+                                          {job.customerPhone && (
+                                            <Box sx={{ display: 'flex', gap: 1 }}>
+                                              <Button
+                                                variant="outlined"
+                                                onClick={() => handleOpenCall(job)}
+                                                startIcon={<PhoneIcon sx={{ fontSize: 14 }} />}
+                                                sx={{
+                                                  borderColor: '#38BDF8',
+                                                  color: '#38BDF8',
+                                                  fontWeight: 700,
+                                                  fontSize: '12px',
+                                                  py: 0.8,
+                                                  borderRadius: '8px',
+                                                  textTransform: 'none',
+                                                  '&:hover': { bgcolor: 'rgba(56, 189, 248, 0.1)', borderColor: '#7DD3FC' }
+                                                }}
+                                              >
+                                                Call (In-App)
+                                              </Button>
+                                              <Button
+                                                variant="outlined"
+                                                onClick={() => handleOpenChat(job)}
+                                                startIcon={<ChatBubbleOutlineIcon sx={{ fontSize: 14 }} />}
+                                                sx={{
+                                                  borderColor: '#10B981',
+                                                  color: '#34D399',
+                                                  fontWeight: 700,
+                                                  fontSize: '12px',
+                                                  py: 0.8,
+                                                  borderRadius: '8px',
+                                                  textTransform: 'none',
+                                                  '&:hover': { bgcolor: 'rgba(16, 185, 129, 0.1)', borderColor: '#6EE7B7' }
+                                                }}
+                                              >
+                                                Chat
+                                              </Button>
+                                            </Box>
+                                          )}
+                                        </Box>
+                                      </Card>
+                                    );
+                                  })}
+                                </Box>
+                              )}
+                            </Box>
+                          );
+                        })()}
+
                         {/* MONTH-BY-MONTH INTERACTIVE CALENDAR AGENDA (Past & Future Tracking) */}
                         <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid #334155' }}>
                           {/* Calendar Header with Month Navigation */}
@@ -3038,12 +3294,82 @@ export default function PartnerDutyPage() {
                             </Box>
                           </Box>
 
+                          {/* Days with Bookings Summary & Quick Jump Bar */}
+                          {(() => {
+                            const daysWithAssigned = monthDaysList.filter(d => (myScheduledJobs || []).some(j => jobMatchesDate(j, d.iso)));
+                            const daysWithOpen = monthDaysList.filter(d => (openScheduledLeads || []).some(j => jobMatchesDate(j, d.iso)));
+                            const allBookedDays = Array.from(new Set([...daysWithAssigned, ...daysWithOpen]));
+
+                            return (
+                              <Box sx={{ mb: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1, p: 1.2, bgcolor: '#0B132B', border: '1px solid #1E293B', borderRadius: '8px' }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, flexWrap: 'wrap' }}>
+                                  <Typography variant="caption" sx={{ color: '#94A3B8', fontWeight: 800, textTransform: 'uppercase', fontSize: '10px', letterSpacing: '0.4px' }}>
+                                    Booking Indicators:
+                                  </Typography>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#10B981' }} />
+                                    <Typography variant="caption" sx={{ color: '#34D399', fontSize: '11px', fontWeight: 700 }}>
+                                      {daysWithAssigned.length} Days with Your Bookings
+                                    </Typography>
+                                  </Box>
+                                  {daysWithOpen.length > 0 && (
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#38BDF8' }} />
+                                      <Typography variant="caption" sx={{ color: '#38BDF8', fontSize: '11px', fontWeight: 700 }}>
+                                        {daysWithOpen.length} Days with Open Requests
+                                      </Typography>
+                                    </Box>
+                                  )}
+                                </Box>
+
+                                {allBookedDays.length > 0 && (
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, flexWrap: 'wrap' }}>
+                                    <Typography variant="caption" sx={{ color: '#CBD5E1', fontSize: '11px', fontWeight: 600 }}>
+                                      Jump to booked day:
+                                    </Typography>
+                                    {allBookedDays.slice(0, 4).map(bd => {
+                                      const isCurr = calendarSelectedDate === bd.iso;
+                                      const isAssigned = (myScheduledJobs || []).some(j => jobMatchesDate(j, bd.iso));
+                                      return (
+                                        <Button
+                                          key={bd.iso}
+                                          size="small"
+                                          onClick={() => setCalendarSelectedDate(bd.iso)}
+                                          sx={{
+                                            py: 0.2,
+                                            px: 1,
+                                            minWidth: 0,
+                                            fontSize: '11px',
+                                            fontWeight: 800,
+                                            textTransform: 'none',
+                                            borderRadius: '6px',
+                                            bgcolor: isCurr ? '#0284C7' : isAssigned ? 'rgba(16, 185, 129, 0.2)' : 'rgba(56, 189, 248, 0.2)',
+                                            color: isCurr ? '#FFFFFF' : isAssigned ? '#34D399' : '#38BDF8',
+                                            border: isCurr ? '1px solid #38BDF8' : isAssigned ? '1px solid #059669' : '1px solid #0284C7',
+                                            '&:hover': { bgcolor: isCurr ? '#0284C7' : '#1E293B' }
+                                          }}
+                                        >
+                                          {bd.dayLabel} {bd.dayNum} {bd.monthLabel}
+                                        </Button>
+                                      );
+                                    })}
+                                  </Box>
+                                )}
+                              </Box>
+                            );
+                          })()}
+
                           {/* Full Month Calendar Days Ribbon */}
                           <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto', pb: 1, mb: 2, scrollbarWidth: 'none' }}>
                             {monthDaysList.map((d) => {
                               const isSelected = calendarSelectedDate === d.iso;
-                              const dayJobs = myScheduledJobs.filter(j => jobMatchesDate(j, d.iso));
-                              const count = dayJobs.length;
+                              const dayAssignedJobs = (myScheduledJobs || []).filter(j => jobMatchesDate(j, d.iso));
+                              const dayOpenLeads = (openScheduledLeads || []).filter(j => jobMatchesDate(j, d.iso));
+                              const assignedCount = dayAssignedJobs.length;
+                              const openCount = dayOpenLeads.length;
+                              const hasAssigned = assignedCount > 0;
+                              const hasOpen = openCount > 0;
+                              const hasAny = hasAssigned || hasOpen;
 
                               return (
                                 <Paper
@@ -3051,51 +3377,149 @@ export default function PartnerDutyPage() {
                                   onClick={() => setCalendarSelectedDate(d.iso)}
                                   elevation={0}
                                   sx={{
-                                    minWidth: 70,
+                                    minWidth: 78,
                                     p: 1,
                                     borderRadius: '10px',
                                     textAlign: 'center',
                                     cursor: 'pointer',
+                                    position: 'relative',
                                     transition: 'all 0.15s ease',
-                                    bgcolor: isSelected ? '#0284C7' : d.isToday ? '#0F172A' : '#1E293B',
-                                    color: isSelected ? '#FFFFFF' : '#CBD5E1',
+                                    bgcolor: isSelected
+                                      ? '#0284C7'
+                                      : hasAssigned
+                                      ? 'linear-gradient(180deg, #064E3B 0%, #022C22 100%)'
+                                      : hasOpen
+                                      ? 'linear-gradient(180deg, #0C4A6E 0%, #082F49 100%)'
+                                      : d.isToday
+                                      ? '#0F172A'
+                                      : '#1E293B',
+                                    color: isSelected ? '#FFFFFF' : hasAssigned ? '#FFFFFF' : '#CBD5E1',
                                     border: isSelected
+                                      ? '2px solid #38BDF8'
+                                      : hasAssigned
+                                      ? '2px solid #10B981'
+                                      : hasOpen
                                       ? '2px solid #38BDF8'
                                       : d.isToday
                                       ? '1.5px solid #10B981'
                                       : '1px solid #334155',
-                                    boxShadow: isSelected ? '0 4px 14px rgba(2, 132, 199, 0.4)' : 'none',
-                                    opacity: d.isPast && !isSelected ? 0.8 : 1,
+                                    boxShadow: isSelected
+                                      ? '0 4px 16px rgba(2, 132, 199, 0.45)'
+                                      : hasAssigned
+                                      ? '0 4px 16px rgba(16, 185, 129, 0.35)'
+                                      : hasOpen
+                                      ? '0 4px 14px rgba(56, 189, 248, 0.25)'
+                                      : 'none',
+                                    opacity: d.isPast && !isSelected && !hasAny ? 0.75 : 1,
                                     '&:hover': {
-                                      bgcolor: isSelected ? '#0284C7' : '#334155',
+                                      bgcolor: isSelected ? '#0284C7' : hasAssigned ? '#065F46' : '#334155',
                                       transform: 'translateY(-2px)'
                                     }
                                   }}
                                 >
-                                  <Typography variant="caption" sx={{ fontSize: '10px', fontWeight: 800, display: 'block', color: isSelected ? '#E0F2FE' : d.isToday ? '#34D399' : '#94A3B8' }}>
+                                  {/* Top Indicator Dot for days with bookings */}
+                                  {hasAssigned && (
+                                    <Box
+                                      sx={{
+                                        position: 'absolute',
+                                        top: 5,
+                                        right: 5,
+                                        width: 8,
+                                        height: 8,
+                                        borderRadius: '50%',
+                                        bgcolor: '#34D399',
+                                        boxShadow: '0 0 6px #34D399'
+                                      }}
+                                    />
+                                  )}
+                                  {!hasAssigned && hasOpen && (
+                                    <Box
+                                      sx={{
+                                        position: 'absolute',
+                                        top: 5,
+                                        right: 5,
+                                        width: 8,
+                                        height: 8,
+                                        borderRadius: '50%',
+                                        bgcolor: '#38BDF8',
+                                        boxShadow: '0 0 6px #38BDF8'
+                                      }}
+                                    />
+                                  )}
+
+                                  <Typography
+                                    variant="caption"
+                                    sx={{
+                                      fontSize: '10px',
+                                      fontWeight: 800,
+                                      display: 'block',
+                                      color: isSelected
+                                        ? '#E0F2FE'
+                                        : hasAssigned
+                                        ? '#34D399'
+                                        : hasOpen
+                                        ? '#38BDF8'
+                                        : d.isToday
+                                        ? '#34D399'
+                                        : '#94A3B8'
+                                    }}
+                                  >
                                     {d.dayLabel}
                                   </Typography>
-                                  <Typography variant="h6" sx={{ fontSize: '17px', fontWeight: 900, lineHeight: 1.2, my: 0.2 }}>
+                                  <Typography
+                                    variant="h6"
+                                    sx={{
+                                      fontSize: '18px',
+                                      fontWeight: 900,
+                                      lineHeight: 1.2,
+                                      my: 0.2,
+                                      color: isSelected ? '#FFFFFF' : hasAssigned ? '#FFFFFF' : hasOpen ? '#F0F9FF' : '#E2E8F0'
+                                    }}
+                                  >
                                     {d.dayNum}
                                   </Typography>
-                                  <Typography variant="caption" sx={{ fontSize: '9.5px', fontWeight: 700, display: 'block', color: isSelected ? '#BAE6FD' : '#64748B' }}>
+                                  <Typography
+                                    variant="caption"
+                                    sx={{
+                                      fontSize: '9.5px',
+                                      fontWeight: 700,
+                                      display: 'block',
+                                      color: isSelected ? '#BAE6FD' : hasAssigned ? '#A7F3D0' : '#64748B'
+                                    }}
+                                  >
                                     {d.monthLabel}
                                   </Typography>
-                                  {count > 0 ? (
+
+                                  {/* Prominent Highlighting Chip */}
+                                  {hasAssigned ? (
                                     <Chip
-                                      label={`${count} job${count > 1 ? 's' : ''}`}
+                                      label={`${assignedCount} Booked`}
                                       size="small"
                                       sx={{
                                         mt: 0.5,
-                                        height: 16,
+                                        height: 18,
                                         fontSize: '9px',
                                         fontWeight: 900,
-                                        bgcolor: isSelected ? '#FFFFFF' : d.isPast ? '#475569' : '#10B981',
+                                        bgcolor: isSelected ? '#FFFFFF' : '#10B981',
+                                        color: isSelected ? '#0284C7' : '#FFFFFF',
+                                        boxShadow: '0 1px 4px rgba(0,0,0,0.2)'
+                                      }}
+                                    />
+                                  ) : hasOpen ? (
+                                    <Chip
+                                      label={`${openCount} Open`}
+                                      size="small"
+                                      sx={{
+                                        mt: 0.5,
+                                        height: 18,
+                                        fontSize: '9px',
+                                        fontWeight: 900,
+                                        bgcolor: isSelected ? '#FFFFFF' : '#0284C7',
                                         color: isSelected ? '#0284C7' : '#FFFFFF'
                                       }}
                                     />
                                   ) : (
-                                    <Box sx={{ height: 16, mt: 0.5 }} />
+                                    <Box sx={{ height: 18, mt: 0.5 }} />
                                   )}
                                 </Paper>
                               );
@@ -3105,16 +3529,34 @@ export default function PartnerDutyPage() {
                           {/* Selected Date Customer Bookings */}
                           {(() => {
                             const selectedDayObj = monthDaysList.find(d => d.iso === calendarSelectedDate) || monthDaysList[0];
-                            const selectedDayJobs = myScheduledJobs.filter(j => jobMatchesDate(j, calendarSelectedDate));
+                            const selectedDayJobs = (myScheduledJobs || []).filter(j => jobMatchesDate(j, calendarSelectedDate));
+                            const selectedDayOpenLeads = (openScheduledLeads || []).filter(j => jobMatchesDate(j, calendarSelectedDate));
                             const isToday = selectedDayObj ? selectedDayObj.isToday : false;
                             const isPast = selectedDayObj ? selectedDayObj.isPast : false;
+                            const nextBookedDay = monthDaysList.find(d => (myScheduledJobs || []).some(j => jobMatchesDate(j, d.iso)) && d.iso !== calendarSelectedDate);
 
                             return (
                               <Box>
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5, flexWrap: 'wrap', gap: 0.8 }}>
-                                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#F8FAFC', fontSize: '13.5px' }}>
-                                    Agenda for {selectedDayObj ? `${selectedDayObj.dayLabel}, ${selectedDayObj.dayNum} ${selectedDayObj.monthLabel}` : calendarSelectedDate} ({selectedDayJobs.length} Records)
-                                  </Typography>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#F8FAFC', fontSize: '13.5px' }}>
+                                      Agenda for {selectedDayObj ? `${selectedDayObj.dayLabel}, ${selectedDayObj.dayNum} ${selectedDayObj.monthLabel}` : calendarSelectedDate}
+                                    </Typography>
+                                    {selectedDayJobs.length > 0 && (
+                                      <Chip
+                                        label={`${selectedDayJobs.length} Booked Duty`}
+                                        size="small"
+                                        sx={{ bgcolor: '#059669', color: '#FFFFFF', fontWeight: 800, fontSize: '10.5px', height: 20 }}
+                                      />
+                                    )}
+                                    {selectedDayOpenLeads.length > 0 && (
+                                      <Chip
+                                        label={`${selectedDayOpenLeads.length} Open Request${selectedDayOpenLeads.length > 1 ? 's' : ''}`}
+                                        size="small"
+                                        sx={{ bgcolor: '#0284C7', color: '#FFFFFF', fontWeight: 800, fontSize: '10.5px', height: 20 }}
+                                      />
+                                    )}
+                                  </Box>
                                   {isToday && (
                                     <Chip
                                       label="Today's Service Schedule - இன்றைய பணி"
@@ -3129,16 +3571,16 @@ export default function PartnerDutyPage() {
                                       sx={{ bgcolor: '#334155', color: '#CBD5E1', fontWeight: 700, fontSize: '10.5px', border: '1px solid #475569' }}
                                     />
                                   )}
-                                  {!isToday && !isPast && (
+                                  {!isToday && !isPast && selectedDayJobs.length > 0 && (
                                     <Chip
-                                      label="Upcoming Booking - வரவிருக்கும் பணி"
+                                      label="Confirmed Appointment - உறுதிப்படுத்தப்பட்ட பணி"
                                       size="small"
                                       sx={{ bgcolor: '#0369A1', color: '#FFFFFF', fontWeight: 700, fontSize: '10.5px' }}
                                     />
                                   )}
                                 </Box>
 
-                                {selectedDayJobs.length === 0 ? (
+                                {selectedDayJobs.length === 0 && selectedDayOpenLeads.length === 0 ? (
                                   <Paper
                                     elevation={0}
                                     sx={{
@@ -3154,10 +3596,31 @@ export default function PartnerDutyPage() {
                                         ? `No service history recorded for ${selectedDayObj ? `${selectedDayObj.dayLabel}, ${selectedDayObj.dayNum} ${selectedDayObj.monthLabel}` : calendarSelectedDate}.`
                                         : `No customer bookings scheduled for ${selectedDayObj ? `${selectedDayObj.dayLabel}, ${selectedDayObj.dayNum} ${selectedDayObj.monthLabel}` : calendarSelectedDate}.`}
                                     </Typography>
-                                    {!isPast && (
-                                      <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mt: 0.5, fontSize: '11px' }}>
-                                        You can claim open requests from the list above to schedule work for this date.
-                                      </Typography>
+                                    {nextBookedDay ? (
+                                      <Box sx={{ mt: 1.5 }}>
+                                        <Button
+                                          size="small"
+                                          variant="contained"
+                                          onClick={() => setCalendarSelectedDate(nextBookedDay.iso)}
+                                          sx={{
+                                            bgcolor: '#0284C7',
+                                            color: '#FFFFFF',
+                                            fontWeight: 800,
+                                            fontSize: '11.5px',
+                                            textTransform: 'none',
+                                            borderRadius: '6px',
+                                            '&:hover': { bgcolor: '#0369A1' }
+                                          }}
+                                        >
+                                          View Next Booked Day: {nextBookedDay.dayLabel} {nextBookedDay.dayNum} {nextBookedDay.monthLabel}
+                                        </Button>
+                                      </Box>
+                                    ) : (
+                                      !isPast && (
+                                        <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mt: 0.5, fontSize: '11px' }}>
+                                          You can claim open requests from the list above to schedule work for this date.
+                                        </Typography>
+                                      )
                                     )}
                                   </Paper>
                                 ) : (
@@ -3254,24 +3717,44 @@ export default function PartnerDutyPage() {
                                             </Box>
 
                                             {job.customerPhone && (
-                                              <Button
-                                                size="small"
-                                                variant="outlined"
-                                                onClick={() => window.open(`tel:${job.customerPhone}`, '_self')}
-                                                startIcon={<PhoneIcon sx={{ fontSize: 13 }} />}
-                                                sx={{
-                                                  borderColor: '#38BDF8',
-                                                  color: '#38BDF8',
-                                                  fontWeight: 700,
-                                                  fontSize: '11px',
-                                                  textTransform: 'none',
-                                                  borderRadius: '6px',
-                                                  py: 0.4,
-                                                  '&:hover': { bgcolor: 'rgba(56, 189, 248, 0.1)' }
-                                                }}
-                                              >
-                                                Call Customer
-                                              </Button>
+                                              <Box sx={{ display: 'flex', gap: 0.8, alignItems: 'center' }}>
+                                                <Button
+                                                  size="small"
+                                                  variant="outlined"
+                                                  onClick={() => handleOpenCall(job)}
+                                                  startIcon={<PhoneIcon sx={{ fontSize: 13 }} />}
+                                                  sx={{
+                                                    borderColor: '#38BDF8',
+                                                    color: '#38BDF8',
+                                                    fontWeight: 700,
+                                                    fontSize: '11px',
+                                                    textTransform: 'none',
+                                                    borderRadius: '6px',
+                                                    py: 0.4,
+                                                    '&:hover': { bgcolor: 'rgba(56, 189, 248, 0.1)' }
+                                                  }}
+                                                >
+                                                  Call (In-App)
+                                                </Button>
+                                                <Button
+                                                  size="small"
+                                                  variant="outlined"
+                                                  onClick={() => handleOpenChat(job)}
+                                                  startIcon={<ChatBubbleOutlineIcon sx={{ fontSize: 13 }} />}
+                                                  sx={{
+                                                    borderColor: '#10B981',
+                                                    color: '#34D399',
+                                                    fontWeight: 700,
+                                                    fontSize: '11px',
+                                                    textTransform: 'none',
+                                                    borderRadius: '6px',
+                                                    py: 0.4,
+                                                    '&:hover': { bgcolor: 'rgba(16, 185, 129, 0.1)' }
+                                                  }}
+                                                >
+                                                  Chat
+                                                </Button>
+                                              </Box>
                                             )}
                                           </Box>
 
@@ -3610,10 +4093,10 @@ export default function PartnerDutyPage() {
                         fullWidth
                         size="small"
                         startIcon={<PhoneIcon sx={{ fontSize: 16 }} />}
-                        onClick={() => setCallOpen(true)}
+                        onClick={() => handleOpenCall(activeJob)}
                         sx={{ bgcolor: '#16A34A', borderRadius: '6px', py: 0.8, fontWeight: 600, fontSize: '12px', textTransform: 'none', '&:hover': { bgcolor: '#15803D' } }}
                       >
-                        Call (masked)
+                        In-App Call (Masked)
                       </Button>
 
                       <Button
@@ -3621,10 +4104,10 @@ export default function PartnerDutyPage() {
                         fullWidth
                         size="small"
                         startIcon={<ChatBubbleOutlineIcon sx={{ fontSize: 16 }} />}
-                        onClick={() => setChatOpen(true)}
+                        onClick={() => handleOpenChat(activeJob)}
                         sx={{ bgcolor: '#2563EB', borderRadius: '6px', py: 0.8, fontWeight: 600, fontSize: '12px', textTransform: 'none', '&:hover': { bgcolor: '#1D4ED8' } }}
                       >
-                        Message
+                        In-App Chat
                       </Button>
                     </Box>
 
@@ -3722,6 +4205,28 @@ export default function PartnerDutyPage() {
                     />
                   </Box>
 
+                  {/* In-App Direct Communication during Diagnostic Inspection */}
+                  <Box sx={{ display: 'flex', gap: 1, mb: 1.5 }}>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      startIcon={<PhoneIcon sx={{ fontSize: 14 }} />}
+                      onClick={() => handleOpenCall(activeJob)}
+                      sx={{ flex: 1, borderColor: '#16A34A', color: '#16A34A', fontWeight: 700, fontSize: '11px', textTransform: 'none', py: 0.5, '&:hover': { bgcolor: 'rgba(22, 163, 74, 0.08)' } }}
+                    >
+                      Call Customer (In-App)
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      startIcon={<ChatBubbleOutlineIcon sx={{ fontSize: 14 }} />}
+                      onClick={() => handleOpenChat(activeJob)}
+                      sx={{ flex: 1, borderColor: '#2563EB', color: '#2563EB', fontWeight: 700, fontSize: '11px', textTransform: 'none', py: 0.5, '&:hover': { bgcolor: 'rgba(37, 99, 235, 0.08)' } }}
+                    >
+                      Chat with Customer (In-App)
+                    </Button>
+                  </Box>
+
                   <Paper elevation={0} sx={{ p: 1.2, bgcolor: '#F8FAFC', borderRadius: '6px', border: '1px solid #E2E8F0', mb: 1.5 }}>
                     {step3Quote?.items && step3Quote.items.length > 0 ? (
                       step3Quote.items.map((item, idx) => (
@@ -3776,11 +4281,6 @@ export default function PartnerDutyPage() {
                       size="medium"
                       endIcon={<ArrowForwardIcon sx={{ fontSize: 16 }} />}
                       onClick={async () => {
-                        setLoadingMsg({
-                          title: 'Sending digital job card to customer...',
-                          subtitle: 'Customer will receive line-item quote for instant cashless escrow approval'
-                        });
-                        setIsProcessing(true);
                         try {
                           // Fetch latest database quote items if not in state
                           let quoteItemsPayload = step3Quote?.items || [];
@@ -3822,10 +4322,8 @@ export default function PartnerDutyPage() {
                         } catch (err) {
                           console.warn('Status update fallback:', err);
                         }
+                        setIsProcessing(false);
                         setTechToast('Digital quote sent to customer screen for approval!');
-                        setTimeout(() => {
-                          setIsProcessing(false);
-                        }, 500);
                       }}
                       sx={{ bgcolor: '#0284C7', color: '#FFF', borderRadius: '6px', py: 1, fontWeight: 700, fontSize: '13px', textTransform: 'none', mb: 1.5, '&:hover': { bgcolor: '#0369A1' } }}
                     >
@@ -3924,11 +4422,6 @@ export default function PartnerDutyPage() {
                     size="large"
                     startIcon={<CheckCircleIcon sx={{ fontSize: 18 }} />}
                     onClick={async () => {
-                      setLoadingMsg({
-                        title: 'Completing job & settling payment...',
-                        subtitle: 'Settlement calculation: 100% Visit Fee (₹99) + 95% Labor Payout to your UPI'
-                      });
-                      setIsProcessing(true);
                       try {
                         await fetch(`${API_V1_URL}/bookings/${activeBookingId}/status`, {
                           method: 'POST',
@@ -3943,11 +4436,9 @@ export default function PartnerDutyPage() {
                       localStorage.setItem('salemseva_quote_status_' + activeBookingId, 'completed');
                       window.dispatchEvent(new CustomEvent('salemseva_status_updated', { detail: { bookingId: activeBookingId, status: 'completed' } }));
                       window.dispatchEvent(new Event('storage'));
+                      setIsProcessing(false);
+                      setStep(1);
                       setTechToast('Service completed! Instant UPI settlement disbursed.');
-                      setTimeout(() => {
-                        setIsProcessing(false);
-                        setStep(1);
-                      }, 600);
                     }}
                     sx={{ bgcolor: '#16A34A', borderRadius: '8px', py: 1.3, fontWeight: 800, fontSize: '14px', textTransform: 'none', '&:hover': { bgcolor: '#15803D' } }}
                   >
@@ -4701,25 +5192,57 @@ export default function PartnerDutyPage() {
               <Chip label="Salem hub available" size="small" sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 600, fontSize: '11px', borderRadius: '4px' }} />
             </Box>
 
-            <Button
-              variant="contained"
-              fullWidth
-              size="large"
-              startIcon={<PhoneIcon />}
-              onClick={() => setTechToast('சேலம் மத்திய மேனேஜர் ஆனந்திற்கு அவசர அழைப்பு: 0427-2448888')}
-              sx={{
-                bgcolor: '#2563EB',
-                borderRadius: '8px',
-                py: 1.2,
-                fontWeight: 600,
-                fontSize: '14px',
-                mb: 2.5,
-                textTransform: 'none',
-                '&:hover': { bgcolor: '#1D4ED8' }
-              }}
-            >
-              சேலம் மேனேஜருக்கு அழைக்கவும் (Call manager)
-            </Button>
+            <Box sx={{ display: 'flex', gap: 1, mb: 2.5, flexDirection: { xs: 'column', sm: 'row' } }}>
+              <Button
+                variant="contained"
+                fullWidth
+                size="large"
+                startIcon={<PhoneIcon />}
+                onClick={() => {
+                  handleOpenCall({
+                    id: activeBookingId || 'SLM-OPS-HELP',
+                    customerName: 'Salem Central Ops Desk (Anand)',
+                    customerPhone: '0427-2448888'
+                  });
+                }}
+                sx={{
+                  bgcolor: '#2563EB',
+                  borderRadius: '8px',
+                  py: 1.2,
+                  fontWeight: 600,
+                  fontSize: '14px',
+                  textTransform: 'none',
+                  '&:hover': { bgcolor: '#1D4ED8' }
+                }}
+              >
+                மேனேஜருக்கு அழைக்கவும் (In-App Call)
+              </Button>
+              <Button
+                variant="outlined"
+                fullWidth
+                size="large"
+                startIcon={<ChatBubbleOutlineIcon />}
+                onClick={() => {
+                  handleOpenChat({
+                    id: activeBookingId || 'SLM-OPS-HELP',
+                    customerName: 'Salem Central Ops Desk (Anand)',
+                    customerPhone: '0427-2448888'
+                  });
+                }}
+                sx={{
+                  borderColor: '#2563EB',
+                  color: '#2563EB',
+                  borderRadius: '8px',
+                  py: 1.2,
+                  fontWeight: 600,
+                  fontSize: '14px',
+                  textTransform: 'none',
+                  '&:hover': { bgcolor: 'rgba(37, 99, 235, 0.08)' }
+                }}
+              >
+                உதவி அரட்டை (In-App Chat)
+              </Button>
+            </Box>
           </Box>
         )}
 
@@ -5093,24 +5616,25 @@ export default function PartnerDutyPage() {
 
       </Container>
 
-      {/* Masked Chat Modal */}
+      {/* Masked Chat Modal (In-App Only) */}
       <MaskedChatModal 
         open={chatOpen} 
         onClose={() => setChatOpen(false)} 
-        bookingId={activeBookingId}
+        bookingId={selectedCommunicationJob?.id || activeBookingId}
         userRole="technician"
-        peerName={activeJob?.customerName || 'Vimal Raj'} 
+        peerName={selectedCommunicationJob?.customerName || activeJob?.customerName || 'Customer'} 
       />
 
-      {/* Masked VoIP Call Modal */}
+      {/* Masked VoIP Call Modal (In-App Only) */}
       <VoipCallModal 
         open={callOpen} 
         onClose={() => {
           setCallOpen(false);
           setIsIncomingCall(false);
         }} 
-        bookingId={activeBookingId}
-        calleeName={activeJob?.customerName || 'Vimal Raj (Customer)'} 
+        bookingId={selectedCommunicationJob?.id || activeBookingId}
+        calleeName={selectedCommunicationJob?.customerName || activeJob?.customerName || 'Customer'} 
+        calleePhone={selectedCommunicationJob?.customerPhone || activeJob?.customerPhone || ''}
         role="Technician" 
         isIncoming={isIncomingCall}
       />
@@ -5669,13 +6193,6 @@ export default function PartnerDutyPage() {
         defaultCategory="duty_gps_issue"
       />
 
-      {/* Processing Loader */}
-      <ProcessingBackdrop
-        open={isProcessing}
-        title={loadingMsg.title || 'Processing...'}
-        subtitle={loadingMsg.subtitle || 'SalemSeva Partner Engine syncing state...'}
-        badge="Real-time Dispatch"
-      />
 
     </Box>
   );

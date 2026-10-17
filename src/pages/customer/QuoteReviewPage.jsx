@@ -104,10 +104,8 @@ export default function QuoteReviewPage() {
     } catch (e) {
       console.warn('Status update fallback:', e);
     }
-    setTimeout(() => {
-      setIsProcessing(false);
-      navigate(`/checkout?bookingId=${bookingId}`);
-    }, 800);
+    setIsProcessing(false);
+    navigate(`/checkout?bookingId=${bookingId}`);
   };
 
   return (

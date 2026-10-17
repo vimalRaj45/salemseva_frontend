@@ -1,5 +1,5 @@
 import { API_V1_URL } from '../../config';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Container,
   Box,
@@ -62,6 +62,7 @@ import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import MaskedChatModal from '../../components/MaskedChatModal';
 import VoipCallModal from '../../components/VoipCallModal';
 import CancelBookingModal from '../../components/CancelBookingModal';
+import CustomerRescheduleDrawer from './CustomerRescheduleDrawer';
 import Modal, { ModalHeader, ModalBody, ModalFooter } from '../../components/Modal';
 import SalemLottie from '../../components/SalemLottie';
 import SalemSeamlessLoader from '../../components/SalemSeamlessLoader';
@@ -282,22 +283,24 @@ export default function TrackingPage() {
     'Weather or heavy rain'
   ];
 
-  const rescheduleDates = Array.from({ length: 14 }).map((_, i) => {
-    const d = new Date();
-    d.setDate(d.getDate() + i);
-    const iso = d.toISOString().split('T')[0];
-    const isToday = i === 0;
-    const isTomorrow = i === 1;
-    const dayName = isToday ? 'TODAY' : isTomorrow ? 'TOM' : d.toLocaleDateString('en-IN', { weekday: 'short' }).toUpperCase();
-    const dayNumber = d.getDate();
-    const monthName = d.toLocaleDateString('en-IN', { month: 'short' });
-    const fullDateText = isToday
-      ? `Today, ${dayNumber} ${monthName}`
-      : isTomorrow
-      ? `Tomorrow, ${dayNumber} ${monthName}`
-      : `${d.toLocaleDateString('en-IN', { weekday: 'short' })}, ${dayNumber} ${monthName}`;
-    return { offset: i, iso, dayName, dayNumber, monthName, fullDateText };
-  });
+  const rescheduleDates = useMemo(() => {
+    return Array.from({ length: 14 }).map((_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() + i);
+      const iso = d.toISOString().split('T')[0];
+      const isToday = i === 0;
+      const isTomorrow = i === 1;
+      const dayName = isToday ? 'TODAY' : isTomorrow ? 'TOM' : d.toLocaleDateString('en-IN', { weekday: 'short' }).toUpperCase();
+      const dayNumber = d.getDate();
+      const monthName = d.toLocaleDateString('en-IN', { month: 'short' });
+      const fullDateText = isToday
+        ? `Today, ${dayNumber} ${monthName}`
+        : isTomorrow
+        ? `Tomorrow, ${dayNumber} ${monthName}`
+        : `${d.toLocaleDateString('en-IN', { weekday: 'short' })}, ${dayNumber} ${monthName}`;
+      return { offset: i, iso, dayName, dayNumber, monthName, fullDateText };
+    });
+  }, []);
 
   const handleConfirmCustomerReschedule = async () => {
     const activeDateObj = rescheduleDates[selectedRescheduleDayIndex] || rescheduleDates[0];
@@ -844,7 +847,7 @@ export default function TrackingPage() {
                   size="small"
                   variant="contained"
                   startIcon={<PhoneIcon sx={{ fontSize: 13 }} />}
-                  onClick={() => toast.success('Connecting to Salem Central Ops: 0427-2448888')}
+                  onClick={() => setCallOpen(true)}
                   sx={{
                     bgcolor: '#0F172A',
                     color: '#FFF',
@@ -1562,7 +1565,7 @@ export default function TrackingPage() {
                     size="small"
                     variant="outlined"
                     startIcon={<PhoneIcon sx={{ fontSize: 13 }} />}
-                    onClick={() => toast.success('Connecting to Salem Central Ops: 0427-2448888')}
+                    onClick={() => setCallOpen(true)}
                     sx={{
                       borderColor: '#D97706',
                       color: '#92400E',
@@ -1940,163 +1943,23 @@ export default function TrackingPage() {
         </ModalFooter>
       </Modal>
 
-      {/* Customer Interactive Reschedule Modal */}
-      <Modal
+      {/* Customer Interactive Reschedule Drawer (Mobile Bottom Sheet / Desktop Slide-Over) */}
+      <CustomerRescheduleDrawer
         open={rescheduleOpen}
         onClose={() => setRescheduleOpen(false)}
-        maxWidth="sm"
-      >
-        <ModalHeader
-          title="Reschedule Appointment • மாற்று நேரம்"
-          subtitle="Select a new date and time window with zero penalty"
-          onClose={() => setRescheduleOpen(false)}
-        />
-        <ModalBody>
-          {/* Escrow Guarantee Pill */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1.5, bgcolor: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '10px', mb: 2.5 }}>
-            <ShieldIcon sx={{ color: '#166534', fontSize: 20 }} />
-            <Box>
-              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#166534', fontSize: '12px' }}>
-                100% Escrow Protection: ₹0 Reschedule Fee
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#15803D', fontSize: '11px', display: 'block' }}>
-                Your inspection visit fee remains safely reserved. No additional charge or cancellation penalty.
-              </Typography>
-            </Box>
-          </Box>
-
-          {/* 1. Date Selector (14 Consecutive Days Horizontal Ribbon) */}
-          <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', display: 'block', mb: 1, letterSpacing: '0.04em' }}>
-            STEP 1: SELECT NEW SERVICE DATE
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto', pb: 1.5, mb: 2.5, '::-webkit-scrollbar': { height: 4 } }}>
-            {rescheduleDates.map((d, idx) => {
-              const isSelected = selectedRescheduleDayIndex === idx;
-              return (
-                <Box
-                  key={d.iso}
-                  onClick={() => setSelectedRescheduleDayIndex(idx)}
-                  sx={{
-                    flexShrink: 0,
-                    width: 76,
-                    py: 1,
-                    px: 0.5,
-                    textAlign: 'center',
-                    cursor: 'pointer',
-                    borderRadius: '10px',
-                    border: isSelected ? '2px solid #0284C7' : '1px solid #E2E8F0',
-                    bgcolor: isSelected ? '#F0F9FF' : '#FFFFFF',
-                    transition: 'all 0.15s ease',
-                    '&:hover': { borderColor: '#0284C7' }
-                  }}
-                >
-                  <Typography variant="caption" sx={{ fontWeight: 800, fontSize: '10px', color: isSelected ? '#0284C7' : '#64748B', display: 'block' }}>
-                    {d.dayName}
-                  </Typography>
-                  <Typography variant="body1" sx={{ fontWeight: 900, fontSize: '16px', color: isSelected ? '#0C4A6E' : '#0F172A', my: 0.2 }}>
-                    {d.dayNumber}
-                  </Typography>
-                  <Typography variant="caption" sx={{ fontSize: '10px', color: isSelected ? '#0369A1' : '#94A3B8', display: 'block' }}>
-                    {d.monthName}
-                  </Typography>
-                </Box>
-              );
-            })}
-          </Box>
-
-          {/* 2. Time Window Selector */}
-          <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', display: 'block', mb: 1, letterSpacing: '0.04em' }}>
-            STEP 2: CHOOSE PREFERRED TIME WINDOW
-          </Typography>
-          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 1, mb: 2.5 }}>
-            {RESCHEDULE_TIME_SLOTS.map((slot) => {
-              const isSelected = selectedRescheduleTime === slot;
-              return (
-                <Button
-                  key={slot}
-                  variant={isSelected ? 'contained' : 'outlined'}
-                  size="small"
-                  onClick={() => setSelectedRescheduleTime(slot)}
-                  startIcon={isSelected ? <CheckCircleIcon sx={{ fontSize: 15 }} /> : <ScheduleIcon sx={{ fontSize: 15 }} />}
-                  sx={{
-                    py: 1,
-                    px: 1,
-                    borderRadius: '10px',
-                    borderColor: isSelected ? '#0284C7' : '#E2E8F0',
-                    bgcolor: isSelected ? '#0284C7' : '#FFFFFF',
-                    color: isSelected ? '#FFFFFF' : '#0F172A',
-                    fontWeight: 700,
-                    fontSize: '11.5px',
-                    textTransform: 'none',
-                    justifyContent: 'flex-start',
-                    '&:hover': {
-                      bgcolor: isSelected ? '#0369A1' : '#F8FAFC',
-                      borderColor: '#0284C7'
-                    }
-                  }}
-                >
-                  {slot}
-                </Button>
-              );
-            })}
-          </Box>
-
-          {/* 3. Reason for Reschedule */}
-          <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', display: 'block', mb: 1, letterSpacing: '0.04em' }}>
-            STEP 3: REASON FOR RESCHEDULE
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 0.8, flexWrap: 'wrap', mb: 2 }}>
-            {RESCHEDULE_REASONS.map((r) => {
-              const isSelected = selectedRescheduleReason === r;
-              return (
-                <Chip
-                  key={r}
-                  label={r}
-                  size="small"
-                  clickable
-                  onClick={() => setSelectedRescheduleReason(r)}
-                  sx={{
-                    bgcolor: isSelected ? '#0F172A' : '#F1F5F9',
-                    color: isSelected ? '#FFFFFF' : '#334155',
-                    fontWeight: 700,
-                    fontSize: '11px',
-                    border: isSelected ? '1px solid #0F172A' : '1px solid #E2E8F0',
-                    '&:hover': { bgcolor: isSelected ? '#1E293B' : '#E2E8F0' }
-                  }}
-                />
-              );
-            })}
-          </Box>
-        </ModalBody>
-        <ModalFooter>
-          <Box sx={{ display: 'flex', gap: 1, width: '100%' }}>
-            <Button
-              variant="outlined"
-              onClick={() => setRescheduleOpen(false)}
-              sx={{ flex: 1, borderRadius: '10px', textTransform: 'none', fontWeight: 700, color: '#64748B', borderColor: '#CBD5E1' }}
-            >
-              Back
-            </Button>
-            <Button
-              variant="contained"
-              disabled={slotUpdating}
-              onClick={handleConfirmCustomerReschedule}
-              sx={{
-                flex: 2,
-                borderRadius: '10px',
-                textTransform: 'none',
-                fontWeight: 800,
-                fontSize: '13px',
-                bgcolor: '#0284C7',
-                color: '#FFF',
-                '&:hover': { bgcolor: '#0369A1' }
-              }}
-            >
-              {slotUpdating ? 'Updating...' : 'Confirm Rescheduled Slot'}
-            </Button>
-          </Box>
-        </ModalFooter>
-      </Modal>
+        rescheduleDates={rescheduleDates}
+        selectedDayIndex={selectedRescheduleDayIndex}
+        onSelectDayIndex={setSelectedRescheduleDayIndex}
+        timeSlots={RESCHEDULE_TIME_SLOTS}
+        selectedTimeSlot={selectedRescheduleTime}
+        onSelectTimeSlot={setSelectedRescheduleTime}
+        reasons={RESCHEDULE_REASONS}
+        selectedReason={selectedRescheduleReason}
+        onSelectReason={setSelectedRescheduleReason}
+        onConfirm={handleConfirmCustomerReschedule}
+        loading={slotUpdating}
+        currentBooking={booking}
+      />
 
       {/* Bottom Navigation */}
       <Paper elevation={8} sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, bgcolor: '#FFFFFF', borderTop: '1px solid #E2E8F0', zIndex: 1000, display: { xs: 'block', md: 'none' } }}>

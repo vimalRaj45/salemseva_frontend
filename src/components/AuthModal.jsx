@@ -60,18 +60,18 @@ export default function AuthModal() {
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'signup'
   
   // Form State
-  const [phone, setPhone] = useState('98427 11234');
-  const [password, setPassword] = useState('salem123');
+  const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [name, setName] = useState('Vimal Raj');
-  const [address, setAddress] = useState('42, 3rd Cross, Fairlands Main Road');
+  const [name, setName] = useState('');
+  const [address, setAddress] = useState('');
   const [locality, setLocality] = useState('Fairlands, Salem');
-  const [referralCode, setReferralCode] = useState('SALEM100');
+  const [referralCode, setReferralCode] = useState('');
   
   // Technician Specific Fields
   const [trade, setTrade] = useState('ac');
-  const [aadhaar, setAadhaar] = useState('5482 9102 8901');
-  const [serviceArea, setServiceArea] = useState('Fairlands & Hasthampatti');
+  const [aadhaar, setAadhaar] = useState('');
+  const [serviceArea, setServiceArea] = useState('Fairlands, Salem');
 
   // UI state
   const [loading, setLoading] = useState(false);

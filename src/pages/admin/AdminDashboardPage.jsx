@@ -120,6 +120,8 @@ import AdminSidebar from './AdminSidebar';
 import AdminServicesModule from './AdminServicesModule';
 import AdminTeamModule from './AdminTeamModule';
 import AdminDispatchDrawer from './AdminDispatchDrawer';
+import AdminTechnicianDossierDrawer from './AdminTechnicianDossierDrawer';
+import AdminCustomerDossierDrawer from './AdminCustomerDossierDrawer';
 import AdminTrackingModal from './AdminTrackingModal';
 import Modal, { ModalHeader, ModalBody, ModalFooter } from '../../components/Modal';
 import { useAuth } from '../../context/AuthContext';
@@ -4089,417 +4091,50 @@ export default function AdminDashboardPage() {
         )}
 
         {/* ========================================================================= */}
-        {/* CUSTOMER 360 DEEP HISTORY MODAL */}
-        <Modal open={customerModalOpen} onClose={() => setCustomerModalOpen(false)} maxWidth="md">
-          <ModalHeader
-            title="Customer order history & 360 profile"
-            subtitle={customerDetails ? `${customerDetails.customer_name} • ${customerDetails.customer_phone} • ${customerDetails.locality}` : 'Customer dossier'}
-            onClose={() => setCustomerModalOpen(false)}
-          />
-          <ModalBody>
-            {customerDetails && (
-              <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '14px', mb: 2.5 }}>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={4}>
-                    <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 600, fontSize: '12px' }}>Customer name</Typography>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '14px' }}>{customerDetails.customer_name}</Typography>
-                    <Typography variant="caption" sx={{ color: '#64748B' }}>{customerDetails.customer_phone}</Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={4}>
-                    <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 600, fontSize: '12px' }}>Salem locality</Typography>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0A66C2', fontSize: '14px' }}>{customerDetails.locality}</Typography>
-                    <Typography variant="caption" sx={{ color: '#64748B' }}>{customerDetails.service_address || 'Salem Doorstep'}</Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={4}>
-                    <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 600, fontSize: '12px' }}>Lifetime spend & orders</Typography>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#16A34A', fontSize: '14px' }}>₹{parseFloat(customerDetails.total_spent || 0).toLocaleString()}</Typography>
-                    <Typography variant="caption" sx={{ color: '#64748B' }}>{customerDetails.total_orders || customerHistory.length} total orders placed</Typography>
-                  </Grid>
-                </Grid>
-              </Paper>
-            )}
+        {/* CUSTOMER 360 SLIDE-OVER DOSSIER DRAWER */}
+        <AdminCustomerDossierDrawer
+          open={customerModalOpen}
+          onClose={() => setCustomerModalOpen(false)}
+          customer={customerDetails}
+          history={customerHistory}
+          loading={customerHistoryLoading}
+          onOpenBookingTrace={(job) => {
+            setCustomerModalOpen(false);
+            handleOpenBookingTrace(job);
+          }}
+          onOpenTechDossier={(job) => {
+            const matched = technicians.find(t => t.id === job.technician_id || t.full_name === job.technician_name);
+            if (matched) {
+              setCustomerModalOpen(false);
+              handleOpenTechDossier(matched);
+            }
+          }}
+          onToggleBlock={handleToggleCustomerBlock}
+          getStatusChip={getStatusChip}
+        />
 
-            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', mb: 1.5, fontSize: '14px' }}>
-              Booking history ({customerHistory.length} jobs)
-            </Typography>
-
-            {customerHistoryLoading ? (
-              <Box sx={{ py: 4, textAlign: 'center' }}>
-                <CircularProgress size={32} sx={{ color: '#0A66C2' }} />
-              </Box>
-            ) : customerHistory.length === 0 ? (
-              <Paper elevation={0} sx={{ p: 3, textAlign: 'center', bgcolor: '#F8FAFC', borderRadius: '12px' }}>
-                <Typography variant="caption" sx={{ color: '#64748B' }}>No booking records found for this customer.</Typography>
-              </Paper>
-            ) : (
-              <Box sx={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: '12px', border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
-                <Table size="small" sx={{ minWidth: 560 }}>
-                <TableHead>
-                  <TableRow sx={{ bgcolor: '#F8FAFC', '& th': { color: '#475569', fontWeight: 700 } }}>
-                    <TableCell>Booking ID</TableCell>
-                    <TableCell>Service</TableCell>
-                    <TableCell>Assigned partner</TableCell>
-                    <TableCell>Order date</TableCell>
-                    <TableCell align="center">Stage</TableCell>
-                    <TableCell align="right">Amount</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {customerHistory.map(job => (
-                    <TableRow key={job.id} hover>
-                      <TableCell 
-                        sx={{ fontWeight: 700, color: '#0A66C2', cursor: 'pointer', textDecoration: 'underline' }}
-                        onClick={() => {
-                          setCustomerModalOpen(false);
-                          handleOpenBookingTrace(job);
-                        }}
-                        title="Click to deep trace booking"
-                      >
-                        #{job.id}
-                      </TableCell>
-                      <TableCell sx={{ fontWeight: 600, color: '#0F172A' }}>{job.service_id?.toUpperCase()}</TableCell>
-                      <TableCell>
-                        <Typography 
-                          variant="body2" 
-                          sx={{ fontWeight: 600, color: job.technician_name ? '#0A66C2' : '#0F172A', cursor: job.technician_name ? 'pointer' : 'default', textDecoration: job.technician_name ? 'underline' : 'none' }}
-                          onClick={() => {
-                            if (job.technician_name) {
-                              const matched = technicians.find(t => t.id === job.technician_id || t.full_name === job.technician_name);
-                              if (matched) {
-                                setCustomerModalOpen(false);
-                                handleOpenTechDossier(matched);
-                              }
-                            }
-                          }}
-                        >
-                          {job.technician_name || 'Unassigned'}
-                        </Typography>
-                        {job.technician_rating && (
-                          <Typography variant="caption" sx={{ color: '#16A34A' }}>{job.technician_rating} / 5.0</Typography>
-                        )}
-                      </TableCell>
-                      <TableCell sx={{ color: '#64748B', fontSize: '12px' }}>{new Date(job.created_at).toLocaleDateString()}</TableCell>
-                      <TableCell align="center">{getStatusChip(job.status)}</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 800, color: '#0F172A' }}>₹{job.final_amount}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Box>
-          )}
-          </ModalBody>
-          <ModalFooter>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-              {customerDetails && (
-                <Box>
-                  {customerDetails.is_blocked ? (
-                    <Button
-                      variant="contained"
-                      color="success"
-                      onClick={() => handleToggleCustomerBlock(customerDetails, false)}
-                      sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '12px', height: 44 }}
-                    >
-                      Unblock customer
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outlined"
-                      color="error"
-                      onClick={() => handleToggleCustomerBlock(customerDetails, true)}
-                      sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '12px', height: 44 }}
-                    >
-                      Suspend / block customer
-                    </Button>
-                  )}
-                </Box>
-              )}
-              <Button
-                variant="contained"
-                onClick={() => setCustomerModalOpen(false)}
-                sx={{
-                  bgcolor: '#0A66C2',
-                  color: '#FFF',
-                  fontWeight: 700,
-                  borderRadius: '14px',
-                  height: 48,
-                  minWidth: 120,
-                  textTransform: 'none',
-                  '&:hover': { bgcolor: '#084e96' }
-                }}
-              >
-                Close
-              </Button>
-            </Box>
-          </ModalFooter>
-        </Modal>
-
-        {/* ========================================================================= */}
-        {/* TECHNICIAN 360 DOSSIER & SERVICE LOGS DIALOG */}
-        {/* ========================================================================= */}
-        <Modal open={techDossierModalOpen} onClose={() => setTechDossierModalOpen(false)} maxWidth="md">
-          <ModalHeader
-            title="Technician performance dossier & service logs"
-            subtitle={selectedTechDossier ? `${selectedTechDossier.full_name} • ${getTradeLabel(selectedTechDossier.primary_trade)}` : 'Technician dossier'}
-            onClose={() => setTechDossierModalOpen(false)}
-          />
-          <ModalBody>
-            {selectedTechDossier && (
-              <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '14px', mb: 2.5 }}>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={4}>
-                    <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700 }}>TECHNICIAN NAME & TRADE</Typography>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0F172A' }}>{selectedTechDossier.full_name}</Typography>
-                    <Typography variant="caption" sx={{ color: '#0284C7', fontWeight: 700 }}>{getTradeLabel(selectedTechDossier.primary_trade)}</Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={4}>
-                    <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700 }}>PERFORMANCE RATING</Typography>
-                    {Number(selectedTechDossier.jobs_completed_count) > 0 && Number(selectedTechDossier.rating_avg) > 0 ? (
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <StarIcon sx={{ fontSize: 16, color: '#F59E0B' }} />
-                        <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0F172A' }}>{selectedTechDossier.rating_avg}</Typography>
-                      </Box>
-                    ) : (
-                      <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#64748B' }}>New Partner (Unrated)</Typography>
-                    )}
-                    <Typography variant="caption" sx={{ color: '#64748B' }}>{Number(selectedTechDossier.jobs_completed_count) || 0} Jobs Serviced</Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={4}>
-                    <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700 }}>LIFETIME PAYOUTS EARNED</Typography>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#059669' }}>₹{(Number(techFinancials?.lifetimeEarnings) || 0).toLocaleString()}</Typography>
-                    <Typography variant="caption" sx={{ color: '#64748B' }}>UPI: {selectedTechDossier.upi_vpa || 'Not Configured'}</Typography>
-                  </Grid>
-
-                  {/* Aadhaar KYC Uploaded Document View & Decision */}
-                  <Grid item xs={12}>
-                    <Divider sx={{ my: 0.8 }} />
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1.5, p: 1.2, bgcolor: '#FFFFFF', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Avatar sx={{ bgcolor: selectedTechDossier.is_kyc_verified ? '#DCFCE7' : '#FEF3C7', color: selectedTechDossier.is_kyc_verified ? '#166534' : '#B45309', width: 34, height: 34 }}>
-                          <FingerprintIcon sx={{ fontSize: 20 }} />
-                        </Avatar>
-                        <Box>
-                          <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', display: 'block' }}>
-                            AADHAAR IDENTITY & e-KYC VERIFICATION
-                          </Typography>
-                          <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A' }}>
-                            Aadhaar: {selectedTechDossier.aadhaar_number ? `XXXX-XXXX-${selectedTechDossier.aadhaar_number.slice(-4)}` : 'Not Provided'}
-                          </Typography>
-                        </Box>
-                      </Box>
-
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                        {(selectedTechDossier.aadhaar_card_url || selectedTechDossier.aadhaarCardUrl) ? (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Box
-                              component="img"
-                              src={resolveMediaUrl(selectedTechDossier.aadhaar_card_url || selectedTechDossier.aadhaarCardUrl)}
-                              alt="Uploaded Aadhaar Document"
-                              onClick={() => handleOpenAadhaarViewer(selectedTechDossier)}
-                              sx={{
-                                width: 54,
-                                height: 36,
-                                objectFit: 'cover',
-                                borderRadius: '6px',
-                                border: '1px solid #0284C7',
-                                cursor: 'pointer',
-                                boxShadow: '0 2px 6px rgba(2, 132, 199, 0.2)',
-                                '&:hover': { transform: 'scale(1.08)' },
-                                transition: 'all 0.2s'
-                              }}
-                              title="Click to zoom Aadhaar document"
-                            />
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              startIcon={<VisibilityIcon sx={{ fontSize: 13 }} />}
-                              onClick={() => handleOpenAadhaarViewer(selectedTechDossier)}
-                              sx={{ textTransform: 'none', fontWeight: 800, fontSize: '11px', borderRadius: '8px', color: '#0284C7', borderColor: '#BAE6FD', bgcolor: '#F0F9FF' }}
-                            >
-                              Preview Aadhaar Card
-                            </Button>
-                          </Box>
-                        ) : (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Chip label="No Document Uploaded" size="small" sx={{ bgcolor: '#F1F5F9', color: '#64748B', fontWeight: 800, fontSize: '10px' }} />
-                            <Button
-                              component="label"
-                              variant="outlined"
-                              size="small"
-                              startIcon={<CloudUploadIcon sx={{ fontSize: 13 }} />}
-                              sx={{ textTransform: 'none', fontWeight: 800, fontSize: '11px', borderRadius: '8px', color: '#0284C7', borderColor: '#BAE6FD', bgcolor: '#F0F9FF' }}
-                            >
-                              Attach Aadhaar Photo
-                              <input
-                                type="file"
-                                hidden
-                                accept="image/*"
-                                onChange={async (e) => {
-                                  const file = e.target.files?.[0];
-                                  if (!file) return;
-                                  try {
-                                    const reader = new FileReader();
-                                    reader.onload = async () => {
-                                      const base64Data = reader.result;
-                                      const res = await fetch(`${API_V1_URL}/storage/upload-aadhaar`, {
-                                        method: 'POST',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({
-                                          fileData: base64Data,
-                                          mimeType: file.type || 'image/jpeg',
-                                          phone: selectedTechDossier.phone,
-                                          fileName: file.name
-                                        })
-                                      });
-                                      const data = await res.json();
-                                      if (data.success && data.url) {
-                                        setSelectedTechDossier(prev => ({ ...prev, aadhaar_card_url: data.url }));
-                                        setTechnicians(prev => prev.map(t => t.id === selectedTechDossier.id ? { ...t, aadhaar_card_url: data.url } : t));
-                                        setToast({ open: true, message: 'Aadhaar document successfully attached!', severity: 'success' });
-                                      } else {
-                                        setToast({ open: true, message: data.error || 'Failed to attach Aadhaar document', severity: 'error' });
-                                      }
-                                    };
-                                    reader.readAsDataURL(file);
-                                  } catch (err) {
-                                    setToast({ open: true, message: 'Failed to upload Aadhaar: ' + err.message, severity: 'error' });
-                                  }
-                                }}
-                              />
-                            </Button>
-                          </Box>
-                        )}
-
-                        {!selectedTechDossier.is_kyc_verified ? (
-                          <Box sx={{ display: 'flex', gap: 0.8 }}>
-                            <Button
-                              variant="contained"
-                              size="small"
-                              onClick={() => handleKycDecision(selectedTechDossier.id, 'approve')}
-                              sx={{ bgcolor: '#16A34A', color: '#FFF', fontWeight: 800, fontSize: '11px', textTransform: 'none', borderRadius: '8px', '&:hover': { bgcolor: '#15803D' } }}
-                            >
-                              Approve KYC
-                            </Button>
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              onClick={() => handleKycDecision(selectedTechDossier.id, 'reject')}
-                              sx={{ color: '#DC2626', borderColor: '#FCA5A5', fontWeight: 700, fontSize: '11px', textTransform: 'none', borderRadius: '8px' }}
-                            >
-                              Reject
-                            </Button>
-                          </Box>
-                        ) : (
-                          <Chip
-                            icon={<CheckCircleOutlineIcon sx={{ fontSize: '13px !important', color: '#166534 !important' }} />}
-                            label="KYC Verified Partner"
-                            size="small"
-                            sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 900, fontSize: '10.5px' }}
-                          />
-                        )}
-                      </Box>
-                    </Box>
-                  </Grid>
-                </Grid>
-              </Paper>
-            )}
-
-            <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0F172A', mb: 1.5 }}>
-              Complete Service History & Customer Job Records ({techJobsHistory.length} Bookings)
-            </Typography>
-
-            {techDossierLoading ? (
-              <Box sx={{ py: 4, textAlign: 'center' }}>
-                <CircularProgress size={32} sx={{ color: '#0284C7' }} />
-              </Box>
-            ) : techJobsHistory.length === 0 ? (
-              <Paper elevation={0} sx={{ p: 3, textAlign: 'center', bgcolor: '#F8FAFC', borderRadius: '12px' }}>
-                <Typography variant="caption" sx={{ color: '#64748B' }}>No service history recorded for this technician yet.</Typography>
-              </Paper>
-            ) : (
-              <Box sx={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: '12px', border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
-                <Table size="small" sx={{ minWidth: 560 }}>
-                <TableHead>
-                  <TableRow sx={{ bgcolor: '#F8FAFC', '& th': { color: '#475569', fontWeight: 800 } }}>
-                    <TableCell>Booking ID</TableCell>
-                    <TableCell>Customer & Locality</TableCell>
-                    <TableCell>Service</TableCell>
-                    <TableCell>Date</TableCell>
-                    <TableCell align="center">Stage</TableCell>
-                    <TableCell align="right">Tech Payout</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {techJobsHistory.map(job => (
-                    <TableRow key={job.id} hover>
-                      <TableCell 
-                        sx={{ fontWeight: 800, color: '#0284C7', cursor: 'pointer', textDecoration: 'underline' }}
-                        onClick={() => {
-                          setTechDossierModalOpen(false);
-                          handleOpenBookingTrace(job);
-                        }}
-                        title="Click to deep trace booking"
-                      >
-                        #{job.id}
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A' }}>{job.customer_name}</Typography>
-                        <Typography variant="caption" sx={{ color: '#64748B' }}>{job.locality}</Typography>
-                      </TableCell>
-                      <TableCell sx={{ fontWeight: 700, color: '#0F172A' }}>{job.service_id?.toUpperCase()}</TableCell>
-                      <TableCell sx={{ color: '#64748B', fontSize: '12px' }}>{new Date(job.created_at).toLocaleDateString()}</TableCell>
-                      <TableCell align="center">{getStatusChip(job.status)}</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 900, color: '#059669' }}>₹{job.tech_payout_amount || (parseFloat(job.final_amount) * 0.98).toFixed(0)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Box>
-          )}
-          </ModalBody>
-          <ModalFooter>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-              {selectedTechDossier && (
-                <Box>
-                  {selectedTechDossier.is_blocked ? (
-                    <Button
-                      variant="contained"
-                      color="success"
-                      onClick={() => handleToggleTechnicianBlock(selectedTechDossier, false)}
-                      sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '12px', height: 44 }}
-                    >
-                      Restore / unblock partner
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outlined"
-                      color="error"
-                      onClick={() => handleToggleTechnicianBlock(selectedTechDossier, true)}
-                      sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '12px', height: 44 }}
-                    >
-                      Suspend / block partner
-                    </Button>
-                  )}
-                </Box>
-              )}
-              <Button
-                variant="contained"
-                onClick={() => setTechDossierModalOpen(false)}
-                sx={{
-                  bgcolor: '#0A66C2',
-                  color: '#FFF',
-                  fontWeight: 700,
-                  borderRadius: '14px',
-                  height: 48,
-                  minWidth: 120,
-                  textTransform: 'none',
-                  '&:hover': { bgcolor: '#084e96' }
-                }}
-              >
-                Close
-              </Button>
-            </Box>
-          </ModalFooter>
-        </Modal>
+        {/* TECHNICIAN 360 SLIDE-OVER DOSSIER DRAWER */}
+        <AdminTechnicianDossierDrawer
+          open={techDossierModalOpen}
+          onClose={() => setTechDossierModalOpen(false)}
+          tech={selectedTechDossier}
+          jobsHistory={techJobsHistory}
+          financials={techFinancials}
+          loading={techDossierLoading}
+          onOpenBookingTrace={(job) => {
+            setTechDossierModalOpen(false);
+            handleOpenBookingTrace(job);
+          }}
+          onKycDecision={handleKycDecision}
+          onToggleBlock={handleToggleTechnicianBlock}
+          onOpenAadhaarViewer={handleOpenAadhaarViewer}
+          onAttachAadhaarSuccess={(url) => {
+            setSelectedTechDossier(prev => ({ ...prev, aadhaar_card_url: url }));
+            setTechnicians(prev => prev.map(t => t.id === selectedTechDossier.id ? { ...t, aadhaar_card_url: url } : t));
+            setToast({ open: true, message: 'Aadhaar document successfully attached!', severity: 'success' });
+          }}
+          getStatusChip={getStatusChip}
+        />
 
         {/* MANUAL DISPATCH MODAL */}
         <Modal open={dispatchDialogOpen} onClose={() => setDispatchDialogOpen(false)} maxWidth="sm">

@@ -35,6 +35,8 @@ import PartnerLoginPage from './pages/partner/PartnerLoginPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import AdminTraceabilityPage from './pages/admin/AdminTraceabilityPage';
 import AdminSettlementsPage from './pages/admin/AdminSettlementsPage';
+import AdminTechnicianDossierPage from './pages/admin/AdminTechnicianDossierPage';
+import AdminCustomerDossierPage from './pages/admin/AdminCustomerDossierPage';
 
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -160,6 +162,8 @@ function MainLayout({ walletBalance, currentBooking, setCurrentBooking }) {
             <Route path="/admin/traceability" element={<AdminTraceabilityPage />} />
             <Route path="/admin/settlements" element={<AdminSettlementsPage />} />
             <Route path="/admin/financials" element={<AdminSettlementsPage />} />
+            <Route path="/admin/technicians/:id" element={<AdminTechnicianDossierPage />} />
+            <Route path="/admin/customers/:phone" element={<AdminCustomerDossierPage />} />
 
             {/* Dedicated Authentication Routes */}
             <Route path="/login" element={<AuthPage initialMode="login" />} />

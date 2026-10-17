@@ -162,6 +162,7 @@ export function AuthProvider({ children }) {
               plumber: 'Master Sanitary & Motor Plumber',
               cleaning: 'Deep Home Sanitization Lead'
             };
+            const isVerified = Boolean(t.is_kyc_verified ?? t.isKycVerified ?? (t.status === 'Verified'));
             return {
               id: t.id,
               role: 'technician',
@@ -172,13 +173,15 @@ export function AuthProvider({ children }) {
               trade: t.primary_trade || t.trade,
               tradeName: tradeNames[t.primary_trade || t.trade] || 'Certified Trade Specialist',
               experienceYears: t.years_experience || t.experienceYears || 5,
-              status: t.is_kyc_verified ? 'Verified' : 'Pending Verification',
-              isKycVerified: Boolean(t.is_kyc_verified),
+              status: isVerified ? 'Verified' : 'Pending Verification',
+              isKycVerified: isVerified,
+              is_kyc_verified: isVerified,
               isOnline: Boolean(t.is_online),
               ratingAvg: parseFloat(t.rating_avg || t.ratingAvg || 4.9),
-              ratingCount: t.rating_count || t.ratingCount || 100,
-              jobsCompleted: t.jobs_completed_count || t.jobsCompleted || 300,
-              todayEarnings: 1450,
+              ratingCount: parseInt(t.rating_count ?? t.ratingCount ?? 0, 10),
+              jobsCompleted: parseInt(t.jobs_completed_count ?? t.jobsCompleted ?? 0, 10),
+              todayEarnings: parseFloat(t.today_earnings ?? t.todayEarnings ?? 0),
+              today_earnings: parseFloat(t.today_earnings ?? t.todayEarnings ?? 0),
               starTier: t.star_tier || t.starTier || 'Gold Partner (Salem)',
               upiId: t.upi_vpa || t.upiId,
               upi_vpa: t.upi_vpa,
@@ -198,7 +201,14 @@ export function AuthProvider({ children }) {
                 return (t.id && prev.id && t.id === prev.id) || (tClean && prevClean && tClean === prevClean);
               });
               if (matched) {
-                const updated = { ...prev, ...matched };
+                const verified = Boolean(matched.is_kyc_verified ?? matched.isKycVerified ?? prev.is_kyc_verified ?? prev.isKycVerified ?? (prev.status === 'Verified'));
+                const updated = {
+                  ...prev,
+                  ...matched,
+                  is_kyc_verified: verified,
+                  isKycVerified: verified,
+                  status: verified ? 'Verified' : 'Pending Verification'
+                };
                 localStorage.setItem('salemseva_user', JSON.stringify(updated));
                 return updated;
               }
@@ -215,7 +225,14 @@ export function AuthProvider({ children }) {
                 return (t.id && prev.id && t.id === prev.id) || (tClean && prevClean && tClean === prevClean);
               });
               if (matched) {
-                const updated = { ...prev, ...matched };
+                const verified = Boolean(matched.is_kyc_verified ?? matched.isKycVerified ?? prev.is_kyc_verified ?? prev.isKycVerified ?? (prev.status === 'Verified'));
+                const updated = {
+                  ...prev,
+                  ...matched,
+                  is_kyc_verified: verified,
+                  isKycVerified: verified,
+                  status: verified ? 'Verified' : 'Pending Verification'
+                };
                 localStorage.setItem('salemseva_tech_user', JSON.stringify(updated));
                 return updated;
               }
@@ -342,8 +359,8 @@ export function AuthProvider({ children }) {
         body: JSON.stringify(payload)
       });
       const data = await res.json();
-      if (!data.success) {
-        throw new Error(data.error || 'Registration failed');
+      if (!data.success || !data.user) {
+        throw new Error(data.error || 'Registration failed. Please check details.');
       }
       setUser(data.user);
       localStorage.setItem('salemseva_user', JSON.stringify(data.user));
@@ -354,73 +371,40 @@ export function AuthProvider({ children }) {
       setAuthModalOpen(false);
       return data.user;
     } catch (err) {
-      if (payload.role === 'technician') {
-        return signupTechnician(payload);
-      } else {
-        return signupCustomer(payload);
-      }
+      console.error('Registration error:', err.message);
+      throw err;
     }
   };
 
   const signupCustomer = async ({ name, phone, password, address, locality, referralCode }) => {
-    const hasReferral = referralCode && referralCode.trim().length > 0;
-    const newUser = {
-      id: `usr-cust-${Date.now()}`,
-      role: 'customer',
-      name: name || 'Salem Resident',
-      phone: phone.startsWith('+91') ? phone : `+91 ${phone}`,
-      email: `${(name || 'user').toLowerCase().replace(/\s+/g, '')}@salemseva.in`,
-      locality: locality || 'Fairlands, Salem',
-      address: address || 'Fairlands Main Road, Salem - 636016',
-      walletBalance: hasReferral ? 100 : 0,
-      firstTimeUser: true,
-      referralCodeUsed: hasReferral ? referralCode.toUpperCase() : null,
-      isVerified: true,
-      createdAt: new Date().toISOString()
-    };
-
-    setUser(newUser);
-    localStorage.setItem('salemseva_user', JSON.stringify(newUser));
-    setAuthModalOpen(false);
-    await registerSessionWithBackend(newUser.phone, 'customer', newUser.name);
-    return newUser;
+    return registerAccount({
+      name,
+      phone,
+      password,
+      address,
+      locality,
+      referralCode: (referralCode || '').trim(),
+      role: 'customer'
+    });
   };
 
   const signupTechnician = async ({ name, phone, password, trade, aadhaar, serviceArea }) => {
-    const tradeNames = {
-      ac: 'AC Repair & Cooling Expert',
-      electrician: 'Electrician & Wiring Specialist',
-      plumber: 'Plumbing & Drainage Specialist',
-      cleaning: 'Home & Bathroom Cleaning Pro'
-    };
+    const userResult = await registerAccount({
+      name,
+      phone,
+      password,
+      trade,
+      aadhaar,
+      serviceArea,
+      locality: serviceArea || 'Fairlands, Salem',
+      role: 'technician'
+    });
 
-    const newTech = {
-      id: `tech-${Date.now()}`,
-      role: 'technician',
-      name: name || 'Salem Technician',
-      phone: phone.startsWith('+91') ? phone : `+91 ${phone}`,
-      email: `${(name || 'tech').toLowerCase().replace(/\s+/g, '')}@salemseva.in`,
-      trade: trade || 'ac',
-      tradeName: tradeNames[trade] || 'Home Services Expert',
-      experienceYears: 3,
-      aadhaarNumber: aadhaar || 'XXXX-XXXX-1234',
-      status: 'Pending Verification',
-      isKycVerified: false,
-      isOnline: false,
-      ratingAvg: 5.0,
-      ratingCount: 0,
-      jobsCompleted: 0,
-      todayEarnings: 0,
-      serviceArea: serviceArea || 'Fairlands, Salem',
-      assignedLocalities: [serviceArea || 'Fairlands', 'Hasthampatti'],
-      createdAt: new Date().toISOString()
-    };
-
-    setUser(newTech);
-    localStorage.setItem('salemseva_user', JSON.stringify(newTech));
-    setAuthModalOpen(false);
-    await registerSessionWithBackend(newTech.phone, 'technician', newTech.name, newTech.trade);
-    return newTech;
+    if (userResult) {
+      setTechUser(userResult);
+      localStorage.setItem('salemseva_tech_user', JSON.stringify(userResult));
+    }
+    return userResult;
   };
 
   const loginAsPreset = async (presetKey) => {
