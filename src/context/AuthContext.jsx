@@ -26,6 +26,25 @@ export function AuthProvider({ children }) {
     }
   });
 
+  // Dedicated Independent Technician Session (survives refreshes without customer collision)
+  const [techUser, setTechUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('salemseva_tech_user');
+      if (saved) return JSON.parse(saved);
+      const userSaved = localStorage.getItem('salemseva_user');
+      if (userSaved) {
+        const parsed = JSON.parse(userSaved);
+        if (parsed && (parsed.role === 'technician' || parsed.role === 'partner')) {
+          return parsed;
+        }
+      }
+      return null;
+    } catch (e) {
+      console.warn('Could not parse saved technician:', e);
+      return null;
+    }
+  });
+
   const [isGuest, setIsGuest] = useState(() => {
     return localStorage.getItem('salemseva_is_guest') === 'true';
   });
@@ -181,6 +200,23 @@ export function AuthProvider({ children }) {
               if (matched) {
                 const updated = { ...prev, ...matched };
                 localStorage.setItem('salemseva_user', JSON.stringify(updated));
+                return updated;
+              }
+            }
+            return prev;
+          });
+
+          // Dedicated persistent technician session synchronization
+          setTechUser(prev => {
+            if (prev) {
+              const prevClean = (prev.phone || '').replace(/[^0-9]/g, '').slice(-10);
+              const matched = mapped.find(t => {
+                const tClean = (t.phone || '').replace(/[^0-9]/g, '').slice(-10);
+                return (t.id && prev.id && t.id === prev.id) || (tClean && prevClean && tClean === prevClean);
+              });
+              if (matched) {
+                const updated = { ...prev, ...matched };
+                localStorage.setItem('salemseva_tech_user', JSON.stringify(updated));
                 return updated;
               }
             }
@@ -429,9 +465,53 @@ export function AuthProvider({ children }) {
     const tech = technicianData || dbTechnicians[0];
     if (!tech) return;
     setUser(tech);
+    setTechUser(tech);
     localStorage.setItem('salemseva_user', JSON.stringify(tech));
+    localStorage.setItem('salemseva_tech_user', JSON.stringify(tech));
     setAuthModalOpen(false);
     registerSessionWithBackend(tech.phone, 'technician', tech.name, tech.trade);
+  };
+
+  // Dedicated Technician Login (Independent Session & Storage)
+  const loginTech = async (technicianData, sessionToken) => {
+    if (!technicianData) return;
+    setTechUser(technicianData);
+    setUser(technicianData);
+    localStorage.setItem('salemseva_tech_user', JSON.stringify(technicianData));
+    localStorage.setItem('salemseva_user', JSON.stringify(technicianData));
+    if (sessionToken) {
+      sessionTokenRef.current = sessionToken;
+      localStorage.setItem('salemseva_tech_session_token', sessionToken);
+      localStorage.setItem('salemseva_session_token', sessionToken);
+    }
+    if (technicianData.phone) {
+      await registerSessionWithBackend(technicianData.phone, 'technician', technicianData.name, technicianData.trade);
+    }
+  };
+
+  // Dedicated Technician Logout
+  const logoutTech = async () => {
+    try {
+      const activePhone = techUser?.phone || user?.phone;
+      if (activePhone) {
+        fetch(`${API_BASE_URL}/api/v1/auth/logout`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: activePhone })
+        }).catch(() => {});
+      }
+    } catch (e) {}
+
+    setTechUser(null);
+    localStorage.removeItem('salemseva_tech_user');
+    localStorage.removeItem('salemseva_tech_session_token');
+    localStorage.removeItem('salemseva_partner_is_online');
+    localStorage.removeItem('salemseva_partner_step');
+    localStorage.removeItem('salemseva_partner_active_job');
+    if (user && (user.role === 'technician' || user.role === 'partner')) {
+      setUser(null);
+      localStorage.removeItem('salemseva_user');
+    }
   };
 
   const loginAsAdmin = () => {
@@ -649,7 +729,10 @@ export function AuthProvider({ children }) {
         signupTechnician,
         loginAsPreset,
         loginAsCustomer,
-        loginAsAdmin,
+        techUser,
+        isTechAuthenticated: !!techUser,
+        loginTech,
+        logoutTech,
         loginAsTechnician,
         switchRole,
         updateUser,

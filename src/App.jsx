@@ -29,6 +29,7 @@ import FirstTimeOnboardingPage from './pages/customer/FirstTimeOnboardingPage';
 import PartnerOnboardingPage from './pages/partner/PartnerOnboardingPage';
 import PartnerDutyPage from './pages/partner/PartnerDutyPage';
 import PartnerQuoteBuilderPage from './pages/partner/PartnerQuoteBuilderPage';
+import PartnerLoginPage from './pages/partner/PartnerLoginPage';
 
 // Admin Pages
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
@@ -116,7 +117,7 @@ function InitialHomeRoute() {
 
 function MainLayout({ walletBalance, currentBooking, setCurrentBooking }) {
   const location = useLocation();
-  const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/register' || location.pathname === '/partner/login' || location.pathname === '/technician/login';
   const isFullScreenPage = isAuthPage || location.pathname === '/how-it-works' || location.pathname === '/welcome';
 
   return (
@@ -146,8 +147,11 @@ function MainLayout({ walletBalance, currentBooking, setCurrentBooking }) {
             <Route path="/history" element={<BookingHistoryPage />} />
 
             {/* Partner Routes */}
+            <Route path="/partner/login" element={<PartnerLoginPage />} />
+            <Route path="/technician/login" element={<Navigate to="/partner/login" replace />} />
             <Route path="/partner/onboarding" element={<PartnerOnboardingPage />} />
             <Route path="/partner" element={<PartnerDutyPage />} />
+            <Route path="/partner/duty" element={<PartnerDutyPage />} />
             <Route path="/partner/quote-builder" element={<PartnerQuoteBuilderPage />} />
 
             {/* Admin Desk Routes */}

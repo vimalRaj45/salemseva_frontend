@@ -25,7 +25,7 @@ import {
   ListItemText,
   TextField
 } from '@mui/material';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Navigate } from 'react-router-dom';
 
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import StarIcon from '@mui/icons-material/Star';
@@ -106,7 +106,27 @@ import { API_V1_URL } from '../../config';
 
 export default function PartnerDutyPage() {
   const navigate = useNavigate();
-  const { user, updateUser, loginAsTechnician, partnerIncentives, referTechnician, claimPartnerPayout, dbTechnicians, rewardSettings } = useAuth();
+  const { user, techUser, updateUser, loginTech, logoutTech, loginAsTechnician, partnerIncentives, referTechnician, claimPartnerPayout, dbTechnicians, rewardSettings } = useAuth();
+
+  // Strict Persistent Technician Identity Resolution (Independent localStorage key)
+  const activeTech = techUser || (() => {
+    try {
+      const saved = localStorage.getItem('salemseva_tech_user');
+      if (saved) return JSON.parse(saved);
+      if (user && (user.role === 'technician' || user.role === 'partner')) return user;
+      return null;
+    } catch (e) {
+      return null;
+    }
+  })();
+
+  // If not authenticated as a technician, redirect to dedicated technician login
+  useEffect(() => {
+    if (!activeTech) {
+      navigate('/partner/login', { replace: true });
+    }
+  }, [activeTech, navigate]);
+
   const partnerIncentiveAmount = parseFloat(rewardSettings?.partner_referral_incentive || 100);
   const partnerWelcomeBonus = parseFloat(rewardSettings?.partner_welcome_bonus || 50);
   const VERIFIED_TECHNICIANS = dbTechnicians || [];
@@ -119,7 +139,7 @@ export default function PartnerDutyPage() {
 
   const [referredTechsList, setReferredTechsList] = useState(partnerIncentives?.referredTechs || []);
 
-  const techReferralCode = partnerIncentives?.referralCode || `TECH${(user?.name || 'PARTNER').replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 8)}`;
+  const techReferralCode = partnerIncentives?.referralCode || `TECH${(activeTech?.name || 'PARTNER').replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 8)}`;
 
   const handleCopyTechCode = () => {
     navigator.clipboard.writeText(techReferralCode);
@@ -146,15 +166,15 @@ export default function PartnerDutyPage() {
     setTechToast(`₹${amt}.00 successfully disbursed directly to your UPI ID (partner.pay@okaxis)!`);
   };
 
-  const isKycLocked = !user?.isKycVerified || user?.status === 'Pending Verification' || user?.is_kyc_verified === false;
+  const isKycLocked = !activeTech?.isKycVerified || activeTech?.status === 'Pending Verification' || activeTech?.is_kyc_verified === false;
 
   const [isOnline, setIsOnline] = useState(() => {
-    if (user && (!user.isKycVerified || user.status === 'Pending Verification' || user.is_kyc_verified === false)) {
+    if (activeTech && (!activeTech.isKycVerified || activeTech.status === 'Pending Verification' || activeTech.is_kyc_verified === false)) {
       return false;
     }
     const saved = localStorage.getItem('salemseva_partner_is_online');
     if (saved !== null) return saved === 'true';
-    if (user && typeof user.isOnline === 'boolean') return user.isOnline;
+    if (activeTech && typeof activeTech.isOnline === 'boolean') return activeTech.isOnline;
     return false;
   });
 
@@ -406,26 +426,26 @@ export default function PartnerDutyPage() {
 
   // Profile & KYC Update Modal State
   const [editProfileOpen, setEditProfileOpen] = useState(false);
-  const [profileName, setProfileName] = useState(() => user?.name || '');
-  const [profileUpi, setProfileUpi] = useState(() => user?.upi_vpa || user?.upiId || '');
-  const [profileTrade, setProfileTrade] = useState(() => user?.trade || 'ac');
-  const [profileAadhaarUrl, setProfileAadhaarUrl] = useState(() => user?.aadhaarCardUrl || null);
+  const [profileName, setProfileName] = useState(() => activeTech?.name || '');
+  const [profileUpi, setProfileUpi] = useState(() => activeTech?.upi_vpa || activeTech?.upiId || '');
+  const [profileTrade, setProfileTrade] = useState(() => activeTech?.trade || 'ac');
+  const [profileAadhaarUrl, setProfileAadhaarUrl] = useState(() => activeTech?.aadhaarCardUrl || null);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      if (user.name) setProfileName(user.name);
-      if (user.upi_vpa || user.upiId) setProfileUpi(user.upi_vpa || user.upiId);
-      if (user.trade) setProfileTrade(user.trade);
-      if (user.aadhaarCardUrl) setProfileAadhaarUrl(user.aadhaarCardUrl);
+    if (activeTech) {
+      if (activeTech.name) setProfileName(activeTech.name);
+      if (activeTech.upi_vpa || activeTech.upiId) setProfileUpi(activeTech.upi_vpa || activeTech.upiId);
+      if (activeTech.trade) setProfileTrade(activeTech.trade);
+      if (activeTech.aadhaarCardUrl) setProfileAadhaarUrl(activeTech.aadhaarCardUrl);
     }
-  }, [user]);
+  }, [activeTech]);
 
   const handleOpenEditProfile = () => {
-    setProfileName(user?.name || '');
-    setProfileUpi(user?.upi_vpa || user?.upiId || '');
-    setProfileTrade(user?.trade || 'ac');
-    setProfileAadhaarUrl(user?.aadhaarCardUrl || null);
+    setProfileName(activeTech?.name || '');
+    setProfileUpi(activeTech?.upi_vpa || activeTech?.upiId || '');
+    setProfileTrade(activeTech?.trade || 'ac');
+    setProfileAadhaarUrl(activeTech?.aadhaarCardUrl || null);
     setEditProfileOpen(true);
   };
 
@@ -440,9 +460,9 @@ export default function PartnerDutyPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          phone: user?.phone,
-          technicianId: user?.id,
-          fullName: profileName.trim() || user?.name,
+          phone: activeTech?.phone,
+          technicianId: activeTech?.id,
+          fullName: profileName.trim() || activeTech?.name,
           upiId: profileUpi.trim(),
           trade: profileTrade,
           aadhaarCardUrl: profileAadhaarUrl
@@ -452,30 +472,35 @@ export default function PartnerDutyPage() {
       setIsSavingProfile(false);
       if (data.success && data.user) {
         updateUser(data.user);
+        await loginTech(data.user);
         setTechToast('Profile & KYC documents updated successfully!');
         setEditProfileOpen(false);
       } else {
-        updateUser({
-          ...user,
-          name: profileName.trim() || user?.name,
+        const updated = {
+          ...activeTech,
+          name: profileName.trim() || activeTech?.name,
           upiId: profileUpi.trim(),
           upi_vpa: profileUpi.trim(),
           trade: profileTrade,
           aadhaarCardUrl: profileAadhaarUrl
-        });
+        };
+        updateUser(updated);
+        await loginTech(updated);
         setTechToast('Profile updated!');
         setEditProfileOpen(false);
       }
     } catch (err) {
       setIsSavingProfile(false);
-      updateUser({
-        ...user,
-        name: profileName.trim() || user?.name,
+      const updated = {
+        ...activeTech,
+        name: profileName.trim() || activeTech?.name,
         upiId: profileUpi.trim(),
         upi_vpa: profileUpi.trim(),
         trade: profileTrade,
         aadhaarCardUrl: profileAadhaarUrl
-      });
+      };
+      updateUser(updated);
+      await loginTech(updated);
       setTechToast('Profile updated locally!');
       setEditProfileOpen(false);
     }
@@ -484,14 +509,14 @@ export default function PartnerDutyPage() {
   // Helper to send coordinates to SalemSeva backend
   const broadcastLocation = async (lat, lng, speed = 25) => {
     try {
-      const phone = user?.phone || '';
+      const phone = activeTech?.phone || user?.phone || '';
       if (!phone) return;
       await fetch(`${API_V1_URL}/partner/duty/location`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           phone,
-          technicianId: user?.id,
+          technicianId: activeTech?.id || user?.id,
           lat,
           lng,
           speed
@@ -663,7 +688,7 @@ export default function PartnerDutyPage() {
 
     const fetchDuty = async () => {
       try {
-        const phone = user?.phone || '';
+        const phone = activeTech?.phone || user?.phone || '';
         if (!phone) return;
         const res = await fetch(`${API_V1_URL}/partner/duty?phone=${encodeURIComponent(phone)}`);
         const data = await res.json();
@@ -1179,35 +1204,35 @@ export default function PartnerDutyPage() {
     }
   };
 
-  if (!user) {
+  if (!activeTech) {
     return (
-      <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', p: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Box sx={{ bgcolor: '#0B1120', minHeight: '100vh', p: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Container maxWidth="xs" sx={{ textAlign: 'center' }}>
-          <Paper elevation={0} sx={{ p: 4, borderRadius: '16px', border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
-            <Box sx={{ width: 56, height: 56, borderRadius: '16px', bgcolor: '#ECFDF5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 2 }}>
-              <TwoWheelerIcon sx={{ fontSize: 32 }} />
+          <Paper elevation={0} sx={{ p: 4, borderRadius: '16px', border: '1px solid #334155', bgcolor: '#1E293B' }}>
+            <Box sx={{ width: 56, height: 56, borderRadius: '16px', bgcolor: 'rgba(2, 132, 199, 0.15)', color: '#38BDF8', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 2 }}>
+              <EngineeringIcon sx={{ fontSize: 32 }} />
             </Box>
-            <Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '18px', mb: 1 }}>
-              Partner Duty Access
+            <Typography variant="h6" sx={{ fontWeight: 800, color: '#FFFFFF', fontSize: '18px', mb: 1 }}>
+              Technician Portal Access
             </Typography>
-            <Typography variant="body2" sx={{ color: '#64748B', fontSize: '13px', lineHeight: 1.5, mb: 3 }}>
-              Please sign in with your verified partner mobile number to view your duty radar and job dispatches.
+            <Typography variant="body2" sx={{ color: '#94A3B8', fontSize: '13px', lineHeight: 1.5, mb: 3 }}>
+              Please sign in with your verified technician credentials to access duty radar and customer dispatches.
             </Typography>
             <Button
               variant="contained"
               fullWidth
-              onClick={() => navigate('/login')}
-              sx={{ bgcolor: '#059669', color: '#FFFFFF', fontWeight: 700, borderRadius: '10px', py: 1.2, mb: 1.5, textTransform: 'none', '&:hover': { bgcolor: '#047857' } }}
+              onClick={() => navigate('/partner/login')}
+              sx={{ bgcolor: '#0284C7', color: '#FFFFFF', fontWeight: 700, borderRadius: '10px', py: 1.2, mb: 1.5, textTransform: 'none', '&:hover': { bgcolor: '#0369A1' } }}
             >
-              Partner Sign In
+              Partner Sign In - உள்நுழைக
             </Button>
             <Button
               variant="text"
               fullWidth
               onClick={() => navigate('/partner/onboarding')}
-              sx={{ color: '#64748B', fontSize: '12px', fontWeight: 600, textTransform: 'none' }}
+              sx={{ color: '#38BDF8', fontSize: '12px', fontWeight: 600, textTransform: 'none' }}
             >
-              New Partner? Register for Onboarding &rarr;
+              New Partner? Register for Onboarding - புதிய பதிவு &rarr;
             </Button>
           </Paper>
         </Container>
@@ -1293,7 +1318,7 @@ export default function PartnerDutyPage() {
         {bottomNav === 0 && (
           <Box>
             {/* Real Production KYC Gate Warning Card */}
-            {(user?.status === 'Pending Verification' || user?.isKycVerified === false || user?.is_kyc_verified === false) && (
+            {(activeTech?.status === 'Pending Verification' || activeTech?.isKycVerified === false || activeTech?.is_kyc_verified === false) && (
               <Paper
                 elevation={0}
                 sx={{
@@ -1326,12 +1351,12 @@ export default function PartnerDutyPage() {
                   * For security reasons, partner duty dispatch is locked until your Aadhaar document is verified by Salem Central Ops.
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                  {(user?.aadhaarCardUrl || user?.aadhaar_card_url) && (
+                  {(activeTech?.aadhaarCardUrl || activeTech?.aadhaar_card_url) && (
                     <Button
                       size="small"
                       variant="outlined"
                       startIcon={<ReceiptLongIcon sx={{ fontSize: 14 }} />}
-                      onClick={() => window.open(user.aadhaarCardUrl || user.aadhaar_card_url, '_blank')}
+                      onClick={() => window.open(activeTech.aadhaarCardUrl || activeTech.aadhaar_card_url, '_blank')}
                       sx={{
                         borderColor: '#D97706',
                         color: '#92400E',
@@ -1351,17 +1376,20 @@ export default function PartnerDutyPage() {
                     startIcon={<RefreshIcon sx={{ fontSize: 14 }} />}
                     onClick={async () => {
                       try {
-                        const phone = user?.phone || '';
+                        const phone = activeTech?.phone || user?.phone || '';
                         if (!phone) return;
                         const res = await fetch(`${API_V1_URL}/partner/duty?phone=${encodeURIComponent(phone)}`);
                         const data = await res.json();
                         if (data.success && data.technician) {
                           const isVerified = Boolean(data.technician.is_kyc_verified);
-                          updateUser({
+                          const updated = {
+                            ...activeTech,
                             status: isVerified ? 'Verified' : 'Pending Verification',
                             isKycVerified: isVerified,
                             isOnline: data.technician.is_online
-                          });
+                          };
+                          updateUser(updated);
+                          await loginTech(updated);
                           setIsOnline(data.technician.is_online);
                           if (isVerified) {
                             setTechToast('வாழ்த்துகள்! உங்கள் ஆதார் KYC அங்கீகரிக்கப்பட்டது. நீங்கள் இப்போது பணியைத் தொடங்கலாம்!');
@@ -1405,21 +1433,21 @@ export default function PartnerDutyPage() {
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: (isOnline && user?.isKycVerified && user?.status !== 'Pending Verification') ? '#16A34A' : '#DC2626' }} />
+                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: (isOnline && activeTech?.isKycVerified && activeTech?.status !== 'Pending Verification') ? '#16A34A' : '#DC2626' }} />
                 <Box>
                   <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#0F172A', fontSize: '13px' }}>
-                    {(!user?.isKycVerified || user?.status === 'Pending Verification') 
+                    {(!activeTech?.isKycVerified || activeTech?.status === 'Pending Verification') 
                       ? 'Duty Locked • Complete KYC to Go Online'
                       : (isOnline ? 'Online • Ready for jobs' : 'Offline')}
                   </Typography>
                   <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontSize: '11px' }}>
-                    Zone: {user?.serviceArea || 'Fairlands & Hasthampatti'}
+                    Zone: {activeTech?.serviceArea || 'Fairlands & Hasthampatti'}
                   </Typography>
                 </Box>
               </Box>
               <Switch 
-                disabled={!user?.isKycVerified || user?.status === 'Pending Verification' || step === 2 || step === 3}
-                checked={Boolean(isOnline && user?.isKycVerified && user?.status !== 'Pending Verification')} 
+                disabled={!activeTech?.isKycVerified || activeTech?.status === 'Pending Verification' || step === 2 || step === 3}
+                checked={Boolean(isOnline && activeTech?.isKycVerified && activeTech?.status !== 'Pending Verification')} 
                 onChange={(e) => {
                   if (step === 2 || step === 3) return;
                   handleToggleOnline(e.target.checked);
@@ -1588,9 +1616,9 @@ export default function PartnerDutyPage() {
               </Button>
             </Box>
 
-            {/* 3. Technician Profile Bar with 1-Click Specialist Switcher */}
+            {/* 3. Technician Profile Bar with 1-Click Specialist Switcher & Logout */}
             <Card elevation={0} sx={{ bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '8px', p: 1.5, mb: 2 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
                 <Box sx={{ display: 'flex', gap: 1.2, alignItems: 'center' }}>
                   <Box sx={{ width: 38, height: 38, borderRadius: '8px', bgcolor: '#059669', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <EngineeringIcon sx={{ fontSize: 22 }} />
@@ -1598,7 +1626,7 @@ export default function PartnerDutyPage() {
                   <Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
                       <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '14px', lineHeight: 1.2 }}>
-                        {user?.name || 'Partner'}
+                        {activeTech?.name || user?.name || 'Partner'}
                       </Typography>
                       <Chip
                         icon={<CheckCircleIcon sx={{ color: '#16A34A !important', fontSize: 13 }} />}
@@ -1608,32 +1636,59 @@ export default function PartnerDutyPage() {
                       />
                     </Box>
                     <Typography variant="caption" sx={{ color: '#059669', fontWeight: 600, fontSize: '11px', display: 'block' }}>
-                      {user?.tradeName || `${user?.trade?.toUpperCase() || 'SERVICE'} Specialist`} • {user?.phone || ''}
+                      {activeTech?.tradeName || `${activeTech?.trade?.toUpperCase() || 'SERVICE'} Specialist`} - {activeTech?.phone || ''}
                     </Typography>
                   </Box>
                 </Box>
 
-                {/* 1-Click Switch Profile Button */}
-                <Button
-                  size="small"
-                  variant="outlined"
-                  onClick={(e) => setTechSwitcherAnchor(e.currentTarget)}
-                  startIcon={<SwapHorizIcon sx={{ fontSize: 15 }} />}
-                  sx={{
-                    borderColor: '#CBD5E1',
-                    color: '#0F172A',
-                    bgcolor: '#F8FAFC',
-                    borderRadius: '6px',
-                    fontWeight: 700,
-                    fontSize: '11px',
-                    py: 0.6,
-                    px: 1,
-                    textTransform: 'none',
-                    '&:hover': { bgcolor: '#F1F5F9', borderColor: '#94A3B8' }
-                  }}
-                >
-                  Switch Tech
-                </Button>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  {/* 1-Click Switch Profile Button */}
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={(e) => setTechSwitcherAnchor(e.currentTarget)}
+                    startIcon={<SwapHorizIcon sx={{ fontSize: 14 }} />}
+                    sx={{
+                      borderColor: '#CBD5E1',
+                      color: '#0F172A',
+                      bgcolor: '#F8FAFC',
+                      borderRadius: '6px',
+                      fontWeight: 700,
+                      fontSize: '11px',
+                      py: 0.5,
+                      px: 1,
+                      textTransform: 'none',
+                      '&:hover': { bgcolor: '#F1F5F9', borderColor: '#94A3B8' }
+                    }}
+                  >
+                    Switch Tech
+                  </Button>
+
+                  {/* Dedicated Technician Logout Button */}
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={async () => {
+                      await logoutTech();
+                      navigate('/partner/login', { replace: true });
+                    }}
+                    startIcon={<LogoutIcon sx={{ fontSize: 14 }} />}
+                    sx={{
+                      borderColor: '#FCA5A5',
+                      color: '#DC2626',
+                      bgcolor: '#FEF2F2',
+                      borderRadius: '6px',
+                      fontWeight: 700,
+                      fontSize: '11px',
+                      py: 0.5,
+                      px: 1,
+                      textTransform: 'none',
+                      '&:hover': { bgcolor: '#FEE2E2', borderColor: '#EF4444' }
+                    }}
+                  >
+                    Logout
+                  </Button>
+                </Box>
               </Box>
             </Card>
 
@@ -1661,11 +1716,12 @@ export default function PartnerDutyPage() {
               </Box>
 
               {VERIFIED_TECHNICIANS.map((tech) => {
-                const isCurrent = (user?.id === tech.id) || (user?.name === tech.name);
+                const isCurrent = (activeTech?.id === tech.id) || (activeTech?.name === tech.name);
                 return (
                   <MenuItem
                     key={tech.id}
-                    onClick={() => {
+                    onClick={async () => {
+                      await loginTech(tech);
                       loginAsTechnician(tech);
                       setIsOnline(true);
                       setTechSwitcherAnchor(null);
