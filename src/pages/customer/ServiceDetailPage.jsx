@@ -9,6 +9,7 @@ import {
   Button,
   Chip,
   Paper,
+  Avatar,
   BottomNavigation,
   BottomNavigationAction,
   Fab,
@@ -87,6 +88,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
   const location = useLocation();
   const { user, loginAsCustomer, loginWithCredentials, registerAccount, walletBalance, debitWallet } = useAuth();
   const { serviceId = 'ac' } = useParams();
+  const requestedTechnician = location.state?.requestedTechnician || null;
   const [selectedIssue, setSelectedIssue] = useState('not_cooling');
   const [customDescription, setCustomDescription] = useState('');
   const [voiceNoteAudio, setVoiceNoteAudio] = useState(null);
@@ -113,14 +115,10 @@ export default function ServiceDetailPage({ onStartBooking }) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [locationPickerOpen, setLocationPickerOpen] = useState(false);
 
-  // Booking Mode: 'instant' (Search Tech Now) vs 'scheduled' (Choose Date & Slot)
+  // Booking Mode: Standardized on Scheduled Appointments with Salem Central Ops Slot Allocation
   const todayISO = new Date().toISOString().split('T')[0];
-  const [bookingMode, setBookingMode] = useState('instant');
-  const [selectedDateISO, setSelectedDateISO] = useState(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    return d.toISOString().split('T')[0];
-  });
+  const bookingMode = 'scheduled';
+  const [selectedDateISO, setSelectedDateISO] = useState(todayISO);
   const [selectedSlot, setSelectedSlot] = useState('10:00 AM - 12:00 PM');
   const [customTime, setCustomTime] = useState('');
   const [isCustomTimeActive, setIsCustomTimeActive] = useState(false);
@@ -301,8 +299,9 @@ export default function ServiceDetailPage({ onStartBooking }) {
   };
 
   const timeSlots = [
+    { id: 'emergency_urgent', label: 'Earliest Today (Emergency • Central Ops Fast Dispatch)', period: 'Ops Urgent Dispatch', popular: true, isEmergency: true },
     { id: '08_10', label: '08:00 AM - 10:00 AM', period: 'Morning Window' },
-    { id: '10_12', label: '10:00 AM - 12:00 PM', period: 'Mid-Morning', popular: true },
+    { id: '10_12', label: '10:00 AM - 12:00 PM', period: 'Mid-Morning' },
     { id: '12_02', label: '12:00 PM - 02:00 PM', period: 'Afternoon' },
     { id: '02_04', label: '02:00 PM - 04:00 PM', period: 'Post-Lunch' },
     { id: '04_06', label: '04:00 PM - 06:00 PM', period: 'Evening Window' },
@@ -329,56 +328,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
       return;
     }
 
-    if (bookingMode === 'scheduled') {
-      setScheduledPaymentModalOpen(true);
-      return;
-    }
-
-    setIsProcessing(true);
-    const finalSlot = 'instant_now';
-
-    try {
-      const res = await fetch(`${API_V1_URL}/bookings/create`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          serviceId: serviceId || 'ac',
-          issueId: selectedIssue,
-          customNotes: customDescription,
-          customerId: activeUser?.id || 'usr-cust-001',
-          customerName: activeUser?.name || 'Vimal Raj',
-          customerPhone: activeUser?.phone || '+919842711234',
-          lat: userLocation.lat || 11.6643,
-          lng: userLocation.lng || 78.1460,
-          locality: userLocation.locality || 'Fairlands',
-          address: userLocation.address || 'Plot 42, 5th Cross, Fairlands, Salem - 636016',
-          pincode: userLocation.pincode || '636016',
-          couponCode: couponApplied ? couponCode : null,
-          discountAmount: couponApplied ? couponDiscount : 0,
-          isUrgentDispatch: true,
-          scheduledSlot: finalSlot,
-          bookingType: 'instant',
-          voiceNoteAudio: voiceNoteAudio
-        })
-      });
-      const data = await res.json();
-      if (!data.success || !data.booking?.id) {
-        throw new Error(data.error || 'Failed to register booking in database');
-      }
-      const bId = data.booking.id;
-      const bObj = data.booking;
-
-      localStorage.setItem('salemseva_active_booking', bId);
-      window.dispatchEvent(new CustomEvent('salemseva_new_booking_created', { detail: { bookingId: bId, booking: bObj } }));
-      window.dispatchEvent(new Event('storage'));
-      if (onStartBooking) onStartBooking(bObj);
-      setIsProcessing(false);
-      navigate(`/matching?bookingId=${bId}`);
-    } catch (e) {
-      console.error('Booking creation error:', e);
-      setIsProcessing(false);
-      toast.error('Unable to connect to service dispatch: ' + (e.message || 'Please check your connection and retry.'));
-    }
+    setScheduledPaymentModalOpen(true);
   };
 
   const handlePayAndConfirmScheduled = async () => {
@@ -415,9 +365,11 @@ export default function ServiceDetailPage({ onStartBooking }) {
             pincode: userLocation.pincode || '636016',
             couponCode: couponApplied ? couponCode : null,
             discountAmount: discount,
-            isUrgentDispatch: false,
+            isUrgentDispatch: Boolean(finalSlot.toLowerCase().includes('emergency') || selectedSlot === 'emergency_urgent'),
             scheduledSlot: finalSlot,
             bookingType: 'scheduled',
+            requestedTechnicianId: requestedTechnician?.id || null,
+            requestedTechnicianName: requestedTechnician?.name || null,
             paymentStatus: 'paid',
             paymentMethod: paymentDetails.paymentMethod || selectedPayMethod || 'razorpay',
             razorpayPaymentId: paymentDetails.razorpayPaymentId || null,
@@ -655,6 +607,72 @@ export default function ServiceDetailPage({ onStartBooking }) {
           );
         })()}
 
+        {/* Dedicated Direct Specialist Reservation Banner if chosen from Homepage */}
+        {requestedTechnician && (
+          <Paper
+            elevation={0}
+            sx={{
+              p: 1.6,
+              mb: 1.8,
+              borderRadius: '10px',
+              bgcolor: '#F0FDF4',
+              border: '1.5px solid #86EFAC',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: 1.5
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, minWidth: 0 }}>
+              <Box sx={{ position: 'relative' }}>
+                <Avatar sx={{ width: 44, height: 44, bgcolor: '#0284C7', fontWeight: 800 }}>
+                  {(requestedTechnician.name || 'T').charAt(0)}
+                </Avatar>
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    bottom: 0,
+                    right: 0,
+                    width: 10,
+                    height: 10,
+                    borderRadius: '50%',
+                    bgcolor: '#10B981',
+                    border: '2px solid #FFFFFF'
+                  }}
+                />
+              </Box>
+
+              <Box sx={{ minWidth: 0 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, flexWrap: 'wrap' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '13.5px' }}>
+                    {requestedTechnician.name}
+                  </Typography>
+                  <Chip
+                    icon={<CheckCircleIcon sx={{ fontSize: '11px !important', color: '#166534 !important' }} />}
+                    label="Requested Specialist"
+                    size="small"
+                    sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 800, fontSize: '10px', height: 20 }}
+                  />
+                </Box>
+                <Typography variant="caption" sx={{ color: '#0284C7', fontWeight: 700, fontSize: '11px', display: 'block' }}>
+                  {requestedTechnician.tradeName || 'Certified Specialist'} • {requestedTechnician.serviceArea || 'Salem'}
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#475569', fontSize: '11px', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <StarIcon sx={{ fontSize: 13, color: '#D97706' }} />
+                  {requestedTechnician.ratingAvg || 4.9} Rating • Aadhaar & Police Verified • Central Ops direct slot confirmation
+                </Typography>
+              </Box>
+            </Box>
+
+            <Chip
+              label="Active On Duty"
+              size="small"
+              sx={{ bgcolor: '#ECFDF5', color: '#065F46', fontWeight: 800, fontSize: '10.5px' }}
+            />
+          </Paper>
+        )}
+
         {/* Service Hero Header Card (Dynamic from DB) */}
         <Card
           elevation={0}
@@ -713,7 +731,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
             borderRadius: '12px'
           }}
         >
-          <Stepper activeStep={bookingMode === 'instant' ? 0 : 1} alternativeLabel>
+          <Stepper activeStep={selectedIssue ? 1 : 0} alternativeLabel>
             {['1. Select Fault', '2. Pick Time Window', '3. Verified Arrival'].map((label) => (
               <Step key={label}>
                 <StepLabel
@@ -970,110 +988,37 @@ export default function ServiceDetailPage({ onStartBooking }) {
           </Typography>
         </Card>
 
-        {/* BOOKING MODE SELECTOR: Instant vs Scheduled */}
+        {/* APPOINTMENT DATE & TIME SELECTION */}
         <Card
           elevation={0}
           sx={{
             bgcolor: '#FFFFFF',
-            border: '1.5px solid #E2E8F0',
+            border: '1.5px solid #BAE6FD',
             borderRadius: '12px',
             p: { xs: 1.8, sm: 2.2 },
             mb: 2.5,
             boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)'
           }}
         >
-          <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', fontSize: { xs: '15.5px', sm: '17.5px' }, mb: 0.5 }}>
-            Choose How You Want to Book
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+            <CalendarMonthIcon sx={{ color: '#0284C7', fontSize: 22 }} />
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', fontSize: { xs: '15.5px', sm: '17.5px' } }}>
+              Choose Appointment Date & Time Window
+            </Typography>
+          </Box>
+          <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 1.8, fontSize: { xs: '12.5px', sm: '13.5px' } }}>
+            Salem Central Operations allocates verified specialists across Salem. For urgent needs, select <strong>"Earliest Today (Emergency • Central Ops Fast Dispatch)"</strong> for immediate priority assignment.
           </Typography>
-          <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 1.5, fontSize: { xs: '12.5px', sm: '13.5px' } }}>
-            Need immediate service in 15-25 mins, or want to pick a convenient date & slot?
-          </Typography>
 
-          {/* Mode Tabs */}
-          <Grid container spacing={1.5} sx={{ mb: 2 }}>
-            <Grid item xs={6}>
-              <Paper
-                elevation={0}
-                onClick={() => setBookingMode('instant')}
-                sx={{
-                  p: { xs: 1.5, sm: 1.8 },
-                  borderRadius: '10px',
-                  cursor: 'pointer',
-                  border: bookingMode === 'instant' ? '2px solid #2563EB' : '1px solid #E2E8F0',
-                  bgcolor: bookingMode === 'instant' ? '#EFF6FF' : '#F8FAFC',
-                  transition: 'all 0.15s ease',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 0.5
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
-                    <BoltIcon sx={{ color: bookingMode === 'instant' ? '#2563EB' : '#64748B', fontSize: 20 }} />
-                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: bookingMode === 'instant' ? '#1D4ED8' : '#0F172A', fontSize: { xs: '13.5px', sm: '15px' } }}>
-                      Search Tech Now
-                    </Typography>
-                  </Box>
-                  <Radio
-                    checked={bookingMode === 'instant'}
-                    onChange={() => setBookingMode('instant')}
-                    size="small"
-                    sx={{ p: 0, '&.Mui-checked': { color: '#2563EB' } }}
-                  />
-                </Box>
-                <Typography variant="caption" sx={{ color: '#64748B', fontSize: { xs: '12px', sm: '13px' }, lineHeight: 1.35 }}>
-                  Instant dispatch • Arrives in 15-25 mins
-                </Typography>
-              </Paper>
-            </Grid>
-
-            <Grid item xs={6}>
-              <Paper
-                elevation={0}
-                onClick={() => setBookingMode('scheduled')}
-                sx={{
-                  p: { xs: 1.5, sm: 1.8 },
-                  borderRadius: '10px',
-                  cursor: 'pointer',
-                  border: bookingMode === 'scheduled' ? '2px solid #0284C7' : '1px solid #E2E8F0',
-                  bgcolor: bookingMode === 'scheduled' ? '#F0F9FF' : '#F8FAFC',
-                  transition: 'all 0.15s ease',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 0.5
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
-                    <CalendarMonthIcon sx={{ color: bookingMode === 'scheduled' ? '#0284C7' : '#64748B', fontSize: 20 }} />
-                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: bookingMode === 'scheduled' ? '#0369A1' : '#0F172A', fontSize: { xs: '13.5px', sm: '15px' } }}>
-                      Choose Date & Slot
-                    </Typography>
-                  </Box>
-                  <Radio
-                    checked={bookingMode === 'scheduled'}
-                    onChange={() => setBookingMode('scheduled')}
-                    size="small"
-                    sx={{ p: 0, '&.Mui-checked': { color: '#0284C7' } }}
-                  />
-                </Box>
-                <Typography variant="caption" sx={{ color: '#64748B', fontSize: { xs: '12px', sm: '13px' }, lineHeight: 1.35 }}>
-                  Scheduled visit • Central Ops Assigned
-                </Typography>
-              </Paper>
-            </Grid>
-          </Grid>
-
-          {/* Conditional Scheduled Slot Picker UI */}
-          {bookingMode === 'scheduled' && (
-            <Box
-              sx={{
-                p: 1.5,
-                borderRadius: '10px',
-                bgcolor: '#F8FAFC',
-                border: '1px solid #BAE6FD'
-              }}
-            >
+          {/* Scheduled Slot Picker UI */}
+          <Box
+            sx={{
+              p: 1.5,
+              borderRadius: '10px',
+              bgcolor: '#F8FAFC',
+              border: '1px solid #E2E8F0'
+            }}
+          >
               {/* Step 1: 14-Day Horizontal Scroller + Calendar Picker */}
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.2 }}>
                 <Typography variant="caption" sx={{ fontWeight: 800, color: '#0369A1', textTransform: 'uppercase', fontSize: { xs: '12.5px', sm: '13.5px' } }}>
@@ -1326,7 +1271,6 @@ export default function ServiceDetailPage({ onStartBooking }) {
                 </Typography>
               </Paper>
             </Box>
-          )}
         </Card>
 
         {/* Quality & Guarantees Accordion Section */}
@@ -1414,9 +1358,9 @@ export default function ServiceDetailPage({ onStartBooking }) {
           <Button
             variant="contained"
             onClick={handleProceed}
-            endIcon={bookingMode === 'instant' ? <BoltIcon sx={{ fontSize: 20 }} /> : <ArrowForwardIcon sx={{ fontSize: 20 }} />}
+            endIcon={<ArrowForwardIcon sx={{ fontSize: 20 }} />}
             sx={{
-              bgcolor: bookingMode === 'instant' ? '#0066CC' : '#0284C7',
+              bgcolor: '#0284C7',
               color: '#FFFFFF',
               borderRadius: '10px',
               fontWeight: 800,
@@ -1424,11 +1368,11 @@ export default function ServiceDetailPage({ onStartBooking }) {
               py: 1,
               fontSize: { xs: '14px', sm: '15.5px' },
               textTransform: 'none',
-              boxShadow: '0 4px 14px rgba(0, 102, 204, 0.25)',
-              '&:hover': { bgcolor: bookingMode === 'instant' ? '#0052A3' : '#0369A1' }
+              boxShadow: '0 4px 14px rgba(2, 132, 199, 0.25)',
+              '&:hover': { bgcolor: '#0369A1' }
             }}
           >
-            {bookingMode === 'instant' ? 'Search Tech Now' : `Pay ₹${Math.max(0, inspectionFeeNumber - (couponApplied ? couponDiscount : 0))} & Reserve Slot`}
+            Pay ₹{Math.max(0, inspectionFeeNumber - (couponApplied ? couponDiscount : 0))} & Reserve Slot
           </Button>
         </Container>
       </Paper>
@@ -1456,9 +1400,9 @@ export default function ServiceDetailPage({ onStartBooking }) {
       {/* Processing Loader */}
       <ProcessingBackdrop
         open={isProcessing}
-        title={bookingMode === 'instant' ? 'Searching available technicians...' : 'Registering scheduled appointment...'}
-        subtitle={bookingMode === 'instant' ? 'Finding verified partners in Fairlands & Hasthampatti zone' : 'Submitting slot to Salem Central Operations Desk'}
-        badge={bookingMode === 'instant' ? 'Live dispatch' : 'Central Ops Queue'}
+        title="Registering scheduled appointment..."
+        subtitle="Submitting slot to Salem Central Operations Desk"
+        badge="Central Ops Queue"
       />
 
       {/* SCHEDULED BOOKING PRE-PAYMENT MODAL */}

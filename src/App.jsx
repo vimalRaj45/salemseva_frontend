@@ -41,6 +41,7 @@ import AuthPage from './pages/auth/AuthPage';
 import { Toaster } from 'react-hot-toast';
 import GlobalNotificationWatcher from './components/GlobalNotificationWatcher';
 import SplashScreen from './components/SplashScreen';
+import PwaInstallPrompt from './components/PwaInstallPrompt';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Capacitor } from '@capacitor/core';
 
@@ -83,8 +84,7 @@ function CustomerActiveJobGuard({ children }) {
         const isScheduled = d.booking?.booking_type === 'scheduled' || (!d.booking?.is_urgent_dispatch && d.booking?.scheduled_slot && d.booking?.scheduled_slot !== 'instant_now');
         if (['created', 'matching', 'accepted', 'en_route', 'arrived', 'inspecting', 'quote_presented', 'quote_approved', 'completed'].includes(status)) {
           let target = `/track?bookingId=${activeBookingId}`;
-          if (status === 'matching' && !isScheduled) target = `/matching?bookingId=${activeBookingId}`;
-          else if (status === 'quote_presented') target = `/quote?bookingId=${activeBookingId}`;
+          if (status === 'quote_presented') target = `/quote?bookingId=${activeBookingId}`;
           else if (status === 'completed') target = `/rate?bookingId=${activeBookingId}`;
 
           navigate(target, { replace: true });
@@ -231,6 +231,9 @@ function AppContent() {
           onClose={() => setShowFirstTimeLangModal(false)}
           isFirstTime
         />
+
+      {/* PWA Floating Install Prompt */}
+      <PwaInstallPrompt />
 
       {/* Global React Hot Toast Notifier */}
       <Toaster

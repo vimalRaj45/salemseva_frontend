@@ -81,7 +81,28 @@ export default function CheckoutPage() {
         }
       })
       .catch(err => console.warn('Real checkout quote poll:', err));
-  }, [bookingId]);
+
+    // Auto-reconcile payment if customer returns after completing payment in UPI / external bank app
+    const handleVisibilityCheck = async () => {
+      if (document.visibilityState === 'visible' && bookingId) {
+        try {
+          const res = await fetch(`${API_V1_URL}/payments/status/${bookingId}`);
+          const data = await res.json();
+          if (data.success && (data.isPaid || data.status === 'quote_approved' || data.status === 'en_route')) {
+            localStorage.setItem('salemseva_quote_status_' + bookingId, 'quote_approved');
+            localStorage.setItem('salemseva_active_booking', bookingId);
+            window.dispatchEvent(new CustomEvent('salemseva_quote_updated', { detail: { bookingId, status: 'quote_approved' } }));
+            navigate(`/track?bookingId=${bookingId}`, { replace: true });
+          }
+        } catch (e) {
+          // ignore background poll errors
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityCheck);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityCheck);
+  }, [bookingId, navigate]);
 
   const grossTotal = partsAndLabor;
   // Standard conversion: 10 credits = 1 rs
@@ -105,6 +126,7 @@ export default function CheckoutPage() {
       // 2. Create Razorpay order on backend
       let orderId = undefined;
       let keyId = 'rzp_test_Tjo8HdYyapYlnO';
+      let rzpAmountPaise = Math.round(netPayable * 100);
 
       try {
         const orderRes = await fetch(`${API_V1_URL}/payments/create-order`, {
@@ -119,8 +141,11 @@ export default function CheckoutPage() {
         });
         const orderData = await orderRes.json();
         if (orderData.success && orderData.order) {
-          if (orderData.order.id && !orderData.order.id.includes('SLM') && orderData.order.id.startsWith('order_')) {
+          if (orderData.order.id && orderData.order.id.startsWith('order_')) {
             orderId = orderData.order.id;
+          }
+          if (orderData.order.amount) {
+            rzpAmountPaise = parseInt(orderData.order.amount, 10);
           }
           if (orderData.keyId) keyId = orderData.keyId;
         }
@@ -131,7 +156,7 @@ export default function CheckoutPage() {
       // 3. Setup Razorpay Checkout options
       const options = {
         key: keyId,
-        amount: Math.round(netPayable * 100),
+        amount: rzpAmountPaise,
         currency: 'INR',
         name: 'SalemSeva Cashless Escrow',
         description: `Service Escrow Authorization (${bookingId})`,
@@ -191,6 +216,7 @@ export default function CheckoutPage() {
         rzp.on('payment.failed', function (response) {
           console.error('Razorpay payment failed:', response.error);
           setIsProcessing(false);
+          alert(response.error?.description || 'Payment did not complete. Please retry or choose another payment method.');
         });
         rzp.open();
       } else {

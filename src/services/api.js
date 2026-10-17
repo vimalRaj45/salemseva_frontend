@@ -57,6 +57,17 @@ export const ApiService = {
     }
   },
 
+  // 4b. Reconcile Payment Status (Handles Background App Switch & Webhook sync)
+  async checkPaymentStatus(bookingId) {
+    try {
+      const res = await fetch(`${BASE_URL}/payments/status/${bookingId}`);
+      return await res.json();
+    } catch (err) {
+      console.warn('Error checking payment status:', err);
+      return { success: false, isPaid: false };
+    }
+  },
+
   // 5. Calculate Razorpay Route Split
   async calculateSplit(splitData) {
     try {

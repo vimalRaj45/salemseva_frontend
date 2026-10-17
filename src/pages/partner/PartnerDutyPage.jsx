@@ -87,6 +87,8 @@ import ShareIcon from '@mui/icons-material/Share';
 import CampaignIcon from '@mui/icons-material/Campaign';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import EventIcon from '@mui/icons-material/Event';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
@@ -207,6 +209,200 @@ export default function PartnerDutyPage() {
   const [myScheduledJobs, setMyScheduledJobs] = useState([]);
   const [claimingBookingId, setClaimingBookingId] = useState(null);
   const [loadingScheduledLeads, setLoadingScheduledLeads] = useState(false);
+  const prevScheduledCountRef = useRef(0);
+
+  // Helper to determine if a scheduled slot is for today
+  const isSlotToday = (slotText) => {
+    if (!slotText) return false;
+    const s = String(slotText).toLowerCase();
+    if (s.includes('today') || s.includes('இன்று')) return true;
+    const now = new Date();
+    const d1 = now.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }).toLowerCase();
+    const d2 = now.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }).toLowerCase();
+    const dayName = now.toLocaleDateString('en-IN', { weekday: 'short' }).toLowerCase();
+    return s.includes(d1) || s.includes(d2) || s.includes(dayName);
+  };
+
+  // Sound chime when new scheduled slot is assigned
+  const playScheduledChime = () => {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(783.99, ctx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.25, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.4);
+    } catch (e) {}
+  };
+
+  const todayDateISO = new Date().toISOString().split('T')[0];
+  const [calendarSelectedDate, setCalendarSelectedDate] = useState(todayDateISO);
+
+  // Technician Reschedule / Delay Handover State
+  const [techRescheduleModalOpen, setTechRescheduleModalOpen] = useState(false);
+  const [techRescheduleJob, setTechRescheduleJob] = useState(null);
+  const [techRescheduleMode, setTechRescheduleMode] = useState('propose_slot'); // 'propose_slot' | 'request_handover'
+  const [techProposedDayIndex, setTechProposedDayIndex] = useState(0);
+  const [techProposedTime, setTechProposedTime] = useState('02:00 PM - 04:00 PM');
+  const [techRescheduleReason, setTechRescheduleReason] = useState('Previous customer service took longer than expected');
+  const [techSubmittingReschedule, setTechSubmittingReschedule] = useState(false);
+
+  const TECH_PROPOSE_REASONS = [
+    'Previous customer service took longer than expected',
+    'Two-wheeler breakdown / repair on road',
+    'Heavy traffic / rain delay in Salem',
+    'Spare part procurement delay at market'
+  ];
+
+  const TECH_HANDOVER_REASONS = [
+    'Unavoidable emergency / family obligation',
+    'Sudden health / fever / medical issue',
+    'Vehicle breakdown unable to ride today'
+  ];
+
+  const TECH_RESCHEDULE_TIME_SLOTS = [
+    '09:00 AM - 11:00 AM',
+    '11:00 AM - 01:00 PM',
+    '02:00 PM - 04:00 PM',
+    '04:00 PM - 06:00 PM',
+    '06:00 PM - 08:00 PM'
+  ];
+
+  // Month-by-Month Calendar Navigation State
+  const [calendarYear, setCalendarYear] = useState(() => new Date().getFullYear());
+  const [calendarMonth, setCalendarMonth] = useState(() => new Date().getMonth());
+
+  const handlePrevMonth = () => {
+    if (calendarMonth === 0) {
+      setCalendarYear(y => y - 1);
+      setCalendarMonth(11);
+    } else {
+      setCalendarMonth(m => m - 1);
+    }
+  };
+
+  const handleNextMonth = () => {
+    if (calendarMonth === 11) {
+      setCalendarYear(y => y + 1);
+      setCalendarMonth(0);
+    } else {
+      setCalendarMonth(m => m + 1);
+    }
+  };
+
+  const handleJumpToday = () => {
+    const now = new Date();
+    setCalendarYear(now.getFullYear());
+    setCalendarMonth(now.getMonth());
+    setCalendarSelectedDate(now.toISOString().split('T')[0]);
+  };
+
+  const currentMonthTitle = new Date(calendarYear, calendarMonth, 1).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+
+  // Generate all days in the currently viewed month (Past, Today, and Future)
+  const daysInSelectedMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+  const monthDaysList = Array.from({ length: daysInSelectedMonth }).map((_, i) => {
+    const dayNum = i + 1;
+    const d = new Date(calendarYear, calendarMonth, dayNum);
+    const iso = `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+    const todayDate = new Date();
+    todayDate.setHours(0, 0, 0, 0);
+    const compareDate = new Date(d);
+    compareDate.setHours(0, 0, 0, 0);
+
+    const isToday = compareDate.getTime() === todayDate.getTime();
+    const isPast = compareDate.getTime() < todayDate.getTime();
+    const isFuture = compareDate.getTime() > todayDate.getTime();
+
+    const yesterdayDate = new Date(todayDate);
+    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+    const isYesterday = compareDate.getTime() === yesterdayDate.getTime();
+    const tomorrowDate = new Date(todayDate);
+    tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+    const isTomorrow = compareDate.getTime() === tomorrowDate.getTime();
+
+    const dayLabel = isToday
+      ? 'TODAY'
+      : isYesterday
+      ? 'YEST'
+      : isTomorrow
+      ? 'TOM'
+      : d.toLocaleDateString('en-IN', { weekday: 'short' }).toUpperCase();
+
+    const monthLabel = d.toLocaleDateString('en-IN', { month: 'short' }).toUpperCase();
+    const fullDateString = d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+
+    return {
+      dayNum,
+      iso,
+      dayLabel,
+      monthLabel,
+      fullDateString,
+      isToday,
+      isPast,
+      isFuture
+    };
+  });
+
+  // Upcoming 14-day window for technician reschedule modal
+  const upcomingRescheduleDays = Array.from({ length: 14 }).map((_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() + i);
+    const iso = d.toISOString().split('T')[0];
+    const isToday = i === 0;
+    const isTomorrow = i === 1;
+    const dayLabel = isToday ? 'TODAY' : isTomorrow ? 'TOM' : d.toLocaleDateString('en-IN', { weekday: 'short' }).toUpperCase();
+    const dayNum = d.getDate();
+    const monthLabel = d.toLocaleDateString('en-IN', { month: 'short' }).toUpperCase();
+    return { offset: i, iso, dayLabel, dayNum, monthLabel, isToday };
+  });
+
+  // Helper to match a job's scheduledSlot or createdAt to an ISO date
+  const jobMatchesDate = (job, targetIso) => {
+    if (!job) return false;
+    const slotStr = String(job.scheduledSlot || '');
+    if (slotStr.includes(targetIso)) return true;
+    const nowIso = new Date().toISOString().split('T')[0];
+    if (targetIso === nowIso && isSlotToday(slotStr)) return true;
+    const targetDate = new Date(targetIso);
+    const d1 = targetDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }).toLowerCase();
+    const d2 = targetDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }).toLowerCase();
+    if (slotStr.toLowerCase().includes(d1) || slotStr.toLowerCase().includes(d2)) return true;
+    if (job.createdAt) {
+      const cIso = new Date(job.createdAt).toISOString().split('T')[0];
+      if (cIso === targetIso) return true;
+    }
+    return false;
+  };
+
+  const getJobStageIndex = (status) => {
+    switch (status) {
+      case 'created':
+      case 'matching':
+        return 0;
+      case 'accepted':
+        return 1;
+      case 'en_route':
+        return 2;
+      case 'arrived':
+      case 'inspecting':
+        return 3;
+      case 'quote_presented':
+      case 'quote_approved':
+      case 'in_progress':
+        return 4;
+      case 'completed':
+        return 5;
+      default:
+        return 1;
+    }
+  };
 
   // Profile & KYC Update Modal State
   const [editProfileOpen, setEditProfileOpen] = useState(false);
@@ -490,6 +686,11 @@ export default function PartnerDutyPage() {
           // Sync technician's accepted scheduled appointments
           if (data.myScheduledJobs) {
             setMyScheduledJobs(data.myScheduledJobs);
+            if (prevScheduledCountRef.current !== 0 && data.myScheduledJobs.length > prevScheduledCountRef.current) {
+              playScheduledChime();
+              setTechToast('புதிய முன்பதிவு அட்டவணை ஒதுக்கப்பட்டது (New scheduled appointment assigned to you)!');
+            }
+            prevScheduledCountRef.current = data.myScheduledJobs.length;
           }
 
           // Check if customer cancelled an assigned job
@@ -646,15 +847,100 @@ export default function PartnerDutyPage() {
           technicianId: user?.id
         })
       });
+      setIsOnline(true);
+      setIsGpsBroadcasting(true);
+      localStorage.setItem('salemseva_partner_is_online', 'true');
+      if (updateUser) updateUser({ isOnline: true });
       localStorage.setItem('salemseva_partner_active_job', jobId);
       localStorage.setItem('salemseva_partner_step', '2');
       setStep(2);
-      setTechToast('Journey started! GPS live navigation is active.');
+      setTechToast('பயணம் தொடங்கியது! நேரலை GPS வழித்தடம் திறக்கப்பட்டது (Journey started! GPS live navigation active).');
+      broadcastLocation(liveGps.lat, liveGps.lng, 25);
     } catch (e) {
       console.warn('Start trip note:', e);
+      setIsOnline(true);
+      setIsGpsBroadcasting(true);
+      localStorage.setItem('salemseva_partner_is_online', 'true');
       localStorage.setItem('salemseva_partner_active_job', jobId);
       localStorage.setItem('salemseva_partner_step', '2');
       setStep(2);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Technician Reschedule Modal Opener
+  const handleOpenTechReschedule = (job) => {
+    setTechRescheduleJob(job);
+    setTechRescheduleMode('propose_slot');
+    setTechProposedDayIndex(0);
+    setTechProposedTime('02:00 PM - 04:00 PM');
+    setTechRescheduleReason(TECH_PROPOSE_REASONS[0]);
+    setTechRescheduleModalOpen(true);
+  };
+
+  // Submit Technician Reschedule Proposal or Central Ops Handover
+  const handleSubmitTechReschedule = async () => {
+    if (!techRescheduleJob) return;
+    setTechSubmittingReschedule(true);
+    try {
+      let payload = {
+        mode: techRescheduleMode,
+        reason: techRescheduleReason,
+        technicianId: user?.id
+      };
+      if (techRescheduleMode === 'propose_slot') {
+        const dObj = upcomingRescheduleDays[techProposedDayIndex] || upcomingRescheduleDays[0];
+        const dateStr = dObj.isToday ? `Today, ${dObj.dayNum} ${dObj.monthLabel}` : `${dObj.dayLabel}, ${dObj.dayNum} ${dObj.monthLabel}`;
+        payload.proposedSlot = `${dateStr} • ${techProposedTime}`;
+      }
+
+      const res = await fetch(`${API_V1_URL}/partner/bookings/${techRescheduleJob.id}/reschedule-request`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.success) {
+        setTechToast(data.message || 'Reschedule request submitted successfully');
+        setTechRescheduleModalOpen(false);
+        if (user?.phone) {
+          const dRes = await fetch(`${API_V1_URL}/partner/duty?phone=${encodeURIComponent(user.phone)}`);
+          const dJson = await dRes.json();
+          if (dJson.success && dJson.myScheduledJobs) {
+            setMyScheduledJobs(dJson.myScheduledJobs);
+          }
+        }
+      } else {
+        setTechToast(data.error || 'Failed to submit reschedule request');
+      }
+    } catch (err) {
+      setTechToast('Network error while requesting reschedule');
+    } finally {
+      setTechSubmittingReschedule(false);
+    }
+  };
+
+  // Emergency / Reassignment for Scheduled Appointment
+  const handleReassignScheduledJob = async (jobId) => {
+    if (!window.confirm('இந்த முன்பதிவை ரத்து செய்து சேலம் தலைமை அலுவலகத்திற்கு மாற்ற விரும்புகிறீர்களா? (Release this slot back to Central Ops for re-dispatch)?')) {
+      return;
+    }
+    setIsProcessing(true);
+    try {
+      await fetch(`${API_V1_URL}/partner/bookings/${jobId}/reject`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          technicianId: user?.id,
+          reason: 'Technician requested reassignment for scheduled appointment'
+        })
+      });
+      setTechToast('முன்பதிவு தலைமை அலுவலகத்திற்கு மாற்றப்பட்டது (Slot released back to Central Ops queue).');
+      setMyScheduledJobs(prev => prev.filter(j => j.id !== jobId));
+      await fetchScheduledLeads();
+    } catch (e) {
+      setTechToast('Error releasing slot. Please try again.');
     } finally {
       setIsProcessing(false);
     }
@@ -1784,6 +2070,117 @@ export default function PartnerDutyPage() {
                     {/* TAB 1: LIVE RADAR DISPATCHES */}
                     {activeDutyTab === 'live' && (
                       <Box>
+                        {/* UPCOMING / TODAY'S SCHEDULED APPOINTMENT BANNER */}
+                        {myScheduledJobs && myScheduledJobs.length > 0 && (() => {
+                          const todayJob = myScheduledJobs.find(j => isSlotToday(j.scheduledSlot));
+                          const nextJob = todayJob || myScheduledJobs[0];
+                          const isToday = Boolean(todayJob);
+
+                          return (
+                            <Card
+                              elevation={0}
+                              sx={{
+                                bgcolor: isToday ? '#064E3B' : '#0F172A',
+                                color: '#FFFFFF',
+                                borderRadius: '12px',
+                                p: 2,
+                                mb: 2,
+                                border: isToday ? '2px solid #10B981' : '1.5px solid #0284C7',
+                                boxShadow: isToday ? '0 4px 20px rgba(16, 185, 129, 0.3)' : '0 4px 16px rgba(2, 132, 199, 0.2)'
+                              }}
+                            >
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.2, flexWrap: 'wrap', gap: 0.8 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                                  <EventIcon sx={{ color: isToday ? '#34D399' : '#38BDF8', fontSize: 20 }} />
+                                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: isToday ? '#A7F3D0' : '#E0F2FE', fontSize: 'clamp(0.8125rem, 1.8vw, 0.9375rem)' }}>
+                                    {isToday ? "TODAY'S SCHEDULED APPOINTMENT • இன்றைய பணி" : "UPCOMING SCHEDULED BOOKING • முன்பதிவு"}
+                                  </Typography>
+                                </Box>
+                                <Chip
+                                  icon={<ScheduleIcon sx={{ fontSize: '13px !important', color: isToday ? '#065F46 !important' : '#0369A1 !important' }} />}
+                                  label={nextJob.scheduledSlot || 'Scheduled'}
+                                  size="small"
+                                  sx={{
+                                    bgcolor: isToday ? '#A7F3D0' : '#BAE6FD',
+                                    color: isToday ? '#064E3B' : '#0C4A6E',
+                                    fontWeight: 800,
+                                    fontSize: '11px',
+                                    height: 22
+                                  }}
+                                />
+                              </Box>
+
+                              <Typography variant="body2" sx={{ color: '#F1F5F9', mb: 1, fontWeight: 700, fontSize: 'clamp(0.8125rem, 1.8vw, 0.9rem)' }}>
+                                {nextJob.customerName || 'Customer'} • <span style={{ color: isToday ? '#6EE7B7' : '#7DD3FC' }}>{nextJob.locality || 'Fairlands, Salem'}</span>
+                              </Typography>
+                              
+                              <Typography variant="caption" sx={{ color: '#CBD5E1', display: 'block', mb: 1.5, fontSize: '11.5px' }}>
+                                <strong>Issue:</strong> {nextJob.issueDescription || 'Diagnostic Inspection'} • <strong style={{ color: '#FDE047' }}>₹{nextJob.visitFee || 99} Escrow Paid</strong>
+                              </Typography>
+
+                              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                                {isToday ? (
+                                  <Button
+                                    variant="contained"
+                                    fullWidth
+                                    onClick={() => handleStartTripForJob(nextJob.id)}
+                                    startIcon={<NavigationIcon sx={{ fontSize: 18 }} />}
+                                    sx={{
+                                      bgcolor: '#10B981',
+                                      color: '#FFFFFF',
+                                      fontWeight: 800,
+                                      fontSize: 'clamp(0.8125rem, 1.8vw, 0.9rem)',
+                                      py: 1,
+                                      borderRadius: '8px',
+                                      textTransform: 'none',
+                                      boxShadow: '0 4px 12px rgba(16, 185, 129, 0.4)',
+                                      '&:hover': { bgcolor: '#059669' }
+                                    }}
+                                  >
+                                    Start Ride Now • சவாரி தொடங்கு (Live GPS)
+                                  </Button>
+                                ) : (
+                                  <>
+                                    <Button
+                                      disabled
+                                      variant="contained"
+                                      startIcon={<LockIcon sx={{ fontSize: 16 }} />}
+                                      sx={{
+                                        flex: 1,
+                                        bgcolor: '#1E293B !important',
+                                        color: '#94A3B8 !important',
+                                        border: '1px solid #334155',
+                                        fontWeight: 700,
+                                        fontSize: 'clamp(0.75rem, 1.5vw, 0.8125rem)',
+                                        textTransform: 'none',
+                                        py: 0.8,
+                                        borderRadius: '8px'
+                                      }}
+                                    >
+                                      Ride Unlocks on Appointment Day ({nextJob.scheduledSlot?.split('•')?.[0] || 'Scheduled Date'})
+                                    </Button>
+                                    <Button
+                                      variant="outlined"
+                                      size="small"
+                                      onClick={() => setActiveDutyTab('scheduled')}
+                                      sx={{
+                                        color: '#38BDF8',
+                                        borderColor: '#0284C7',
+                                        fontWeight: 800,
+                                        textTransform: 'none',
+                                        borderRadius: '8px',
+                                        fontSize: '11px',
+                                        px: 1.5
+                                      }}
+                                    >
+                                      View All ({myScheduledJobs.length})
+                                    </Button>
+                                  </>
+                                )}
+                              </Box>
+                            </Card>
+                          );
+                        })()}
                         {activeJob && activeJob.status === 'accepted' ? (
                           /* WAITING FOR CUSTOMER RAZORPAY PAYMENT (₹99 ADVANCE) */
                           <Card
@@ -2425,105 +2822,484 @@ export default function PartnerDutyPage() {
                           </Box>
                         )}
 
-                        {/* MY CLAIMED SCHEDULED APPOINTMENTS */}
-                        <Box sx={{ mt: 3 }}>
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
-                            <Box>
-                              <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#FFFFFF', fontSize: 'clamp(0.9375rem, 2vw, 1.05rem)' }}>
-                                My Scheduled Appointments ({myScheduledJobs.length})
+                        {/* MONTH-BY-MONTH INTERACTIVE CALENDAR AGENDA (Past & Future Tracking) */}
+                        <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid #334155' }}>
+                          {/* Calendar Header with Month Navigation */}
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5, flexWrap: 'wrap', gap: 1.5 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                              <CalendarMonthIcon sx={{ color: '#38BDF8', fontSize: 22 }} />
+                              <Box>
+                                <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#FFFFFF', fontSize: 'clamp(0.9375rem, 2vw, 1.05rem)' }}>
+                                  Service Calendar Agenda ({myScheduledJobs.length} Duty Records)
+                                </Typography>
+                                <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '11px', display: 'block' }}>
+                                  Switch months to view past completed job history or upcoming customer bookings.
+                                </Typography>
+                              </Box>
+                            </Box>
+
+                            {/* Month Navigator Controls */}
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: '#0F172A', p: 0.5, borderRadius: '8px', border: '1px solid #334155' }}>
+                              <IconButton
+                                size="small"
+                                onClick={handlePrevMonth}
+                                title="Previous Month"
+                                sx={{ color: '#38BDF8', p: 0.5, '&:hover': { bgcolor: 'rgba(56, 189, 248, 0.1)' } }}
+                              >
+                                <ChevronLeftIcon sx={{ fontSize: 20 }} />
+                              </IconButton>
+                              <Typography variant="body2" sx={{ fontWeight: 800, color: '#F8FAFC', minWidth: 120, textAlign: 'center', fontSize: '13px' }}>
+                                {currentMonthTitle}
                               </Typography>
-                              <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: 'clamp(0.75rem, 1.5vw, 0.8125rem)' }}>
-                                Customer bookings you have claimed and accepted into your duty schedule.
-                              </Typography>
+                              <IconButton
+                                size="small"
+                                onClick={handleNextMonth}
+                                title="Next Month"
+                                sx={{ color: '#38BDF8', p: 0.5, '&:hover': { bgcolor: 'rgba(56, 189, 248, 0.1)' } }}
+                              >
+                                <ChevronRightIcon sx={{ fontSize: 20 }} />
+                              </IconButton>
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                onClick={handleJumpToday}
+                                sx={{
+                                  ml: 0.5,
+                                  borderColor: '#10B981',
+                                  color: '#10B981',
+                                  fontSize: '11px',
+                                  fontWeight: 800,
+                                  textTransform: 'none',
+                                  py: 0.2,
+                                  px: 1,
+                                  minWidth: 0,
+                                  borderRadius: '5px',
+                                  '&:hover': { bgcolor: 'rgba(16, 185, 129, 0.1)', borderColor: '#10B981' }
+                                }}
+                              >
+                                Today
+                              </Button>
                             </Box>
                           </Box>
 
-                          {myScheduledJobs.length === 0 ? (
-                            <Paper
-                              elevation={0}
-                              sx={{
-                                p: 2,
-                                bgcolor: '#1E293B',
-                                border: '1px solid #334155',
-                                borderRadius: '10px',
-                                textAlign: 'center'
-                              }}
-                            >
-                              <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: 'clamp(0.75rem, 1.5vw, 0.8125rem)' }}>
-                                You have no upcoming scheduled appointments claimed yet. Claim open requests above to fill your schedule.
-                              </Typography>
-                            </Paper>
-                          ) : (
-                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                              {myScheduledJobs.map((job) => (
+                          {/* Full Month Calendar Days Ribbon */}
+                          <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto', pb: 1, mb: 2, scrollbarWidth: 'none' }}>
+                            {monthDaysList.map((d) => {
+                              const isSelected = calendarSelectedDate === d.iso;
+                              const dayJobs = myScheduledJobs.filter(j => jobMatchesDate(j, d.iso));
+                              const count = dayJobs.length;
+
+                              return (
                                 <Paper
-                                  key={job.id}
+                                  key={d.iso}
+                                  onClick={() => setCalendarSelectedDate(d.iso)}
                                   elevation={0}
                                   sx={{
-                                    p: 1.8,
-                                    bgcolor: '#1E293B',
-                                    border: '1.5px solid #10B981',
-                                    borderRadius: '10px'
+                                    minWidth: 70,
+                                    p: 1,
+                                    borderRadius: '10px',
+                                    textAlign: 'center',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s ease',
+                                    bgcolor: isSelected ? '#0284C7' : d.isToday ? '#0F172A' : '#1E293B',
+                                    color: isSelected ? '#FFFFFF' : '#CBD5E1',
+                                    border: isSelected
+                                      ? '2px solid #38BDF8'
+                                      : d.isToday
+                                      ? '1.5px solid #10B981'
+                                      : '1px solid #334155',
+                                    boxShadow: isSelected ? '0 4px 14px rgba(2, 132, 199, 0.4)' : 'none',
+                                    opacity: d.isPast && !isSelected ? 0.8 : 1,
+                                    '&:hover': {
+                                      bgcolor: isSelected ? '#0284C7' : '#334155',
+                                      transform: 'translateY(-2px)'
+                                    }
                                   }}
                                 >
-                                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                                    <Box>
-                                      <Box sx={{ display: 'flex', gap: 0.8, alignItems: 'center', mb: 0.4 }}>
-                                        <Chip label={`#${job.id}`} size="small" sx={{ bgcolor: '#059669', color: '#FFFFFF', fontWeight: 800, fontSize: '10px', height: 18 }} />
-                                        <Chip label="Confirmed Appointment" size="small" sx={{ bgcolor: '#D1FAE5', color: '#065F46', fontWeight: 800, fontSize: '10px', height: 18 }} />
-                                      </Box>
-                                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#FFFFFF', fontSize: 'clamp(0.8125rem, 1.8vw, 0.9375rem)' }}>
-                                        {job.customerName || 'Customer'}
-                                      </Typography>
-                                      <Typography variant="caption" sx={{ color: '#CBD5E1', display: 'flex', alignItems: 'center', gap: 0.4 }}>
-                                        <LocationOnIcon sx={{ fontSize: 13, color: '#F59E0B' }} />
-                                        {job.address || job.locality || 'Fairlands, Salem'}
-                                      </Typography>
-                                    </Box>
-
-                                    <Chip
-                                      icon={<CalendarMonthIcon sx={{ fontSize: '12px !important', color: '#047857 !important' }} />}
-                                      label={job.scheduledSlot || 'Scheduled'}
-                                      size="small"
-                                      sx={{ bgcolor: '#A7F3D0', color: '#064E3B', fontWeight: 800, fontSize: '10.5px' }}
-                                    />
-                                  </Box>
-
-                                  <Typography variant="body2" sx={{ color: '#E2E8F0', fontSize: 'clamp(0.75rem, 1.5vw, 0.85rem)', bgcolor: '#0F172A', p: 1.2, borderRadius: '6px', border: '1px solid #334155', my: 1 }}>
-                                    <strong>Problem:</strong> {job.issueDescription || 'Doorstep Service & Inspection'}
+                                  <Typography variant="caption" sx={{ fontSize: '10px', fontWeight: 800, display: 'block', color: isSelected ? '#E0F2FE' : d.isToday ? '#34D399' : '#94A3B8' }}>
+                                    {d.dayLabel}
                                   </Typography>
-
-                                  {job.voiceNoteUrl && (
-                                    <Box sx={{ my: 1, p: 1.2, bgcolor: '#0F172A', borderRadius: '6px', border: '1px solid #0284C7' }}>
-                                      <LeadAudioPlayer audioSrc={job.voiceNoteUrl} />
-                                    </Box>
-                                  )}
-
-                                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 1.2 }}>
-                                    <Button
-                                      variant="contained"
+                                  <Typography variant="h6" sx={{ fontSize: '17px', fontWeight: 900, lineHeight: 1.2, my: 0.2 }}>
+                                    {d.dayNum}
+                                  </Typography>
+                                  <Typography variant="caption" sx={{ fontSize: '9.5px', fontWeight: 700, display: 'block', color: isSelected ? '#BAE6FD' : '#64748B' }}>
+                                    {d.monthLabel}
+                                  </Typography>
+                                  {count > 0 ? (
+                                    <Chip
+                                      label={`${count} job${count > 1 ? 's' : ''}`}
                                       size="small"
-                                      onClick={() => handleStartTripForJob(job.id)}
-                                      startIcon={<NavigationIcon sx={{ fontSize: 16 }} />}
                                       sx={{
-                                        bgcolor: '#0284C7',
-                                        color: '#FFFFFF',
-                                        fontWeight: 800,
-                                        fontSize: 'clamp(0.75rem, 1.5vw, 0.85rem)',
-                                        borderRadius: '6px',
-                                        textTransform: 'none',
-                                        px: 2,
-                                        py: 0.6,
-                                        '&:hover': { bgcolor: '#0369A1' }
+                                        mt: 0.5,
+                                        height: 16,
+                                        fontSize: '9px',
+                                        fontWeight: 900,
+                                        bgcolor: isSelected ? '#FFFFFF' : d.isPast ? '#475569' : '#10B981',
+                                        color: isSelected ? '#0284C7' : '#FFFFFF'
                                       }}
-                                    >
-                                      Start Journey • புறப்படுகிறேன்
-                                    </Button>
-                                  </Box>
+                                    />
+                                  ) : (
+                                    <Box sx={{ height: 16, mt: 0.5 }} />
+                                  )}
                                 </Paper>
-                              ))}
-                            </Box>
-                          )}
+                              );
+                            })}
+                          </Box>
+
+                          {/* Selected Date Customer Bookings */}
+                          {(() => {
+                            const selectedDayObj = monthDaysList.find(d => d.iso === calendarSelectedDate) || monthDaysList[0];
+                            const selectedDayJobs = myScheduledJobs.filter(j => jobMatchesDate(j, calendarSelectedDate));
+                            const isToday = selectedDayObj ? selectedDayObj.isToday : false;
+                            const isPast = selectedDayObj ? selectedDayObj.isPast : false;
+
+                            return (
+                              <Box>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5, flexWrap: 'wrap', gap: 0.8 }}>
+                                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#F8FAFC', fontSize: '13.5px' }}>
+                                    Agenda for {selectedDayObj ? `${selectedDayObj.dayLabel}, ${selectedDayObj.dayNum} ${selectedDayObj.monthLabel}` : calendarSelectedDate} ({selectedDayJobs.length} Records)
+                                  </Typography>
+                                  {isToday && (
+                                    <Chip
+                                      label="Today's Service Schedule - இன்றைய பணி"
+                                      size="small"
+                                      sx={{ bgcolor: '#059669', color: '#FFFFFF', fontWeight: 800, fontSize: '10.5px' }}
+                                    />
+                                  )}
+                                  {isPast && (
+                                    <Chip
+                                      label="Past Duty History - கடந்த பணி வரலாறு"
+                                      size="small"
+                                      sx={{ bgcolor: '#334155', color: '#CBD5E1', fontWeight: 700, fontSize: '10.5px', border: '1px solid #475569' }}
+                                    />
+                                  )}
+                                  {!isToday && !isPast && (
+                                    <Chip
+                                      label="Upcoming Booking - வரவிருக்கும் பணி"
+                                      size="small"
+                                      sx={{ bgcolor: '#0369A1', color: '#FFFFFF', fontWeight: 700, fontSize: '10.5px' }}
+                                    />
+                                  )}
+                                </Box>
+
+                                {selectedDayJobs.length === 0 ? (
+                                  <Paper
+                                    elevation={0}
+                                    sx={{
+                                      p: 2.5,
+                                      bgcolor: '#1E293B',
+                                      border: '1px dashed #334155',
+                                      borderRadius: '10px',
+                                      textAlign: 'center'
+                                    }}
+                                  >
+                                    <Typography variant="body2" sx={{ color: '#94A3B8', fontSize: '12.5px' }}>
+                                      {isPast
+                                        ? `No service history recorded for ${selectedDayObj ? `${selectedDayObj.dayLabel}, ${selectedDayObj.dayNum} ${selectedDayObj.monthLabel}` : calendarSelectedDate}.`
+                                        : `No customer bookings scheduled for ${selectedDayObj ? `${selectedDayObj.dayLabel}, ${selectedDayObj.dayNum} ${selectedDayObj.monthLabel}` : calendarSelectedDate}.`}
+                                    </Typography>
+                                    {!isPast && (
+                                      <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mt: 0.5, fontSize: '11px' }}>
+                                        You can claim open requests from the list above to schedule work for this date.
+                                      </Typography>
+                                    )}
+                                  </Paper>
+                                ) : (
+                                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                                    {selectedDayJobs.map((job) => {
+                                      const isCompleted = job.status === 'completed';
+                                      const isCancelled = job.status === 'cancelled';
+                                      const stageIdx = getJobStageIndex(job.status);
+                                      const stages = [
+                                        '1. Booked',
+                                        '2. Assigned',
+                                        '3. Ride Start',
+                                        '4. Arrived',
+                                        '5. Quoted',
+                                        '6. Settled'
+                                      ];
+
+                                      return (
+                                        <Paper
+                                          key={job.id}
+                                          elevation={0}
+                                          sx={{
+                                            p: 2,
+                                            bgcolor: '#1E293B',
+                                            border: isToday
+                                              ? '2px solid #10B981'
+                                              : isCompleted
+                                              ? '1.5px solid #059669'
+                                              : '1.5px solid #0284C7',
+                                            borderRadius: '12px'
+                                          }}
+                                        >
+                                          {/* Top Bar: Booking ID + Customer Call */}
+                                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1, flexWrap: 'wrap', gap: 0.8 }}>
+                                            <Box>
+                                              <Box sx={{ display: 'flex', gap: 0.8, alignItems: 'center', mb: 0.5 }}>
+                                                <Chip
+                                                  label={`#${job.id}`}
+                                                  size="small"
+                                                  sx={{
+                                                    bgcolor: isToday ? '#059669' : isCompleted ? '#065F46' : '#0284C7',
+                                                    color: '#FFFFFF',
+                                                    fontWeight: 800,
+                                                    fontSize: '10px',
+                                                    height: 20
+                                                  }}
+                                                />
+                                                <Chip
+                                                  icon={<AccessTimeIcon sx={{ fontSize: '12px !important', color: isToday ? '#065F46 !important' : '#0369A1 !important' }} />}
+                                                  label={job.scheduledSlot || 'Slot Confirmed'}
+                                                  size="small"
+                                                  sx={{
+                                                    bgcolor: isToday ? '#D1FAE5' : '#E0F2FE',
+                                                    color: isToday ? '#064E3B' : '#0369A1',
+                                                    fontWeight: 800,
+                                                    fontSize: '10.5px',
+                                                    height: 20
+                                                  }}
+                                                />
+                                                {isCompleted && (
+                                                  <Chip
+                                                    label="Settled & Completed"
+                                                    size="small"
+                                                    sx={{
+                                                      bgcolor: '#065F46',
+                                                      color: '#A7F3D0',
+                                                      fontWeight: 800,
+                                                      fontSize: '10px',
+                                                      height: 20
+                                                    }}
+                                                  />
+                                                )}
+                                                {isCancelled && (
+                                                  <Chip
+                                                    label="Cancelled"
+                                                    size="small"
+                                                    sx={{
+                                                      bgcolor: '#7F1D1D',
+                                                      color: '#FECACA',
+                                                      fontWeight: 800,
+                                                      fontSize: '10px',
+                                                      height: 20
+                                                    }}
+                                                  />
+                                                )}
+                                              </Box>
+                                              <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#FFFFFF', fontSize: '14px' }}>
+                                                {job.customerName || 'Customer'}
+                                              </Typography>
+                                              <Typography variant="caption" sx={{ color: '#CBD5E1', display: 'flex', alignItems: 'center', gap: 0.4 }}>
+                                                <LocationOnIcon sx={{ fontSize: 13, color: '#F59E0B' }} />
+                                                {job.address || job.locality || 'Fairlands, Salem'}
+                                              </Typography>
+                                            </Box>
+
+                                            {job.customerPhone && (
+                                              <Button
+                                                size="small"
+                                                variant="outlined"
+                                                onClick={() => window.open(`tel:${job.customerPhone}`, '_self')}
+                                                startIcon={<PhoneIcon sx={{ fontSize: 13 }} />}
+                                                sx={{
+                                                  borderColor: '#38BDF8',
+                                                  color: '#38BDF8',
+                                                  fontWeight: 700,
+                                                  fontSize: '11px',
+                                                  textTransform: 'none',
+                                                  borderRadius: '6px',
+                                                  py: 0.4,
+                                                  '&:hover': { bgcolor: 'rgba(56, 189, 248, 0.1)' }
+                                                }}
+                                              >
+                                                Call Customer
+                                              </Button>
+                                            )}
+                                          </Box>
+
+                                          {/* Problem Description */}
+                                          <Typography variant="body2" sx={{ color: '#E2E8F0', fontSize: '12.5px', bgcolor: '#0F172A', p: 1.2, borderRadius: '6px', border: '1px solid #334155', my: 1 }}>
+                                            <strong>Problem:</strong> {job.issueDescription || 'Doorstep Diagnostic & Inspection'}
+                                          </Typography>
+
+                                          {/* Customer Voice Note if available */}
+                                          {job.voiceNoteUrl && (
+                                            <Box sx={{ my: 1, p: 1.2, bgcolor: '#0F172A', borderRadius: '6px', border: '1px solid #0284C7' }}>
+                                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.5 }}>
+                                                <VolumeUpIcon sx={{ color: '#38BDF8', fontSize: 15 }} />
+                                                <Typography variant="caption" sx={{ color: '#E0F2FE', fontWeight: 800 }}>
+                                                  Customer Voice Note Recorded
+                                                </Typography>
+                                              </Box>
+                                              <LeadAudioPlayer audioSrc={job.voiceNoteUrl} />
+                                            </Box>
+                                          )}
+
+                                          {/* End-to-End Tracking Stepper for this Request */}
+                                          <Box sx={{ my: 1.5, p: 1.2, bgcolor: '#0F172A', borderRadius: '8px', border: '1px solid #334155' }}>
+                                            <Typography variant="caption" sx={{ color: '#94A3B8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '9.5px', display: 'block', mb: 0.8 }}>
+                                              End-to-End Lifecycle Tracking:
+                                            </Typography>
+                                            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 0.5, textAlign: 'center' }}>
+                                              {stages.map((stageName, sIdx) => {
+                                                const isDone = sIdx <= stageIdx;
+                                                const isCurrent = sIdx === stageIdx;
+                                                return (
+                                                  <Box
+                                                    key={sIdx}
+                                                    sx={{
+                                                      p: 0.5,
+                                                      borderRadius: '4px',
+                                                      bgcolor: isCurrent ? '#0284C7' : isDone ? '#065F46' : '#1E293B',
+                                                      color: isCurrent ? '#FFFFFF' : isDone ? '#6EE7B7' : '#64748B',
+                                                      border: isCurrent ? '1px solid #38BDF8' : 'none'
+                                                    }}
+                                                  >
+                                                    <Typography variant="caption" sx={{ fontSize: '9px', fontWeight: 800, display: 'block', lineHeight: 1.1 }}>
+                                                      {stageName}
+                                                    </Typography>
+                                                  </Box>
+                                                );
+                                              })}
+                                            </Box>
+                                          </Box>
+
+                                          {/* Action Bar */}
+                                          <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1, mt: 1.2, flexWrap: 'wrap' }}>
+                                            {isCompleted ? (
+                                              <Chip
+                                                label={`Settled Amount: Rs. ${job.finalPrice || job.totalAmount || 0} - Duty Completed`}
+                                                sx={{
+                                                  bgcolor: '#064E3B',
+                                                  color: '#A7F3D0',
+                                                  fontWeight: 800,
+                                                  fontSize: '11px',
+                                                  border: '1px solid #059669'
+                                                }}
+                                              />
+                                            ) : isPast ? (
+                                              <Chip
+                                                label={`Past Status: ${job.status || 'Archived'}`}
+                                                sx={{
+                                                  bgcolor: '#334155',
+                                                  color: '#CBD5E1',
+                                                  fontWeight: 700,
+                                                  fontSize: '11px'
+                                                }}
+                                              />
+                                            ) : (
+                                              <>
+                                                {job.rescheduleStatus === 'pending_customer_approval' ? (
+                                                  <Chip
+                                                    size="small"
+                                                    label={`Awaiting Customer Approval: ${job.proposedRescheduledSlot || 'Proposed Slot'}`}
+                                                    sx={{
+                                                      bgcolor: '#FEF3C7',
+                                                      color: '#92400E',
+                                                      fontWeight: 800,
+                                                      fontSize: '10.5px',
+                                                      border: '1px solid #FCD34D'
+                                                    }}
+                                                  />
+                                                ) : (
+                                                  <Button
+                                                    variant="outlined"
+                                                    size="small"
+                                                    startIcon={<ScheduleIcon sx={{ fontSize: 13 }} />}
+                                                    onClick={() => handleOpenTechReschedule(job)}
+                                                    sx={{
+                                                      color: '#38BDF8',
+                                                      borderColor: '#0284C7',
+                                                      fontWeight: 700,
+                                                      fontSize: '11px',
+                                                      borderRadius: '6px',
+                                                      textTransform: 'none',
+                                                      px: 1.2,
+                                                      py: 0.5,
+                                                      '&:hover': { borderColor: '#38BDF8', bgcolor: 'rgba(56, 189, 248, 0.08)' }
+                                                    }}
+                                                  >
+                                                    Request Reschedule - நேரம் மாற்றம்
+                                                  </Button>
+                                                )}
+
+                                                <Button
+                                                  variant="outlined"
+                                                  size="small"
+                                                  onClick={() => {
+                                                    setTechRescheduleJob(job);
+                                                    setTechRescheduleMode('request_handover');
+                                                    setTechRescheduleReason(TECH_HANDOVER_REASONS[0]);
+                                                    setTechRescheduleModalOpen(true);
+                                                  }}
+                                                  sx={{
+                                                    color: '#EF4444',
+                                                    borderColor: '#991B1B',
+                                                    fontWeight: 700,
+                                                    fontSize: '11px',
+                                                    borderRadius: '6px',
+                                                    textTransform: 'none',
+                                                    px: 1.2,
+                                                    py: 0.5,
+                                                    '&:hover': { borderColor: '#EF4444', bgcolor: 'rgba(239, 68, 68, 0.08)' }
+                                                  }}
+                                                >
+                                                  Handover to Ops - அவசர மாற்றம்
+                                                </Button>
+
+                                                {isToday ? (
+                                                  <Button
+                                                    variant="contained"
+                                                    size="small"
+                                                    onClick={() => handleStartTripForJob(job.id)}
+                                                    startIcon={<NavigationIcon sx={{ fontSize: 16 }} />}
+                                                    sx={{
+                                                      bgcolor: '#10B981',
+                                                      color: '#FFFFFF',
+                                                      fontWeight: 800,
+                                                      fontSize: '12px',
+                                                      borderRadius: '6px',
+                                                      textTransform: 'none',
+                                                      px: 2,
+                                                      py: 0.6,
+                                                      boxShadow: '0 2px 10px rgba(16, 185, 129, 0.3)',
+                                                      '&:hover': { bgcolor: '#059669' }
+                                                    }}
+                                                  >
+                                                    Start Ride Now - சவாரி தொடங்கு (Live GPS)
+                                                  </Button>
+                                                ) : (
+                                                  <Button
+                                                    disabled
+                                                    variant="contained"
+                                                    size="small"
+                                                    startIcon={<LockIcon sx={{ fontSize: 14 }} />}
+                                                    sx={{
+                                                      bgcolor: '#334155 !important',
+                                                      color: '#94A3B8 !important',
+                                                      fontWeight: 700,
+                                                      fontSize: '11px',
+                                                      borderRadius: '6px',
+                                                      textTransform: 'none',
+                                                      py: 0.6
+                                                    }}
+                                                  >
+                                                    Ride Unlocks on {selectedDayObj.dayLabel} ({selectedDayObj.dayNum} {selectedDayObj.monthLabel})
+                                                  </Button>
+                                                )}
+                                              </>
+                                            )}
+                                          </Box>
+                                        </Paper>
+                                      );
+                                    })}
+                                  </Box>
+                                )}
+                              </Box>
+                            );
+                          })()}
                         </Box>
                       </Box>
                     )}
@@ -4485,6 +5261,247 @@ export default function PartnerDutyPage() {
           >
             {isSavingProfile ? 'Saving...' : 'Save changes'}
           </Button>
+        </ModalFooter>
+      </Modal>
+
+      {/* Technician Reschedule / Delay Handover Modal */}
+      <Modal
+        open={techRescheduleModalOpen}
+        onClose={() => setTechRescheduleModalOpen(false)}
+        maxWidth="sm"
+      >
+        <ModalHeader
+          title="Reschedule / Emergency Handover • பணி மாற்றம்"
+          subtitle={`Booking #${techRescheduleJob?.id || ''} - ${techRescheduleJob?.customerName || 'Customer'}`}
+          onClose={() => setTechRescheduleModalOpen(false)}
+        />
+        <ModalBody>
+          {/* Mode Selector Tabs */}
+          <Box sx={{ display: 'flex', gap: 1, p: 0.5, bgcolor: '#0F172A', borderRadius: '10px', mb: 2.5 }}>
+            <Button
+              fullWidth
+              size="small"
+              onClick={() => {
+                setTechRescheduleMode('propose_slot');
+                setTechRescheduleReason(TECH_PROPOSE_REASONS[0]);
+              }}
+              sx={{
+                borderRadius: '8px',
+                py: 0.8,
+                fontWeight: 800,
+                fontSize: '11.5px',
+                textTransform: 'none',
+                bgcolor: techRescheduleMode === 'propose_slot' ? '#0284C7' : 'transparent',
+                color: techRescheduleMode === 'propose_slot' ? '#FFFFFF' : '#94A3B8',
+                '&:hover': { bgcolor: techRescheduleMode === 'propose_slot' ? '#0369A1' : '#1E293B' }
+              }}
+            >
+              Propose New Slot to Customer
+            </Button>
+            <Button
+              fullWidth
+              size="small"
+              onClick={() => {
+                setTechRescheduleMode('request_handover');
+                setTechRescheduleReason(TECH_HANDOVER_REASONS[0]);
+              }}
+              sx={{
+                borderRadius: '8px',
+                py: 0.8,
+                fontWeight: 800,
+                fontSize: '11.5px',
+                textTransform: 'none',
+                bgcolor: techRescheduleMode === 'request_handover' ? '#DC2626' : 'transparent',
+                color: techRescheduleMode === 'request_handover' ? '#FFFFFF' : '#94A3B8',
+                '&:hover': { bgcolor: techRescheduleMode === 'request_handover' ? '#B91C1C' : '#1E293B' }
+              }}
+            >
+              Handover to Central Ops
+            </Button>
+          </Box>
+
+          {techRescheduleMode === 'propose_slot' ? (
+            <>
+              {/* Context Pill */}
+              <Box sx={{ p: 1.5, bgcolor: '#F0F9FF', border: '1px solid #BAE6FD', borderRadius: '10px', mb: 2 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0369A1', fontSize: '12px' }}>
+                  Proposing Revised Time Window
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#0C4A6E', fontSize: '11px', display: 'block' }}>
+                  The customer will receive an instant notification on their tracking screen to approve your revised slot. You remain assigned to this booking.
+                </Typography>
+              </Box>
+
+              {/* Step 1: Select Proposed Day */}
+              <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', display: 'block', mb: 1, letterSpacing: '0.04em' }}>
+                SELECT PROPOSED SERVICE DATE
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto', pb: 1.5, mb: 2.5, '::-webkit-scrollbar': { height: 4 } }}>
+                {upcomingRescheduleDays.map((d, idx) => {
+                  const isSelected = techProposedDayIndex === idx;
+                  return (
+                    <Box
+                      key={d.iso}
+                      onClick={() => setTechProposedDayIndex(idx)}
+                      sx={{
+                        flexShrink: 0,
+                        width: 72,
+                        py: 0.8,
+                        px: 0.5,
+                        textAlign: 'center',
+                        cursor: 'pointer',
+                        borderRadius: '8px',
+                        border: isSelected ? '2px solid #0284C7' : '1px solid #E2E8F0',
+                        bgcolor: isSelected ? '#F0F9FF' : '#FFFFFF',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <Typography variant="caption" sx={{ fontWeight: 800, fontSize: '10px', color: isSelected ? '#0284C7' : '#64748B', display: 'block' }}>
+                        {d.dayLabel}
+                      </Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 900, fontSize: '15px', color: isSelected ? '#0C4A6E' : '#0F172A', my: 0.2 }}>
+                        {d.dayNum}
+                      </Typography>
+                      <Typography variant="caption" sx={{ fontSize: '9.5px', color: isSelected ? '#0369A1' : '#94A3B8', display: 'block' }}>
+                        {d.monthLabel}
+                      </Typography>
+                    </Box>
+                  );
+                })}
+              </Box>
+
+              {/* Step 2: Select Proposed Time Window */}
+              <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', display: 'block', mb: 1, letterSpacing: '0.04em' }}>
+                CHOOSE PROPOSED TIME WINDOW
+              </Typography>
+              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 1, mb: 2.5 }}>
+                {TECH_RESCHEDULE_TIME_SLOTS.map((slot) => {
+                  const isSelected = techProposedTime === slot;
+                  return (
+                    <Button
+                      key={slot}
+                      variant={isSelected ? 'contained' : 'outlined'}
+                      size="small"
+                      onClick={() => setTechProposedTime(slot)}
+                      sx={{
+                        py: 0.9,
+                        px: 1,
+                        borderRadius: '8px',
+                        borderColor: isSelected ? '#0284C7' : '#E2E8F0',
+                        bgcolor: isSelected ? '#0284C7' : '#FFFFFF',
+                        color: isSelected ? '#FFFFFF' : '#0F172A',
+                        fontWeight: 700,
+                        fontSize: '11px',
+                        textTransform: 'none',
+                        justifyContent: 'center',
+                        '&:hover': {
+                          bgcolor: isSelected ? '#0369A1' : '#F8FAFC',
+                          borderColor: '#0284C7'
+                        }
+                      }}
+                    >
+                      {slot}
+                    </Button>
+                  );
+                })}
+              </Box>
+
+              {/* Step 3: Reason for Delay / Reschedule */}
+              <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', display: 'block', mb: 1, letterSpacing: '0.04em' }}>
+                REASON FOR DELAY OR TIME REVISION
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 0.8, flexWrap: 'wrap', mb: 2 }}>
+                {TECH_PROPOSE_REASONS.map((r) => {
+                  const isSelected = techRescheduleReason === r;
+                  return (
+                    <Chip
+                      key={r}
+                      label={r}
+                      size="small"
+                      clickable
+                      onClick={() => setTechRescheduleReason(r)}
+                      sx={{
+                        bgcolor: isSelected ? '#0F172A' : '#F1F5F9',
+                        color: isSelected ? '#FFFFFF' : '#334155',
+                        fontWeight: 700,
+                        fontSize: '11px',
+                        border: isSelected ? '1px solid #0F172A' : '1px solid #E2E8F0'
+                      }}
+                    />
+                  );
+                })}
+              </Box>
+            </>
+          ) : (
+            <>
+              {/* Mode B: Emergency Handover Notice */}
+              <Box sx={{ p: 1.5, bgcolor: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '10px', mb: 2.5 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#991B1B', fontSize: '12.5px', mb: 0.5 }}>
+                  Immediate Central Operations Handover
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#B91C1C', fontSize: '11px', display: 'block', lineHeight: 1.5 }}>
+                  If you can no longer attend this appointment due to an emergency or breakdown, Salem Central Ops will immediately reassign this customer to another verified technician in your trade without service interruption.
+                </Typography>
+              </Box>
+
+              <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', display: 'block', mb: 1, letterSpacing: '0.04em' }}>
+                SELECT HANDOVER REASON
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 0.8, flexWrap: 'wrap', mb: 2 }}>
+                {TECH_HANDOVER_REASONS.map((r) => {
+                  const isSelected = techRescheduleReason === r;
+                  return (
+                    <Chip
+                      key={r}
+                      label={r}
+                      size="small"
+                      clickable
+                      onClick={() => setTechRescheduleReason(r)}
+                      sx={{
+                        bgcolor: isSelected ? '#DC2626' : '#F1F5F9',
+                        color: isSelected ? '#FFFFFF' : '#334155',
+                        fontWeight: 700,
+                        fontSize: '11px',
+                        border: isSelected ? '1px solid #DC2626' : '1px solid #E2E8F0'
+                      }}
+                    />
+                  );
+                })}
+              </Box>
+            </>
+          )}
+        </ModalBody>
+        <ModalFooter>
+          <Box sx={{ display: 'flex', gap: 1, width: '100%' }}>
+            <Button
+              variant="outlined"
+              onClick={() => setTechRescheduleModalOpen(false)}
+              sx={{ flex: 1, borderRadius: '8px', textTransform: 'none', fontWeight: 700, color: '#64748B', borderColor: '#CBD5E1' }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              disabled={techSubmittingReschedule}
+              onClick={handleSubmitTechReschedule}
+              sx={{
+                flex: 2,
+                borderRadius: '8px',
+                textTransform: 'none',
+                fontWeight: 800,
+                fontSize: '12.5px',
+                bgcolor: techRescheduleMode === 'propose_slot' ? '#0284C7' : '#DC2626',
+                color: '#FFF',
+                '&:hover': { bgcolor: techRescheduleMode === 'propose_slot' ? '#0369A1' : '#B91C1C' }
+              }}
+            >
+              {techSubmittingReschedule
+                ? 'Submitting...'
+                : techRescheduleMode === 'propose_slot'
+                ? 'Send Proposed Slot to Customer'
+                : 'Confirm Handover to Central Ops'}
+            </Button>
+          </Box>
         </ModalFooter>
       </Modal>
 
