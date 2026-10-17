@@ -28,9 +28,11 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ShieldIcon from '@mui/icons-material/Shield';
 
 import ProcessingBackdrop from '../../components/ProcessingBackdrop';
+import { useCriticalWork } from '../../context/CriticalWorkContext';
 
 export default function PartnerQuoteBuilderPage() {
   const navigate = useNavigate();
+  const { setCriticalWork } = useCriticalWork();
   const [searchParams] = useSearchParams();
 
   // Safely resolve active booking ID
@@ -62,6 +64,15 @@ export default function PartnerQuoteBuilderPage() {
   const [customPrice, setCustomPrice] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [successToast, setSuccessToast] = useState(false);
+
+  useEffect(() => {
+    if (isProcessing) {
+      setCriticalWork(true, 'Digital estimate submission in progress. Please do not refresh.');
+    } else {
+      setCriticalWork(false);
+    }
+    return () => setCriticalWork(false);
+  }, [isProcessing, setCriticalWork]);
 
   // Fetch real booking metadata and quote items from Neon DB
   useEffect(() => {

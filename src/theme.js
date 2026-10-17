@@ -126,7 +126,7 @@ export const theme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          borderRadius: 12,
+          borderRadius: 8,
           boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
           border: '1px solid #E2E8F0',
           backgroundColor: '#FFFFFF',
@@ -136,7 +136,7 @@ export const theme = createTheme({
     MuiPaper: {
       styleOverrides: {
         root: {
-          borderRadius: 10,
+          borderRadius: 8,
         },
         elevation0: {
           border: '1px solid #E2E8F0',
@@ -160,7 +160,7 @@ export const theme = createTheme({
     MuiDialog: {
       styleOverrides: {
         paper: {
-          borderRadius: 14,
+          borderRadius: 8,
           border: '1px solid #E2E8F0',
           boxShadow: '0 10px 25px rgba(15, 23, 42, 0.1)',
         },

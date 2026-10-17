@@ -61,6 +61,7 @@ import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import QrCode2Icon from '@mui/icons-material/QrCode2';
 import ShieldIcon from '@mui/icons-material/Shield';
 import LockIcon from '@mui/icons-material/Lock';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
 import { ApiService } from '../../services/api';
 import LocationPickerModal from '../../components/LocationPickerModal';
@@ -68,6 +69,7 @@ import ProcessingBackdrop from '../../components/ProcessingBackdrop';
 import VoiceNoteRecorder from '../../components/VoiceNoteRecorder';
 import SalemLottie from '../../components/SalemLottie';
 import { useAuth } from '../../context/AuthContext';
+import { useCriticalWork } from '../../context/CriticalWorkContext';
 import toast from 'react-hot-toast';
 
 const loadRazorpayScript = () => {
@@ -87,6 +89,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, loginAsCustomer, loginWithCredentials, registerAccount, walletBalance, debitWallet } = useAuth();
+  const { setCriticalWork } = useCriticalWork();
   const { serviceId = 'ac' } = useParams();
   const requestedTechnician = location.state?.requestedTechnician || null;
   const [selectedIssue, setSelectedIssue] = useState('not_cooling');
@@ -115,6 +118,17 @@ export default function ServiceDetailPage({ onStartBooking }) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [locationPickerOpen, setLocationPickerOpen] = useState(false);
 
+  // Domain Technician Availability & Date Capacity Status
+  const [domainAvailability, setDomainAvailability] = useState({
+    loaded: false,
+    hasTechniciansInDomain: true,
+    totalTechnicians: 0,
+    onlineTechnicians: 0,
+    isTemporarilyClosed: false,
+    notice: null,
+    dates: {}
+  });
+
   // Booking Mode: Standardized on Scheduled Appointments with Salem Central Ops Slot Allocation
   const todayISO = new Date().toISOString().split('T')[0];
   const bookingMode = 'scheduled';
@@ -128,6 +142,18 @@ export default function ServiceDetailPage({ onStartBooking }) {
   const [scheduledSuccessModalOpen, setScheduledSuccessModalOpen] = useState(false);
   const [confirmedBooking, setConfirmedBooking] = useState(null);
   const dateInputRef = React.useRef(null);
+
+  // Critical Operation Anti-Refresh Protection
+  useEffect(() => {
+    if (isPayingScheduled || scheduledPaymentModalOpen) {
+      setCriticalWork(true, 'Payment and slot reservation in progress. Please do not refresh or close this window.');
+    } else {
+      setCriticalWork(false);
+    }
+    return () => {
+      setCriticalWork(false);
+    };
+  }, [isPayingScheduled, scheduledPaymentModalOpen, setCriticalWork]);
 
   // Generate 14-day consecutive date window
   const availableDates = Array.from({ length: 14 }).map((_, i) => {
@@ -181,6 +207,25 @@ export default function ServiceDetailPage({ onStartBooking }) {
           } else if (svcData.service.visit_fee !== undefined && !isNaN(Number(svcData.service.visit_fee))) {
             dynamicFee = Number(svcData.service.visit_fee);
           }
+        }
+
+        // Fetch Domain Technician Availability & Capacity
+        try {
+          const availRes = await fetch(`${API_V1_URL}/services/${serviceId || 'ac'}/availability`);
+          const availData = await availRes.json();
+          if (availData.success) {
+            setDomainAvailability({
+              loaded: true,
+              hasTechniciansInDomain: Boolean(availData.hasTechniciansInDomain),
+              totalTechnicians: availData.totalTechnicians || 0,
+              onlineTechnicians: availData.onlineTechnicians || 0,
+              isTemporarilyClosed: Boolean(availData.isTemporarilyClosed),
+              notice: availData.notice || null,
+              dates: availData.dates || {}
+            });
+          }
+        } catch (avErr) {
+          console.warn('Could not check domain availability:', avErr);
         }
 
         // Fetch Issues from DB
@@ -308,6 +353,10 @@ export default function ServiceDetailPage({ onStartBooking }) {
     { id: '06_08', label: '06:00 PM - 08:00 PM', period: 'Night Window' }
   ];
 
+  const currentDateStatus = domainAvailability.dates?.[selectedDateISO] || null;
+  const isSelectedDateFull = Boolean(currentDateStatus?.isFullyBooked);
+  const isDomainTemporarilyClosed = domainAvailability.loaded && !domainAvailability.hasTechniciansInDomain;
+
   const checkSalemPincode = () => {
     const pinMatch = String(userLocation.pincode || userLocation.address || '').match(/\b(\d{6})\b/);
     const pin = pinMatch ? pinMatch[1] : (userLocation.pincode || '');
@@ -319,6 +368,16 @@ export default function ServiceDetailPage({ onStartBooking }) {
   };
 
   const handleProceed = async (overrideUser = null) => {
+    if (isDomainTemporarilyClosed) {
+      toast.error('Service is temporarily closed in Salem. No technicians currently available.');
+      return;
+    }
+
+    if (isSelectedDateFull) {
+      toast.error('All technicians are booked on this date. Please choose another date.');
+      return;
+    }
+
     if (!checkSalemPincode()) return;
 
     const activeUser = overrideUser || user;
@@ -332,6 +391,16 @@ export default function ServiceDetailPage({ onStartBooking }) {
   };
 
   const handlePayAndConfirmScheduled = async () => {
+    if (isDomainTemporarilyClosed) {
+      toast.error('Service is temporarily closed in Salem. No technicians currently available.');
+      return;
+    }
+
+    if (isSelectedDateFull) {
+      toast.error('All technicians are booked on this date. Please choose another date.');
+      return;
+    }
+
     if (!checkSalemPincode()) return;
 
     if (!user) {
@@ -341,7 +410,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
     }
 
     setIsPayingScheduled(true);
-    const finalSlot = `${getFormattedDateString()} • ${getEffectiveSlot()}`;
+    const finalSlot = `${selectedDateISO} • ${getFormattedDateString()} • ${getEffectiveSlot()}`;
     const visitFeeAmount = inspectionFeeNumber;
     const discount = couponApplied ? couponDiscount : 0;
     const payableNow = Math.max(0, visitFeeAmount - discount);
@@ -720,6 +789,71 @@ export default function ServiceDetailPage({ onStartBooking }) {
           </Box>
         </Card>
 
+        {/* Domain Availability Warning Banner when no tech is in system */}
+        {isDomainTemporarilyClosed && (
+          <Paper
+            elevation={0}
+            sx={{
+              p: { xs: 2, sm: 2.5 },
+              mb: 2,
+              bgcolor: '#FEF2F2',
+              border: '1.5px solid #FCA5A5',
+              borderRadius: '12px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 1.5
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+              <WarningAmberIcon sx={{ color: '#DC2626', fontSize: 28, mt: 0.2, flexShrink: 0 }} />
+              <Box sx={{ flex: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', mb: 0.5 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#991B1B', fontSize: { xs: '15px', sm: '16.5px' } }}>
+                    {domainAvailability.notice?.title || `${currentServiceName} Temporarily Closed in Salem`}
+                  </Typography>
+                  <Chip
+                    label="Temporarily Closed"
+                    size="small"
+                    sx={{
+                      bgcolor: '#FEE2E2',
+                      color: '#991B1B',
+                      fontWeight: 800,
+                      fontSize: '11px',
+                      height: 22,
+                      border: '1px solid #FCA5A5'
+                    }}
+                  />
+                </Box>
+                <Typography variant="body2" sx={{ color: '#7F1D1D', fontSize: { xs: '13px', sm: '14px' }, lineHeight: 1.55 }}>
+                  {domainAvailability.notice?.description || `No certified ${currentServiceName} technicians are currently available in Salem & surroundings. We are actively looking for certified technicians for this domain.`}
+                </Typography>
+              </Box>
+            </Box>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pt: 1, borderTop: '1px solid #FECACA', flexWrap: 'wrap', gap: 1 }}>
+              <Typography variant="caption" sx={{ color: '#991B1B', fontWeight: 600, fontSize: { xs: '12px', sm: '12.5px' } }}>
+                Looking for other doorstep home services in Salem?
+              </Typography>
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={() => navigate('/')}
+                sx={{
+                  color: '#991B1B',
+                  borderColor: '#F87171',
+                  fontWeight: 700,
+                  fontSize: '12.5px',
+                  textTransform: 'none',
+                  borderRadius: '6px',
+                  '&:hover': { bgcolor: '#FEE2E2', borderColor: '#DC2626' }
+                }}
+              >
+                Browse Active Services in Salem
+              </Button>
+            </Box>
+          </Paper>
+        )}
+
         {/* Booking Process Mini Stepper */}
         <Paper
           elevation={0}
@@ -1066,29 +1200,59 @@ export default function ServiceDetailPage({ onStartBooking }) {
               >
                 {availableDates.map((d) => {
                   const isSelected = selectedDateISO === d.iso;
+                  const dateInfo = domainAvailability.dates?.[d.iso];
+                  const isDateFull = Boolean(dateInfo?.isFullyBooked);
+
                   return (
                     <Paper
                       key={d.iso}
                       elevation={0}
                       onClick={() => setSelectedDateISO(d.iso)}
                       sx={{
-                        minWidth: '72px',
+                        minWidth: '74px',
                         p: '10px 8px',
                         borderRadius: '10px',
                         cursor: 'pointer',
                         textAlign: 'center',
                         flexShrink: 0,
-                        border: isSelected ? '2px solid #0284C7' : '1px solid #E2E8F0',
-                        bgcolor: isSelected ? '#0284C7' : '#FFFFFF',
-                        color: isSelected ? '#FFFFFF' : '#0F172A',
+                        position: 'relative',
+                        border: isSelected 
+                          ? (isDateFull ? '2px solid #DC2626' : '2px solid #0284C7')
+                          : (isDateFull ? '1.5px solid #FCA5A5' : '1px solid #E2E8F0'),
+                        bgcolor: isSelected 
+                          ? (isDateFull ? '#DC2626' : '#0284C7') 
+                          : (isDateFull ? '#FEF2F2' : '#FFFFFF'),
+                        color: isSelected ? '#FFFFFF' : (isDateFull ? '#991B1B' : '#0F172A'),
                         transition: 'all 0.15s ease',
                         boxShadow: isSelected ? '0 4px 12px rgba(2, 132, 199, 0.25)' : 'none',
                         '&:hover': {
-                          borderColor: '#0284C7',
-                          bgcolor: isSelected ? '#0284C7' : '#F0F9FF'
+                          borderColor: isDateFull ? '#DC2626' : '#0284C7',
+                          bgcolor: isSelected 
+                            ? (isDateFull ? '#DC2626' : '#0284C7') 
+                            : (isDateFull ? '#FEE2E2' : '#F0F9FF')
                         }
                       }}
                     >
+                      {isDateFull && (
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: -6,
+                            right: -4,
+                            bgcolor: '#DC2626',
+                            color: '#FFFFFF',
+                            fontSize: '9px',
+                            fontWeight: 900,
+                            px: 0.6,
+                            py: 0.1,
+                            borderRadius: '4px',
+                            letterSpacing: '0.3px',
+                            boxShadow: '0 2px 4px rgba(220, 38, 38, 0.25)'
+                          }}
+                        >
+                          FULL
+                        </Box>
+                      )}
                       <Typography
                         variant="caption"
                         sx={{
@@ -1096,7 +1260,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
                           fontSize: '11.5px',
                           fontWeight: 800,
                           letterSpacing: '0.3px',
-                          color: isSelected ? '#E0F2FE' : '#64748B'
+                          color: isSelected ? '#E0F2FE' : (isDateFull ? '#B91C1C' : '#64748B')
                         }}
                       >
                         {d.dayName}
@@ -1108,7 +1272,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
                           fontSize: { xs: '19px', sm: '21px' },
                           lineHeight: 1.2,
                           my: 0.3,
-                          color: isSelected ? '#FFFFFF' : '#0F172A'
+                          color: isSelected ? '#FFFFFF' : (isDateFull ? '#991B1B' : '#0F172A')
                         }}
                       >
                         {d.dayNumber}
@@ -1117,17 +1281,44 @@ export default function ServiceDetailPage({ onStartBooking }) {
                         variant="caption"
                         sx={{
                           display: 'block',
-                          fontSize: '11.5px',
+                          fontSize: '11px',
                           fontWeight: 700,
-                          color: isSelected ? '#E0F2FE' : '#94A3B8'
+                          color: isSelected ? '#E0F2FE' : (isDateFull ? '#DC2626' : '#94A3B8')
                         }}
                       >
-                        {d.monthName}
+                        {isDateFull ? 'BOOKED' : d.monthName}
                       </Typography>
                     </Paper>
                   );
                 })}
               </Box>
+
+              {/* Alert if selected date is fully booked */}
+              {isSelectedDateFull && (
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 1.4,
+                    bgcolor: '#FEF2F2',
+                    border: '1.5px solid #FCA5A5',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1.2,
+                    mb: 1.8
+                  }}
+                >
+                  <WarningAmberIcon sx={{ color: '#DC2626', fontSize: 24, flexShrink: 0 }} />
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#991B1B', fontSize: { xs: '13px', sm: '14px' } }}>
+                      All technicians are booked on this date.
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#B91C1C', fontSize: { xs: '12px', sm: '12.5px' }, display: 'block' }}>
+                      Please choose another date from the schedule ribbon above to reserve your slot.
+                    </Typography>
+                  </Box>
+                </Paper>
+              )}
 
               {/* Selected Date Indicator Banner */}
               <Box
@@ -1136,23 +1327,23 @@ export default function ServiceDetailPage({ onStartBooking }) {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   p: '8px 12px',
-                  bgcolor: '#EFF6FF',
+                  bgcolor: isSelectedDateFull ? '#FEF2F2' : '#EFF6FF',
                   borderRadius: '8px',
-                  border: '1px solid #BFDBFE',
+                  border: isSelectedDateFull ? '1px solid #FECACA' : '1px solid #BFDBFE',
                   mb: 2
                 }}
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                  <EventIcon sx={{ color: '#0284C7', fontSize: 18 }} />
-                  <Typography variant="caption" sx={{ color: '#0369A1', fontWeight: 800, fontSize: { xs: '13px', sm: '14px' } }}>
-                    Selected Date: <strong>{getFormattedDateString()}</strong>
+                  <EventIcon sx={{ color: isSelectedDateFull ? '#DC2626' : '#0284C7', fontSize: 18 }} />
+                  <Typography variant="caption" sx={{ color: isSelectedDateFull ? '#991B1B' : '#0369A1', fontWeight: 800, fontSize: { xs: '13px', sm: '14px' } }}>
+                    Selected Date: <strong>{getFormattedDateString()}</strong> {isSelectedDateFull ? '(Fully Booked)' : ''}
                   </Typography>
                 </Box>
                 <Button
                   size="small"
                   variant="text"
                   onClick={() => dateInputRef.current && (dateInputRef.current.showPicker ? dateInputRef.current.showPicker() : dateInputRef.current.click())}
-                  sx={{ p: 0, minWidth: 0, fontSize: { xs: '12px', sm: '13px' }, fontWeight: 700, color: '#0284C7', textTransform: 'none' }}
+                  sx={{ p: 0, minWidth: 0, fontSize: { xs: '12px', sm: '13px' }, fontWeight: 700, color: isSelectedDateFull ? '#DC2626' : '#0284C7', textTransform: 'none' }}
                 >
                   Change Date
                 </Button>
@@ -1168,20 +1359,32 @@ export default function ServiceDetailPage({ onStartBooking }) {
               <Grid container spacing={1.2} sx={{ mb: 1.5 }}>
                 {timeSlots.map(slot => {
                   const isSlotActive = !isCustomTimeActive && selectedSlot === slot.label;
+                  const slotStatus = currentDateStatus?.slots?.[slot.label];
+                  const isSlotFull = Boolean(slotStatus?.isFull);
+
                   return (
                     <Grid item xs={6} key={slot.id}>
                       <Paper
                         elevation={0}
                         onClick={() => {
+                          if (isSlotFull || isSelectedDateFull) {
+                            toast.error('This slot is fully booked. Please pick another slot or date.');
+                            return;
+                          }
                           setIsCustomTimeActive(false);
                           setSelectedSlot(slot.label);
                         }}
                         sx={{
                           p: { xs: 1.2, sm: 1.4 },
                           borderRadius: '8px',
-                          cursor: 'pointer',
-                          border: isSlotActive ? '1.5px solid #0284C7' : '1px solid #E2E8F0',
-                          bgcolor: isSlotActive ? '#E0F2FE' : '#FFFFFF',
+                          cursor: (isSlotFull || isSelectedDateFull) ? 'not-allowed' : 'pointer',
+                          opacity: (isSlotFull || isSelectedDateFull) ? 0.6 : 1,
+                          border: isSlotActive 
+                            ? '1.5px solid #0284C7' 
+                            : (isSlotFull ? '1px dashed #CBD5E1' : '1px solid #E2E8F0'),
+                          bgcolor: isSlotActive 
+                            ? '#E0F2FE' 
+                            : (isSlotFull ? '#F8FAFC' : '#FFFFFF'),
                           transition: 'all 0.15s ease',
                           display: 'flex',
                           flexDirection: 'column',
@@ -1189,13 +1392,16 @@ export default function ServiceDetailPage({ onStartBooking }) {
                         }}
                       >
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <Typography variant="caption" sx={{ fontWeight: 800, color: isSlotActive ? '#0369A1' : '#0F172A', fontSize: { xs: '13px', sm: '14px' } }}>
+                          <Typography variant="caption" sx={{ fontWeight: 800, color: isSlotActive ? '#0369A1' : (isSlotFull ? '#64748B' : '#0F172A'), fontSize: { xs: '13px', sm: '14px' } }}>
                             {slot.label}
                           </Typography>
                           {isSlotActive && <CheckCircleIcon sx={{ fontSize: 16, color: '#0284C7' }} />}
+                          {isSlotFull && (
+                            <Chip label="Full" size="small" sx={{ height: 18, fontSize: '10px', fontWeight: 800, bgcolor: '#FEE2E2', color: '#991B1B' }} />
+                          )}
                         </Box>
                         <Typography variant="caption" sx={{ color: '#64748B', fontSize: { xs: '11.5px', sm: '12.5px' } }}>
-                          {slot.period} {slot.popular ? '• Popular' : ''}
+                          {isSlotFull ? 'All specialists assigned' : `${slot.period} ${slot.popular ? '• Popular' : ''}`}
                         </Typography>
                       </Paper>
                     </Grid>
@@ -1357,22 +1563,37 @@ export default function ServiceDetailPage({ onStartBooking }) {
 
           <Button
             variant="contained"
+            disabled={isDomainTemporarilyClosed || isSelectedDateFull}
             onClick={handleProceed}
-            endIcon={<ArrowForwardIcon sx={{ fontSize: 20 }} />}
+            endIcon={!isDomainTemporarilyClosed && !isSelectedDateFull ? <ArrowForwardIcon sx={{ fontSize: 20 }} /> : undefined}
             sx={{
-              bgcolor: '#0284C7',
+              bgcolor: isDomainTemporarilyClosed 
+                ? '#94A3B8' 
+                : isSelectedDateFull 
+                ? '#DC2626' 
+                : '#0284C7',
               color: '#FFFFFF',
               borderRadius: '10px',
               fontWeight: 800,
-              px: { xs: 2.5, sm: 3.5 },
-              py: 1,
-              fontSize: { xs: '14px', sm: '15.5px' },
+              px: { xs: 2.2, sm: 3.5 },
+              py: 1.1,
+              fontSize: { xs: '13px', sm: '15px' },
               textTransform: 'none',
-              boxShadow: '0 4px 14px rgba(2, 132, 199, 0.25)',
-              '&:hover': { bgcolor: '#0369A1' }
+              boxShadow: isDomainTemporarilyClosed || isSelectedDateFull ? 'none' : '0 4px 14px rgba(2, 132, 199, 0.25)',
+              '&:hover': {
+                bgcolor: isDomainTemporarilyClosed ? '#94A3B8' : isSelectedDateFull ? '#B91C1C' : '#0369A1'
+              },
+              '&.Mui-disabled': {
+                bgcolor: '#94A3B8',
+                color: '#F8FAFC'
+              }
             }}
           >
-            Pay ₹{Math.max(0, inspectionFeeNumber - (couponApplied ? couponDiscount : 0))} & Reserve Slot
+            {isDomainTemporarilyClosed
+              ? 'Service Temporarily Closed in Salem'
+              : isSelectedDateFull
+              ? 'Date Fully Booked • Select Another Date'
+              : `Pay ₹${Math.max(0, inspectionFeeNumber - (couponApplied ? couponDiscount : 0))} & Reserve Slot`}
           </Button>
         </Container>
       </Paper>

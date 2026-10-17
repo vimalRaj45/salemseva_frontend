@@ -367,6 +367,7 @@ export default function AdminSettlementsPage() {
                 SALEM REGION / LOCALITY:
               </Typography>
               <FormControl fullWidth size="small">
+                {/* ds-allow-native-select */}
                 <Select
                   value={selectedLocality}
                   onChange={(e) => setSelectedLocality(e.target.value)}

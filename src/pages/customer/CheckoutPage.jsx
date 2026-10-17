@@ -33,6 +33,7 @@ import MicIcon from '@mui/icons-material/Mic';
 import SecurityIcon from '@mui/icons-material/Security';
 
 import { useAuth } from '../../context/AuthContext';
+import { useCriticalWork } from '../../context/CriticalWorkContext';
 import ProcessingBackdrop from '../../components/ProcessingBackdrop';
 
 const loadRazorpayScript = () => {
@@ -51,12 +52,23 @@ const loadRazorpayScript = () => {
 export default function CheckoutPage() {
   const navigate = useNavigate();
   const { user, walletBalance, debitWallet } = useAuth();
+  const { setCriticalWork } = useCriticalWork();
   const [searchParams] = useSearchParams();
   const bookingId = searchParams.get('bookingId') || 'SLM-84920';
 
   const [redeemCredits, setRedeemCredits] = useState(true);
   const [payMode, setPayMode] = useState('upi');
   const [isProcessing, setIsProcessing] = useState(false);
+
+  useEffect(() => {
+    if (isProcessing) {
+      setCriticalWork(true, 'Digital escrow payment in progress. Please do not refresh or leave this page.');
+    } else {
+      setCriticalWork(false);
+    }
+    return () => setCriticalWork(false);
+  }, [isProcessing, setCriticalWork]);
+
   const [partsAndLabor, setPartsAndLabor] = useState(900);
   const [visitFee, setVisitFee] = useState(99);
 

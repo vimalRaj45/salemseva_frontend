@@ -53,6 +53,7 @@ export default function CustomerHomePage() {
   const [onlineTechnicians, setOnlineTechnicians] = useState([]);
   const [techTradeFilter, setTechTradeFilter] = useState('all');
   const [services, setServices] = useState([]);
+  const [servicesAvailability, setServicesAvailability] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [locationPickerOpen, setLocationPickerOpen] = useState(false);
   const [userLocation, setUserLocation] = useState(() => {
@@ -85,6 +86,19 @@ export default function CustomerHomePage() {
       }
     }
     loadServices();
+
+    async function loadAvailability() {
+      try {
+        const res = await fetch(`${API_V1_URL}/services-availability`);
+        const data = await res.json();
+        if (data.success && data.services) {
+          setServicesAvailability(data.services);
+        }
+      } catch (e) {
+        console.warn('Failed to load services availability:', e);
+      }
+    }
+    loadAvailability();
 
     async function loadOnlineTechs() {
       try {
@@ -629,6 +643,9 @@ export default function CustomerHomePage() {
           ) : (
             activeServicesList.map((svc) => {
               const meta = getServiceMetadata(svc);
+              const avail = servicesAvailability[svc.id];
+              const isClosed = Boolean(avail && !avail.hasTechnicians);
+
               return (
                 <Grid item xs={6} sm={4} md={3} key={svc.id}>
                   <Card
@@ -638,7 +655,7 @@ export default function CustomerHomePage() {
                       height: '100%',
                       borderRadius: '12px',
                       bgcolor: '#FFFFFF',
-                      border: '1px solid #E2E8F0',
+                      border: isClosed ? '1.5px solid #FCA5A5' : '1px solid #E2E8F0',
                       p: 1.5,
                       cursor: 'pointer',
                       display: 'flex',
@@ -646,8 +663,8 @@ export default function CustomerHomePage() {
                       justifyContent: 'space-between',
                       transition: 'all 0.15s ease',
                       '&:hover': {
-                        borderColor: '#CBD5E1',
-                        bgcolor: '#FAFAFA',
+                        borderColor: isClosed ? '#EF4444' : '#CBD5E1',
+                        bgcolor: isClosed ? '#FEF2F2' : '#FAFAFA',
                         transform: 'translateY(-2px)'
                       }
                     }}
@@ -659,8 +676,8 @@ export default function CustomerHomePage() {
                             width: 36,
                             height: 36,
                             borderRadius: '6px',
-                            bgcolor: meta.bg,
-                            color: meta.color,
+                            bgcolor: isClosed ? '#FEE2E2' : meta.bg,
+                            color: isClosed ? '#DC2626' : meta.color,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center'
@@ -669,14 +686,15 @@ export default function CustomerHomePage() {
                           {meta.icon}
                         </Box>
                         <Chip
-                          label={meta.eta}
+                          label={isClosed ? 'Temporarily Closed' : meta.eta}
                           size="small"
                           sx={{
-                            bgcolor: '#F1F5F9',
-                            color: '#475569',
-                            fontWeight: 600,
-                            fontSize: '10px',
-                            height: 20
+                            bgcolor: isClosed ? '#FEE2E2' : '#F1F5F9',
+                            color: isClosed ? '#991B1B' : '#475569',
+                            fontWeight: 700,
+                            fontSize: '9.5px',
+                            height: 20,
+                            border: isClosed ? '1px solid #FCA5A5' : 'none'
                           }}
                         />
                       </Box>
@@ -693,7 +711,7 @@ export default function CustomerHomePage() {
                           mb: 1.2
                         }}
                       >
-                        {meta.desc}
+                        {isClosed ? 'Looking for certified technicians in Salem' : meta.desc}
                       </Typography>
                     </Box>
 

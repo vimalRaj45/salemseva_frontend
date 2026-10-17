@@ -1,4 +1,5 @@
 import { API_V1_URL } from '../config';
+import { resolveMediaUrl } from '../utils/mediaUtils';
 import React, { useState, useRef, useEffect } from 'react';
 import {
   Box,
@@ -154,7 +155,7 @@ export default function DocumentUploadControl({
     if (onRemove) onRemove();
   };
 
-  const activeDisplayUrl = stagedFile ? stagedFile.dataUrl : uploadedUrl;
+  const activeDisplayUrl = stagedFile ? stagedFile.dataUrl : resolveMediaUrl(uploadedUrl);
   const isPdf = activeDisplayUrl?.includes('application/pdf') || stagedFile?.type?.includes('pdf') || activeDisplayUrl?.endsWith('.pdf');
 
   return (
@@ -487,7 +488,7 @@ export default function DocumentUploadControl({
             ) : (
               <>
                 <img
-                  src={uploadedUrl}
+                  src={resolveMediaUrl(uploadedUrl)}
                   alt="Verified Document"
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
@@ -554,9 +555,9 @@ export default function DocumentUploadControl({
         <ModalBody sx={{ p: 2, bgcolor: '#0F172A', textAlign: 'center' }}>
           {activeDisplayUrl && (
             <img
-              src={activeDisplayUrl}
+              src={resolveMediaUrl(activeDisplayUrl)}
               alt="Full Preview"
-              style={{ maxWidth: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: '8px' }}
+              style={{ maxWidth: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: '6px' }}
             />
           )}
           <Box sx={{ mt: 1.5, display: 'flex', justifyContent: 'center' }}>
@@ -571,8 +572,8 @@ export default function DocumentUploadControl({
             onClick={() => setZoomOpen(false)}
             sx={{
               width: '100%',
-              height: 48,
-              borderRadius: '14px',
+              height: 44,
+              borderRadius: '6px',
               borderColor: '#E2E8F0',
               color: '#0F172A',
               fontWeight: 600,

@@ -68,7 +68,7 @@ export function Modal({
           width: '100%',
           maxWidth: isMobile ? '100% !important' : `${getMaxWidthPx()}px !important`,
           maxHeight: isMobile ? '90vh' : '85vh',
-          borderRadius: isMobile ? '24px 24px 0 0' : '16px',
+          borderRadius: isMobile ? '12px 12px 0 0' : '8px',
           bgcolor: '#FFFFFF',
           border: '1px solid #E2E8F0',
           boxShadow: isMobile

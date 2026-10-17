@@ -38,6 +38,7 @@ import AdminSettlementsPage from './pages/admin/AdminSettlementsPage';
 
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { CriticalWorkProvider } from './context/CriticalWorkContext';
 import AuthPage from './pages/auth/AuthPage';
 import { Toaster } from 'react-hot-toast';
 import GlobalNotificationWatcher from './components/GlobalNotificationWatcher';
@@ -277,7 +278,9 @@ function AppContent() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <CriticalWorkProvider>
+        <AppContent />
+      </CriticalWorkProvider>
     </AuthProvider>
   );
 }

@@ -32,10 +32,12 @@ import {
   TrendingUp,
   PieChart as PieChartIcon,
   Sparkles,
-  Phone
+  Phone,
+  HelpCircle
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
+import AuthHelpModal from '../../components/AuthHelpModal';
 
 const SALEM_LOCALITIES = [
   'Fairlands, Salem',
@@ -129,6 +131,7 @@ export default function AuthPage({ initialMode = 'login' }) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [activeSlide, setActiveSlide] = useState(0);
+  const [helpModalOpen, setHelpModalOpen] = useState(false);
 
   // Sync mode with route
   useEffect(() => {
@@ -877,7 +880,7 @@ export default function AuthPage({ initialMode = 'login' }) {
             )}
           </Box>
 
-          {/* Bottom Switcher Link */}
+          {/* Bottom Switcher Link & Auth Help Button */}
           <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid #F1F5F9', textAlign: 'center' }}>
             {authMode === 'login' ? (
               <Typography variant="body2" sx={{ color: '#64748B', fontSize: '13px' }}>
@@ -922,6 +925,24 @@ export default function AuthPage({ initialMode = 'login' }) {
                 </Button>
               </Typography>
             )}
+
+            <Box sx={{ mt: 1.5, textAlign: 'center' }}>
+              <Button
+                size="small"
+                variant="text"
+                onClick={() => setHelpModalOpen(true)}
+                startIcon={<HelpCircle size={14} color="#64748B" />}
+                sx={{
+                  color: '#64748B',
+                  fontSize: '11.5px',
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  '&:hover': { color: '#0066CC' }
+                }}
+              >
+                Need Help? Report Login or Account Trouble
+              </Button>
+            </Box>
           </Box>
         </Box>
 
@@ -1255,6 +1276,13 @@ export default function AuthPage({ initialMode = 'login' }) {
           </Box>
         </Box>
       </Card>
+
+      {/* Auth Help Modal */}
+      <AuthHelpModal
+        open={helpModalOpen}
+        onClose={() => setHelpModalOpen(false)}
+        defaultRole={selectedRole || 'customer'}
+      />
     </Box>
   );
 }

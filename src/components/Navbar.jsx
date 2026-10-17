@@ -28,12 +28,14 @@ import {
   Globe,
   Languages,
   Menu,
-  MessageSquarePlus
+  MessageSquarePlus,
+  LifeBuoy
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import LanguageSelectorModal from './LanguageSelectorModal';
 import SideNavbar from './SideNavbar';
 import FeedbackModal from './FeedbackModal';
+import SupportTicketModal from './SupportTicketModal';
 import { SUPPORTED_LANGUAGES, getCurrentLanguage } from '../services/languageService';
 import { getLiveAccurateLocation } from '../utils/geoUtils';
 import toast from 'react-hot-toast';
@@ -96,6 +98,7 @@ export default function Navbar({
   const [isSideNavOpen, setIsSideNavOpen] = useState(false);
   const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+  const [isSupportTicketModalOpen, setIsSupportTicketModalOpen] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [hasScrolled, setHasScrolled] = useState(false);
@@ -1278,6 +1281,32 @@ export default function Navbar({
 
                     <div
                       onClick={() => {
+                        setIsSupportTicketModalOpen(true);
+                        setIsProfileOpen(false);
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '8px 10px',
+                        borderRadius: '10px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        color: isDarkMode ? '#E2E8F0' : '#334155',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <LifeBuoy size={15} color="#0066CC" />
+                        <span>Support Desk & Tickets</span>
+                      </div>
+                      <span style={{ fontSize: '10px', fontWeight: 800, color: '#0066CC', backgroundColor: isDarkMode ? '#1E3A8A' : '#EFF6FF', padding: '2px 6px', borderRadius: '4px' }}>
+                        TRACK
+                      </span>
+                    </div>
+
+                    <div
+                      onClick={() => {
                         window.location.href = 'tel:1800-425-7253';
                         setIsProfileOpen(false);
                       }}
@@ -1459,8 +1488,15 @@ export default function Navbar({
         toggleDarkMode={toggleDarkMode}
         onOpenLanguageModal={() => setIsLanguageModalOpen(true)}
         onOpenFeedbackModal={() => setIsFeedbackModalOpen(true)}
+        onOpenSupportTicketModal={() => setIsSupportTicketModalOpen(true)}
         onOpenAuthModal={openAuthModal}
         logout={logout}
+      />
+
+      {/* In-App Support Ticket & Redressal Modal */}
+      <SupportTicketModal
+        open={isSupportTicketModalOpen}
+        onClose={() => setIsSupportTicketModalOpen(false)}
       />
     </header>
   );

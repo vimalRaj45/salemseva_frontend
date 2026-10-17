@@ -100,9 +100,11 @@ import DocumentUploadControl from '../../components/DocumentUploadControl';
 import LeadAudioPlayer from '../../components/LeadAudioPlayer';
 import Modal, { ModalHeader, ModalBody, ModalFooter } from '../../components/Modal';
 import SalemLottie from '../../components/SalemLottie';
+import SupportTicketModal from '../../components/SupportTicketModal';
 import { useAuth } from '../../context/AuthContext';
 import { NativeNotifier } from '../../services/nativeNotify';
 import { API_V1_URL } from '../../config';
+import { resolveMediaUrl } from '../../utils/mediaUtils';
 
 export default function PartnerDutyPage() {
   const navigate = useNavigate();
@@ -136,6 +138,7 @@ export default function PartnerDutyPage() {
 
   const [copiedTechCode, setCopiedTechCode] = useState(false);
   const [techToast, setTechToast] = useState(null);
+  const [supportTicketModalOpen, setSupportTicketModalOpen] = useState(false);
 
   const [referredTechsList, setReferredTechsList] = useState(partnerIncentives?.referredTechs || []);
 
@@ -166,10 +169,19 @@ export default function PartnerDutyPage() {
     setTechToast(`₹${amt}.00 successfully disbursed directly to your UPI ID (partner.pay@okaxis)!`);
   };
 
-  const isKycLocked = !activeTech?.isKycVerified || activeTech?.status === 'Pending Verification' || activeTech?.is_kyc_verified === false;
+  // Active verification determination: Checks database status flags across all sources
+  const isVerified = Boolean(
+    activeTech?.is_kyc_verified === true ||
+    activeTech?.isKycVerified === true ||
+    activeTech?.status === 'Verified' ||
+    user?.is_kyc_verified === true ||
+    user?.isKycVerified === true ||
+    user?.status === 'Verified'
+  );
+  const isKycLocked = !isVerified;
 
   const [isOnline, setIsOnline] = useState(() => {
-    if (activeTech && (!activeTech.isKycVerified || activeTech.status === 'Pending Verification' || activeTech.is_kyc_verified === false)) {
+    if (!isVerified) {
       return false;
     }
     const saved = localStorage.getItem('salemseva_partner_is_online');
@@ -177,6 +189,63 @@ export default function PartnerDutyPage() {
     if (activeTech && typeof activeTech.isOnline === 'boolean') return activeTech.isOnline;
     return false;
   });
+
+  // Live Database Sync: Auto-detects admin approval without requiring technician to refresh or relogin
+  useEffect(() => {
+    const techPhone = activeTech?.phone || user?.phone;
+    if (!techPhone) return;
+
+    let isMounted = true;
+    const syncTechnicianState = async () => {
+      try {
+        const cleanDigits = String(techPhone).replace(/[^0-9]/g, '').slice(-10);
+        const res = await fetch(`${API_V1_URL}/partner/duty?phone=${encodeURIComponent(cleanDigits)}`);
+        const data = await res.json();
+        if (!isMounted) return;
+
+        if (data.success && data.technician) {
+          const t = data.technician;
+          const isDbVerified = Boolean(t.is_kyc_verified);
+          const currentlyVerified = Boolean(
+            activeTech?.is_kyc_verified === true ||
+            activeTech?.isKycVerified === true ||
+            activeTech?.status === 'Verified'
+          );
+
+          if (isDbVerified !== currentlyVerified || !activeTech?.id) {
+            const updated = {
+              ...(activeTech || user || {}),
+              id: t.id,
+              name: t.full_name || activeTech?.name,
+              phone: t.phone || activeTech?.phone,
+              trade: t.primary_trade || activeTech?.trade,
+              tradeName: t.trade_name || activeTech?.tradeName,
+              is_kyc_verified: isDbVerified,
+              isKycVerified: isDbVerified,
+              status: isDbVerified ? 'Verified' : 'Pending Verification',
+              isOnline: t.is_online,
+              aadhaarCardUrl: t.aadhaar_card_url || activeTech?.aadhaarCardUrl
+            };
+            await loginTech(updated);
+            updateUser(updated);
+            localStorage.setItem('salemseva_tech_user', JSON.stringify(updated));
+            if (isDbVerified) {
+              setIsOnline(t.is_online);
+            }
+          }
+        }
+      } catch (e) {
+        // Silent sync
+      }
+    };
+
+    syncTechnicianState();
+    const interval = setInterval(syncTechnicianState, isKycLocked ? 4000 : 15000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [activeTech?.phone, user?.phone, isKycLocked]);
 
   // Strict KYC Duty Lock: unverified partners are barred from going online
   useEffect(() => {
@@ -1318,13 +1387,13 @@ export default function PartnerDutyPage() {
         {bottomNav === 0 && (
           <Box>
             {/* Real Production KYC Gate Warning Card */}
-            {(activeTech?.status === 'Pending Verification' || activeTech?.isKycVerified === false || activeTech?.is_kyc_verified === false) && (
+            {isKycLocked && (
               <Paper
                 elevation={0}
                 sx={{
                   p: 2,
                   mb: 2,
-                  borderRadius: '12px',
+                  borderRadius: '8px',
                   bgcolor: '#FFFBEB',
                   border: '1.5px solid #F59E0B',
                   boxShadow: '0 4px 12px rgba(245, 158, 11, 0.12)'
@@ -1356,13 +1425,13 @@ export default function PartnerDutyPage() {
                       size="small"
                       variant="outlined"
                       startIcon={<ReceiptLongIcon sx={{ fontSize: 14 }} />}
-                      onClick={() => window.open(activeTech.aadhaarCardUrl || activeTech.aadhaar_card_url, '_blank')}
+                      onClick={() => window.open(resolveMediaUrl(activeTech.aadhaarCardUrl || activeTech.aadhaar_card_url), '_blank')}
                       sx={{
                         borderColor: '#D97706',
                         color: '#92400E',
                         fontWeight: 700,
                         fontSize: '11px',
-                        borderRadius: '8px',
+                        borderRadius: '6px',
                         textTransform: 'none',
                         py: 0.4
                       }}
@@ -1386,10 +1455,12 @@ export default function PartnerDutyPage() {
                             ...activeTech,
                             status: isVerified ? 'Verified' : 'Pending Verification',
                             isKycVerified: isVerified,
+                            is_kyc_verified: isVerified,
                             isOnline: data.technician.is_online
                           };
                           updateUser(updated);
                           await loginTech(updated);
+                          localStorage.setItem('salemseva_tech_user', JSON.stringify(updated));
                           setIsOnline(data.technician.is_online);
                           if (isVerified) {
                             setTechToast('வாழ்த்துகள்! உங்கள் ஆதார் KYC அங்கீகரிக்கப்பட்டது. நீங்கள் இப்போது பணியைத் தொடங்கலாம்!');
@@ -1642,6 +1713,28 @@ export default function PartnerDutyPage() {
                 </Box>
 
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  {/* Dedicated Support Ticket Desk Button */}
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => setSupportTicketModalOpen(true)}
+                    startIcon={<HelpOutlineIcon sx={{ fontSize: 14 }} />}
+                    sx={{
+                      borderColor: '#93C5FD',
+                      color: '#0066CC',
+                      bgcolor: '#EFF6FF',
+                      borderRadius: '6px',
+                      fontWeight: 700,
+                      fontSize: '11px',
+                      py: 0.5,
+                      px: 1,
+                      textTransform: 'none',
+                      '&:hover': { bgcolor: '#DBEAFE', borderColor: '#60A5FA' }
+                    }}
+                  >
+                    Support Desk
+                  </Button>
+
                   {/* 1-Click Switch Profile Button */}
                   <Button
                     size="small"
@@ -1807,12 +1900,12 @@ export default function PartnerDutyPage() {
                     </Typography>
 
                     <Box sx={{ display: 'flex', gap: 1.2, justifyContent: 'center', flexWrap: 'wrap' }}>
-                      {(user?.aadhaarCardUrl || user?.aadhaar_card_url) && (
+                      {(user?.aadhaarCardUrl || user?.aadhaar_card_url || activeTech?.aadhaarCardUrl || activeTech?.aadhaar_card_url) && (
                         <Button
                           variant="outlined"
                           size="small"
                           startIcon={<ReceiptLongIcon sx={{ fontSize: 15 }} />}
-                          onClick={() => window.open(user.aadhaarCardUrl || user.aadhaar_card_url, '_blank')}
+                          onClick={() => window.open(resolveMediaUrl(user?.aadhaarCardUrl || user?.aadhaar_card_url || activeTech?.aadhaarCardUrl || activeTech?.aadhaar_card_url), '_blank')}
                           sx={{
                             borderColor: '#F59E0B',
                             color: '#FDE68A',
@@ -1834,23 +1927,30 @@ export default function PartnerDutyPage() {
                         startIcon={<RefreshIcon sx={{ fontSize: 15 }} />}
                         onClick={async () => {
                           try {
-                            const phone = user?.phone || '';
+                            const phone = user?.phone || activeTech?.phone || '';
                             if (!phone) return;
-                            const res = await fetch(`${API_V1_URL}/partner/duty?phone=${encodeURIComponent(phone)}`);
+                            const cleanDigits = String(phone).replace(/[^0-9]/g, '').slice(-10);
+                            const res = await fetch(`${API_V1_URL}/partner/duty?phone=${encodeURIComponent(cleanDigits)}`);
                             const data = await res.json();
                             if (data.success && data.technician) {
                               const isVerified = Boolean(data.technician.is_kyc_verified);
-                              updateUser({
+                              const updatedUser = {
+                                ...(activeTech || user || {}),
+                                ...data.technician,
+                                name: data.technician.full_name || activeTech?.name,
                                 status: isVerified ? 'Verified' : 'Pending Verification',
                                 isKycVerified: isVerified,
                                 is_kyc_verified: isVerified,
                                 isOnline: data.technician.is_online
-                              });
+                              };
+                              await loginTech(updatedUser);
+                              updateUser(updatedUser);
+                              localStorage.setItem('salemseva_tech_user', JSON.stringify(updatedUser));
                               setIsOnline(data.technician.is_online);
                               if (isVerified) {
-                                setTechToast('வாழ்த்துகள்! உங்கள் ஆதார் KYC அங்கீகரிக்கப்பட்டது. நீங்கள் இப்போது பணியைத் தொடங்கலாம்!');
+                                setTechToast('Congratulations! Your partner account is approved by admin. You can now go online and accept doorstep jobs!');
                               } else {
-                                setTechToast('ஆதார் KYC இன்னும் நிர்வாகியின் ஒப்புதலுக்காக காத்திருக்கிறது (Still pending admin approval).');
+                                setTechToast('Aadhaar KYC is still under admin verification review.');
                               }
                             }
                           } catch (e) {
@@ -5560,6 +5660,14 @@ export default function PartnerDutyPage() {
           </Box>
         </ModalFooter>
       </Modal>
+
+      {/* Partner Support Ticket & Resolution Modal */}
+      <SupportTicketModal
+        open={supportTicketModalOpen}
+        onClose={() => setSupportTicketModalOpen(false)}
+        defaultBookingId={activeBookingId || ''}
+        defaultCategory="duty_gps_issue"
+      />
 
       {/* Processing Loader */}
       <ProcessingBackdrop

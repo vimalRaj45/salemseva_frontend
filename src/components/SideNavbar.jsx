@@ -25,7 +25,8 @@ import {
   HelpCircle,
   Clock,
   MessageSquarePlus,
-  Sparkles
+  Sparkles,
+  LifeBuoy
 } from 'lucide-react';
 import { getCurrentLanguage, SUPPORTED_LANGUAGES } from '../services/languageService';
 
@@ -39,6 +40,7 @@ export default function SideNavbar({
   onOpenLanguageModal,
   onOpenAuthModal,
   onOpenFeedbackModal,
+  onOpenSupportTicketModal,
   logout
 }) {
   const navigate = useNavigate();
@@ -527,6 +529,18 @@ export default function SideNavbar({
                   label={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
                   isDark={isDarkMode}
                   onClick={toggleDarkMode}
+                />
+                <SideNavItem
+                  icon={<LifeBuoy size={18} color="#0066CC" />}
+                  label="Support Desk & Ticket Tracking"
+                  sublabel="Raise booking disputes, delay reports & refunds"
+                  badge="24/7 Redressal"
+                  badgeColor="#0066CC"
+                  isDark={isDarkMode}
+                  onClick={() => {
+                    onClose();
+                    if (onOpenSupportTicketModal) onOpenSupportTicketModal();
+                  }}
                 />
                 {user && (
                   <SideNavItem

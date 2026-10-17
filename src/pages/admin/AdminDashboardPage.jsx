@@ -125,6 +125,7 @@ import Modal, { ModalHeader, ModalBody, ModalFooter } from '../../components/Mod
 import { useAuth } from '../../context/AuthContext';
 
 import { API_V1_URL } from '../../config';
+import { resolveMediaUrl } from '../../utils/mediaUtils';
 
 export default function AdminDashboardPage() {
   const navigate = useNavigate();
@@ -197,6 +198,7 @@ export default function AdminDashboardPage() {
     data: null
   });
   const [docZoom, setDocZoom] = useState(1);
+  const [docImgError, setDocImgError] = useState(false);
 
   // Booking Deep Traceability Dialog State
   const [bookingTraceModalOpen, setBookingTraceModalOpen] = useState(false);
@@ -625,15 +627,17 @@ export default function AdminDashboardPage() {
 
   // Open In-App Aadhaar Card Viewer
   const handleOpenAadhaarViewer = (tech) => {
-    const url = tech.aadhaar_card_url || tech.aadhaarCardUrl;
-    if (!url) {
+    const rawUrl = tech.aadhaar_card_url || tech.aadhaarCardUrl;
+    if (!rawUrl) {
       setToast({ open: true, message: 'No Aadhaar document uploaded for this technician.', severity: 'warning' });
       return;
     }
+    const resolved = resolveMediaUrl(rawUrl);
     setDocZoom(1);
+    setDocImgError(false);
     setDocPreviewModal({
       open: true,
-      url: url,
+      url: resolved,
       title: `${tech.full_name || tech.name || 'Technician'} - Aadhaar e-KYC Identity Proof`,
       type: 'aadhaar',
       data: tech
@@ -642,15 +646,17 @@ export default function AdminDashboardPage() {
 
   // Open In-App Parts Bill Receipt Viewer
   const handleOpenBillViewer = (booking) => {
-    const url = booking.parts_bill_url || booking.partsBillUrl;
-    if (!url) {
+    const rawUrl = booking.parts_bill_url || booking.partsBillUrl;
+    if (!rawUrl) {
       setToast({ open: true, message: 'No parts bill uploaded for this booking.', severity: 'warning' });
       return;
     }
+    const resolved = resolveMediaUrl(rawUrl);
     setDocZoom(1);
+    setDocImgError(false);
     setDocPreviewModal({
       open: true,
-      url: url,
+      url: resolved,
       title: `Parts Receipt Bill for Booking #${booking.id}`,
       type: 'bill',
       data: booking
@@ -683,8 +689,24 @@ export default function AdminDashboardPage() {
           setSelectedTechDossier(prev => ({ ...prev, is_kyc_verified: action === 'approve' }));
         }
         if (docPreviewModal.open && docPreviewModal.data?.id === techId) {
-          setDocPreviewModal(prev => ({ ...prev, open: false }));
+          setDocPreviewModal(prev => ({
+            ...prev,
+            data: { ...prev.data, is_kyc_verified: action === 'approve' }
+          }));
         }
+        try {
+          const storedTech = JSON.parse(localStorage.getItem('salemseva_tech_user') || 'null');
+          if (storedTech && (storedTech.id === techId || storedTech.phone === data.technician?.phone)) {
+            const updatedTech = {
+              ...storedTech,
+              is_kyc_verified: action === 'approve',
+              isKycVerified: action === 'approve',
+              status: action === 'approve' ? 'Verified' : 'Pending Verification'
+            };
+            localStorage.setItem('salemseva_tech_user', JSON.stringify(updatedTech));
+            window.dispatchEvent(new Event('storage'));
+          }
+        } catch (storageErr) {}
         fetchOverview(true);
       } else {
         setToast({ open: true, message: data.error || 'KYC update failed', severity: 'error' });
@@ -4270,7 +4292,7 @@ export default function AdminDashboardPage() {
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             <Box
                               component="img"
-                              src={selectedTechDossier.aadhaar_card_url || selectedTechDossier.aadhaarCardUrl}
+                              src={resolveMediaUrl(selectedTechDossier.aadhaar_card_url || selectedTechDossier.aadhaarCardUrl)}
                               alt="Uploaded Aadhaar Document"
                               onClick={() => handleOpenAadhaarViewer(selectedTechDossier)}
                               sx={{
@@ -4597,7 +4619,7 @@ export default function AdminDashboardPage() {
               </IconButton>
               <IconButton
                 size="small"
-                onClick={() => window.open(docPreviewModal.url, '_blank')}
+                onClick={() => window.open(resolveMediaUrl(docPreviewModal.url), '_blank')}
                 title="Open Original in New Tab"
                 sx={{ bgcolor: '#0F172A', color: '#38BDF8', border: '1px solid #475569' }}
               >
@@ -4612,23 +4634,52 @@ export default function AdminDashboardPage() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 flex: 1,
-                overflow: 'auto'
+                overflow: 'auto',
+                minHeight: 340
               }}
             >
-              <img
-                src={docPreviewModal.url}
-                alt="Document Preview"
-                style={{
-                  maxWidth: '100%',
-                  maxHeight: '62vh',
-                  objectFit: 'contain',
-                  borderRadius: '8px',
-                  boxShadow: '0 8px 30px rgba(0,0,0,0.5)',
-                  transform: `scale(${docZoom})`,
-                  transformOrigin: 'center center',
-                  transition: 'transform 0.15s ease'
-                }}
-              />
+              {docImgError ? (
+                <Box sx={{ textAlign: 'center', p: 3, maxWidth: 440 }}>
+                  <Typography variant="subtitle1" sx={{ color: '#F87171', fontWeight: 700, mb: 1 }}>
+                    Document Preview Unavailable in Frame
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#94A3B8', mb: 2.5, fontSize: '13px' }}>
+                    The uploaded document is safely stored in the S3 vault. You can inspect or download it directly in a new browser tab.
+                  </Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+                    <Button
+                      variant="contained"
+                      onClick={() => window.open(resolveMediaUrl(docPreviewModal.url), '_blank')}
+                      sx={{ bgcolor: '#0284C7', color: '#FFF', fontWeight: 700, textTransform: 'none', borderRadius: '6px' }}
+                    >
+                      Open Document in New Tab
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      onClick={() => setDocImgError(false)}
+                      sx={{ color: '#E2E8F0', borderColor: '#475569', fontWeight: 600, textTransform: 'none', borderRadius: '6px' }}
+                    >
+                      Retry Load
+                    </Button>
+                  </Box>
+                </Box>
+              ) : (
+                <img
+                  src={resolveMediaUrl(docPreviewModal.url)}
+                  alt="Document Preview"
+                  onError={() => setDocImgError(true)}
+                  style={{
+                    maxWidth: '100%',
+                    maxHeight: '62vh',
+                    objectFit: 'contain',
+                    borderRadius: '6px',
+                    boxShadow: '0 8px 30px rgba(0,0,0,0.5)',
+                    transform: `scale(${docZoom})`,
+                    transformOrigin: 'center center',
+                    transition: 'transform 0.15s ease'
+                  }}
+                />
+              )}
             </Box>
           </ModalBody>
 
@@ -4663,7 +4714,7 @@ export default function AdminDashboardPage() {
                       variant="contained"
                       startIcon={<CheckCircleIcon sx={{ fontSize: 16 }} />}
                       onClick={() => handleKycDecision(docPreviewModal.data.id, 'approve')}
-                      sx={{ bgcolor: '#16A34A', color: '#FFF', fontWeight: 700, textTransform: 'none', borderRadius: '12px', height: 44, px: 2, '&:hover': { bgcolor: '#15803D' } }}
+                      sx={{ bgcolor: '#16A34A', color: '#FFF', fontWeight: 700, textTransform: 'none', borderRadius: '6px', height: 40, px: 2, '&:hover': { bgcolor: '#15803D' } }}
                     >
                       Approve KYC
                     </Button>
@@ -4671,7 +4722,7 @@ export default function AdminDashboardPage() {
                       variant="outlined"
                       startIcon={<CancelIcon sx={{ fontSize: 16 }} />}
                       onClick={() => handleKycDecision(docPreviewModal.data.id, 'reject')}
-                      sx={{ color: '#DC2626', borderColor: '#FCA5A5', fontWeight: 700, textTransform: 'none', borderRadius: '12px', height: 44, px: 2 }}
+                      sx={{ color: '#DC2626', borderColor: '#FCA5A5', fontWeight: 700, textTransform: 'none', borderRadius: '6px', height: 40, px: 2 }}
                     >
                       Reject KYC
                     </Button>
@@ -4680,7 +4731,7 @@ export default function AdminDashboardPage() {
                 <Button
                   variant="outlined"
                   onClick={() => setDocPreviewModal(prev => ({ ...prev, open: false }))}
-                  sx={{ color: '#0F172A', borderColor: '#E2E8F0', fontWeight: 600, borderRadius: '14px', height: 44, px: 2.5, textTransform: 'none' }}
+                  sx={{ color: '#0F172A', borderColor: '#E2E8F0', fontWeight: 600, borderRadius: '6px', height: 40, px: 2.5, textTransform: 'none' }}
                 >
                   Close
                 </Button>
