@@ -181,9 +181,6 @@ export default function TrackingPage() {
           }
 
           setTrackData(data);
-          if (data.booking?.scheduled_slot) {
-            setNewSlot(data.booking.scheduled_slot);
-          }
         }
       } catch (err) {
         console.warn('Real-time tracking poll:', err);
@@ -1617,76 +1614,6 @@ export default function TrackingPage() {
       />
 
 
-      {/* RESCHEDULE SLOT MODAL */}
-      <Modal open={rescheduleOpen} onClose={() => setRescheduleOpen(false)} maxWidth="xs">
-        <ModalHeader
-          title="Update preferred inspection time"
-          subtitle="Salem Central Ops will assign a verified partner according to your slot"
-          onClose={() => setRescheduleOpen(false)}
-        />
-        <ModalBody>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-            {[
-              { id: 'priority_12h', title: 'Priority 12-hour window', subtitle: 'First available technician' },
-              { id: 'morning_9_11', title: 'Tomorrow morning', subtitle: '09:00 AM - 11:00 AM' },
-              { id: 'afternoon_2_4', title: 'Tomorrow afternoon', subtitle: '02:00 PM - 04:00 PM' },
-              { id: 'evening_5_7', title: 'Tomorrow evening', subtitle: '05:00 PM - 07:00 PM' }
-            ].map(slot => (
-              <Paper
-                key={slot.id}
-                elevation={0}
-                onClick={() => setNewSlot(slot.id)}
-                sx={{
-                  p: 1.5,
-                  borderRadius: '12px',
-                  cursor: 'pointer',
-                  minHeight: 48,
-                  border: '1.5px solid',
-                  borderColor: newSlot === slot.id ? '#0A66C2' : '#E2E8F0',
-                  bgcolor: newSlot === slot.id ? '#F0F7FF' : '#FFFFFF',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1.5,
-                  transition: 'border-color 0.15s ease'
-                }}
-              >
-                <Radio checked={newSlot === slot.id} size="small" sx={{ p: 0, color: '#0A66C2' }} />
-                <Box>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '14px' }}>
-                    {slot.title}
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: '#64748B', fontSize: '12px' }}>{slot.subtitle}</Typography>
-                </Box>
-              </Paper>
-            ))}
-          </Box>
-        </ModalBody>
-        <ModalFooter>
-          <Button
-            onClick={() => setRescheduleOpen(false)}
-            sx={{ fontWeight: 600, color: '#64748B', textTransform: 'none', height: 48 }}
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleUpdateSlot}
-            disabled={slotUpdating}
-            sx={{
-              bgcolor: '#0A66C2',
-              color: '#FFF',
-              fontWeight: 700,
-              borderRadius: '14px',
-              height: 48,
-              minWidth: 140,
-              textTransform: 'none',
-              '&:hover': { bgcolor: '#084e96' }
-            }}
-          >
-            {slotUpdating ? 'Saving...' : 'Confirm update'}
-          </Button>
-        </ModalFooter>
-      </Modal>
 
 
 
