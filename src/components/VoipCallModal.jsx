@@ -53,6 +53,7 @@ export default function VoipCallModal({
   const pendingIceCandidatesQueueRef = useRef([]);
   const ringtoneOscillatorRef = useRef(null);
   const audioContextRef = useRef(null);
+  const answerPollRef = useRef(null);
 
   const startRingtone = () => {
     try {
@@ -101,6 +102,11 @@ export default function VoipCallModal({
     }
     processedCandidatesRef.current.clear();
     pendingIceCandidatesQueueRef.current = [];
+    // Ensure any answer polling interval is cleared to avoid stray timers
+    if (answerPollRef.current) {
+      clearInterval(answerPollRef.current);
+      answerPollRef.current = null;
+    }
   };
 
   const acquireMicrophone = async () => {
@@ -212,6 +218,26 @@ export default function VoipCallModal({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bookingId, sdp: offer.sdp, role })
       });
+
+      // Start polling for answer after offer is sent (only if we have a bookingId)
+      if (bookingId) {
+        answerPollRef.current = setInterval(async () => {
+          try {
+            const answerRes = await fetch(`${API_BASE_URL}/api/v1/webrtc/answer?bookingId=${bookingId}`);
+            const answerData = await answerRes.json();
+            if (answerData.success && answerData.answer && answerData.answer.sdp) {
+              await pc.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: answerData.answer.sdp }));
+              // Connection established
+              setCallState('CONNECTED');
+              stopRingtone();
+              clearInterval(answerPollRef.current);
+              answerPollRef.current = null;
+            }
+          } catch (e) {
+            console.warn('Error polling for answer:', e);
+          }
+        }, 3000);
+      }
     } catch (err) {
       console.error('Failed to create/send offer:', err);
       stopRingtone();
@@ -264,6 +290,12 @@ export default function VoipCallModal({
           body: JSON.stringify({ bookingId, role })
         });
       } catch (e) {}
+    }
+
+    // Clear any answer polling interval
+    if (answerPollRef.current) {
+      clearInterval(answerPollRef.current);
+      answerPollRef.current = null;
     }
 
     setTimeout(() => {

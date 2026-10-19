@@ -78,7 +78,11 @@ export default function TrackingPage() {
 
   const [chatOpen, setChatOpen] = useState(false);
   const [callOpen, setCallOpen] = useState(false);
+  // Incoming call flag for VoIP modal
   const [isIncomingCall, setIsIncomingCall] = useState(false);
+  // Guard against double escrow release
+  const escrowReleasedRef = useRef(false);
+
   const [incomingMessageToast, setIncomingMessageToast] = useState(null);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
 
@@ -362,6 +366,7 @@ export default function TrackingPage() {
   };
 
   const bookingStatus = trackData?.booking?.status || 'matching';
+  const booking = trackData?.booking || null;
   const isScheduledBooking = trackData?.booking?.booking_type === 'scheduled' || 
     (Boolean(trackData?.booking?.scheduled_slot) && trackData?.booking?.scheduled_slot !== 'instant_now') || 
     Boolean(trackData?.isScheduled);
@@ -1755,12 +1760,15 @@ export default function TrackingPage() {
               setIsReleasingEscrow(true);
               try {
                 // 1. Release escrow payment on backend
+                if (escrowReleasedRef.current) return;
+                escrowReleasedRef.current = true;
                 await fetch(`${API_V1_URL}/payments/escrow/release`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
-                    bookingId: bookingId,
-                    customerOtp: '4892'
+                    bookingId: trackData?.booking?.id,
+                    // Optional OTP if required; remove static placeholder
+                    // customerOtp: enteredOtp || undefined
                   })
                 }).catch(() => {});
 
