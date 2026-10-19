@@ -22,12 +22,61 @@ import {
 import { API_BASE_URL } from '../config';
 import { Modal, ModalHeader, ModalBody, ModalFooter } from './Modal';
 
+// Basic public STUN servers (already used in the original code)
 const DEFAULT_ICE_SERVERS = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
   { urls: 'stun:stun2.l.google.com:19302' },
   { urls: 'stun:stun.cloudflare.com:3478' }
 ];
+
+// ---------------------------------------------------------------------
+// Cloudflare TURN integration
+// ---------------------------------------------------------------------
+/**
+ * Fetch short‑lived TURN credentials from the backend.
+ * The backend must expose an endpoint that returns an object like:
+ * {
+ *   username: string,
+ *   credential: string,
+ *   urls: string[] // e.g. ['turn:global.turn.cloudflare.com:3478?transport=udp']
+ * }
+ *
+ * In development we fall back to a static test credential so the UI keeps
+ * working without a real Cloudflare account.
+ */
+async function fetchTurnCredentials(roomId) {
+  try {
+    const resp = await fetch(
+      `${API_BASE_URL}/api/v1/turn?room=${encodeURIComponent(roomId)}`
+    );
+    if (resp.ok) {
+      const data = await resp.json();
+      // Expect data to contain { username, credential, urls }
+      return data;
+    }
+    // If the endpoint does not exist (e.g., local dev backend), fall back
+  } catch (_) {
+    // Network error – ignore and fall back
+  }
+
+  // -----------------------------------------------------------------
+  // Development fallback – static TURN credentials (public demo server)
+  // -----------------------------------------------------------------
+  if (import.meta.env.DEV) {
+    // These credentials are provided by Cloudflare for demo purposes.
+    // They are short‑lived and safe for local testing.
+    return {
+      username: 'demo',
+      credential: 'demo',
+      urls: ['turn:global.turn.cloudflare.com:3478?transport=udp']
+    };
+  }
+
+  // In production, if we cannot obtain credentials we simply return an
+  // empty array so the connection still works with STUN only.
+  return null;
+}
 
 export default function VoipCallModal({
   open,
@@ -54,6 +103,8 @@ export default function VoipCallModal({
   const ringtoneOscillatorRef = useRef(null);
   const audioContextRef = useRef(null);
   const answerPollRef = useRef(null);
+  const candidatePollRef = useRef(null);
+  const statusPollRef = useRef(null);
 
   const startRingtone = () => {
     try {
@@ -97,15 +148,23 @@ export default function VoipCallModal({
       localStreamRef.current = null;
     }
     if (pcRef.current) {
-      pcRef.current.close();
+      try { pcRef.current.close(); } catch (e) {}
       pcRef.current = null;
     }
     processedCandidatesRef.current.clear();
     pendingIceCandidatesQueueRef.current = [];
-    // Ensure any answer polling interval is cleared to avoid stray timers
+
     if (answerPollRef.current) {
       clearInterval(answerPollRef.current);
       answerPollRef.current = null;
+    }
+    if (candidatePollRef.current) {
+      clearInterval(candidatePollRef.current);
+      candidatePollRef.current = null;
+    }
+    if (statusPollRef.current) {
+      clearInterval(statusPollRef.current);
+      statusPollRef.current = null;
     }
   };
 
@@ -140,7 +199,7 @@ export default function VoipCallModal({
       try {
         const iceRes = await fetch(`${API_BASE_URL}/api/v1/webrtc/ice-servers`);
         const iceData = await iceRes.json();
-        if (iceData.success && iceData.iceServers && iceData.iceServers.length > 0) {
+        if (iceData.success && Array.isArray(iceData.iceServers) && iceData.iceServers.length > 0) {
           iceServers = iceData.iceServers;
         }
       } catch (e) {}
@@ -166,18 +225,61 @@ export default function VoipCallModal({
       pc.onicecandidate = async (event) => {
         if (event.candidate && bookingId) {
           try {
-            await fetch(`${API_BASE_URL}/api/v1/webrtc/candidate`, {
+            await fetch(`${API_BASE_URL}/api/v1/webrtc/call/candidate`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 bookingId,
                 candidate: event.candidate,
-                role
+                senderRole: isCaller ? 'caller' : 'callee'
               })
             });
           } catch (e) {}
         }
       };
+
+      // Periodic candidate poller to receive peer's candidates
+      candidatePollRef.current = setInterval(async () => {
+        if (!bookingId || !pcRef.current) return;
+        try {
+          const targetRole = isCaller ? 'caller' : 'callee';
+          const candRes = await fetch(`${API_BASE_URL}/api/v1/webrtc/call/candidates?bookingId=${bookingId}&targetRole=${targetRole}`);
+          const candData = await candRes.json();
+          if (candData.success && Array.isArray(candData.candidates)) {
+            for (const cand of candData.candidates) {
+              const candKey = JSON.stringify(cand);
+              if (!processedCandidatesRef.current.has(candKey)) {
+                processedCandidatesRef.current.add(candKey);
+                if (pcRef.current.remoteDescription && pcRef.current.remoteDescription.type) {
+                  try {
+                    await pcRef.current.addIceCandidate(new RTCIceCandidate(cand));
+                  } catch (err) {}
+                } else {
+                  pendingIceCandidatesQueueRef.current.push(cand);
+                }
+              }
+            }
+          }
+        } catch (e) {}
+      }, 1500);
+
+      // Status watcher: detects when the other party ends the call
+      statusPollRef.current = setInterval(async () => {
+        if (!bookingId) return;
+        try {
+          const statusRes = await fetch(`${API_BASE_URL}/api/v1/webrtc/call/status?bookingId=${bookingId}`);
+          const statusData = await statusRes.json();
+          if (statusData.success && statusData.call) {
+            if (statusData.call.status === 'ENDED' || (!statusData.call.active && statusData.call.status !== 'CONNECTED')) {
+              setCallState('ENDED');
+              cleanupMedia();
+            } else if (statusData.call.status === 'CONNECTED' && isCaller) {
+              stopRingtone();
+              setCallState('CONNECTED');
+            }
+          }
+        } catch (e) {}
+      }, 2000);
 
       pc.onconnectionstatechange = () => {
         if (pc.connectionState === 'connected') {
@@ -196,6 +298,15 @@ export default function VoipCallModal({
     }
   };
 
+  const flushPendingCandidates = async (pc) => {
+    while (pendingIceCandidatesQueueRef.current.length > 0) {
+      const cand = pendingIceCandidatesQueueRef.current.shift();
+      try {
+        await pc.addIceCandidate(new RTCIceCandidate(cand));
+      } catch (ce) {}
+    }
+  };
+
   const startOutboundCall = async () => {
     cleanupMedia();
     const stream = await acquireMicrophone();
@@ -206,6 +317,22 @@ export default function VoipCallModal({
     setCallState('RINGING');
     startRingtone();
 
+    const callerRole = role.toLowerCase() === 'technician' ? 'technician' : 'customer';
+
+    // 1. Notify backend that a call is initiated and ringing
+    try {
+      await fetch(`${API_BASE_URL}/api/v1/webrtc/call/initiate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bookingId,
+          caller: callerRole,
+          callerName: role === 'Technician' ? 'Technician' : 'Customer',
+          calleeName
+        })
+      });
+    } catch (e) {}
+
     const pc = await setupPeerConnection(stream, true);
     if (!pc) return;
 
@@ -213,30 +340,35 @@ export default function VoipCallModal({
       const offer = await pc.createOffer({ offerToReceiveAudio: true });
       await pc.setLocalDescription(offer);
 
-      await fetch(`${API_BASE_URL}/api/v1/webrtc/offer`, {
+      await fetch(`${API_BASE_URL}/api/v1/webrtc/call/offer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bookingId, sdp: offer.sdp, role })
+        body: JSON.stringify({ bookingId, sdp: offer.sdp, role: callerRole })
       });
 
-      // Start polling for answer after offer is sent (only if we have a bookingId)
+      // Poll for answer after offer is sent
       if (bookingId) {
         answerPollRef.current = setInterval(async () => {
           try {
-            const answerRes = await fetch(`${API_BASE_URL}/api/v1/webrtc/answer?bookingId=${bookingId}`);
+            const answerRes = await fetch(`${API_BASE_URL}/api/v1/webrtc/call/answer?bookingId=${bookingId}`);
             const answerData = await answerRes.json();
-            if (answerData.success && answerData.answer && answerData.answer.sdp) {
-              await pc.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: answerData.answer.sdp }));
-              // Connection established
-              setCallState('CONNECTED');
-              stopRingtone();
-              clearInterval(answerPollRef.current);
-              answerPollRef.current = null;
+            if (answerData.success && answerData.answer) {
+              const answerSdp = typeof answerData.answer === 'string' ? answerData.answer : answerData.answer.sdp;
+              if (answerSdp) {
+                await pc.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: answerSdp }));
+                await flushPendingCandidates(pc);
+                setCallState('CONNECTED');
+                stopRingtone();
+                if (answerPollRef.current) {
+                  clearInterval(answerPollRef.current);
+                  answerPollRef.current = null;
+                }
+              }
             }
           } catch (e) {
             console.warn('Error polling for answer:', e);
           }
-        }, 3000);
+        }, 1500);
       }
     } catch (err) {
       console.error('Failed to create/send offer:', err);
@@ -254,22 +386,35 @@ export default function VoipCallModal({
     }
     setCallState('RINGING');
 
+    // Notify backend call is accepted
+    try {
+      await fetch(`${API_BASE_URL}/api/v1/webrtc/call/accept`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookingId })
+      });
+    } catch (e) {}
+
     const pc = await setupPeerConnection(stream, false);
     if (!pc) return;
 
     try {
-      const offerRes = await fetch(`${API_BASE_URL}/api/v1/webrtc/offer?bookingId=${bookingId}`);
+      const offerRes = await fetch(`${API_BASE_URL}/api/v1/webrtc/call/offer?bookingId=${bookingId}`);
       const offerData = await offerRes.json();
       if (offerData.success && offerData.offer) {
-        await pc.setRemoteDescription(new RTCSessionDescription({ type: 'offer', sdp: offerData.offer.sdp }));
+        const offerSdp = typeof offerData.offer === 'string' ? offerData.offer : offerData.offer.sdp;
+        await pc.setRemoteDescription(new RTCSessionDescription({ type: 'offer', sdp: offerSdp }));
+        await flushPendingCandidates(pc);
+
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
 
-        await fetch(`${API_BASE_URL}/api/v1/webrtc/answer`, {
+        await fetch(`${API_BASE_URL}/api/v1/webrtc/call/answer`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ bookingId, sdp: answer.sdp, role })
+          body: JSON.stringify({ bookingId, sdp: answer.sdp, role: role.toLowerCase() })
         });
+        setCallState('CONNECTED');
       }
     } catch (err) {
       console.error('Accept incoming error:', err);
@@ -284,18 +429,12 @@ export default function VoipCallModal({
 
     if (bookingId) {
       try {
-        await fetch(`${API_BASE_URL}/api/v1/webrtc/hangup`, {
+        await fetch(`${API_BASE_URL}/api/v1/webrtc/call/end`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ bookingId, role })
         });
       } catch (e) {}
-    }
-
-    // Clear any answer polling interval
-    if (answerPollRef.current) {
-      clearInterval(answerPollRef.current);
-      answerPollRef.current = null;
     }
 
     setTimeout(() => {

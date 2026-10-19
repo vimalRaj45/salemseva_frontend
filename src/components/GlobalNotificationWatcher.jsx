@@ -45,10 +45,10 @@ export default function GlobalNotificationWatcher() {
         // A. Technician: Check for New Assigned Job if Online
         if (isPartnerOnline && partnerPhone) {
           try {
-            // Remove all non-digit characters (including '+') to ensure backend receives a plain numeric phone
-            let cleanPhone = partnerPhone.replace(/[^\d]/g, '');
-            // Fallback to a dummy phone number for development/testing to avoid using a real number
-            if (!cleanPhone) {
+            // Prepare phone: keep only digits, prepend '+' if missing. Use dummy in dev.
+            let digits = partnerPhone.replace(/[^\d]/g, '');
+            let cleanPhone = digits ? `+${digits}` : '';
+            if (import.meta.env.DEV) {
               cleanPhone = '1234567890';
             }
             const syncRes = await fetch(`${API_BASE_URL}/api/v1/partner/duty/sync?phone=${encodeURIComponent(cleanPhone)}`);

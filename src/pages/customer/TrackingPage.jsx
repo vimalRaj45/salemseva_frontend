@@ -371,11 +371,10 @@ export default function TrackingPage() {
     (Boolean(trackData?.booking?.scheduled_slot) && trackData?.booking?.scheduled_slot !== 'instant_now') || 
     Boolean(trackData?.isScheduled);
 
-  const isRideActive = ['en_route', 'arrived', 'inspecting', 'quote_presented', 'quote_approved', 'completed'].includes(bookingStatus);
+  const isRideActive = ['assigned', 'technician_assigned', 'partner_assigned', 'en_route', 'arrived', 'inspecting', 'quote_presented', 'quote_approved', 'completed'].includes(bookingStatus);
   const tech = trackData?.technician;
-  const hasOnlineTech = isScheduledBooking 
-    ? Boolean(tech && isRideActive)
-    : Boolean(tech && (trackData?.hasOnlineTech || isRideActive));
+  // Once a technician is assigned to the booking, enable live communication (call & chat) at all stages
+  const hasOnlineTech = Boolean(tech);
 
   // Poll uploaded store bill & dynamic settlement when quote is approved or completed
   useEffect(() => {
@@ -585,11 +584,51 @@ export default function TrackingPage() {
                   />
                 </Box>
 
-                <Box sx={{ bgcolor: '#F0FDF4', p: 1.5, borderRadius: '12px', border: '1px solid #DCFCE7', display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                <Box sx={{ bgcolor: '#F0FDF4', p: 1.5, borderRadius: '12px', border: '1px solid #DCFCE7', display: 'flex', alignItems: 'flex-start', gap: 1, mb: 1.5 }}>
                   <NotificationsActiveIcon sx={{ color: '#16A34A', fontSize: 20, mt: 0.2, flexShrink: 0 }} />
                   <Typography variant="caption" sx={{ color: '#166534', fontWeight: 700, lineHeight: 1.45 }}>
                     Technician assigned and scheduled. You will receive an instant notification with live GPS tracking when the technician starts the ride to your doorstep (~30-45 mins before your chosen window).
                   </Typography>
+                </Box>
+
+                {/* Direct Call & Chat Action Buttons in Standby */}
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    startIcon={<ChatBubbleOutlineIcon sx={{ fontSize: 16 }} />}
+                    onClick={() => setChatOpen(true)}
+                    sx={{
+                      borderColor: '#CBD5E1',
+                      color: '#334155',
+                      borderRadius: '8px',
+                      py: 0.8,
+                      fontWeight: 700,
+                      fontSize: '12.5px',
+                      textTransform: 'none',
+                      '&:hover': { borderColor: '#94A3B8', bgcolor: '#F8FAFC' }
+                    }}
+                  >
+                    Masked chat
+                  </Button>
+
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    startIcon={<PhoneIcon sx={{ fontSize: 16 }} />}
+                    onClick={() => setCallOpen(true)}
+                    sx={{
+                      bgcolor: '#2563EB',
+                      borderRadius: '8px',
+                      py: 0.8,
+                      fontWeight: 700,
+                      fontSize: '12.5px',
+                      textTransform: 'none',
+                      '&:hover': { bgcolor: '#1D4ED8' }
+                    }}
+                  >
+                    Call technician
+                  </Button>
                 </Box>
               </Card>
             )}
@@ -717,11 +756,20 @@ export default function TrackingPage() {
                     </Paper>
 
                     {/* Stage 3: Specialist Allocation */}
-                    <Paper elevation={0} sx={{ p: 1.4, bgcolor: tech ? '#F0FDF4' : '#FFFBEB', border: tech ? '1.5px solid #BBF7D0' : '1.5px solid #FDE68A', borderRadius: '10px' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+                    <Paper 
+                      elevation={0} 
+                      sx={{ 
+                        p: 1.6, 
+                        bgcolor: tech ? '#F0FDF4' : '#FFFBEB', 
+                        border: tech ? '1.5px solid #86EFAC' : '1.5px solid #FDE68A', 
+                        borderRadius: '12px',
+                        transition: 'all 0.2s ease-in-out'
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.8 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
                           {tech ? (
-                            <CheckCircleIcon sx={{ color: '#10B981', fontSize: 18 }} />
+                            <CheckCircleIcon sx={{ color: '#16A34A', fontSize: 18 }} />
                           ) : (
                             <HourglassTopIcon sx={{ color: '#D97706', fontSize: 18 }} />
                           )}
@@ -730,7 +778,7 @@ export default function TrackingPage() {
                           </Typography>
                         </Box>
                         <Chip 
-                          label={tech ? "ALLOCATED" : "IN PROGRESS"} 
+                          label={tech ? "ALLOCATED • COMPLETED" : "IN PROGRESS"} 
                           size="small" 
                           sx={{ 
                             bgcolor: tech ? '#DCFCE7' : '#FEF3C7', 
@@ -743,11 +791,99 @@ export default function TrackingPage() {
                       </Box>
                       <Typography variant="caption" sx={{ color: '#475569', display: 'block', pl: 3.2, fontSize: '11px', lineHeight: 1.4 }}>
                         {tech ? (
-                          <>நிபுணர் நியமிக்கப்பட்டுள்ளார்: <strong>{tech.name}</strong> ({tech.rating} ரேட்டிங் • {tech.primaryTrade?.toUpperCase() || 'SERVICE'}).</>
+                          <>நிபுணர் நியமிக்கப்பட்டுள்ளார்: <strong>{tech.name}</strong> ({tech.rating} ரேட்டிங் • {tech.primaryTrade?.toUpperCase() || 'SERVICE'}). வாடிக்கையாளர் மற்றும் நிபுணர் இடையேயான நேரடி அழைப்பு (Call) மற்றும் அரட்டை (Chat) சேவை இப்போது திறக்கப்பட்டுள்ளது.</>
                         ) : (
                           <>சேலம் தலைமை கட்டுப்பாட்டு அறை உங்கள் பகுதிக்கான சிறந்த ரேட்டிங் பெற்ற சான்றளிக்கப்பட்ட தொழில்நுட்ப நிபுணரை ஒதுக்கி வருகிறது.</>
                         )}
                       </Typography>
+
+                      {/* When Stage 3 is Done: Direct Customer-to-Technician Communication Panel */}
+                      {tech && (
+                        <Box sx={{ mt: 1.5, pl: 3.2 }}>
+                          <Box sx={{ 
+                            bgcolor: '#FFFFFF', 
+                            border: '1px solid #BBF7D0', 
+                            borderRadius: '10px', 
+                            p: 1.5,
+                            boxShadow: '0 2px 8px rgba(22, 163, 74, 0.08)'
+                          }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.2 }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Avatar 
+                                  sx={{ 
+                                    width: 36, 
+                                    height: 36, 
+                                    bgcolor: '#2563EB', 
+                                    fontSize: '13px', 
+                                    fontWeight: 800 
+                                  }}
+                                >
+                                  {tech.name ? tech.name.substring(0, 2).toUpperCase() : 'SP'}
+                                </Avatar>
+                                <Box>
+                                  <Typography sx={{ fontWeight: 800, fontSize: '13px', color: '#0F172A', lineHeight: 1.2 }}>
+                                    {tech.name}
+                                  </Typography>
+                                  <Typography sx={{ fontSize: '11px', color: '#64748B' }}>
+                                    Certified Expert • {tech.rating || 5.0} ★ ({tech.jobsCompleted || 0} jobs completed)
+                                  </Typography>
+                                </Box>
+                              </Box>
+                              <Chip
+                                icon={<CheckCircleIcon sx={{ fontSize: 12, color: '#16A34A !important' }} />}
+                                label="Govt KYC"
+                                size="small"
+                                sx={{ bgcolor: '#F0FDF4', color: '#166534', fontWeight: 700, fontSize: '9.5px', height: 20 }}
+                              />
+                            </Box>
+
+                            {/* Masked Communication Notice */}
+                            <Typography variant="caption" sx={{ display: 'block', color: '#166534', fontWeight: 600, fontSize: '10.5px', mb: 1.2, bgcolor: '#F0FDF4', p: 0.6, borderRadius: '6px' }}>
+                              🔒 Masked privacy relay active • Call & Chat directly with your technician
+                            </Typography>
+
+                            {/* Direct Communication Action Buttons */}
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                              <Button
+                                variant="outlined"
+                                fullWidth
+                                startIcon={<ChatBubbleOutlineIcon sx={{ fontSize: 15 }} />}
+                                onClick={() => setChatOpen(true)}
+                                sx={{
+                                  borderColor: '#CBD5E1',
+                                  color: '#334155',
+                                  borderRadius: '6px',
+                                  py: 0.8,
+                                  fontWeight: 700,
+                                  fontSize: '12px',
+                                  textTransform: 'none',
+                                  '&:hover': { borderColor: '#94A3B8', bgcolor: '#F8FAFC' }
+                                }}
+                              >
+                                Masked chat
+                              </Button>
+
+                              <Button
+                                variant="contained"
+                                fullWidth
+                                startIcon={<PhoneIcon sx={{ fontSize: 15 }} />}
+                                onClick={() => setCallOpen(true)}
+                                sx={{
+                                  bgcolor: '#2563EB',
+                                  borderRadius: '6px',
+                                  py: 0.8,
+                                  fontWeight: 700,
+                                  fontSize: '12px',
+                                  textTransform: 'none',
+                                  '&:hover': { bgcolor: '#1D4ED8' }
+                                }}
+                              >
+                                Call technician
+                              </Button>
+                            </Box>
+                          </Box>
+                        </Box>
+                      )}
                     </Paper>
 
                     {/* Stage 4: Slot Confirmation & Staging */}
@@ -823,48 +959,76 @@ export default function TrackingPage() {
                 </Button>
               </Box>
 
-              {/* Salem Central Hotline Desk */}
+              {/* Direct Partner or Salem Central Hotline Desk */}
               <Paper
                 elevation={0}
                 sx={{
                   p: 1.5,
                   bgcolor: '#FFFFFF',
-                  border: '1px dashed #CBD5E1',
+                  border: tech ? '1.5px solid #BBF7D0' : '1px dashed #CBD5E1',
                   borderRadius: '12px',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'space-between'
+                  justifyContent: 'space-between',
+                  boxShadow: tech ? '0 2px 8px rgba(22, 163, 74, 0.06)' : 'none'
                 }}
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <HeadsetIcon sx={{ color: '#0284C7', fontSize: 20 }} />
+                  {tech ? (
+                    <Avatar sx={{ width: 34, height: 34, bgcolor: '#2563EB', fontSize: '13px', fontWeight: 800 }}>
+                      {tech.name ? tech.name[0] : 'T'}
+                    </Avatar>
+                  ) : (
+                    <HeadsetIcon sx={{ color: '#0284C7', fontSize: 20 }} />
+                  )}
                   <Box>
                     <Typography variant="caption" sx={{ fontWeight: 800, color: '#0F172A', display: 'block' }}>
-                      Salem Central Ops Desk: Anand
+                      {tech ? `Assigned Specialist: ${tech.name}` : 'Salem Central Ops Desk: Anand'}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: '#64748B' }}>
-                      Direct Phone: 0427-2448888
+                    <Typography variant="caption" sx={{ color: tech ? '#166534' : '#64748B', fontWeight: tech ? 700 : 500 }}>
+                      {tech ? 'Masked VoIP Call & Real-time Chat Active' : 'Direct Phone: 0427-2448888'}
                     </Typography>
                   </Box>
                 </Box>
 
-                <Button
-                  size="small"
-                  variant="contained"
-                  startIcon={<PhoneIcon sx={{ fontSize: 13 }} />}
-                  onClick={() => setCallOpen(true)}
-                  sx={{
-                    bgcolor: '#0F172A',
-                    color: '#FFF',
-                    borderRadius: '10px',
-                    fontSize: '11px',
-                    fontWeight: 800,
-                    textTransform: 'none',
-                    '&:hover': { bgcolor: '#1E293B' }
-                  }}
-                >
-                  Call Desk
-                </Button>
+                <Box sx={{ display: 'flex', gap: 0.8 }}>
+                  {tech && (
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      startIcon={<ChatBubbleOutlineIcon sx={{ fontSize: 13 }} />}
+                      onClick={() => setChatOpen(true)}
+                      sx={{
+                        borderColor: '#CBD5E1',
+                        color: '#334155',
+                        borderRadius: '8px',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        textTransform: 'none',
+                        '&:hover': { borderColor: '#94A3B8', bgcolor: '#F8FAFC' }
+                      }}
+                    >
+                      Chat
+                    </Button>
+                  )}
+                  <Button
+                    size="small"
+                    variant="contained"
+                    startIcon={<PhoneIcon sx={{ fontSize: 13 }} />}
+                    onClick={() => setCallOpen(true)}
+                    sx={{
+                      bgcolor: tech ? '#2563EB' : '#0F172A',
+                      color: '#FFF',
+                      borderRadius: '8px',
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      textTransform: 'none',
+                      '&:hover': { bgcolor: tech ? '#1D4ED8' : '#1E293B' }
+                    }}
+                  >
+                    {tech ? 'Call Tech' : 'Call Desk'}
+                  </Button>
+                </Box>
               </Paper>
 
               {/* Cancel Option for Queued Booking */}
