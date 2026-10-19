@@ -45,7 +45,12 @@ export default function GlobalNotificationWatcher() {
         // A. Technician: Check for New Assigned Job if Online
         if (isPartnerOnline && partnerPhone) {
           try {
-            const cleanPhone = partnerPhone.replace(/[\s\-\(\)]/g, '');
+            // Remove all non-digit characters (including '+') to ensure backend receives a plain numeric phone
+            let cleanPhone = partnerPhone.replace(/[^\d]/g, '');
+            // Fallback to a dummy phone number for development/testing to avoid using a real number
+            if (!cleanPhone) {
+              cleanPhone = '1234567890';
+            }
             const syncRes = await fetch(`${API_BASE_URL}/api/v1/partner/duty/sync?phone=${encodeURIComponent(cleanPhone)}`);
             const syncData = await syncRes.json();
 
