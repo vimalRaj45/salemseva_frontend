@@ -41,7 +41,7 @@ import { ILLUSTRATIONS } from '../../constants/visualAssets';
 const ONBOARDING_STEPS = [
   { label: 'Basic Profile', tamil: 'சுயவிவரம்' },
   { label: 'Aadhaar e-KYC', tamil: 'அடையாளச் சான்று' },
-  { label: 'Bank Payout', tamil: 'வங்கி & கடவுச்சொல்' }
+  { label: 'Payout Phone', tamil: 'கொடுப்பனவு எண்' }
 ];
 
 export default function PartnerOnboardingPage() {
@@ -58,7 +58,7 @@ export default function PartnerOnboardingPage() {
   const [yearsExperience, setYearsExperience] = useState(() => searchParams.get('exp') || user?.years_experience || user?.experienceYears || '');
   const [aadhaar, setAadhaar] = useState(() => user?.aadhaarNumber || '');
   const [aadhaarCardUrl, setAadhaarCardUrl] = useState(() => user?.aadhaarCardUrl || null);
-  const [upiId, setUpiId] = useState(() => user?.upiId || user?.upi_vpa || '');
+  const [payoutPhone, setPayoutPhone] = useState(() => user?.payoutPhone || mobile || '');
   const [referralCode, setReferralCode] = useState('');
   const [password, setPassword] = useState(() => searchParams.get('password') || '');
   const [confirmPassword, setConfirmPassword] = useState(() => searchParams.get('password') || '');
@@ -115,6 +115,13 @@ export default function PartnerOnboardingPage() {
       toast.error('காவல்துறை வழக்கு & நடத்தை உறுதிமொழியை ஏற்றுக்கொண்டு டிக் செய்யவும் (Please accept the legal declaration and background check statement)');
       return;
     }
+    const cleanPayout = payoutPhone.replace(/[^0-9]/g, '').slice(-10);
+    if (cleanPayout.length < 10) {
+      toast.error('சரியான 10 இலக்க கொடுப்பனவு மொபைல் எண்ணை உள்ளிடவும் (Enter valid 10-digit payout phone)');
+      return;
+    }
+    // Phone-linked UPI format: number@ybl
+    const derivedUpiId = `${cleanPayout}@ybl`;
     setIsProcessing(true);
     fetch(`${API_V1_URL}/partner/onboard`, {
       method: 'POST',
@@ -127,7 +134,8 @@ export default function PartnerOnboardingPage() {
         yearsExperience: parseInt(yearsExperience, 10) || 0,
         noPoliceCaseAccepted,
         aadhaar,
-        upiId,
+        upiId: derivedUpiId,
+        payoutPhone: cleanPayout,
         referralCode,
         aadhaarCardUrl
       })
@@ -141,6 +149,8 @@ export default function PartnerOnboardingPage() {
           plumber: 'Plumbing & Drainage Specialist',
           cleaning: 'Home & Bathroom Cleaning Pro'
         };
+        const cleanPayout2 = payoutPhone.replace(/[^0-9]/g, '').slice(-10);
+        const derivedUpi2 = cleanPayout2 ? `${cleanPayout2}@ybl` : '';
         const techObj = data.user || {
           id: data.technician?.id || `tech-${Date.now()}`,
           role: 'technician',
@@ -153,8 +163,8 @@ export default function PartnerOnboardingPage() {
           experienceYears: parseInt(yearsExperience, 10) || 0,
           isKycVerified: Boolean(data.technician?.is_kyc_verified),
           isOnline: false,
-          upiId: upiId || data.technician?.upi_vpa,
-          upi_vpa: upiId || data.technician?.upi_vpa,
+          payoutPhone: cleanPayout2,
+          upi_vpa: derivedUpi2 || data.technician?.upi_vpa,
           aadhaarCardUrl: aadhaarCardUrl || data.technician?.aadhaar_card_url,
           aadhaarNumber: aadhaar || data.technician?.aadhaar_number,
           serviceArea: 'Fairlands, Salem',
@@ -175,6 +185,7 @@ export default function PartnerOnboardingPage() {
           plumber: 'Plumbing & Drainage Specialist',
           cleaning: 'Home & Bathroom Cleaning Pro'
         };
+        const cleanPayout3 = payoutPhone.replace(/[^0-9]/g, '').slice(-10);
         const fallbackTech = {
           id: `tech-${Date.now()}`,
           role: 'technician',
@@ -185,8 +196,8 @@ export default function PartnerOnboardingPage() {
           tradeName: tradeNames[trade] || 'Home Services Specialist',
           isKycVerified: false,
           isOnline: false,
-          upiId,
-          upi_vpa: upiId,
+          payoutPhone: cleanPayout3,
+          upi_vpa: cleanPayout3 ? `${cleanPayout3}@ybl` : '',
           aadhaarCardUrl,
           aadhaarNumber: aadhaar,
           serviceArea: 'Fairlands, Salem',
@@ -508,29 +519,38 @@ export default function PartnerOnboardingPage() {
             </Box>
           )}
 
-          {/* STEP 2: BANK UPI & SECURITY PASSWORD */}
+          {/* STEP 2: PAYOUT PHONE & SECURITY PASSWORD */}
           {activeStep === 2 && (
             <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Box sx={{ pb: 1, borderBottom: '1px solid #F1F5F9' }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A' }}>
-                  படி 3: வங்கி வரவு & கடவுச்சொல் (Payout & Account Security)
+                  படி 3: கொடுப்பனவு எண் & கடவுச்சொல் (Payout Phone & Security)
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#64748B' }}>
-                  ஒவ்வொரு வேலையும் முடிந்தவுடன் 98% கட்டணம் உங்கள் UPI கணக்கிற்கு மாற்றப்படும்.
+                  ஒவ்வொரு வேலையும் முடிந்தவுடன் 98% கட்டணம் உங்கள் மொபைல் எண்ணுக்கு அனுப்பப்படும்.
                 </Typography>
               </Box>
 
-              {/* Bank UPI for 98% Split */}
+              {/* Payout Phone Number */}
               <Box>
                 <Typography variant="caption" sx={{ fontWeight: 800, color: '#64748B', display: 'block', mb: 0.6 }}>
-                  வருமானம் பெறும் UPI ID (98% DIRECT PAYOUT) *
+                  கொடுப்பனவு மொபைல் எண் (PAYOUT PHONE — 98% DIRECT) *
                 </Typography>
                 <TextField
                   fullWidth
                   size="small"
-                  value={upiId}
-                  onChange={(e) => setUpiId(e.target.value)}
-                  placeholder="e.g. mobile@okaxis or name@upi"
+                  inputMode="numeric"
+                  value={payoutPhone}
+                  onChange={(e) => setPayoutPhone(e.target.value.replace(/[^0-9]/g, '').slice(0, 10))}
+                  placeholder="e.g. 9842012345"
+                  helperText="பணம் இந்த மொபைல் எண்ணுடன் இணைந்த UPI கணக்கிற்கு அனுப்பப்படும் (Money sent via phone-linked UPI)"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Typography sx={{ fontWeight: 700, color: '#475569', fontSize: '14px' }}>+91</Typography>
+                      </InputAdornment>
+                    )
+                  }}
                   sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', fontWeight: 700 } }}
                 />
               </Box>
@@ -715,7 +735,7 @@ export default function PartnerOnboardingPage() {
       <ProcessingBackdrop
         open={isProcessing}
         title="டிஜிலாக்கர் ஆதார் e-KYC சரிபார்க்கப்படுகிறது..."
-        subtitle="சேலம் மத்திய பதிவு மற்றும் நேரடி வங்கி UPI சரிபார்ப்பு..."
+        subtitle="சேலம் மத்திய பதிவு மற்றும் கொடுப்பனவு மொபைல் சரிபார்ப்பு..."
         badge="DigiLocker Verified"
       />
     </Box>

@@ -164,9 +164,11 @@ export default function PartnerDutyPage() {
       return;
     }
     const amt = partnerIncentives.availablePayout;
-    await claimPartnerPayout('partner.pay@okaxis');
-    setReferredTechsList(prev => prev.map(t => ({ ...t, payoutStatus: 'SETTLED_TO_UPI', upiRef: `UPI-${Math.floor(1000000 + Math.random() * 9000000)}-SALEM` })));
-    setTechToast(`₹${amt}.00 successfully disbursed directly to your UPI ID (partner.pay@okaxis)!`);
+    const payPhone = activeTech?.payoutPhone || activeTech?.phone?.replace(/[^0-9]/g, '').slice(-10) || '';
+    const derivedPayout = payPhone ? `${payPhone}@ybl` : 'partner.pay@ybl';
+    await claimPartnerPayout(derivedPayout);
+    setReferredTechsList(prev => prev.map(t => ({ ...t, payoutStatus: 'SETTLED_TO_PHONE', phoneRef: `PHONE-${Math.floor(1000000 + Math.random() * 9000000)}-SALEM` })));
+    setTechToast(`₹${amt}.00 successfully sent to your payout phone +91${payPhone}!`);
   };
 
   // Active verification determination: Checks database status flags across all sources
@@ -544,7 +546,10 @@ export default function PartnerDutyPage() {
   // Profile & KYC Update Modal State
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [profileName, setProfileName] = useState(() => activeTech?.name || '');
-  const [profileUpi, setProfileUpi] = useState(() => activeTech?.upi_vpa || activeTech?.upiId || '');
+  const [profilePayoutPhone, setProfilePayoutPhone] = useState(() => {
+    const raw = activeTech?.payoutPhone || activeTech?.upi_vpa?.replace(/@.*$/, '') || '';
+    return raw;
+  });
   const [profileTrade, setProfileTrade] = useState(() => activeTech?.trade || 'ac');
   const [profileAadhaarUrl, setProfileAadhaarUrl] = useState(() => activeTech?.aadhaarCardUrl || null);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
@@ -552,7 +557,10 @@ export default function PartnerDutyPage() {
   useEffect(() => {
     if (activeTech) {
       if (activeTech.name) setProfileName(activeTech.name);
-      if (activeTech.upi_vpa || activeTech.upiId) setProfileUpi(activeTech.upi_vpa || activeTech.upiId);
+      if (activeTech.payoutPhone || activeTech.upi_vpa) {
+        const raw = activeTech.payoutPhone || activeTech.upi_vpa?.replace(/@.*$/, '') || '';
+        setProfilePayoutPhone(raw);
+      }
       if (activeTech.trade) setProfileTrade(activeTech.trade);
       if (activeTech.aadhaarCardUrl) setProfileAadhaarUrl(activeTech.aadhaarCardUrl);
     }
@@ -560,17 +568,20 @@ export default function PartnerDutyPage() {
 
   const handleOpenEditProfile = () => {
     setProfileName(activeTech?.name || '');
-    setProfileUpi(activeTech?.upi_vpa || activeTech?.upiId || '');
+    const raw2 = activeTech?.payoutPhone || activeTech?.upi_vpa?.replace(/@.*$/, '') || '';
+    setProfilePayoutPhone(raw2);
     setProfileTrade(activeTech?.trade || 'ac');
     setProfileAadhaarUrl(activeTech?.aadhaarCardUrl || null);
     setEditProfileOpen(true);
   };
 
   const handleSaveProfile = async () => {
-    if (!profileUpi.trim()) {
-      setTechToast('Please enter a valid UPI ID for daily payouts');
+    const cleanPayout = profilePayoutPhone.replace(/[^0-9]/g, '').slice(-10);
+    if (cleanPayout.length < 10) {
+      setTechToast('Please enter a valid 10-digit payout phone number');
       return;
     }
+    const derivedUpi = `${cleanPayout}@ybl`;
     setIsSavingProfile(true);
     try {
       const res = await fetch(`${API_V1_URL}/partner/profile/update`, {
@@ -580,7 +591,8 @@ export default function PartnerDutyPage() {
           phone: activeTech?.phone,
           technicianId: activeTech?.id,
           fullName: profileName.trim() || activeTech?.name,
-          upiId: profileUpi.trim(),
+          upiId: derivedUpi,
+          payoutPhone: cleanPayout,
           trade: profileTrade,
           aadhaarCardUrl: profileAadhaarUrl
         })
@@ -596,8 +608,8 @@ export default function PartnerDutyPage() {
         const updated = {
           ...activeTech,
           name: profileName.trim() || activeTech?.name,
-          upiId: profileUpi.trim(),
-          upi_vpa: profileUpi.trim(),
+          payoutPhone: cleanPayout,
+          upi_vpa: derivedUpi,
           trade: profileTrade,
           aadhaarCardUrl: profileAadhaarUrl
         };
@@ -608,11 +620,11 @@ export default function PartnerDutyPage() {
       }
     } catch (err) {
       setIsSavingProfile(false);
-      const updated = {
+      const updated2 = {
         ...activeTech,
         name: profileName.trim() || activeTech?.name,
-        upiId: profileUpi.trim(),
-        upi_vpa: profileUpi.trim(),
+        payoutPhone: cleanPayout,
+        upi_vpa: derivedUpi,
         trade: profileTrade,
         aadhaarCardUrl: profileAadhaarUrl
       };
@@ -4529,7 +4541,7 @@ export default function PartnerDutyPage() {
                 </Box>
                 <Chip
                   icon={<CheckCircleIcon sx={{ color: '#FFFFFF !important', fontSize: 13 }} />}
-                  label="Instant UPI Route"
+                  label="Instant Phone Route"
                   size="small"
                   sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: '#FFFFFF', fontWeight: 700, fontSize: '10px' }}
                 />
@@ -4538,7 +4550,7 @@ export default function PartnerDutyPage() {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, my: 1 }}>
                 <AccountBalanceIcon sx={{ color: '#A7F3D0', fontSize: 16 }} />
                 <Typography variant="caption" sx={{ color: '#E2E8F0', fontWeight: 600, fontSize: '11.5px' }}>
-                  Linked Settlement UPI: <strong>partner.pay@okaxis</strong>
+                  Payout Phone: <strong>+91{activeTech?.payoutPhone || activeTech?.phone?.replace(/[^0-9]/g, '').slice(-10) || '---'}</strong>
                 </Typography>
               </Box>
 
@@ -4584,7 +4596,7 @@ export default function PartnerDutyPage() {
                 }}
               >
                 {partnerIncentives?.availablePayout > 0 
-                  ? `Claim Instant ₹${partnerIncentives.availablePayout}.00 Payout to UPI`
+                  ? `Claim Instant ₹${partnerIncentives.availablePayout}.00 to Payout Phone`
                   : ' All Referral Incentives Settled'}
               </Button>
             </Card>
@@ -4795,11 +4807,11 @@ export default function PartnerDutyPage() {
                         +₹{t.incentiveAmount}.00
                       </Typography>
                       <Chip
-                        label={t.payoutStatus === 'SETTLED_TO_UPI' ? 'Paid to UPI' : 'Ready to Claim'}
+                        label={t.payoutStatus === 'SETTLED_TO_PHONE' || t.payoutStatus === 'SETTLED_TO_UPI' ? 'Paid to Phone' : 'Ready to Claim'}
                         size="small"
                         sx={{
-                          bgcolor: t.payoutStatus === 'SETTLED_TO_UPI' ? '#DCFCE7' : '#FEF3C7',
-                          color: t.payoutStatus === 'SETTLED_TO_UPI' ? '#166534' : '#92400E',
+                          bgcolor: (t.payoutStatus === 'SETTLED_TO_PHONE' || t.payoutStatus === 'SETTLED_TO_UPI') ? '#DCFCE7' : '#FEF3C7',
+                          color: (t.payoutStatus === 'SETTLED_TO_PHONE' || t.payoutStatus === 'SETTLED_TO_UPI') ? '#166534' : '#92400E',
                           fontWeight: 800,
                           fontSize: '9px',
                           height: 18
@@ -4875,7 +4887,7 @@ export default function PartnerDutyPage() {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, my: 1 }}>
                 <AccountBalanceIcon sx={{ color: '#34D399', fontSize: 16 }} />
                 <Typography variant="caption" sx={{ color: '#CBD5E1', fontWeight: 500, fontSize: '11.5px' }}>
-                  வங்கி கணக்கு: HDFC Bank • UPI: <strong>ramesh.tech@oksbi</strong>
+                  வங்கி கணக்கு: HDFC Bank • Payout Phone: <strong>+91{activeTech?.payoutPhone || activeTech?.phone?.replace(/[^0-9]/g, '').slice(-10) || '---'}</strong>
                 </Typography>
               </Box>
 
@@ -5562,7 +5574,7 @@ export default function PartnerDutyPage() {
                   </Typography>
                 </Box>
                 <Button size="small" onClick={handleOpenEditProfile} startIcon={<EditIcon sx={{ fontSize: 14 }} />} sx={{ fontSize: '11px', textTransform: 'none', py: 0, color: '#0284C7', fontWeight: 700 }}>
-                  Edit UPI
+                  Edit Payout
                 </Button>
               </Box>
 
@@ -5578,8 +5590,8 @@ export default function PartnerDutyPage() {
                 </Box>
                 <Divider sx={{ borderColor: '#F1F5F9' }} />
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: '#64748B' }}>UPI ID (Direct IMPS):</span>
-                  <strong style={{ color: '#16A34A', fontSize: '13px' }}>{user?.upi_vpa || user?.upiId || 'Not Set'}</strong>
+                  <span style={{ color: '#64748B' }}>Payout Phone:</span>
+                  <strong style={{ color: '#16A34A', fontSize: '13px' }}>+91{activeTech?.payoutPhone || activeTech?.upi_vpa?.replace(/@.*$/, '') || user?.phone?.replace(/[^0-9]/g, '').slice(-10) || 'Not Set'}</strong>
                 </Box>
                 <Divider sx={{ borderColor: '#F1F5F9' }} />
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -5733,7 +5745,7 @@ export default function PartnerDutyPage() {
 
           <Box sx={{ bgcolor: '#F0FDF4', color: '#166534', border: '1px solid #BBF7D0', borderRadius: '8px', p: 1.5 }}>
             <Typography variant="caption" sx={{ fontSize: '12px', lineHeight: 1.4, display: 'block' }}>
-              ₹{cancellationNotice?.technicianTravelDisbursal || 99}.00 visit fee has been disbursed to your UPI. Your duty radar is unlocked for new leads.
+              ₹{cancellationNotice?.technicianTravelDisbursal || 99}.00 visit fee has been sent to your payout phone. Your duty radar is unlocked for new leads.
             </Typography>
           </Box>
         </ModalBody>
@@ -5826,7 +5838,7 @@ export default function PartnerDutyPage() {
       >
         <ModalHeader
           title="Edit profile & KYC"
-          subtitle="Update payout UPI and verified identity documents"
+          subtitle="Update payout phone and verified identity documents"
           onClose={() => setEditProfileOpen(false)}
         />
 
@@ -5881,18 +5893,26 @@ export default function PartnerDutyPage() {
               </Box>
             </Box>
 
-            {/* UPI ID */}
+            {/* Payout Phone */}
             <Box>
               <Typography variant="caption" sx={{ fontWeight: 600, color: '#64748B', display: 'block', mb: 0.6, fontSize: '13px' }}>
-                Direct payout UPI ID
+                Payout phone number
               </Typography>
               <TextField
                 fullWidth
                 size="small"
-                value={profileUpi}
-                onChange={(e) => setProfileUpi(e.target.value)}
-                placeholder="e.g. 9842789012@upi or partner@okaxis"
-                helperText="Daily earnings will be deposited directly to this UPI address."
+                inputMode="numeric"
+                value={profilePayoutPhone}
+                onChange={(e) => setProfilePayoutPhone(e.target.value.replace(/[^0-9]/g, '').slice(0, 10))}
+                placeholder="e.g. 9842012345"
+                helperText="Earnings will be sent directly to this phone-linked UPI account."
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Typography sx={{ fontWeight: 700, color: '#475569', fontSize: '14px' }}>+91</Typography>
+                    </InputAdornment>
+                  )
+                }}
                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', fontSize: '14px' } }}
               />
             </Box>

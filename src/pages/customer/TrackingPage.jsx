@@ -1958,7 +1958,7 @@ export default function TrackingPage() {
         onSelectReason={setSelectedRescheduleReason}
         onConfirm={handleConfirmCustomerReschedule}
         loading={slotUpdating}
-        currentBooking={booking}
+        currentBooking={trackData?.booking}
       />
 
       {/* Bottom Navigation */}
