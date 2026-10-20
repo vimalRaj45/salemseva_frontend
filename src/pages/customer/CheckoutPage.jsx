@@ -1,4 +1,4 @@
-﻿import { API_V1_URL } from '../../config';
+import { API_V1_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
 import {
   Container,
@@ -492,7 +492,6 @@ export default function CheckoutPage() {
           <BottomNavigationAction label="Services" icon={<WorkOutlineIcon sx={{ fontSize: 20 }} />} sx={{ color: '#0284C7' }} onClick={() => navigate('/')} />
           <BottomNavigationAction label="Bookings" icon={<ReceiptLongIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/history')} />
           <BottomNavigationAction label="Wallet" icon={<AccountCircleIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/wallet')} />
-          <BottomNavigationAction label="Partner Zone" icon={<SecurityIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/partner')} />
         </BottomNavigation>
       </Paper>
 

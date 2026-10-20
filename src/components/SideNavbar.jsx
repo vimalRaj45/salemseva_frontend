@@ -556,13 +556,13 @@ export default function SideNavbar({
                     }}
                   />
                 )}
-                {!user && (
+                {userRole !== 'technician' && (
                   <SideNavItem
-                    icon={<Briefcase size={18} />}
-                    label="Join as a Partner / டெக்னீசியன்"
-                    sublabel="Partner onboarding & daily earn"
+                    icon={<Briefcase size={18} color="#059669" />}
+                    label="Become a Partner / டெக்னீசியன்"
+                    sublabel="Register as service partner & earn 98%"
                     isDark={isDarkMode}
-                    onClick={() => handleNav('/partner/onboarding')}
+                    onClick={() => handleNav('/register?role=partner')}
                   />
                 )}
                 <SideNavItem
@@ -623,31 +623,57 @@ export default function SideNavbar({
           }}
         >
           {user ? (
-            <button
-              type="button"
-              onClick={() => {
-                logout();
-                onClose();
-              }}
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                padding: '10px 14px',
-                borderRadius: '12px',
-                fontSize: '13px',
-                fontWeight: 800,
-                color: '#E11D48',
-                backgroundColor: isDarkMode ? 'rgba(225, 29, 72, 0.12)' : '#FFF1F2',
-                border: '1px solid #FECDD3',
-                cursor: 'pointer'
-              }}
-            >
-              <LogOut size={16} />
-              <span>Sign Out of Account</span>
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {userRole !== 'technician' && (
+                <button
+                  type="button"
+                  onClick={() => handleNav('/register?role=partner')}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    padding: '8px 12px',
+                    borderRadius: '10px',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    color: '#059669',
+                    backgroundColor: isDarkMode ? 'rgba(5, 150, 105, 0.15)' : '#ECFDF5',
+                    border: '1px solid #10B981',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <Briefcase size={14} />
+                  <span>Become a Partner (Register)</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  logout();
+                  onClose();
+                }}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  padding: '10px 14px',
+                  borderRadius: '12px',
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  color: '#E11D48',
+                  backgroundColor: isDarkMode ? 'rgba(225, 29, 72, 0.12)' : '#FFF1F2',
+                  border: '1px solid #FECDD3',
+                  cursor: 'pointer'
+                }}
+              >
+                <LogOut size={16} />
+                <span>Sign Out of Account</span>
+              </button>
+            </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <button
@@ -694,7 +720,7 @@ export default function SideNavbar({
                 }}
               >
                 <Briefcase size={14} />
-                <span>Join as Partner Pro (Onboarding)</span>
+                <span>Become a Partner (Register)</span>
               </button>
             </div>
           )}

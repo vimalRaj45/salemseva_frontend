@@ -89,9 +89,18 @@ export default function AuthPage({ initialMode = 'login' }) {
   const initialRoleParam = queryParams.get('role');
   const redirectTarget = queryParams.get('redirect') || '/';
 
-  // If already logged in, redirect to appropriate role portal
+  // If already logged in, redirect to appropriate role portal, UNLESS a customer wants to register as a partner
   useEffect(() => {
     if (user) {
+      const isRegisteringPartner = (initialRoleParam === 'partner' || initialRoleParam === 'technician') && (user.role === 'customer' || !user.role);
+      if (isRegisteringPartner) {
+        // Allow existing customer to register as a partner with the same mobile number
+        setSelectedRole('technician');
+        setAuthMode('register');
+        if (user.name && !fullName) setFullName(user.name);
+        if (user.phone && !phone) setPhone(user.phone.replace(/[^0-9]/g, '').slice(-10));
+        return;
+      }
       if (user.role === 'technician' || user.role === 'partner') {
         navigate('/partner', { replace: true });
       } else if (user.role === 'admin') {
@@ -100,7 +109,7 @@ export default function AuthPage({ initialMode = 'login' }) {
         navigate(redirectTarget, { replace: true });
       }
     }
-  }, [user, navigate, redirectTarget]);
+  }, [user, navigate, redirectTarget, initialRoleParam]);
 
   // Mode: 'login' | 'register'
   const isRegisterRoute = location.pathname === '/register' || initialMode === 'register';

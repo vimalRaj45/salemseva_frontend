@@ -120,7 +120,7 @@ export default function WalletHubPage() {
 
   return (
     <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', pb: { xs: 10, md: 4 } }}>
-      <Container maxWidth="md" sx={{ px: { xs: 2, sm: 3, md: 4 }, pt: { xs: 1.5, md: 3 } }}>
+      <Container maxWidth="md" sx={{ px: { xs: 1, sm: 2, md: 3 }, pt: { xs: 1, md: 2 } }}>
         
         {/* Top Header with Back Navigation */}
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2.5 }}>

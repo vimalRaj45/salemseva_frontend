@@ -189,7 +189,7 @@ export default function BookingHistoryPage() {
 
   return (
     <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', pb: { xs: 18, md: 8 } }}>
-      <Container maxWidth="md" sx={{ px: { xs: 2, sm: 3, md: 4 }, pt: { xs: 1.5, md: 2.5 } }}>
+      <Container maxWidth="md" sx={{ px: { xs: 1, sm: 2, md: 3 }, pt: { xs: 1, md: 2 } }}>
         
         {/* Top Header with Back Navigation Button */}
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
@@ -827,7 +827,6 @@ export default function BookingHistoryPage() {
             <BottomNavigationAction label="Services" icon={<WorkOutlineIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/')} />
             <BottomNavigationAction label="Bookings" icon={<ReceiptLongIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/history')} />
             <BottomNavigationAction label="Wallet" icon={<AccountCircleIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/wallet')} />
-            <BottomNavigationAction label="Partner Zone" icon={<SecurityIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/partner')} />
           </BottomNavigation>
         </Box>
       </Paper>
