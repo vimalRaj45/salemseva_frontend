@@ -1,4 +1,4 @@
-﻿import { API_V1_URL } from '../../config';
+import { API_V1_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
 import {
   Container,
@@ -57,7 +57,7 @@ export default function CustomerHomePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [locationPickerOpen, setLocationPickerOpen] = useState(false);
   const [userLocation, setUserLocation] = useState(() => {
-    const saved = localStorage.getItem('Shazu One_user_location');
+    const saved = localStorage.getItem('shazuone_user_location');
     return saved ? JSON.parse(saved) : {
       locality: 'Fairlands',
       pincode: '636016',
@@ -144,7 +144,7 @@ export default function CustomerHomePage() {
         const d = await res.json();
         if (d.success && d.booking && ['matching', 'accepted', 'en_route', 'arrived', 'inspecting', 'quote_presented', 'quote_approved', 'completed'].includes(d.booking.status)) {
           // If already completed and user dismissed/cleared, don't show, else keep active
-          const isRated = localStorage.getItem(`Shazu One_rated_${activeBookingId}`);
+          const isRated = localStorage.getItem(`shazuone_rated_${activeBookingId}`);
           if (d.booking.status === 'completed' && isRated) {
             setActiveBooking(null);
           } else {
@@ -1040,15 +1040,15 @@ export default function CustomerHomePage() {
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 1 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0066CC', fontSize: '14px' }}>
-              Salem<span style={{ color: '#FF6600' }}>Seva</span>
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0D3B66', fontSize: '14px', fontFamily: '"Poppins", sans-serif' }}>
+              Shazu <span style={{ color: '#2E7D32' }}>One</span>
             </Typography>
             <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 600, fontSize: '11px' }}>
-              • Salem Municipal Hyperlocal Network
+              • All Your Home Services. One Platform.
             </Typography>
           </Box>
           <Typography variant="body2" sx={{ color: '#64748B', fontSize: '11.5px', lineHeight: 1.6, maxWidth: '480px', mx: 'auto', mb: 2 }}>
-            Salem technology intermediary connecting verified local technicians with homes across Fairlands, Hasthampatti, Suramangalam, Ammapet, and Shevapet. 2% platform fee, 98% technician payout.
+            Technology platform connecting verified professional technicians with homes across Fairlands, Hasthampatti, Suramangalam, Ammapet, and Shevapet. 2% platform fee, 98% technician payout.
           </Typography>
 
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2, flexWrap: 'wrap', pt: 1.5, borderTop: '1px solid #F1F5F9' }}>

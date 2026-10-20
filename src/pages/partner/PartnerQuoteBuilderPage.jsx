@@ -172,7 +172,7 @@ export default function PartnerQuoteBuilderPage() {
 
       localStorage.setItem('shazuone_quote_status_' + bookingId, 'quote_presented');
       localStorage.setItem('shazuone_active_booking', bookingId);
-      window.dispatchEvent(new CustomEvent('Shazu One_quote_updated', { detail: { bookingId, status: 'quote_presented' } }));
+      window.dispatchEvent(new CustomEvent('shazuone_quote_updated', { detail: { bookingId, status: 'quote_presented' } }));
       window.dispatchEvent(new Event('storage'));
 
       setSuccessToast(true);

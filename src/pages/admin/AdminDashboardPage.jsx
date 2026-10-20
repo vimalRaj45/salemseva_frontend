@@ -332,10 +332,10 @@ export default function AdminDashboardPage() {
       fetchFeedbacks();
       fetchReviews();
     };
-    window.addEventListener('Shazu One_new_feedback_received', handleFeedbackEvent);
+    window.addEventListener('shazuone_new_feedback_received', handleFeedbackEvent);
     window.addEventListener('storage', handleFeedbackEvent);
     return () => {
-      window.removeEventListener('Shazu One_new_feedback_received', handleFeedbackEvent);
+      window.removeEventListener('shazuone_new_feedback_received', handleFeedbackEvent);
       window.removeEventListener('storage', handleFeedbackEvent);
     };
   }, []);

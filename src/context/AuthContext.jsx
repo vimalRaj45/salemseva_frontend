@@ -18,7 +18,7 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     try {
-      const saved = localStorage.getItem('Shazu One_user');
+      const saved = localStorage.getItem('shazuone_user');
       return saved ? JSON.parse(saved) : null;
     } catch (e) {
       console.warn('Could not parse saved user:', e);
@@ -31,7 +31,7 @@ export function AuthProvider({ children }) {
     try {
       const saved = localStorage.getItem('shazuone_tech_user');
       if (saved) return JSON.parse(saved);
-      const userSaved = localStorage.getItem('Shazu One_user');
+      const userSaved = localStorage.getItem('shazuone_user');
       if (userSaved) {
         const parsed = JSON.parse(userSaved);
         if (parsed && (parsed.role === 'technician' || parsed.role === 'partner')) {
@@ -46,17 +46,17 @@ export function AuthProvider({ children }) {
   });
 
   const [isGuest, setIsGuest] = useState(() => {
-    return localStorage.getItem('Shazu One_is_guest') === 'true';
+    return localStorage.getItem('shazuone_is_guest') === 'true';
   });
 
   const continueAsGuest = () => {
     setIsGuest(true);
-    localStorage.setItem('Shazu One_is_guest', 'true');
+    localStorage.setItem('shazuone_is_guest', 'true');
   };
 
   const clearGuest = () => {
     setIsGuest(false);
-    localStorage.removeItem('Shazu One_is_guest');
+    localStorage.removeItem('shazuone_is_guest');
   };
 
   const [dbTechnicians, setDbTechnicians] = useState([]);
@@ -89,7 +89,7 @@ export function AuthProvider({ children }) {
     fetchRewardSettings();
   }, []);
 
-  const sessionTokenRef = useRef(localStorage.getItem('Shazu One_session_token') || '');
+  const sessionTokenRef = useRef(localStorage.getItem('shazuone_session_token') || '');
 
   // Register session with backend
   const registerSessionWithBackend = async (phone, role, name, trade) => {
@@ -102,7 +102,7 @@ export function AuthProvider({ children }) {
       const data = await res.json();
       if (data.success && data.sessionToken) {
         sessionTokenRef.current = data.sessionToken;
-        localStorage.setItem('Shazu One_session_token', data.sessionToken);
+        localStorage.setItem('shazuone_session_token', data.sessionToken);
       }
     } catch (err) {
       console.warn('Session registration note:', err);
@@ -116,7 +116,7 @@ export function AuthProvider({ children }) {
     let isMounted = true;
     const checkSession = async () => {
       try {
-        const token = sessionTokenRef.current || localStorage.getItem('Shazu One_session_token');
+        const token = sessionTokenRef.current || localStorage.getItem('shazuone_session_token');
         if (!token) return;
 
         const res = await fetch(`${API_BASE_URL}/api/v1/auth/session/verify`, {
@@ -133,8 +133,8 @@ export function AuthProvider({ children }) {
         if (isMounted && data.code === 'SESSION_TERMINATED') {
           // Logged out because account logged in on another device!
           setUser(null);
-          localStorage.removeItem('Shazu One_user');
-          localStorage.removeItem('Shazu One_session_token');
+          localStorage.removeItem('shazuone_user');
+          localStorage.removeItem('shazuone_session_token');
           sessionTokenRef.current = '';
           setSessionTerminatedModalOpen(true);
         }
@@ -209,7 +209,7 @@ export function AuthProvider({ children }) {
                   isKycVerified: verified,
                   status: verified ? 'Verified' : 'Pending Verification'
                 };
-                localStorage.setItem('Shazu One_user', JSON.stringify(updated));
+                localStorage.setItem('shazuone_user', JSON.stringify(updated));
                 return updated;
               }
             }
@@ -275,7 +275,7 @@ export function AuthProvider({ children }) {
               const matched = mapped.find(c => c.id === prev.id || c.phone === prev.phone || c.rawPhone === prev.rawPhone);
               if (matched) {
                 const updated = { ...prev, ...matched };
-                localStorage.setItem('Shazu One_user', JSON.stringify(updated));
+                localStorage.setItem('shazuone_user', JSON.stringify(updated));
                 return updated;
               }
             }
@@ -311,10 +311,10 @@ export function AuthProvider({ children }) {
       }
 
       setUser(data.user);
-      localStorage.setItem('Shazu One_user', JSON.stringify(data.user));
+      localStorage.setItem('shazuone_user', JSON.stringify(data.user));
       if (data.sessionToken) {
         sessionTokenRef.current = data.sessionToken;
-        localStorage.setItem('Shazu One_session_token', data.sessionToken);
+        localStorage.setItem('shazuone_session_token', data.sessionToken);
       }
       setAuthModalOpen(false);
       return data.user;
@@ -337,9 +337,9 @@ export function AuthProvider({ children }) {
         throw new Error(data.error || 'Invalid credentials');
       }
       setUser(data.user);
-      localStorage.setItem('Shazu One_user', JSON.stringify(data.user));
+      localStorage.setItem('shazuone_user', JSON.stringify(data.user));
       if (data.sessionToken) {
-        localStorage.setItem('Shazu One_session_token', data.sessionToken);
+        localStorage.setItem('shazuone_session_token', data.sessionToken);
         sessionTokenRef.current = data.sessionToken;
       }
       setAuthModalOpen(false);
@@ -363,9 +363,9 @@ export function AuthProvider({ children }) {
         throw new Error(data.error || 'Registration failed. Please check details.');
       }
       setUser(data.user);
-      localStorage.setItem('Shazu One_user', JSON.stringify(data.user));
+      localStorage.setItem('shazuone_user', JSON.stringify(data.user));
       if (data.sessionToken) {
-        localStorage.setItem('Shazu One_session_token', data.sessionToken);
+        localStorage.setItem('shazuone_session_token', data.sessionToken);
         sessionTokenRef.current = data.sessionToken;
       }
       setAuthModalOpen(false);
@@ -428,7 +428,7 @@ export function AuthProvider({ children }) {
 
     if (!preset) return;
     setUser(preset);
-    localStorage.setItem('Shazu One_user', JSON.stringify(preset));
+    localStorage.setItem('shazuone_user', JSON.stringify(preset));
     setAuthModalOpen(false);
 
     if (preset.phone) {
@@ -440,7 +440,7 @@ export function AuthProvider({ children }) {
     const cust = customerData || dbCustomers[0];
     if (!cust) return;
     setUser(cust);
-    localStorage.setItem('Shazu One_user', JSON.stringify(cust));
+    localStorage.setItem('shazuone_user', JSON.stringify(cust));
     setAuthModalOpen(false);
     registerSessionWithBackend(cust.phone, 'customer', cust.name);
   };
@@ -450,7 +450,7 @@ export function AuthProvider({ children }) {
     if (!tech) return;
     setUser(tech);
     setTechUser(tech);
-    localStorage.setItem('Shazu One_user', JSON.stringify(tech));
+    localStorage.setItem('shazuone_user', JSON.stringify(tech));
     localStorage.setItem('shazuone_tech_user', JSON.stringify(tech));
     setAuthModalOpen(false);
     registerSessionWithBackend(tech.phone, 'technician', tech.name, tech.trade);
@@ -462,11 +462,11 @@ export function AuthProvider({ children }) {
     setTechUser(technicianData);
     setUser(technicianData);
     localStorage.setItem('shazuone_tech_user', JSON.stringify(technicianData));
-    localStorage.setItem('Shazu One_user', JSON.stringify(technicianData));
+    localStorage.setItem('shazuone_user', JSON.stringify(technicianData));
     if (sessionToken) {
       sessionTokenRef.current = sessionToken;
-      localStorage.setItem('Shazu One_tech_session_token', sessionToken);
-      localStorage.setItem('Shazu One_session_token', sessionToken);
+      localStorage.setItem('shazuone_tech_session_token', sessionToken);
+      localStorage.setItem('shazuone_session_token', sessionToken);
     }
     if (technicianData.phone) {
       await registerSessionWithBackend(technicianData.phone, 'technician', technicianData.name, technicianData.trade);
@@ -488,13 +488,13 @@ export function AuthProvider({ children }) {
 
     setTechUser(null);
     localStorage.removeItem('shazuone_tech_user');
-    localStorage.removeItem('Shazu One_tech_session_token');
+    localStorage.removeItem('shazuone_tech_session_token');
     localStorage.removeItem('shazuone_partner_is_online');
     localStorage.removeItem('shazuone_partner_step');
     localStorage.removeItem('shazuone_partner_active_job');
     if (user && (user.role === 'technician' || user.role === 'partner')) {
       setUser(null);
-      localStorage.removeItem('Shazu One_user');
+      localStorage.removeItem('shazuone_user');
     }
   };
 
@@ -510,7 +510,7 @@ export function AuthProvider({ children }) {
       isVerified: true
     };
     setUser(admin);
-    localStorage.setItem('Shazu One_user', JSON.stringify(admin));
+    localStorage.setItem('shazuone_user', JSON.stringify(admin));
     setAuthModalOpen(false);
   };
 
@@ -528,7 +528,7 @@ export function AuthProvider({ children }) {
     setUser(prev => {
       if (!prev) return prev;
       const updated = { ...prev, ...fields };
-      localStorage.setItem('Shazu One_user', JSON.stringify(updated));
+      localStorage.setItem('shazuone_user', JSON.stringify(updated));
       return updated;
     });
   };
@@ -545,21 +545,21 @@ export function AuthProvider({ children }) {
     } catch (e) {}
 
     setUser(null);
-    localStorage.removeItem('Shazu One_user');
-    localStorage.removeItem('Shazu One_session_token');
-    localStorage.removeItem('Shazu One_is_guest');
+    localStorage.removeItem('shazuone_user');
+    localStorage.removeItem('shazuone_session_token');
+    localStorage.removeItem('shazuone_is_guest');
     setIsGuest(false);
     sessionTokenRef.current = '';
   };
 
   // Wallet & Incentives state management
   const [walletBalance, setWalletBalance] = useState(() => {
-    const saved = localStorage.getItem('Shazu One_wallet_balance');
+    const saved = localStorage.getItem('shazuone_wallet_balance');
     return saved ? parseFloat(saved) : (user?.walletBalance ?? 150);
   });
 
   const [partnerIncentives, setPartnerIncentives] = useState(() => {
-    const saved = localStorage.getItem('Shazu One_partner_incentives');
+    const saved = localStorage.getItem('shazuone_partner_incentives');
     return saved ? JSON.parse(saved) : {
       totalIncentiveEarned: 750,
       availablePayout: 500,
@@ -573,7 +573,7 @@ export function AuthProvider({ children }) {
   const updateWalletBalance = (newBal) => {
     const val = Math.max(0, parseFloat(newBal) || 0);
     setWalletBalance(val);
-    localStorage.setItem('Shazu One_wallet_balance', val.toString());
+    localStorage.setItem('shazuone_wallet_balance', val.toString());
     if (user) {
       updateUser({ walletBalance: val });
     }
@@ -636,7 +636,7 @@ export function AuthProvider({ children }) {
     };
 
     setPartnerIncentives(updated);
-    localStorage.setItem('Shazu One_partner_incentives', JSON.stringify(updated));
+    localStorage.setItem('shazuone_partner_incentives', JSON.stringify(updated));
 
     try {
       await fetch(`${API_BASE_URL}/api/v1/partner/refer`, {
@@ -666,7 +666,7 @@ export function AuthProvider({ children }) {
     };
 
     setPartnerIncentives(updated);
-    localStorage.setItem('Shazu One_partner_incentives', JSON.stringify(updated));
+    localStorage.setItem('shazuone_partner_incentives', JSON.stringify(updated));
 
     try {
       await fetch(`${API_BASE_URL}/api/v1/partner/payout`, {

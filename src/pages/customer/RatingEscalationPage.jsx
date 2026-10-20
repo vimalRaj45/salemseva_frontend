@@ -127,11 +127,11 @@ export default function RatingEscalationPage() {
         tags: selectedTags,
         feedback: feedbackText
       });
-      localStorage.setItem(`Shazu One_rated_${bookingId}`, 'true');
+      localStorage.setItem(`shazuone_rated_${bookingId}`, 'true');
       localStorage.removeItem('shazuone_active_booking');
     } catch (e) {
       console.warn('Review submission fallback:', e);
-      localStorage.setItem(`Shazu One_rated_${bookingId}`, 'true');
+      localStorage.setItem(`shazuone_rated_${bookingId}`, 'true');
       localStorage.removeItem('shazuone_active_booking');
     }
     setTimeout(() => {

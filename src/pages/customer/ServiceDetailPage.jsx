@@ -182,7 +182,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
   });
 
   const [userLocation, setUserLocation] = useState(() => {
-    const saved = localStorage.getItem('Shazu One_user_location');
+    const saved = localStorage.getItem('shazuone_user_location');
     return saved ? JSON.parse(saved) : {
       locality: 'Fairlands',
       pincode: '636016',
@@ -454,7 +454,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
         const bObj = data.booking;
 
         localStorage.setItem('shazuone_active_booking', bId);
-        window.dispatchEvent(new CustomEvent('Shazu One_new_booking_created', { detail: { bookingId: bId, booking: bObj } }));
+        window.dispatchEvent(new CustomEvent('shazuone_new_booking_created', { detail: { bookingId: bId, booking: bObj } }));
         window.dispatchEvent(new Event('storage'));
         if (onStartBooking) onStartBooking(bObj);
         setIsPayingScheduled(false);

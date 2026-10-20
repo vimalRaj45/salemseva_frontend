@@ -15,7 +15,7 @@ export default function PwaInstallPrompt() {
     }
 
     // Check if user dismissed recently
-    const dismissedUntil = localStorage.getItem('Shazu One_pwa_dismissed');
+    const dismissedUntil = localStorage.getItem('shazuone_pwa_dismissed');
     if (dismissedUntil && Date.now() < Number(dismissedUntil)) {
       return;
     }
@@ -46,7 +46,7 @@ export default function PwaInstallPrompt() {
   const handleDismiss = () => {
     setShowPrompt(false);
     // Dismiss for 3 days
-    localStorage.setItem('Shazu One_pwa_dismissed', String(Date.now() + 3 * 24 * 60 * 60 * 1000));
+    localStorage.setItem('shazuone_pwa_dismissed', String(Date.now() + 3 * 24 * 60 * 60 * 1000));
   };
 
   if (!showPrompt) return null;

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -306,18 +306,18 @@ export default function AuthPage({ initialMode = 'login' }) {
                   />
                 </Box>
                 <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 900, color: '#0066CC', lineHeight: 1.1, fontSize: '1.25rem' }}>
-                    Salem<span style={{ color: '#FF6600' }}>Seva</span>
+                  <Typography variant="h6" sx={{ fontWeight: 900, color: '#0D3B66', lineHeight: 1.1, fontSize: '1.25rem', fontFamily: '"Poppins", sans-serif' }}>
+                    Shazu <span style={{ color: '#2E7D32' }}>One</span>
                   </Typography>
                   <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700, fontSize: '10.5px' }}>
-                    Doorstep Services Hub
+                    All Your Home Services. One Platform.
                   </Typography>
                 </Box>
               </Box>
 
               <Chip
                 icon={<ShieldCheck size={14} color="#059669" />}
-                label="Salem Secured"
+                label="Shazu Verified"
                 size="small"
                 sx={{
                   bgcolor: '#ECFDF5',

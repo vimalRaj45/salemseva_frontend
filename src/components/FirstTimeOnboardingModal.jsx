@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   X,
@@ -109,7 +109,7 @@ export default function FirstTimeOnboardingModal({ isOpen, onClose, onOpenAuth }
   };
 
   const handleDismiss = () => {
-    localStorage.setItem('Shazu One_has_seen_onboarding', 'true');
+    localStorage.setItem('shazuone_has_seen_onboarding', 'true');
     if (onClose) onClose();
   };
 
@@ -184,8 +184,8 @@ export default function FirstTimeOnboardingModal({ isOpen, onClose, onOpenAuth }
               S
             </div>
             <div>
-              <span style={{ fontSize: '15px', fontWeight: 900, color: '#0066CC' }}>Salem</span>
-              <span style={{ fontSize: '15px', fontWeight: 900, color: '#FF6600' }}>Seva</span>
+              <span style={{ fontSize: '15px', fontWeight: 900, color: '#0D3B66', fontFamily: '"Poppins", sans-serif' }}>Shazu </span>
+              <span style={{ fontSize: '15px', fontWeight: 900, color: '#2E7D32', fontFamily: '"Poppins", sans-serif' }}>One</span>
               <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 500, marginLeft: '6px' }}>
                 How It Works
               </span>

@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -114,7 +114,7 @@ export default function FirstTimeOnboardingPage() {
   const progress = ((activeSlide + 1) / slides.length) * 100;
 
   const handleFinish = () => {
-    localStorage.setItem('Shazu One_has_seen_onboarding', 'true');
+    localStorage.setItem('shazuone_has_seen_onboarding', 'true');
     if (role === 'partner') {
       navigate('/partner/onboarding');
     } else {
@@ -163,8 +163,8 @@ export default function FirstTimeOnboardingPage() {
         <Box sx={{ flexShrink: 0 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 900, fontSize: '17px', color: '#0066CC', letterSpacing: -0.5 }}>
-                Salem<span style={{ color: '#FF6600' }}>Seva</span>
+              <Typography variant="subtitle1" sx={{ fontWeight: 900, fontSize: '17px', color: '#0D3B66', letterSpacing: -0.5, fontFamily: '"Poppins", sans-serif' }}>
+                Shazu <span style={{ color: '#2E7D32' }}>One</span>
               </Typography>
               <Chip
                 label="Quick Start"

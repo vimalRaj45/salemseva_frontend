@@ -1,4 +1,4 @@
-import { API_V1_URL } from './config';
+﻿import { API_V1_URL } from './config';
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Box } from '@mui/material';
@@ -99,7 +99,7 @@ function CustomerActiveJobGuard({ children }) {
         }
 
         const status = d.booking.status;
-        const isRated = localStorage.getItem(`Shazu One_rated_${activeBookingId}`);
+        const isRated = localStorage.getItem(`shazuone_rated_${activeBookingId}`);
 
         if (status === 'completed' && isRated) {
           localStorage.removeItem('shazuone_active_booking');
@@ -129,7 +129,7 @@ function CustomerActiveJobGuard({ children }) {
 
 function InitialHomeRoute() {
   const { user, isGuest } = useAuth();
-  const hasSeen = localStorage.getItem('Shazu One_has_seen_onboarding');
+  const hasSeen = localStorage.getItem('shazuone_has_seen_onboarding');
   if (!hasSeen && !user) {
     return <Navigate to="/welcome" replace />;
   }

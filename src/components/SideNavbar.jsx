@@ -1,4 +1,4 @@
-﻿import React, { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -170,11 +170,11 @@ export default function SideNavbar({
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', lineHeight: 1.1 }}>
-                <span style={{ fontSize: '18px', fontWeight: 900, color: '#0066CC' }}>Salem</span>
-                <span style={{ fontSize: '18px', fontWeight: 900, color: '#FF6600' }}>Seva</span>
+                <span style={{ fontSize: '18px', fontWeight: 900, color: '#0D3B66', fontFamily: '"Poppins", sans-serif' }}>Shazu</span>
+                <span style={{ fontSize: '18px', fontWeight: 900, color: '#2E7D32', fontFamily: '"Poppins", sans-serif' }}>One</span>
               </div>
               <span style={{ fontSize: '10.5px', color: isDarkMode ? '#94A3B8' : '#64748B', fontWeight: 500 }}>
-                Salem Doorstep Services Hub
+                All Your Home Services. One Platform.
               </span>
             </div>
           </div>

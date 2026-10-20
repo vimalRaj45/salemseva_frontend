@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Wrench,
@@ -205,7 +205,7 @@ export default function Navbar({
             lng: geo.lng,
             address: geo.fullAddress || `${locName} - 636016`
           };
-          localStorage.setItem('Shazu One_user_location', JSON.stringify(locationData));
+          localStorage.setItem('shazuone_user_location', JSON.stringify(locationData));
           if (onLocationChange) onLocationChange(locName);
         } else {
           const placeLabel = geo.city || geo.district || 'Outside Area';
@@ -351,16 +351,17 @@ export default function Navbar({
                       fontSize: isMobile ? '18px' : '21px',
                       fontWeight: 900,
                       letterSpacing: '-0.5px',
-                      color: '#0066CC'
+                      color: '#0D3B66',
+                      fontFamily: '"Poppins", sans-serif'
                     }}
                   >
-                    Salem
+                    Shazu{' '}
                     <span
                       style={{
-                        color: isTechnician ? '#10B981' : isAdmin ? '#F59E0B' : '#FF6600'
+                        color: isTechnician ? '#2E7D32' : isAdmin ? '#F7931E' : '#2E7D32'
                       }}
                     >
-                      {isTechnician ? 'Partner' : isAdmin ? 'Ops' : 'Seva'}
+                      {isTechnician ? 'Partner' : isAdmin ? 'Ops' : 'One'}
                     </span>
                   </span>
 
@@ -431,8 +432,8 @@ export default function Navbar({
                     }}
                   >
                     {isTechnician
-                      ? 'Verified Specialist Hub • Salem'
-                      : 'On-Demand Home Services • Salem'}
+                      ? 'Verified Specialist Hub • Shazu One'
+                      : 'All Your Home Services. One Platform.'}
                   </span>
                 )}
               </div>

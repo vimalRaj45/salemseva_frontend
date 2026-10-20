@@ -117,7 +117,7 @@ export default function FeedbackModal({ open, onClose, user, userRole = 'custome
       };
       localStorage.setItem('shazuone_feedbacks_list', JSON.stringify([newRecord, ...saved]));
 
-      window.dispatchEvent(new CustomEvent('Shazu One_new_feedback_received', { detail: newRecord }));
+      window.dispatchEvent(new CustomEvent('shazuone_new_feedback_received', { detail: newRecord }));
       window.dispatchEvent(new Event('storage'));
 
       setIsSubmitting(false);
@@ -135,7 +135,7 @@ export default function FeedbackModal({ open, onClose, user, userRole = 'custome
         created_at: new Date().toISOString()
       };
       localStorage.setItem('shazuone_feedbacks_list', JSON.stringify([newRecord, ...saved]));
-      window.dispatchEvent(new CustomEvent('Shazu One_new_feedback_received', { detail: newRecord }));
+      window.dispatchEvent(new CustomEvent('shazuone_new_feedback_received', { detail: newRecord }));
       window.dispatchEvent(new Event('storage'));
 
       setIsSubmitting(false);

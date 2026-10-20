@@ -1,9 +1,9 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Typography } from '@mui/material';
 import { SplashScreen as CapacitorSplashScreen } from '@capacitor/splash-screen';
 import { Capacitor } from '@capacitor/core';
 
-const FULL_QUOTE = 'Your Local Home Services Partner';
+const FULL_QUOTE = 'All Your Home Services. One Platform.';
 
 export default function SplashScreen({ onFinish }) {
   const [displayedText, setDisplayedText] = useState('');
@@ -91,7 +91,7 @@ export default function SplashScreen({ onFinish }) {
             height: 'auto',
             objectFit: 'contain',
             mb: 2.5,
-            filter: 'drop-shadow(0 14px 35px rgba(0, 102, 204, 0.14))',
+            filter: 'drop-shadow(0 14px 35px rgba(13, 59, 102, 0.15))',
             animation: 'splashLogoPop 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards'
           }}
         />
@@ -117,7 +117,8 @@ export default function SplashScreen({ onFinish }) {
               fontWeight: 700,
               color: '#334155',
               letterSpacing: '0.2px',
-              whiteSpace: 'nowrap'
+              whiteSpace: 'nowrap',
+              fontFamily: '"Poppins", sans-serif'
             }}
           >
             {displayedText}
@@ -130,7 +131,7 @@ export default function SplashScreen({ onFinish }) {
               display: 'inline-block',
               width: '2px',
               height: '15px',
-              bgcolor: '#FF6600',
+              bgcolor: '#F7931E',
               ml: '3px',
               borderRadius: '1px',
               animation: 'cursorBlink 0.75s infinite',
@@ -158,20 +159,21 @@ export default function SplashScreen({ onFinish }) {
             width: 6,
             height: 6,
             borderRadius: '50%',
-            bgcolor: '#16A34A',
-            boxShadow: '0 0 8px #16A34A'
+            bgcolor: '#2E7D32',
+            boxShadow: '0 0 8px #2E7D32'
           }}
         />
         <Typography
           sx={{
             fontSize: '0.6875rem',
             fontWeight: 800,
-            color: '#94A3B8',
-            letterSpacing: '1.2px',
-            textTransform: 'uppercase'
+            color: '#64748B',
+            letterSpacing: '1px',
+            textTransform: 'uppercase',
+            fontFamily: '"Poppins", sans-serif'
           }}
         >
-          Salem, Tamil Nadu
+          Better Homes. Happier Lives.
         </Typography>
       </Box>
 

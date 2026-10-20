@@ -38,7 +38,7 @@ export default function GlobalNotificationWatcher() {
     const pollGlobalEvents = async () => {
       try {
         const isPartnerOnline = localStorage.getItem('shazuone_partner_is_online') === 'true';
-        const partnerPhone = user?.phone || localStorage.getItem('Shazu One_partner_phone') || '';
+        const partnerPhone = user?.phone || localStorage.getItem('shazuone_partner_phone') || '';
         const activeBookingId = localStorage.getItem('shazuone_active_booking') || localStorage.getItem('shazuone_partner_active_job');
         const userRole = user?.role === 'technician' ? 'technician' : 'customer';
 

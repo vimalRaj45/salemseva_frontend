@@ -152,7 +152,7 @@ export default function TrackingPage() {
       }
       localStorage.setItem('shazuone_partner_step', '3');
       localStorage.setItem('shazuone_quote_status_' + bookingId, 'inspecting');
-      window.dispatchEvent(new CustomEvent('Shazu One_status_updated', { detail: { bookingId, status: 'inspecting' } }));
+      window.dispatchEvent(new CustomEvent('shazuone_status_updated', { detail: { bookingId, status: 'inspecting' } }));
       window.dispatchEvent(new Event('storage'));
     } catch (err) {
       setTechOtpError('Network error. Please try again.');
@@ -206,13 +206,13 @@ export default function TrackingPage() {
       fetchTracking();
     };
 
-    window.addEventListener('Shazu One_quote_updated', handleQuoteEvent);
+    window.addEventListener('shazuone_quote_updated', handleQuoteEvent);
     window.addEventListener('storage', handleQuoteEvent);
 
     return () => {
       isMounted = false;
       clearInterval(interval);
-      window.removeEventListener('Shazu One_quote_updated', handleQuoteEvent);
+      window.removeEventListener('shazuone_quote_updated', handleQuoteEvent);
       window.removeEventListener('storage', handleQuoteEvent);
     };
   }, [bookingId]);
@@ -1991,7 +1991,7 @@ export default function TrackingPage() {
                   }));
                 }
                 localStorage.setItem('shazuone_quote_status_' + bookingId, 'completed');
-                window.dispatchEvent(new CustomEvent('Shazu One_quote_updated', { detail: { bookingId, status: 'completed' } }));
+                window.dispatchEvent(new CustomEvent('shazuone_quote_updated', { detail: { bookingId, status: 'completed' } }));
                 window.dispatchEvent(new Event('storage'));
                 
                 // 3. Immediately route to the full /rate review page

@@ -103,7 +103,7 @@ export default function CheckoutPage() {
           if (data.success && (data.isPaid || data.status === 'quote_approved' || data.status === 'en_route')) {
             localStorage.setItem('shazuone_quote_status_' + bookingId, 'quote_approved');
             localStorage.setItem('shazuone_active_booking', bookingId);
-            window.dispatchEvent(new CustomEvent('Shazu One_quote_updated', { detail: { bookingId, status: 'quote_approved' } }));
+            window.dispatchEvent(new CustomEvent('shazuone_quote_updated', { detail: { bookingId, status: 'quote_approved' } }));
             navigate(`/track?bookingId=${bookingId}`, { replace: true });
           }
         } catch (e) {
@@ -201,7 +201,7 @@ export default function CheckoutPage() {
 
           localStorage.setItem('shazuone_quote_status_' + bookingId, 'quote_approved');
           localStorage.setItem('shazuone_active_booking', bookingId);
-          window.dispatchEvent(new CustomEvent('Shazu One_quote_updated', { detail: { bookingId, status: 'quote_approved' } }));
+          window.dispatchEvent(new CustomEvent('shazuone_quote_updated', { detail: { bookingId, status: 'quote_approved' } }));
           window.dispatchEvent(new Event('storage'));
 
           setIsProcessing(false);
@@ -240,7 +240,7 @@ export default function CheckoutPage() {
         });
         localStorage.setItem('shazuone_quote_status_' + bookingId, 'quote_approved');
         localStorage.setItem('shazuone_active_booking', bookingId);
-        window.dispatchEvent(new CustomEvent('Shazu One_quote_updated', { detail: { bookingId, status: 'quote_approved' } }));
+        window.dispatchEvent(new CustomEvent('shazuone_quote_updated', { detail: { bookingId, status: 'quote_approved' } }));
         setIsProcessing(false);
         navigate(`/track?bookingId=${bookingId}`, { replace: true });
       }

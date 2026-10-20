@@ -892,13 +892,13 @@ export default function PartnerDutyPage() {
     const interval = setInterval(fetchDuty, 1200);
 
     const handleSync = () => fetchDuty();
-    window.addEventListener('Shazu One_new_booking_created', handleSync);
+    window.addEventListener('shazuone_new_booking_created', handleSync);
     window.addEventListener('storage', handleSync);
 
     return () => {
       isMounted = false;
       clearInterval(interval);
-      window.removeEventListener('Shazu One_new_booking_created', handleSync);
+      window.removeEventListener('shazuone_new_booking_created', handleSync);
       window.removeEventListener('storage', handleSync);
     };
   }, [activeTech?.phone, user?.phone, acknowledgedCancelIds]);
@@ -925,11 +925,11 @@ export default function PartnerDutyPage() {
     fetchScheduledLeads();
     const schedInterval = setInterval(fetchScheduledLeads, 4000);
     const handleSync = () => fetchScheduledLeads();
-    window.addEventListener('Shazu One_new_booking_created', handleSync);
+    window.addEventListener('shazuone_new_booking_created', handleSync);
     window.addEventListener('storage', handleSync);
     return () => {
       clearInterval(schedInterval);
-      window.removeEventListener('Shazu One_new_booking_created', handleSync);
+      window.removeEventListener('shazuone_new_booking_created', handleSync);
       window.removeEventListener('storage', handleSync);
     };
   }, [activeTech?.phone, user?.phone]);
@@ -4330,7 +4330,7 @@ export default function PartnerDutyPage() {
                           setQuoteSent(true);
                           localStorage.setItem('shazuone_quote_status_' + activeBookingId, 'quote_presented');
                           localStorage.setItem('shazuone_active_booking', activeBookingId);
-                          window.dispatchEvent(new CustomEvent('Shazu One_quote_updated', { detail: { bookingId: activeBookingId, status: 'quote_presented' } }));
+                          window.dispatchEvent(new CustomEvent('shazuone_quote_updated', { detail: { bookingId: activeBookingId, status: 'quote_presented' } }));
                           window.dispatchEvent(new Event('storage'));
                         } catch (err) {
                           console.warn('Status update fallback:', err);
@@ -4447,7 +4447,7 @@ export default function PartnerDutyPage() {
                       localStorage.removeItem('shazuone_partner_step');
                       localStorage.removeItem('shazuone_partner_active_job');
                       localStorage.setItem('shazuone_quote_status_' + activeBookingId, 'completed');
-                      window.dispatchEvent(new CustomEvent('Shazu One_status_updated', { detail: { bookingId: activeBookingId, status: 'completed' } }));
+                      window.dispatchEvent(new CustomEvent('shazuone_status_updated', { detail: { bookingId: activeBookingId, status: 'completed' } }));
                       window.dispatchEvent(new Event('storage'));
                       setIsProcessing(false);
                       setStep(1);
