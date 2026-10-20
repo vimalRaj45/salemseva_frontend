@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Box,
@@ -140,16 +140,22 @@ export default function PartnerLoginPage() {
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: 60,
-              height: 60,
+              width: 64,
+              height: 64,
               borderRadius: '16px',
-              bgcolor: 'rgba(2, 132, 199, 0.15)',
-              border: '1.5px solid #0284C7',
+              bgcolor: 'rgba(255, 255, 255, 0.08)',
+              border: '1.5px solid rgba(255, 255, 255, 0.15)',
               mb: 1.5,
-              boxShadow: '0 8px 24px rgba(2, 132, 199, 0.25)'
+              p: 1,
+              boxShadow: '0 8px 24px rgba(13, 59, 102, 0.4)'
             }}
           >
-            <EngineeringIcon sx={{ fontSize: 32, color: '#38BDF8' }} />
+            <img
+              src="/logo-mark.svg"
+              onError={(e) => { e.currentTarget.src = '/logo-mark.png'; }}
+              alt="Shazu One Partner"
+              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+            />
           </Box>
           <Typography variant="h5" sx={{ fontWeight: 900, color: '#F8FAFC', letterSpacing: '-0.02em', fontSize: '22px' }}>
             Shazu One Partner Hub

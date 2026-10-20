@@ -163,7 +163,8 @@ export default function SideNavbar({
               }}
             >
               <img
-                src="/logo.png"
+                src="/logo-mark.svg"
+                onError={(e) => { e.currentTarget.src = '/logo-mark.png'; }}
                 alt="Shazu One"
                 style={{ width: '100%', height: '100%', objectFit: 'contain' }}
               />

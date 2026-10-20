@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import {
   Box,
   Typography,
@@ -196,14 +196,21 @@ export default function AdminSidebar({
                   width: 38,
                   height: 38,
                   borderRadius: '10px',
-                  bgcolor: '#0284C7',
+                  bgcolor: '#FFFFFF',
+                  boxShadow: '0 2px 8px rgba(13, 59, 102, 0.12)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#FFFFFF'
+                  p: 0.5,
+                  overflow: 'hidden'
                 }}
               >
-                <AdminPanelSettingsIcon sx={{ fontSize: 24 }} />
+                <img
+                  src="/logo-mark.svg"
+                  onError={(e) => { e.currentTarget.src = '/logo-mark.png'; }}
+                  alt="Shazu One"
+                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                />
               </Box>
               <Box>
                 <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0F172A', lineHeight: 1.1 }}>
@@ -221,16 +228,23 @@ export default function AdminSidebar({
                   width: 38,
                   height: 38,
                   borderRadius: '10px',
-                  bgcolor: '#0284C7',
+                  bgcolor: '#FFFFFF',
+                  boxShadow: '0 2px 8px rgba(13, 59, 102, 0.12)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#FFFFFF',
-                  cursor: 'pointer'
+                  p: 0.5,
+                  cursor: 'pointer',
+                  overflow: 'hidden'
                 }}
                 onClick={onToggleCollapse}
               >
-                <AdminPanelSettingsIcon sx={{ fontSize: 24 }} />
+                <img
+                  src="/logo-mark.svg"
+                  onError={(e) => { e.currentTarget.src = '/logo-mark.png'; }}
+                  alt="Shazu One"
+                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                />
               </Box>
             </Tooltip>
           )}

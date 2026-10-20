@@ -172,16 +172,20 @@ export default function FirstTimeOnboardingModal({ isOpen, onClose, onOpenAuth }
                 width: '32px',
                 height: '32px',
                 borderRadius: '8px',
-                backgroundColor: '#0066CC',
+                overflow: 'hidden',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#FFFFFF',
-                fontWeight: 900,
-                fontSize: '15px'
+                backgroundColor: '#FFFFFF',
+                boxShadow: '0 2px 6px rgba(13, 59, 102, 0.12)'
               }}
             >
-              S
+              <img
+                src="/logo-mark.svg"
+                onError={(e) => { e.currentTarget.src = '/logo-mark.png'; }}
+                alt="Shazu One"
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              />
             </div>
             <div>
               <span style={{ fontSize: '15px', fontWeight: 900, color: '#0D3B66', fontFamily: '"Poppins", sans-serif' }}>Shazu </span>

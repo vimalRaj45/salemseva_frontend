@@ -83,7 +83,8 @@ export default function SplashScreen({ onFinish }) {
         {/* Official Shazu One Logo */}
         <Box
           component="img"
-          src="/logo.png"
+          src="/logo.svg"
+          onError={(e) => { e.currentTarget.src = '/logo.png'; }}
           alt="Shazu One Logo"
           sx={{
             width: { xs: 215, sm: 245 },

@@ -333,7 +333,8 @@ export default function Navbar({
                 }}
               >
                 <img
-                  src="/logo.png"
+                  src="/logo-mark.svg"
+                  onError={(e) => { e.currentTarget.src = '/logo-mark.png'; }}
                   alt="Shazu One Logo"
                   style={{
                     width: '100%',

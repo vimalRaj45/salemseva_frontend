@@ -1,4 +1,4 @@
-package com.salemseva.app;
+package com.shazuone.app;
 
 import com.getcapacitor.BridgeActivity;
 

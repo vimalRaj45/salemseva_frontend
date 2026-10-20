@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   Container,
   Box,
@@ -109,20 +109,25 @@ export default function CustomerOnboardingPage({ onLoginSuccess }) {
         <Box sx={{ textAlign: 'center', mb: 3 }}>
           <Box
             sx={{
-              width: 68,
-              height: 68,
+              width: 72,
+              height: 72,
               borderRadius: '20px',
-              bgcolor: '#0284C7',
-              color: '#FFFFFF',
+              bgcolor: '#FFFFFF',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               mx: 'auto',
               mb: 1.5,
-              boxShadow: '0 8px 24px rgba(2, 132, 199, 0.25)'
+              boxShadow: '0 8px 24px rgba(13, 59, 102, 0.12)',
+              p: 1
             }}
           >
-            <HomeRepairServiceIcon sx={{ fontSize: 34 }} />
+            <img
+              src="/logo-mark.svg"
+              onError={(e) => { e.currentTarget.src = '/logo-mark.png'; }}
+              alt="Shazu One"
+              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+            />
           </Box>
 
           <Typography variant="h5" sx={{ fontWeight: 900, color: '#0F172A', letterSpacing: -0.5, mb: 0.5 }}>
