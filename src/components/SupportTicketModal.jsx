@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -116,7 +116,8 @@ export default function SupportTicketModal({
     e.preventDefault();
     setErrorMessage('');
 
-    const cleanPhone = (phone || user?.phone || '').replace(/[\s\-\(\)\+]/g, '').slice(-10);
+    const digitsOnly = String(phone || user?.phone || '').replace(/\D/g, '');
+    const cleanPhone = digitsOnly.length >= 10 ? digitsOnly.slice(-10) : digitsOnly;
     if (!cleanPhone || cleanPhone.length !== 10) {
       setErrorMessage('Please provide a valid 10-digit contact mobile number');
       return;
@@ -133,9 +134,14 @@ export default function SupportTicketModal({
     setIsSubmitting(true);
     try {
       const payload = {
+        creatorRole: role,
         creator_role: role,
+        creatorName: name.trim() || user?.name || (isTechnician ? 'Technician' : 'Customer'),
         creator_name: name.trim() || user?.name || (isTechnician ? 'Technician' : 'Customer'),
+        creatorPhone: cleanPhone,
         creator_phone: cleanPhone,
+        phone: cleanPhone,
+        bookingId: bookingId.trim() || null,
         booking_id: bookingId.trim() || null,
         category,
         priority,
@@ -393,8 +399,12 @@ export default function SupportTicketModal({
                   <TextField
                     fullWidth
                     size="small"
+                    type="tel"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={(e) => {
+                      setPhone(e.target.value);
+                      if (errorMessage) setErrorMessage('');
+                    }}
                     placeholder="10-digit mobile"
                     InputProps={{ sx: { borderRadius: '10px', fontSize: '13px', height: '38px' } }}
                   />
