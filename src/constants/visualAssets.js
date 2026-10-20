@@ -1,8 +1,8 @@
-// SalemSeva Visual Assets Registry
+﻿// Shazu One Visual Assets Registry
 // Verified Undraw SVG Illustrations & Lottie Micro-Animations
 
 export const ILLUSTRATIONS = {
-  // Local SalemSeva Nano Banana Generated High-Res Illustrations
+  // Local Shazu One Generated High-Res Illustrations
   customerBooking: '/assets/illustrations/customer_booking.jpg',
   partnerService: '/assets/illustrations/partner_service.jpg',
   transparentPricing: '/assets/illustrations/transparent_pricing.jpg',
@@ -20,7 +20,7 @@ export const ILLUSTRATIONS = {
   salemMap: '/assets/illustrations/customer_booking.jpg',
   // Booking Confirmed with OTP
   orderConfirmed: '/assets/illustrations/transparent_pricing.jpg',
-  // SalemSeva Escrow Wallet & Cash
+  // Shazu One Escrow Wallet & Cash
   wallet: '/assets/illustrations/transparent_pricing.jpg',
   // 100% Escrow Protection & Safety
   security: '/assets/illustrations/safety_verification.jpg',

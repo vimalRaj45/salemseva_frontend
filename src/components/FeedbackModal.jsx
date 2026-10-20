@@ -1,4 +1,4 @@
-import { API_V1_URL } from '../config';
+﻿import { API_V1_URL } from '../config';
 import React, { useState } from 'react';
 import {
   Box,
@@ -107,7 +107,7 @@ export default function FeedbackModal({ open, onClose, user, userRole = 'custome
         updateWalletBalance(data.newBalance);
       }
 
-      const saved = JSON.parse(localStorage.getItem('salemseva_feedbacks_list') || '[]');
+      const saved = JSON.parse(localStorage.getItem('shazuone_feedbacks_list') || '[]');
       const newRecord = {
         ...payload,
         id: data.feedback?.id || Date.now(),
@@ -115,9 +115,9 @@ export default function FeedbackModal({ open, onClose, user, userRole = 'custome
         status: 'new',
         created_at: new Date().toISOString()
       };
-      localStorage.setItem('salemseva_feedbacks_list', JSON.stringify([newRecord, ...saved]));
+      localStorage.setItem('shazuone_feedbacks_list', JSON.stringify([newRecord, ...saved]));
 
-      window.dispatchEvent(new CustomEvent('salemseva_new_feedback_received', { detail: newRecord }));
+      window.dispatchEvent(new CustomEvent('Shazu One_new_feedback_received', { detail: newRecord }));
       window.dispatchEvent(new Event('storage'));
 
       setIsSubmitting(false);
@@ -127,15 +127,15 @@ export default function FeedbackModal({ open, onClose, user, userRole = 'custome
       }, 1800);
     } catch (err) {
       console.warn('Backend feedback sync fallback to local store:', err);
-      const saved = JSON.parse(localStorage.getItem('salemseva_feedbacks_list') || '[]');
+      const saved = JSON.parse(localStorage.getItem('shazuone_feedbacks_list') || '[]');
       const newRecord = {
         ...payload,
         id: Date.now(),
         status: 'new',
         created_at: new Date().toISOString()
       };
-      localStorage.setItem('salemseva_feedbacks_list', JSON.stringify([newRecord, ...saved]));
-      window.dispatchEvent(new CustomEvent('salemseva_new_feedback_received', { detail: newRecord }));
+      localStorage.setItem('shazuone_feedbacks_list', JSON.stringify([newRecord, ...saved]));
+      window.dispatchEvent(new CustomEvent('Shazu One_new_feedback_received', { detail: newRecord }));
       window.dispatchEvent(new Event('storage'));
 
       setIsSubmitting(false);
@@ -159,7 +159,7 @@ export default function FeedbackModal({ open, onClose, user, userRole = 'custome
       <ModalHeader
         id="feedback-modal-title"
         title={isTechnician ? 'Partner feedback' : 'Platform feedback'}
-        subtitle="Direct to Salem Central Operations Desk"
+        subtitle="Direct to Shazu One Central Operations Desk"
         onClose={handleModalClose}
         icon={<MessageSquare size={20} color="#0A66C2" />}
       />

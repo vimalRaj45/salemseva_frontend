@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   Container,
   Box,
@@ -387,7 +387,7 @@ export default function CustomerOnboardingPage({ onLoginSuccess }) {
 
             <Box sx={{ textAlign: 'center', mt: 1 }}>
               <Typography variant="caption" sx={{ color: '#64748B', fontSize: '12px' }}>
-                Already registered with SalemSeva?{' '}
+                Already registered with Shazu One?{' '}
                 <Link to="/login" style={{ color: '#0284C7', fontWeight: 700, textDecoration: 'none' }}>
                   Sign in
                 </Link>
@@ -403,7 +403,7 @@ export default function CustomerOnboardingPage({ onLoginSuccess }) {
       <ProcessingBackdrop
         open={isProcessing}
         title="Registering Profile & Credentials..."
-        subtitle="Creating your SalemSeva customer account in registry..."
+        subtitle="Creating your Shazu One customer account in registry..."
         badge="Secure Authentication"
       />
     </Box>

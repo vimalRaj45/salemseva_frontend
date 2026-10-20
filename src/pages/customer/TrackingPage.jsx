@@ -1,4 +1,4 @@
-import { API_V1_URL } from '../../config';
+﻿import { API_V1_URL } from '../../config';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Container,
@@ -73,7 +73,7 @@ export default function TrackingPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const urlBookingId = searchParams.get('bookingId');
-  const storedBookingId = localStorage.getItem('salemseva_active_booking');
+  const storedBookingId = localStorage.getItem('shazuone_active_booking');
   const bookingId = urlBookingId || storedBookingId || '';
 
   const [chatOpen, setChatOpen] = useState(false);
@@ -150,9 +150,9 @@ export default function TrackingPage() {
           booking: { ...prev.booking, status: 'inspecting' }
         }));
       }
-      localStorage.setItem('salemseva_partner_step', '3');
-      localStorage.setItem('salemseva_quote_status_' + bookingId, 'inspecting');
-      window.dispatchEvent(new CustomEvent('salemseva_status_updated', { detail: { bookingId, status: 'inspecting' } }));
+      localStorage.setItem('shazuone_partner_step', '3');
+      localStorage.setItem('shazuone_quote_status_' + bookingId, 'inspecting');
+      window.dispatchEvent(new CustomEvent('Shazu One_status_updated', { detail: { bookingId, status: 'inspecting' } }));
       window.dispatchEvent(new Event('storage'));
     } catch (err) {
       setTechOtpError('Network error. Please try again.');
@@ -167,7 +167,7 @@ export default function TrackingPage() {
       navigate('/', { replace: true });
       return;
     }
-    localStorage.setItem('salemseva_active_booking', bookingId);
+    localStorage.setItem('shazuone_active_booking', bookingId);
     let isMounted = true;
 
     const fetchTracking = async () => {
@@ -176,7 +176,7 @@ export default function TrackingPage() {
         const data = await res.json();
         if (data.success && isMounted) {
           // If local storage has quote_presented flag, ensure status reflects it immediately
-          const localQuoteStatus = localStorage.getItem('salemseva_quote_status_' + bookingId);
+          const localQuoteStatus = localStorage.getItem('shazuone_quote_status_' + bookingId);
           if (localQuoteStatus === 'quote_presented' && data.booking && data.booking.status !== 'quote_approved' && data.booking.status !== 'completed') {
             data.booking.status = 'quote_presented';
           }
@@ -206,13 +206,13 @@ export default function TrackingPage() {
       fetchTracking();
     };
 
-    window.addEventListener('salemseva_quote_updated', handleQuoteEvent);
+    window.addEventListener('Shazu One_quote_updated', handleQuoteEvent);
     window.addEventListener('storage', handleQuoteEvent);
 
     return () => {
       isMounted = false;
       clearInterval(interval);
-      window.removeEventListener('salemseva_quote_updated', handleQuoteEvent);
+      window.removeEventListener('Shazu One_quote_updated', handleQuoteEvent);
       window.removeEventListener('storage', handleQuoteEvent);
     };
   }, [bookingId]);
@@ -529,8 +529,8 @@ export default function TrackingPage() {
               {isScheduledBooking
                 ? (tech
                     ? `Technician Assigned: ${tech.name} is confirmed for your appointment. You will be notified with live GPS tracking when your technician starts traveling.`
-                    : `Booking #${bookingId} Confirmed: Your booking was sent to Salem Central Ops. They are looking for a certified technician for your scheduled window.`)
-                : `Booking #${bookingId} is confirmed and placed in Salem Central Ops queue.`
+                    : `Booking #${bookingId} Confirmed: Your booking was sent to Shazu One Central Ops. They are looking for a certified technician for your scheduled window.`)
+                : `Booking #${bookingId} is confirmed and placed in Shazu One Central Ops queue.`
               }
             </Alert>
 
@@ -647,7 +647,7 @@ export default function TrackingPage() {
             >
               <Box sx={{ position: 'relative', height: 230 }}>
                 <iframe
-                  title="Salem Central Ops Google Maps"
+                  title="Shazu One Central Ops Google Maps"
                   width="100%"
                   height="230"
                   frameBorder="0"
@@ -676,7 +676,7 @@ export default function TrackingPage() {
                 >
                   <HubIcon sx={{ color: '#38BDF8', fontSize: 18 }} />
                   <Typography variant="caption" sx={{ fontWeight: 900, fontSize: '12px' }}>
-                    Salem Central Ops • Priority Allocation Active
+                    Shazu One Central Ops • Priority Allocation Active
                   </Typography>
                 </Paper>
               </Box>
@@ -701,7 +701,7 @@ export default function TrackingPage() {
                   </Box>
                   <Box>
                     <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0F172A', lineHeight: 1.2 }}>
-                      Salem Central Operations Desk
+                      Shazu One Central Operations Desk
                     </Typography>
                     <Typography variant="caption" sx={{ color: '#0284C7', fontWeight: 700 }}>
                       சேலம் தலைமை செயல்பாட்டு மையம் • Fairlands Zone
@@ -983,7 +983,7 @@ export default function TrackingPage() {
                   )}
                   <Box>
                     <Typography variant="caption" sx={{ fontWeight: 800, color: '#0F172A', display: 'block' }}>
-                      {tech ? `Assigned Specialist: ${tech.name}` : 'Salem Central Ops Desk: Anand'}
+                      {tech ? `Assigned Specialist: ${tech.name}` : 'Shazu One Central Ops Desk: Anand'}
                     </Typography>
                     <Typography variant="caption" sx={{ color: tech ? '#166534' : '#64748B', fontWeight: tech ? 700 : 500 }}>
                       {tech ? 'Masked VoIP Call & Real-time Chat Active' : 'Direct Phone: 0427-2448888'}
@@ -1085,7 +1085,7 @@ export default function TrackingPage() {
               >
                 Technician {tech.name} has arrived and is conducting diagnostic inspection at your doorstep.
               </Alert>
-            ) : (
+            ) : bookingStatus === 'en_route' ? (
               <Box sx={{ mb: 2 }}>
                 {/* LottieFiles Technician En Route Motorbike Animation */}
                 <SalemLottie
@@ -1101,6 +1101,17 @@ export default function TrackingPage() {
                   sx={{ borderRadius: '8px', fontWeight: 600, bgcolor: '#F0F9FF', color: '#0369A1', border: '1px solid #BAE6FD', fontSize: '12.5px' }}
                 >
                   Technician {tech.name} has started journey and is on the way to your home (ETA: {tech.eta || '8 mins'} • {tech.distanceKm || '1.8 km'}).
+                </Alert>
+              </Box>
+            ) : (
+              /* When bookingStatus is 'accepted' or 'assigned': Tech has accepted, getting ready */
+              <Box sx={{ mb: 2 }}>
+                <Alert 
+                  severity="success" 
+                  icon={<CheckCircleIcon sx={{ fontSize: 20 }} />}
+                  sx={{ borderRadius: '8px', fontWeight: 700, bgcolor: '#F0FDF4', color: '#166534', border: '1px solid #BBF7D0', fontSize: '13px' }}
+                >
+                  Technician {tech.name} has accepted your booking and is preparing equipment for departure. Call and chat are now active.
                 </Alert>
               </Box>
             )}
@@ -1136,7 +1147,11 @@ export default function TrackingPage() {
                     top: 10,
                     left: '50%',
                     transform: 'translateX(-50%)',
-                    bgcolor: (bookingStatus === 'inspecting' || bookingStatus === 'arrived') ? '#D97706' : (bookingStatus === 'quote_presented' || bookingStatus === 'quote_approved' ? '#16A34A' : '#0F172A'),
+                    bgcolor: (bookingStatus === 'inspecting' || bookingStatus === 'arrived') 
+                      ? '#D97706' 
+                      : (bookingStatus === 'quote_presented' || bookingStatus === 'quote_approved' 
+                          ? '#16A34A' 
+                          : (bookingStatus === 'en_route' ? '#0284C7' : '#0F172A')),
                     color: '#FFFFFF',
                     px: 1.5,
                     py: 0.5,
@@ -1149,13 +1164,19 @@ export default function TrackingPage() {
                     boxShadow: '0 2px 6px rgba(0,0,0,0.3)'
                   }}
                 >
-                  <TwoWheelerIcon sx={{ color: '#FFFFFF', fontSize: 16 }} />
+                  {bookingStatus === 'en_route' ? (
+                    <TwoWheelerIcon sx={{ color: '#FFFFFF', fontSize: 16 }} />
+                  ) : (
+                    <CheckCircleIcon sx={{ color: '#4ADE80', fontSize: 16 }} />
+                  )}
                   <Typography variant="caption" sx={{ fontWeight: 700, fontSize: '11.5px' }}>
                     {(bookingStatus === 'inspecting' || bookingStatus === 'arrived') 
                       ? 'Technician at doorstep • Diagnostic inspection' 
                       : (bookingStatus === 'quote_presented' 
                           ? 'Digital quote ready for customer review' 
-                          : `${tech.name} • Live Location (${tech.eta || '8 mins'} • ${tech.distanceKm || '1.8 km'})`)}
+                          : (bookingStatus === 'en_route'
+                              ? `${tech.name} • On the way (${tech.eta || '8 mins'} • ${tech.distanceKm || '1.8 km'})`
+                              : `${tech.name} • Accepted & Preparing Departure`))}
                   </Typography>
                 </Paper>
               </Box>
@@ -1322,7 +1343,7 @@ export default function TrackingPage() {
                     <CheckCircleIcon sx={{ color: '#16A34A', fontSize: 22 }} />
                     <Box>
                       <Typography variant="body2" sx={{ color: '#14532D', fontSize: '12.5px', fontWeight: 700 }}>
-                        Genuine SalemSeva Technician Verified & Permitted Inside
+                        Genuine Shazu One Technician Verified & Permitted Inside
                       </Typography>
                       <Typography variant="caption" sx={{ color: '#166534', fontSize: '11px' }}>
                         Diagnostic inspection and assessment of your appliance is in progress.
@@ -1337,14 +1358,14 @@ export default function TrackingPage() {
                         Repair Work in Progress • Escrow Payment Secured
                       </Typography>
                       <Typography variant="caption" sx={{ color: '#166534', fontSize: '11px' }}>
-                        100% protected under SalemSeva Escrow. Technician will test the appliance before completing the job.
+                        100% protected under Shazu One Escrow. Technician will test the appliance before completing the job.
                       </Typography>
                     </Box>
                   </Box>
                 ) : (
                   <Box>
                     <Typography variant="body2" sx={{ color: '#334155', fontSize: '12px', mb: 1.2, lineHeight: 1.4 }}>
-                      <strong>For your family's safety:</strong> When the technician arrives at your door, ask them: <em>"What is your SalemSeva Verification PIN?"</em> Enter their 4-digit reply below before opening the door or letting them in.
+                      <strong>For your family's safety:</strong> When the technician arrives at your door, ask them: <em>"What is your Shazu One Verification PIN?"</em> Enter their 4-digit reply below before opening the door or letting them in.
                     </Typography>
 
                     <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 1 }}>
@@ -1686,7 +1707,7 @@ export default function TrackingPage() {
                     Click above to inspect & approve completed work and release escrow payout to technician.
                   </Typography>
                 </Box>
-              ) : (
+              ) : bookingStatus === 'en_route' ? (
                 <Button
                   variant="contained"
                   fullWidth
@@ -1704,6 +1725,25 @@ export default function TrackingPage() {
                   }}
                 >
                   Technician En Route • Share OTP {trackData?.booking?.customer_otp || '4892'} at Doorstep
+                </Button>
+              ) : (
+                <Button
+                  variant="contained"
+                  fullWidth
+                  size="large"
+                  disabled
+                  sx={{
+                    bgcolor: '#F0FDF4 !important',
+                    color: '#166534 !important',
+                    border: '1px solid #BBF7D0',
+                    borderRadius: '8px',
+                    py: 1.3,
+                    fontWeight: 700,
+                    fontSize: '13.5px',
+                    textTransform: 'none'
+                  }}
+                >
+                  Technician Accepted • Preparing Departure (Call or Chat active)
                 </Button>
               )}
 
@@ -1950,8 +1990,8 @@ export default function TrackingPage() {
                     booking: { ...prev.booking, status: 'completed' }
                   }));
                 }
-                localStorage.setItem('salemseva_quote_status_' + bookingId, 'completed');
-                window.dispatchEvent(new CustomEvent('salemseva_quote_updated', { detail: { bookingId, status: 'completed' } }));
+                localStorage.setItem('shazuone_quote_status_' + bookingId, 'completed');
+                window.dispatchEvent(new CustomEvent('Shazu One_quote_updated', { detail: { bookingId, status: 'completed' } }));
                 window.dispatchEvent(new Event('storage'));
                 
                 // 3. Immediately route to the full /rate review page

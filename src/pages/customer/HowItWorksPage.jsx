@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -65,7 +65,7 @@ const CUSTOMER_STAGES = [
     desc: 'Physical inspection on arrival with a digital job card quote. Buying spare parts is 100% your choice.',
     illustration: ILLUSTRATIONS.transparentPricing,
     points: [
-      'Strictly labour billing - SalemSeva never sells products',
+      'Strictly labour billing - Shazu One never sells products',
       'Any spare parts needed are 100% your choice to buy or provide',
       'Payment held safely in Razorpay escrow until you approve'
     ]
@@ -91,7 +91,7 @@ const PARTNER_STAGES = [
     stageNumber: 1,
     badge: 'Stage 1: Quick Registration',
     title: 'DigiLocker KYC & Skill Verification',
-    desc: 'Register with Aadhaar e-KYC and trade certificates. Get approved as an official SalemSeva certified specialist.',
+    desc: 'Register with Aadhaar e-KYC and trade certificates. Get approved as an official Shazu One certified specialist.',
     illustration: ILLUSTRATIONS.safetyVerification,
     points: [
       '100% paperless registration in under 5 minutes',
@@ -133,7 +133,7 @@ const PARTNER_STAGES = [
     desc: 'Complete service, verify customer completion OTP, and receive 98% of the booking directly into your UPI account.',
     illustration: ILLUSTRATIONS.partnerService,
     points: [
-      'SalemSeva retains only 2% platform facilitation',
+      'Shazu One retains only 2% platform facilitation',
       '98% net service payment disbursed daily via bank UPI',
       'Earn 5-star badges and qualify for weekly cash incentives'
     ]
@@ -400,7 +400,7 @@ export default function HowItWorksPage() {
           >
             <VerifiedUserIcon sx={{ fontSize: 16, color: '#059669', flexShrink: 0 }} />
             <Typography variant="caption" sx={{ color: '#475569', fontSize: '11px', lineHeight: 1.3 }}>
-              Zero product push. SalemSeva only charges for skilled doorstep labour. Replacement parts are 100% your choice.
+              Zero product push. Shazu One only charges for skilled doorstep labour. Replacement parts are 100% your choice.
             </Typography>
           </Box>
         </Card>

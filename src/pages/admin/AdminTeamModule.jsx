@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -484,7 +484,7 @@ export default function AdminTeamModule({ currentRole = 'super_admin', onToast =
                   fullWidth
                   label="Official email"
                   type="email"
-                  placeholder="e.g. anand@salemseva.in"
+                  placeholder="e.g. anand@Shazu One.in"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required

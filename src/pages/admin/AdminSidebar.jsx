@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import {
   Box,
   Typography,
@@ -207,7 +207,7 @@ export default function AdminSidebar({
               </Box>
               <Box>
                 <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0F172A', lineHeight: 1.1 }}>
-                  SalemSeva
+                  Shazu One
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#0284C7', fontWeight: 800, fontSize: '10.5px' }}>
                   Ops Command Hub

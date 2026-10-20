@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import {
   Container,
   Box,
@@ -56,6 +56,7 @@ import TwoWheelerIcon from '@mui/icons-material/TwoWheeler';
 import DirectionsBikeIcon from '@mui/icons-material/DirectionsBike';
 import BuildIcon from '@mui/icons-material/Build';
 import PhoneIcon from '@mui/icons-material/Phone';
+import PhoneDisabledIcon from '@mui/icons-material/PhoneDisabled';
 import StarIcon from '@mui/icons-material/Star';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import LocationCityIcon from '@mui/icons-material/LocationCity';
@@ -134,7 +135,7 @@ export default function AdminDashboardPage() {
   const { user } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const [currentRole, setCurrentRole] = useState(() => localStorage.getItem('salemseva_admin_role') || 'super_admin');
+  const [currentRole, setCurrentRole] = useState(() => localStorage.getItem('shazuone_admin_role') || 'super_admin');
   const [teamList, setTeamList] = useState([]);
   const [activeMainTab, setActiveMainTab] = useState('ops'); // 'ops', 'tracking', 'services', 'technicians', 'customers', 'feedback', 'rewards', 'team', 'traceability'
   const [loading, setLoading] = useState(true);
@@ -219,6 +220,22 @@ export default function AdminDashboardPage() {
   const [selectedTechForDispatch, setSelectedTechForDispatch] = useState('');
   const [dispatchLoading, setDispatchLoading] = useState(false);
 
+  // Release Technician (Customer Unresponsive) State — legacy, kept for existing buttons
+  const [releaseDialogOpen, setReleaseDialogOpen] = useState(false);
+  const [targetBookingForRelease, setTargetBookingForRelease] = useState(null);
+  const [releaseReason, setReleaseReason] = useState('Customer not answering phone calls / Doorbell no response at doorstep');
+  const [releaseDetails, setReleaseDetails] = useState('');
+  const [compensateTech, setCompensateTech] = useState(true);
+  const [releaseLoading, setReleaseLoading] = useState(false);
+
+  // Admin Cancel Order & Release Tech — general-purpose
+  const [cancelOrderOpen, setCancelOrderOpen] = useState(false);
+  const [cancelOrderTarget, setCancelOrderTarget] = useState(null);
+  const [cancelOrderReason, setCancelOrderReason] = useState('');
+  const [cancelOrderDetails, setCancelOrderDetails] = useState('');
+  const [cancelOrderCompensate, setCancelOrderCompensate] = useState(false);
+  const [cancelOrderLoading, setCancelOrderLoading] = useState(false);
+
   // Rewards & Incentive Settings State (Customizable by Admin)
   const [rewardConfig, setRewardConfig] = useState({
     customer_referral_credits: 50,
@@ -260,7 +277,7 @@ export default function AdminDashboardPage() {
       const data = await res.json();
       let serverFeedbacks = data.success && Array.isArray(data.feedbacks) ? data.feedbacks : [];
 
-      const localRaw = localStorage.getItem('salemseva_feedbacks_list');
+      const localRaw = localStorage.getItem('shazuone_feedbacks_list');
       const localFeedbacks = localRaw ? JSON.parse(localRaw) : [];
 
       const map = new Map();
@@ -277,7 +294,7 @@ export default function AdminDashboardPage() {
       setFeedbacksList(merged);
     } catch (e) {
       console.warn('Feedback fetch fallback to local:', e);
-      const localRaw = localStorage.getItem('salemseva_feedbacks_list');
+      const localRaw = localStorage.getItem('shazuone_feedbacks_list');
       if (localRaw) {
         setFeedbacksList(JSON.parse(localRaw));
       }
@@ -315,10 +332,10 @@ export default function AdminDashboardPage() {
       fetchFeedbacks();
       fetchReviews();
     };
-    window.addEventListener('salemseva_new_feedback_received', handleFeedbackEvent);
+    window.addEventListener('Shazu One_new_feedback_received', handleFeedbackEvent);
     window.addEventListener('storage', handleFeedbackEvent);
     return () => {
-      window.removeEventListener('salemseva_new_feedback_received', handleFeedbackEvent);
+      window.removeEventListener('Shazu One_new_feedback_received', handleFeedbackEvent);
       window.removeEventListener('storage', handleFeedbackEvent);
     };
   }, []);
@@ -339,7 +356,7 @@ export default function AdminDashboardPage() {
 
     setFeedbacksList(prev => {
       const updated = prev.map(f => (f.id === id ? { ...f, status: newStatus } : f));
-      localStorage.setItem('salemseva_feedbacks_list', JSON.stringify(updated));
+      localStorage.setItem('shazuone_feedbacks_list', JSON.stringify(updated));
       return updated;
     });
 
@@ -697,7 +714,7 @@ export default function AdminDashboardPage() {
           }));
         }
         try {
-          const storedTech = JSON.parse(localStorage.getItem('salemseva_tech_user') || 'null');
+          const storedTech = JSON.parse(localStorage.getItem('shazuone_tech_user') || 'null');
           if (storedTech && (storedTech.id === techId || storedTech.phone === data.technician?.phone)) {
             const updatedTech = {
               ...storedTech,
@@ -705,7 +722,7 @@ export default function AdminDashboardPage() {
               isKycVerified: action === 'approve',
               status: action === 'approve' ? 'Verified' : 'Pending Verification'
             };
-            localStorage.setItem('salemseva_tech_user', JSON.stringify(updatedTech));
+            localStorage.setItem('shazuone_tech_user', JSON.stringify(updatedTech));
             window.dispatchEvent(new Event('storage'));
           }
         } catch (storageErr) {}
@@ -942,6 +959,93 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const handleOpenReleaseDialog = (booking) => {
+    setTargetBookingForRelease(booking);
+    setReleaseReason('Customer not answering phone calls / Doorbell no response at doorstep');
+    setReleaseDetails('');
+    setCompensateTech(true);
+    setReleaseDialogOpen(true);
+  };
+
+  const handleExecuteReleaseTechnician = async () => {
+    if (!targetBookingForRelease) return;
+    setReleaseLoading(true);
+    try {
+      const res = await fetch(`${API_V1_URL}/admin/bookings/release-technician`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bookingId: targetBookingForRelease.id,
+          reason: releaseReason,
+          reasonDetails: releaseDetails,
+          compensateTech,
+          adminNotes: releaseDetails
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setToast({
+          open: true,
+          message: data.message || `Technician released and booking #${targetBookingForRelease.id} cancelled.`,
+          severity: 'success'
+        });
+        setReleaseDialogOpen(false);
+        fetchOverview();
+      } else {
+        setToast({ open: true, message: data.error || 'Failed to release technician', severity: 'error' });
+      }
+    } catch (err) {
+      setToast({ open: true, message: 'Failed to release technician', severity: 'error' });
+    } finally {
+      setReleaseLoading(false);
+    }
+  };
+
+  // ── Admin Cancel Order & Release Technician ──────────────────────────────
+  const handleOpenCancelOrder = (booking) => {
+    setCancelOrderTarget(booking);
+    setCancelOrderReason('');
+    setCancelOrderDetails('');
+    // Suggest compensation only if tech is already dispatched
+    const hasTech = Boolean(booking.technician_id || booking.technician_name);
+    setCancelOrderCompensate(hasTech && ['en_route', 'arrived', 'in_progress', 'quote_presented'].includes(booking.status));
+    setCancelOrderOpen(true);
+  };
+
+  const handleExecuteCancelOrder = async () => {
+    if (!cancelOrderTarget || !cancelOrderReason) return;
+    setCancelOrderLoading(true);
+    try {
+      const res = await fetch(`${API_V1_URL}/admin/bookings/cancel-order`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bookingId: cancelOrderTarget.id,
+          reason: cancelOrderReason,
+          reasonDetails: cancelOrderDetails,
+          compensateTech: cancelOrderCompensate,
+          adminNotes: cancelOrderDetails
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setToast({
+          open: true,
+          message: data.message || `Order #${cancelOrderTarget.id} cancelled successfully.`,
+          severity: 'success'
+        });
+        setCancelOrderOpen(false);
+        fetchOverview();
+      } else {
+        setToast({ open: true, message: data.error || 'Failed to cancel order', severity: 'error' });
+      }
+    } catch (err) {
+      setToast({ open: true, message: 'Network error — failed to cancel order', severity: 'error' });
+    } finally {
+      setCancelOrderLoading(false);
+    }
+  };
+
   const getStatusChip = (status) => {
     switch (status) {
       case 'completed':
@@ -1101,7 +1205,7 @@ export default function AdminDashboardPage() {
         currentRole={currentRole}
         onRoleChange={(newRole) => {
           setCurrentRole(newRole);
-          localStorage.setItem('salemseva_admin_role', newRole);
+          localStorage.setItem('shazuone_admin_role', newRole);
           setToast({ open: true, message: `Active RBAC role switched to ${newRole.toUpperCase()}`, severity: 'info' });
         }}
         mobileOpen={mobileSidebarOpen}
@@ -1135,7 +1239,7 @@ export default function AdminDashboardPage() {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                 <AdminPanelSettingsIcon sx={{ color: '#0284C7', fontSize: { xs: 24, sm: 30 } }} />
                 <Typography variant="h5" sx={{ fontWeight: 900, color: '#0F172A', letterSpacing: -0.5, fontSize: { xs: '1.15rem', sm: '1.4rem', md: '1.5rem' } }}>
-                  SalemSeva <span style={{ color: '#0284C7', fontSize: '0.85em', fontWeight: 700 }}>Central Ops & Fleet Command</span>
+                  Shazu One <span style={{ color: '#0284C7', fontSize: '0.85em', fontWeight: 700 }}>Central Ops & Fleet Command</span>
                 </Typography>
                 <Chip
                   label="Live PostgreSQL DB"
@@ -2204,6 +2308,29 @@ export default function AdminDashboardPage() {
                             >
                               Trace
                             </Button>
+                            {/* Admin Cancel Order & Release Tech — available for all active bookings */}
+                            {!['completed', 'cancelled'].includes(job.status) && (
+                              <Button
+                                variant="outlined"
+                                size="small"
+                                startIcon={<CancelIcon sx={{ fontSize: 13 }} />}
+                                onClick={() => handleOpenCancelOrder(job)}
+                                title="Cancel this order and release the technician (admin override)"
+                                sx={{
+                                  borderRadius: '8px',
+                                  fontSize: '11px',
+                                  fontWeight: 800,
+                                  textTransform: 'none',
+                                  py: 0.4,
+                                  color: '#DC2626',
+                                  borderColor: '#FCA5A5',
+                                  bgcolor: '#FEF2F2',
+                                  '&:hover': { bgcolor: '#FEE2E2', borderColor: '#DC2626' }
+                                }}
+                              >
+                                Cancel Order
+                              </Button>
+                            )}
                             {job.status === 'matching' && (
                               <Button
                                 variant="contained"
@@ -3188,7 +3315,7 @@ export default function AdminDashboardPage() {
                   <Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0F172A', fontSize: '15px' }}>
-                        SalemSeva Central Audit Trail & Deep Traceability Desk
+                        Shazu One Central Audit Trail & Deep Traceability Desk
                       </Typography>
                       <Chip
                         label={`${auditLogsList.length} Real-Time Events`}
@@ -3579,7 +3706,7 @@ export default function AdminDashboardPage() {
                       PARTNER TECHNICIAN REFERRAL INCENTIVE (INR)
                     </Typography>
                     <Typography variant="caption" sx={{ color: '#15803D', display: 'block', mb: 1.5, fontSize: '11px' }}>
-                      Incentive credited to a technician when they refer another partner to SalemSeva fleet.
+                      Incentive credited to a technician when they refer another partner to Shazu One fleet.
                     </Typography>
                     <TextField
                       fullWidth
@@ -4043,6 +4170,29 @@ export default function AdminDashboardPage() {
                         >
                           Open 7-Stage Console
                         </Button>
+                        {/* Admin Cancel Order & Release Tech in Fleet Monitoring */}
+                        {!['completed', 'cancelled'].includes(job.status) && (
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<CancelIcon sx={{ fontSize: 12 }} />}
+                            onClick={() => handleOpenCancelOrder(job)}
+                            title="Cancel this order and release the technician (admin override)"
+                            sx={{
+                              borderColor: '#FCA5A5',
+                              color: '#DC2626',
+                              bgcolor: '#FEF2F2',
+                              fontWeight: 800,
+                              fontSize: '11px',
+                              borderRadius: '8px',
+                              textTransform: 'none',
+                              px: 1.2,
+                              '&:hover': { bgcolor: '#FEE2E2', borderColor: '#DC2626' }
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                        )}
                         {job.status === 'matching' && (
                           <Button
                             variant="outlined"
@@ -4204,6 +4354,208 @@ export default function AdminDashboardPage() {
               }}
             >
               {dispatchLoading ? <CircularProgress size={20} sx={{ color: '#FFF' }} /> : 'Confirm & dispatch'}
+            </Button>
+          </ModalFooter>
+        </Modal>
+
+        {/* LEGACY: RELEASE TECHNICIAN (CUSTOMER UNRESPONSIVE) */}
+        <Modal open={releaseDialogOpen} onClose={() => setReleaseDialogOpen(false)} maxWidth="sm">
+          <ModalHeader
+            title={`Release Technician & Cancel Booking #${targetBookingForRelease?.id || ''}`}
+            subtitle="Emergency central dispatch override for customer no-show / unresponsive"
+            onClose={() => setReleaseDialogOpen(false)}
+          />
+          <ModalBody>
+            <Paper elevation={0} sx={{ p: 2, mb: 2, bgcolor: '#FEF2F2', border: '1.5px solid #FECACA', borderRadius: '12px' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.8 }}>
+                <PhoneDisabledIcon sx={{ color: '#DC2626', fontSize: 20 }} />
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#991B1B', fontSize: '13.5px' }}>
+                  Customer Unresponsive / Doorstep No-Show Override
+                </Typography>
+              </Box>
+              <Typography variant="caption" sx={{ color: '#7F1D1D', display: 'block', fontSize: '12px', lineHeight: 1.45 }}>
+                Use this administrative action when the assigned technician has reached the location or is waiting, but the customer does not answer phone calls or open the door. This will immediately free the technician for new duties.
+              </Typography>
+            </Paper>
+            <Box sx={{ mb: 2, p: 1.5, bgcolor: '#F8FAFC', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+              <Typography variant="body2" sx={{ color: '#0F172A', fontSize: '13px', mb: 0.5 }}>
+                Customer: <strong>{targetBookingForRelease?.customer_name || 'Customer'}</strong> • Phone: <strong>{targetBookingForRelease?.customer_phone || 'N/A'}</strong>
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#0F172A', fontSize: '13px', mb: 0.5 }}>
+                Assigned Specialist: <strong>{targetBookingForRelease?.technician_name || 'Assigned Technician'}</strong>
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#64748B', fontSize: '12px' }}>
+                Locality: <strong>{targetBookingForRelease?.locality || 'Salem'}</strong> • Current Status: <strong>{targetBookingForRelease?.status}</strong>
+              </Typography>
+            </Box>
+            <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+              <InputLabel>Cancellation Reason</InputLabel>
+              {/* ds-allow-native-select */}
+              <Select value={releaseReason} label="Cancellation Reason" onChange={(e) => setReleaseReason(e.target.value)} sx={{ borderRadius: '10px' }}>
+                <MenuItem value="Customer not answering phone calls / Doorbell no response at doorstep">Customer not answering phone calls / Doorbell no response at doorstep</MenuItem>
+                <MenuItem value="Customer doorstep address incorrect or untraceable in Salem">Customer doorstep address incorrect or untraceable in Salem</MenuItem>
+                <MenuItem value="Customer refused entry or verbally asked to cancel">Customer refused entry or verbally asked to cancel</MenuItem>
+                <MenuItem value="Customer requested cancellation via Central Ops Hotline">Customer requested cancellation via Central Ops Hotline</MenuItem>
+                <MenuItem value="Admin emergency schedule override">Admin emergency schedule override</MenuItem>
+              </Select>
+            </FormControl>
+            <TextField fullWidth size="small" multiline rows={2} label="Dispatcher Notes (Optional)" value={releaseDetails} onChange={(e) => setReleaseDetails(e.target.value)} sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: '10px' } }} />
+            <Box sx={{ p: 1.5, bgcolor: compensateTech ? '#F0FDF4' : '#F8FAFC', border: compensateTech ? '1px solid #BBF7D0' : '1px solid #E2E8F0', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: compensateTech ? '#166534' : '#0F172A', fontSize: '13px' }}>Compensate Partner Travel Allowance (Rs.99.00)</Typography>
+                <Typography variant="caption" sx={{ color: compensateTech ? '#15803D' : '#64748B', fontSize: '11.5px', display: 'block' }}>Credit Rs.99 doorstep travel fee to technician wallet.</Typography>
+              </Box>
+              <Switch checked={compensateTech} onChange={(e) => setCompensateTech(e.target.checked)} color="success" />
+            </Box>
+          </ModalBody>
+          <ModalFooter>
+            <Button onClick={() => setReleaseDialogOpen(false)} sx={{ color: '#64748B', fontWeight: 600, textTransform: 'none', height: 44 }}>Close</Button>
+            <Button variant="contained" startIcon={<PhoneDisabledIcon sx={{ fontSize: 16 }} />} onClick={handleExecuteReleaseTechnician} disabled={releaseLoading}
+              sx={{ bgcolor: '#DC2626', color: '#FFF', fontWeight: 700, borderRadius: '12px', textTransform: 'none', height: 44, minWidth: 180, fontSize: '13.5px', boxShadow: '0 4px 12px rgba(220,38,38,0.25)', '&:hover': { bgcolor: '#B91C1C' } }}>
+              {releaseLoading ? <CircularProgress size={20} sx={{ color: '#FFF' }} /> : 'Release & Cancel'}
+            </Button>
+          </ModalFooter>
+        </Modal>
+
+        {/* ── ADMIN CANCEL ORDER & RELEASE TECHNICIAN MODAL ─────────────────── */}
+        <Modal open={cancelOrderOpen} onClose={() => !cancelOrderLoading && setCancelOrderOpen(false)} maxWidth="sm">
+          <ModalHeader
+            title={`Cancel Order #${cancelOrderTarget?.id || ''}`}
+            subtitle="Admin override — cancels the booking and immediately releases the technician"
+            onClose={() => !cancelOrderLoading && setCancelOrderOpen(false)}
+          />
+          <ModalBody>
+
+            {/* Booking summary strip */}
+            <Paper elevation={0} sx={{ p: 2, mb: 2.5, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px' }}>
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                <Box sx={{ width: 36, height: 36, borderRadius: '10px', bgcolor: '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <CancelIcon sx={{ color: '#DC2626', fontSize: 20 }} />
+                </Box>
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography sx={{ fontWeight: 800, fontSize: '13.5px', color: '#0F172A', mb: 0.4 }}>
+                    {cancelOrderTarget?.service_name || cancelOrderTarget?.selected_issue || 'Service Booking'}
+                  </Typography>
+                  <Typography sx={{ fontSize: '12px', color: '#475569', mb: 0.2 }}>
+                    Customer: <strong>{cancelOrderTarget?.customer_name || cancelOrderTarget?.customer_phone || 'N/A'}</strong>
+                    {cancelOrderTarget?.customer_phone && cancelOrderTarget?.customer_name ? ` • ${cancelOrderTarget.customer_phone}` : ''}
+                  </Typography>
+                  {(cancelOrderTarget?.technician_name || cancelOrderTarget?.technician_id) ? (
+                    <Typography sx={{ fontSize: '12px', color: '#475569', mb: 0.2 }}>
+                      Assigned Tech: <strong>{cancelOrderTarget.technician_name || `ID ${cancelOrderTarget.technician_id}`}</strong>
+                    </Typography>
+                  ) : (
+                    <Typography sx={{ fontSize: '12px', color: '#94A3B8', mb: 0.2 }}>No technician assigned yet</Typography>
+                  )}
+                  <Box sx={{ mt: 0.6, display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
+                    <Chip label={cancelOrderTarget?.status?.toUpperCase()} size="small" sx={{ fontSize: '10px', fontWeight: 900, bgcolor: '#FEE2E2', color: '#991B1B', height: 20 }} />
+                    {cancelOrderTarget?.locality && <Chip label={cancelOrderTarget.locality} size="small" sx={{ fontSize: '10px', fontWeight: 700, bgcolor: '#F1F5F9', color: '#64748B', height: 20 }} />}
+                  </Box>
+                </Box>
+              </Box>
+            </Paper>
+
+            {/* Reason selector */}
+            <FormControl fullWidth size="small" sx={{ mb: 2 }} required>
+              <InputLabel>Cancellation Reason *</InputLabel>
+              {/* ds-allow-native-select */}
+              <Select
+                value={cancelOrderReason}
+                label="Cancellation Reason *"
+                onChange={(e) => setCancelOrderReason(e.target.value)}
+                sx={{ borderRadius: '10px' }}
+                displayEmpty
+              >
+                <MenuItem value="" disabled><em>Select a reason...</em></MenuItem>
+                <MenuItem value="Customer not answering phone calls / Doorbell no response at doorstep">Customer unresponsive — no answer / doorbell no-show</MenuItem>
+                <MenuItem value="Customer requested cancellation via Shazu One Central Ops">Customer requested cancellation via Shazu One Central Ops</MenuItem>
+                <MenuItem value="Customer address is incorrect or untraceable in Salem">Customer address is incorrect or untraceable in Salem</MenuItem>
+                <MenuItem value="Customer refused entry or verbally requested cancellation">Customer refused entry or verbally requested cancellation</MenuItem>
+                <MenuItem value="Technician breakdown or vehicle issue — unable to reach">Technician breakdown or vehicle issue — unable to reach</MenuItem>
+                <MenuItem value="Technician wrongly assigned — skill mismatch for this job">Technician wrongly assigned — skill mismatch for this job</MenuItem>
+                <MenuItem value="Service temporarily unavailable in this locality">Service temporarily unavailable in this locality</MenuItem>
+                <MenuItem value="Admin emergency override — operational requirement">Admin emergency override — operational requirement</MenuItem>
+              </Select>
+            </FormControl>
+
+            {/* Notes */}
+            <TextField
+              fullWidth
+              size="small"
+              multiline
+              rows={3}
+              label="Admin Notes / Operational Details"
+              placeholder="e.g. Technician called 3 times, no answer. Waiting since 4:30 PM at Fairlands site."
+              value={cancelOrderDetails}
+              onChange={(e) => setCancelOrderDetails(e.target.value)}
+              sx={{ mb: 2.5, '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+            />
+
+            {/* Tech compensation toggle — only show if tech is assigned */}
+            {(cancelOrderTarget?.technician_id || cancelOrderTarget?.technician_name) && (
+              <Box sx={{
+                p: 1.5,
+                bgcolor: cancelOrderCompensate ? '#F0FDF4' : '#F8FAFC',
+                border: cancelOrderCompensate ? '1px solid #BBF7D0' : '1px solid #E2E8F0',
+                borderRadius: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                mb: 1
+              }}>
+                <Box>
+                  <Typography sx={{ fontWeight: 800, color: cancelOrderCompensate ? '#166534' : '#0F172A', fontSize: '13px' }}>
+                    Compensate Technician Travel Allowance (Rs.99)
+                  </Typography>
+                  <Typography sx={{ color: cancelOrderCompensate ? '#15803D' : '#64748B', fontSize: '11.5px', display: 'block' }}>
+                    Credit Rs.99 travel fee so the technician does not bear a travel loss for this cancellation.
+                  </Typography>
+                </Box>
+                <Switch
+                  checked={cancelOrderCompensate}
+                  onChange={(e) => setCancelOrderCompensate(e.target.checked)}
+                  color="success"
+                />
+              </Box>
+            )}
+
+            {/* Warning note */}
+            <Paper elevation={0} sx={{ p: 1.5, bgcolor: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '10px', mt: cancelOrderTarget?.technician_id ? 1.5 : 0 }}>
+              <Typography sx={{ fontSize: '11.5px', color: '#92400E', lineHeight: 1.5 }}>
+                <strong>This action is permanent and logged.</strong> The booking will be marked cancelled, the technician will be immediately set online and available for new assignments, and this action will be recorded in the audit trail.
+              </Typography>
+            </Paper>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              onClick={() => setCancelOrderOpen(false)}
+              disabled={cancelOrderLoading}
+              sx={{ color: '#64748B', fontWeight: 600, textTransform: 'none', height: 44 }}
+            >
+              Keep Order
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={cancelOrderLoading ? null : <CancelIcon sx={{ fontSize: 16 }} />}
+              onClick={handleExecuteCancelOrder}
+              disabled={cancelOrderLoading || !cancelOrderReason}
+              sx={{
+                bgcolor: '#DC2626',
+                color: '#FFF',
+                fontWeight: 700,
+                borderRadius: '12px',
+                textTransform: 'none',
+                height: 44,
+                minWidth: 200,
+                fontSize: '13.5px',
+                boxShadow: '0 4px 14px rgba(220,38,38,0.28)',
+                '&:hover': { bgcolor: '#B91C1C', boxShadow: '0 6px 18px rgba(220,38,38,0.35)' },
+                '&.Mui-disabled': { bgcolor: '#FCA5A5', color: '#FFF' }
+              }}
+            >
+              {cancelOrderLoading
+                ? <><CircularProgress size={18} sx={{ color: '#FFF', mr: 1 }} />Cancelling...</>
+                : 'Confirm Cancel & Release'}
             </Button>
           </ModalFooter>
         </Modal>

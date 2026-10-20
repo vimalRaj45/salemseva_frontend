@@ -1,4 +1,4 @@
-import { API_V1_URL } from '../../config';
+﻿import { API_V1_URL } from '../../config';
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Container,
@@ -246,7 +246,7 @@ export default function AdminSettlementsPage() {
                     Salem End-to-End Financial Intelligence & Settlement Ledger
                   </Typography>
                   <Typography variant="caption" sx={{ color: '#0284C7', fontWeight: 800, fontSize: '11px', letterSpacing: 0.5 }}>
-                    SALEMSEVA ESCROW • RAZORPAY GATEWAY DEDUCTIONS • TECHNICIAN DISBURSALS
+                    Shazu One ESCROW • RAZORPAY GATEWAY DEDUCTIONS • TECHNICIAN DISBURSALS
                   </Typography>
                 </Box>
               </Box>

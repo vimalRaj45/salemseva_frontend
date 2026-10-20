@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Box, Typography } from '@mui/material';
 import { SplashScreen as CapacitorSplashScreen } from '@capacitor/splash-screen';
 import { Capacitor } from '@capacitor/core';
@@ -80,11 +80,11 @@ export default function SplashScreen({ onFinish }) {
           transition: 'transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease'
         }}
       >
-        {/* Official SalemSeva Logo */}
+        {/* Official Shazu One Logo */}
         <Box
           component="img"
           src="/logo.png"
-          alt="SalemSeva Logo"
+          alt="Shazu One Logo"
           sx={{
             width: { xs: 215, sm: 245 },
             maxWidth: '72vw',

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -301,7 +301,7 @@ export default function AuthPage({ initialMode = 'login' }) {
                 >
                   <img
                     src="/logo.png"
-                    alt="SalemSeva"
+                    alt="Shazu One"
                     style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                   />
                 </Box>
@@ -1008,7 +1008,7 @@ export default function AuthPage({ initialMode = 'login' }) {
               }}
             >
               Welcome back!<br />
-              Please sign in to your SalemSeva account
+              Please sign in to your Shazu One account
             </Typography>
 
             <Typography
@@ -1047,7 +1047,7 @@ export default function AuthPage({ initialMode = 'login' }) {
             >
               <img
                 src={CAROUSEL_SLIDES[activeSlide]?.image || '/assets/illustrations/customer_booking.jpg'}
-                alt={CAROUSEL_SLIDES[activeSlide]?.title || 'SalemSeva'}
+                alt={CAROUSEL_SLIDES[activeSlide]?.title || 'Shazu One'}
                 style={{
                   width: '100%',
                   height: '100%',

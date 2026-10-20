@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   Container,
   Box,
@@ -98,7 +98,7 @@ export default function PartnerLoginPage() {
       navigate('/partner/duty', { replace: true });
     } catch (err) {
       setLoading(false);
-      setErrorMessage(err.message || 'Network error connecting to SalemSeva partner gateway');
+      setErrorMessage(err.message || 'Network error connecting to Shazu One partner gateway');
     }
   };
 
@@ -152,7 +152,7 @@ export default function PartnerLoginPage() {
             <EngineeringIcon sx={{ fontSize: 32, color: '#38BDF8' }} />
           </Box>
           <Typography variant="h5" sx={{ fontWeight: 900, color: '#F8FAFC', letterSpacing: '-0.02em', fontSize: '22px' }}>
-            SalemSeva Partner Hub
+            Shazu One Partner Hub
           </Typography>
           <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '12px', display: 'block', mt: 0.5 }}>
             Field Technician Duty & Service Dispatch Portal
@@ -356,7 +356,7 @@ export default function PartnerLoginPage() {
           {/* New Field Partner Registration Link */}
           <Box sx={{ mt: 2.5, textAlign: 'center', pt: 1.5, borderTop: '1px dashed #334155' }}>
             <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '11.5px', display: 'block' }}>
-              Want to join SalemSeva as a certified specialist?
+              Want to join Shazu One as a certified specialist?
             </Typography>
             <Button
               component={Link}

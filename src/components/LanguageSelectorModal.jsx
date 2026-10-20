@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   Typography,
   Box,
@@ -68,7 +68,7 @@ export default function LanguageSelectorModal({ open, onClose, isFirstTime = fal
             }}
           >
             <Typography sx={{ fontSize: '12.5px', fontWeight: 700, color: '#0369A1' }}>
-              வணக்கம்! Welcome to SalemSeva
+              வணக்கம்! Welcome to Shazu One
             </Typography>
             <Typography sx={{ fontSize: '11.5px', color: '#0C4A6E', lineHeight: 1.4 }}>
               Select your preferred language. You can change this anytime from the top menu.

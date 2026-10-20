@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Wrench,
@@ -205,14 +205,14 @@ export default function Navbar({
             lng: geo.lng,
             address: geo.fullAddress || `${locName} - 636016`
           };
-          localStorage.setItem('salemseva_user_location', JSON.stringify(locationData));
+          localStorage.setItem('Shazu One_user_location', JSON.stringify(locationData));
           if (onLocationChange) onLocationChange(locName);
         } else {
           const placeLabel = geo.city || geo.district || 'Outside Area';
           const outName = `${placeLabel} (Outside Salem)`;
           setSelectedLocation(outName);
           setIsLocationOpen(false);
-          toast.error(`Notice: Live GPS detected in ${placeLabel} (~${Math.round(geo.distanceKmFromCenter || 0)} km away). SalemSeva technicians operate in Salem (636xxx only).`);
+          toast.error(`Notice: Live GPS detected in ${placeLabel} (~${Math.round(geo.distanceKmFromCenter || 0)} km away). Shazu One technicians operate in Salem (636xxx only).`);
           if (onLocationChange) onLocationChange(outName);
         }
       } catch (err) {
@@ -241,7 +241,7 @@ export default function Navbar({
     if (updateUser) {
       updateUser({ isOnline: nextStatus });
     }
-    localStorage.setItem('salemseva_partner_is_online', nextStatus ? 'true' : 'false');
+    localStorage.setItem('shazuone_partner_is_online', nextStatus ? 'true' : 'false');
   };
 
   const isBookingsActive = currentPath === '/history' || currentPath.startsWith('/tracking');
@@ -319,7 +319,7 @@ export default function Navbar({
                 userSelect: 'none'
               }}
             >
-              {/* Official SalemSeva Logo Icon */}
+              {/* Official Shazu One Logo Icon */}
               <div
                 style={{
                   width: isMobile ? '36px' : '42px',
@@ -334,7 +334,7 @@ export default function Navbar({
               >
                 <img
                   src="/logo.png"
-                  alt="SalemSeva Logo"
+                  alt="Shazu One Logo"
                   style={{
                     width: '100%',
                     height: '100%',

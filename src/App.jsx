@@ -49,6 +49,27 @@ import PwaInstallPrompt from './components/PwaInstallPrompt';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Capacitor } from '@capacitor/core';
 
+// ── Phase 4: One-time localStorage key migration SalemSeva → Shazu One ───────
+// Runs once per device. Migrates all salemseva_ prefixed keys to shazuone_
+// so existing users do not lose their saved sessions or state.
+(function migrateLocalStorageKeys() {
+  try {
+    if (localStorage.getItem('__shazuone_migrated__')) return;
+    const OLD_PREFIX = 'salemseva_';
+    const NEW_PREFIX = 'shazuone_';
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith(OLD_PREFIX)) {
+        const newKey = NEW_PREFIX + key.slice(OLD_PREFIX.length);
+        const value = localStorage.getItem(key);
+        if (value !== null) localStorage.setItem(newKey, value);
+        localStorage.removeItem(key);
+      }
+    });
+    localStorage.setItem('__shazuone_migrated__', '1');
+  } catch (_) { /* storage unavailable */ }
+})();
+
+
 function CustomerActiveJobGuard({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -61,7 +82,7 @@ function CustomerActiveJobGuard({ children }) {
     
     if (!isCustomerRoute || isWorkStep || isLegalPage) return;
 
-    const activeBookingId = localStorage.getItem('salemseva_active_booking');
+    const activeBookingId = localStorage.getItem('shazuone_active_booking');
     if (!activeBookingId) return;
 
     let isMounted = true;
@@ -71,17 +92,17 @@ function CustomerActiveJobGuard({ children }) {
         if (!isMounted) return;
         if (!d.success || !d.booking) {
           // Booking was truncated or no longer exists in DB - clean up localStorage
-          localStorage.removeItem('salemseva_active_booking');
-          localStorage.removeItem('salemseva_partner_active_job');
-          localStorage.removeItem('salemseva_partner_step');
+          localStorage.removeItem('shazuone_active_booking');
+          localStorage.removeItem('shazuone_partner_active_job');
+          localStorage.removeItem('shazuone_partner_step');
           return;
         }
 
         const status = d.booking.status;
-        const isRated = localStorage.getItem(`salemseva_rated_${activeBookingId}`);
+        const isRated = localStorage.getItem(`Shazu One_rated_${activeBookingId}`);
 
         if (status === 'completed' && isRated) {
-          localStorage.removeItem('salemseva_active_booking');
+          localStorage.removeItem('shazuone_active_booking');
           return;
         }
 
@@ -108,7 +129,7 @@ function CustomerActiveJobGuard({ children }) {
 
 function InitialHomeRoute() {
   const { user, isGuest } = useAuth();
-  const hasSeen = localStorage.getItem('salemseva_has_seen_onboarding');
+  const hasSeen = localStorage.getItem('Shazu One_has_seen_onboarding');
   if (!hasSeen && !user) {
     return <Navigate to="/welcome" replace />;
   }
@@ -209,7 +230,7 @@ function AppContent() {
   useEffect(() => {
     // When splash finishes, check if user has chosen their preferred language yet
     if (!showSplash) {
-      const hasChosen = localStorage.getItem('salemseva_lang_chosen');
+      const hasChosen = localStorage.getItem('shazuone_lang_chosen');
       if (!hasChosen) {
         const timer = setTimeout(() => {
           setShowFirstTimeLangModal(true);

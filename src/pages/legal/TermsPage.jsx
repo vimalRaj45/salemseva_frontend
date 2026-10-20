@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import LegalLayout from './LegalLayout';
 import {
   FileText,
@@ -39,15 +39,15 @@ export default function TermsPage() {
         </div>
 
         <p style={{ fontSize: '14.5px', lineHeight: 1.75, color: '#334155', margin: '0 0 14px 0' }}>
-          SalemSeva ("Platform", "we", "us", or "our") functions exclusively as a technology-driven marketplace and an electronic intermediary as defined under Section 79 of the Information Technology Act, 2000, read alongside the Information Technology (Intermediary Guidelines and Digital Media Ethics Code) Rules, 2021. SalemSeva provides digital infrastructure enabling consumers ("Users" or "Customers") residing within the municipal, corporation, and rural district limits of Salem, Tamil Nadu, to discover, schedule, coordinate, and disburse payments to certified, independent service professionals ("Technicians", "Specialists", or "Partners").
+          Shazu One ("Platform", "we", "us", or "our") functions exclusively as a technology-driven marketplace and an electronic intermediary as defined under Section 79 of the Information Technology Act, 2000, read alongside the Information Technology (Intermediary Guidelines and Digital Media Ethics Code) Rules, 2021. Shazu One provides digital infrastructure enabling consumers ("Users" or "Customers") residing within the municipal, corporation, and rural district limits of Salem, Tamil Nadu, to discover, schedule, coordinate, and disburse payments to certified, independent service professionals ("Technicians", "Specialists", or "Partners").
         </p>
 
         <p style={{ fontSize: '14.5px', lineHeight: 1.75, color: '#334155', margin: '0 0 14px 0' }}>
-          SalemSeva does not directly employ service technicians, nor does it maintain master-servant, employer-employee, or principal-agent relationships with onboarded partners. All service agreements for physical diagnostic inspections, electrical maintenance, plumbing installations, air conditioning repairs, deep home sanitation, and carpentry works are entered into bilaterally and directly between the Customer and the assigned independent technician.
+          Shazu One does not directly employ service technicians, nor does it maintain master-servant, employer-employee, or principal-agent relationships with onboarded partners. All service agreements for physical diagnostic inspections, electrical maintenance, plumbing installations, air conditioning repairs, deep home sanitation, and carpentry works are entered into bilaterally and directly between the Customer and the assigned independent technician.
         </p>
 
         <p style={{ fontSize: '14px', lineHeight: 1.7, color: '#64748B', margin: 0 }}>
-          SalemSeva's responsibilities are limited to operating the digital booking catalog, real-time GPS telemetry routing, automated billing calculations, and acting as an escrow payment collection facilitator.
+          Shazu One's responsibilities are limited to operating the digital booking catalog, real-time GPS telemetry routing, automated billing calculations, and acting as an escrow payment collection facilitator.
         </p>
 
         <hr style={{ border: 'none', borderTop: '1px solid #E2E8F0', margin: '32px 0 0 0' }} />
@@ -63,13 +63,13 @@ export default function TermsPage() {
         </div>
 
         <p style={{ fontSize: '14.5px', lineHeight: 1.75, color: '#334155', margin: '0 0 16px 0' }}>
-          To operate and maintain real-time dispatch telematics, cloud infrastructure, secure banking webhooks, customer support desks, and partner insurance coverage within the Salem territory, SalemSeva enforces an itemized fee model:
+          To operate and maintain real-time dispatch telematics, cloud infrastructure, secure banking webhooks, customer support desks, and partner insurance coverage within the Salem territory, Shazu One enforces an itemized fee model:
         </p>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px', marginBottom: '18px' }}>
           <div style={{ backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-              <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>SalemSeva Platform Cut</span>
+              <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>Shazu One Platform Cut</span>
               <span style={{ fontSize: '14px', fontWeight: 900, color: '#0284C7' }}>2.0%</span>
             </div>
             <p style={{ margin: 0, fontSize: '12.5px', color: '#64748B', lineHeight: 1.6 }}>
@@ -110,7 +110,7 @@ export default function TermsPage() {
         </div>
 
         <p style={{ fontSize: '14.5px', lineHeight: 1.75, color: '#334155', margin: '0 0 16px 0' }}>
-          SalemSeva Central Operations Desk administrators reserve the absolute authority to suspend, deactivate, or permanently blacklist any Customer or Technician profile across all platforms upon verified grounds:
+          Shazu One Central Operations Desk administrators reserve the absolute authority to suspend, deactivate, or permanently blacklist any Customer or Technician profile across all platforms upon verified grounds:
         </p>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginBottom: '16px' }}>
@@ -198,11 +198,11 @@ export default function TermsPage() {
         </div>
 
         <p style={{ fontSize: '14.5px', lineHeight: 1.75, color: '#334155', margin: '0 0 14px 0' }}>
-          This Master Service Agreement is construed and governed under the substantive laws of the Republic of India. In the event of any dispute, disagreement, controversy, or claim arising out of or connecting with SalemSeva operations, the parties shall first attempt amicable settlement through SalemSeva's Central Operations Grievance Cell.
+          This Master Service Agreement is construed and governed under the substantive laws of the Republic of India. In the event of any dispute, disagreement, controversy, or claim arising out of or connecting with Shazu One operations, the parties shall first attempt amicable settlement through Shazu One's Central Operations Grievance Cell.
         </p>
 
         <p style={{ fontSize: '14.5px', lineHeight: 1.75, color: '#334155', margin: '0 0 16px 0' }}>
-          Failing amicable settlement within thirty (30) days of formal notice, the dispute shall be resolved through arbitration under the Arbitration and Conciliation Act, 1996, by a sole arbitrator mutually appointed by SalemSeva. The place and seat of arbitration shall be Salem City, Tamil Nadu, and the proceedings shall be conducted in English or Tamil.
+          Failing amicable settlement within thirty (30) days of formal notice, the dispute shall be resolved through arbitration under the Arbitration and Conciliation Act, 1996, by a sole arbitrator mutually appointed by Shazu One. The place and seat of arbitration shall be Salem City, Tamil Nadu, and the proceedings shall be conducted in English or Tamil.
         </p>
 
         <div style={{ backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
@@ -212,7 +212,7 @@ export default function TermsPage() {
           </div>
           <div>
             <strong style={{ fontSize: '13px', color: '#0F172A', display: 'block' }}>Grievance Desk Helpline</strong>
-            <span style={{ fontSize: '12.5px', color: '#0284C7', fontWeight: 600 }}>legal@salemseva.in • 1800-425-7253</span>
+            <span style={{ fontSize: '12.5px', color: '#0284C7', fontWeight: 600 }}>legal@Shazu One.in • 1800-425-7253</span>
           </div>
         </div>
       </section>

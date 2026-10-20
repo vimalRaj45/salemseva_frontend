@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+﻿import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { NativeNotifier } from '../services/nativeNotify';
@@ -37,9 +37,9 @@ export default function GlobalNotificationWatcher() {
 
     const pollGlobalEvents = async () => {
       try {
-        const isPartnerOnline = localStorage.getItem('salemseva_partner_is_online') === 'true';
-        const partnerPhone = user?.phone || localStorage.getItem('salemseva_partner_phone') || '';
-        const activeBookingId = localStorage.getItem('salemseva_active_booking') || localStorage.getItem('salemseva_partner_active_job');
+        const isPartnerOnline = localStorage.getItem('shazuone_partner_is_online') === 'true';
+        const partnerPhone = user?.phone || localStorage.getItem('Shazu One_partner_phone') || '';
+        const activeBookingId = localStorage.getItem('shazuone_active_booking') || localStorage.getItem('shazuone_partner_active_job');
         const userRole = user?.role === 'technician' ? 'technician' : 'customer';
 
         // A. Technician: Check for New Assigned Job if Online
@@ -88,7 +88,7 @@ export default function GlobalNotificationWatcher() {
                 if (lastNotifiedCallRef.current !== callKey) {
                   lastNotifiedCallRef.current = callKey;
                   NativeNotifier.notifyIncomingCall({
-                    callerName: call.callerName || (isPartner ? 'Customer' : 'SalemSeva Specialist'),
+                    callerName: call.callerName || (isPartner ? 'Customer' : 'Shazu One Specialist'),
                     bookingId: activeBookingId,
                     role: isPartner ? 'Technician' : 'Customer'
                   });

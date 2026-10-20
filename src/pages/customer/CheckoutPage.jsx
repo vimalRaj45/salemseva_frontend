@@ -1,4 +1,4 @@
-import { API_V1_URL } from '../../config';
+﻿import { API_V1_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
 import {
   Container,
@@ -74,7 +74,7 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (bookingId) {
-      localStorage.setItem('salemseva_active_booking', bookingId);
+      localStorage.setItem('shazuone_active_booking', bookingId);
     }
     fetch(`${API_V1_URL}/bookings/${bookingId}/quote`)
       .then(res => res.json())
@@ -101,9 +101,9 @@ export default function CheckoutPage() {
           const res = await fetch(`${API_V1_URL}/payments/status/${bookingId}`);
           const data = await res.json();
           if (data.success && (data.isPaid || data.status === 'quote_approved' || data.status === 'en_route')) {
-            localStorage.setItem('salemseva_quote_status_' + bookingId, 'quote_approved');
-            localStorage.setItem('salemseva_active_booking', bookingId);
-            window.dispatchEvent(new CustomEvent('salemseva_quote_updated', { detail: { bookingId, status: 'quote_approved' } }));
+            localStorage.setItem('shazuone_quote_status_' + bookingId, 'quote_approved');
+            localStorage.setItem('shazuone_active_booking', bookingId);
+            window.dispatchEvent(new CustomEvent('Shazu One_quote_updated', { detail: { bookingId, status: 'quote_approved' } }));
             navigate(`/track?bookingId=${bookingId}`, { replace: true });
           }
         } catch (e) {
@@ -170,7 +170,7 @@ export default function CheckoutPage() {
         key: keyId,
         amount: rzpAmountPaise,
         currency: 'INR',
-        name: 'SalemSeva Cashless Escrow',
+        name: 'Shazu One Cashless Escrow',
         description: `Service Escrow Authorization (${bookingId})`,
         image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=120&q=80',
         order_id: orderId,
@@ -199,9 +199,9 @@ export default function CheckoutPage() {
             console.warn('Status update sync error:', e);
           }
 
-          localStorage.setItem('salemseva_quote_status_' + bookingId, 'quote_approved');
-          localStorage.setItem('salemseva_active_booking', bookingId);
-          window.dispatchEvent(new CustomEvent('salemseva_quote_updated', { detail: { bookingId, status: 'quote_approved' } }));
+          localStorage.setItem('shazuone_quote_status_' + bookingId, 'quote_approved');
+          localStorage.setItem('shazuone_active_booking', bookingId);
+          window.dispatchEvent(new CustomEvent('Shazu One_quote_updated', { detail: { bookingId, status: 'quote_approved' } }));
           window.dispatchEvent(new Event('storage'));
 
           setIsProcessing(false);
@@ -209,7 +209,7 @@ export default function CheckoutPage() {
         },
         prefill: {
           name: user?.name || 'Vimal Raj',
-          email: user?.email || 'customer@salemseva.in',
+          email: user?.email || 'customer@Shazu One.in',
           contact: (user?.phone || '+919842711234').replace(/\s+/g, '')
         },
         theme: {
@@ -238,9 +238,9 @@ export default function CheckoutPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: 'quote_approved' })
         });
-        localStorage.setItem('salemseva_quote_status_' + bookingId, 'quote_approved');
-        localStorage.setItem('salemseva_active_booking', bookingId);
-        window.dispatchEvent(new CustomEvent('salemseva_quote_updated', { detail: { bookingId, status: 'quote_approved' } }));
+        localStorage.setItem('shazuone_quote_status_' + bookingId, 'quote_approved');
+        localStorage.setItem('shazuone_active_booking', bookingId);
+        window.dispatchEvent(new CustomEvent('Shazu One_quote_updated', { detail: { bookingId, status: 'quote_approved' } }));
         setIsProcessing(false);
         navigate(`/track?bookingId=${bookingId}`, { replace: true });
       }
@@ -287,7 +287,7 @@ export default function CheckoutPage() {
             Authorize Cashless Escrow Payment
           </Typography>
           <Typography variant="body2" sx={{ color: '#64748B', fontSize: '12px' }}>
-            Funds are securely held in SalemSeva Escrow until you inspect & confirm work completion.
+            Funds are securely held in Shazu One Escrow until you inspect & confirm work completion.
           </Typography>
         </Card>
 

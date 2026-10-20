@@ -1,4 +1,4 @@
-import { Capacitor } from '@capacitor/core';
+﻿import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Haptics, NotificationType } from '@capacitor/haptics';
 
@@ -15,8 +15,8 @@ class NativeNotificationService {
         // 1. Create High-Priority Notification Channels for Android 8.0+
         try {
           await LocalNotifications.createChannel({
-            id: 'salemseva_urgent_calls',
-            name: 'SalemSeva VoIP Calls',
+            id: 'Shazu One_urgent_calls',
+            name: 'Shazu One VoIP Calls',
             description: 'Urgent incoming calls from customer and technician',
             importance: 5, // IMPORTANCE_HIGH (Heads-up alert)
             visibility: 1, // VISIBILITY_PUBLIC
@@ -27,8 +27,8 @@ class NativeNotificationService {
           });
 
           await LocalNotifications.createChannel({
-            id: 'salemseva_work_assigned',
-            name: 'SalemSeva Work & Dispatch',
+            id: 'Shazu One_work_assigned',
+            name: 'Shazu One Work & Dispatch',
             description: 'New job requests and doorstep service assignments',
             importance: 5,
             visibility: 1,
@@ -39,8 +39,8 @@ class NativeNotificationService {
           });
 
           await LocalNotifications.createChannel({
-            id: 'salemseva_messages',
-            name: 'SalemSeva Chat Messages',
+            id: 'Shazu One_messages',
+            name: 'Shazu One Chat Messages',
             description: 'In-app chat messages for doorstep services',
             importance: 4,
             visibility: 1,
@@ -101,7 +101,7 @@ class NativeNotificationService {
               sound: 'default',
               smallIcon: 'ic_launcher',
               iconColor: '#2563EB',
-              channelId: 'salemseva_urgent_calls',
+              channelId: 'Shazu One_urgent_calls',
               actionTypeId: 'OPEN_CALL',
               extra: { bookingId, role, type: 'call' }
             }
@@ -136,7 +136,7 @@ class NativeNotificationService {
               sound: 'default',
               smallIcon: 'ic_launcher',
               iconColor: '#D97706',
-              channelId: 'salemseva_work_assigned',
+              channelId: 'Shazu One_work_assigned',
               actionTypeId: 'OPEN_JOB',
               extra: { bookingId, type: 'new_job' }
             }
@@ -170,7 +170,7 @@ class NativeNotificationService {
               sound: 'default',
               smallIcon: 'ic_launcher',
               iconColor: '#10B981',
-              channelId: 'salemseva_messages',
+              channelId: 'Shazu One_messages',
               extra: { bookingId, type: 'chat' }
             }
           ]

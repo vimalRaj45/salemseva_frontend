@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import LegalLayout from './LegalLayout';
 import {
   RotateCcw,
@@ -38,13 +38,13 @@ export default function RefundPolicyPage() {
         </div>
 
         <p style={{ fontSize: '14.5px', lineHeight: 1.75, color: '#334155', margin: '0 0 16px 0' }}>
-          When a customer initiates an authorized cancellation of a pre-paid booking or requests a monetary reversal, SalemSeva applies statutory and operational fee retentions to cover sunk facilitation and banking interchange costs:
+          When a customer initiates an authorized cancellation of a pre-paid booking or requests a monetary reversal, Shazu One applies statutory and operational fee retentions to cover sunk facilitation and banking interchange costs:
         </p>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px', marginBottom: '18px' }}>
           <div style={{ backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-              <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>SalemSeva Platform Facilitation</span>
+              <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>Shazu One Platform Facilitation</span>
               <span style={{ fontSize: '14px', fontWeight: 900, color: '#0284C7' }}>2.0%</span>
             </div>
             <p style={{ margin: 0, fontSize: '12.5px', color: '#64748B', lineHeight: 1.6 }}>
@@ -74,7 +74,7 @@ export default function RefundPolicyPage() {
               <strong>₹99.00</strong>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span>SalemSeva 2% Platform Facilitation Retention:</span>
+              <span>Shazu One 2% Platform Facilitation Retention:</span>
               <span style={{ color: '#DC2626' }}>-₹1.98</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -150,18 +150,18 @@ export default function RefundPolicyPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
           <ShieldCheck size={18} color="#16A34A" />
           <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px' }}>
-            3. 30-Day SalemSeva Re-Service Warranty
+            3. 30-Day Shazu One Re-Service Warranty
           </h2>
         </div>
 
         <p style={{ fontSize: '14.5px', lineHeight: 1.75, color: '#334155', margin: '0 0 16px 0' }}>
-          Every completed home service booked through SalemSeva includes our comprehensive 30-day workmanship guarantee:
+          Every completed home service booked through Shazu One includes our comprehensive 30-day workmanship guarantee:
         </p>
 
         <div style={{ backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '16px 18px', marginBottom: '16px' }}>
           <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '13.5px', lineHeight: 1.8, color: '#334155' }}>
             <li>
-              If the exact repaired defect recurs within thirty (30) calendar days of service completion, SalemSeva will dispatch a certified senior technician to re-inspect and rectify the fault with <strong>zero additional labor charges</strong>.
+              If the exact repaired defect recurs within thirty (30) calendar days of service completion, Shazu One will dispatch a certified senior technician to re-inspect and rectify the fault with <strong>zero additional labor charges</strong>.
             </li>
             <li>
               Spare parts or electrical components replaced during the job carry warranty certificates issued directly by original equipment manufacturers (OEMs).
@@ -202,7 +202,7 @@ export default function RefundPolicyPage() {
           </div>
 
           <div style={{ backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '14px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 800, color: '#16A34A', display: 'block', marginBottom: '4px' }}>SalemSeva Wallet</span>
+            <span style={{ fontSize: '12px', fontWeight: 800, color: '#16A34A', display: 'block', marginBottom: '4px' }}>Shazu One Wallet</span>
             <strong style={{ fontSize: '15px', color: '#0F172A', display: 'block', marginBottom: '4px' }}>Instant Credit</strong>
             <span style={{ fontSize: '12px', color: '#64748B' }}>Zero deduction, immediately available for future bookings.</span>
           </div>
@@ -214,7 +214,7 @@ export default function RefundPolicyPage() {
             <span style={{ fontSize: '12.5px', color: '#64748B' }}>Quote your Booking ID (e.g., #SLM-2026-X) for immediate tracking.</span>
           </div>
           <div>
-            <span style={{ fontSize: '12.5px', color: '#0284C7', fontWeight: 600 }}>support@salemseva.in • 1800-425-7253</span>
+            <span style={{ fontSize: '12.5px', color: '#0284C7', fontWeight: 600 }}>support@Shazu One.in • 1800-425-7253</span>
           </div>
         </div>
       </section>

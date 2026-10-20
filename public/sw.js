@@ -1,5 +1,5 @@
-// SalemSeva Progressive Web App Service Worker (v1.0.0)
-const CACHE_NAME = 'salemseva-core-v1';
+﻿// Shazu One Progressive Web App Service Worker (v1.0.0)
+const CACHE_NAME = 'Shazu One-core-v1';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -109,13 +109,13 @@ self.addEventListener('push', (event) => {
     try {
       const payload = event.data.json();
       const options = {
-        body: payload.body || 'SalemSeva Service Notification',
+        body: payload.body || 'Shazu One Service Notification',
         icon: '/icons/icon-192x192.png',
         badge: '/favicon.png',
         vibrate: [200, 100, 200],
         data: payload.url || '/'
       };
-      event.waitUntil(self.registration.showNotification(payload.title || 'SalemSeva', options));
+      event.waitUntil(self.registration.showNotification(payload.title || 'Shazu One', options));
     } catch (_) {}
   }
 });

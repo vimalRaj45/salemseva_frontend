@@ -1,4 +1,4 @@
-import { API_V1_URL } from '../../config';
+﻿import { API_V1_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
 import {
   Container,
@@ -57,7 +57,7 @@ export default function CustomerHomePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [locationPickerOpen, setLocationPickerOpen] = useState(false);
   const [userLocation, setUserLocation] = useState(() => {
-    const saved = localStorage.getItem('salemseva_user_location');
+    const saved = localStorage.getItem('Shazu One_user_location');
     return saved ? JSON.parse(saved) : {
       locality: 'Fairlands',
       pincode: '636016',
@@ -132,7 +132,7 @@ export default function CustomerHomePage() {
     loadReviews();
 
     // Real-time persistent active booking poll
-    const activeBookingId = localStorage.getItem('salemseva_active_booking');
+    const activeBookingId = localStorage.getItem('shazuone_active_booking');
     if (!activeBookingId) {
       setActiveBooking(null);
       return;
@@ -144,7 +144,7 @@ export default function CustomerHomePage() {
         const d = await res.json();
         if (d.success && d.booking && ['matching', 'accepted', 'en_route', 'arrived', 'inspecting', 'quote_presented', 'quote_approved', 'completed'].includes(d.booking.status)) {
           // If already completed and user dismissed/cleared, don't show, else keep active
-          const isRated = localStorage.getItem(`salemseva_rated_${activeBookingId}`);
+          const isRated = localStorage.getItem(`Shazu One_rated_${activeBookingId}`);
           if (d.booking.status === 'completed' && isRated) {
             setActiveBooking(null);
           } else {
@@ -345,7 +345,7 @@ export default function CustomerHomePage() {
           </Button>
         </Paper>
 
-        {/* Salem Central Ops Scheduled Service Guarantee Banner */}
+        {/* Shazu One Central Ops Scheduled Service Guarantee Banner */}
         <Paper
           elevation={0}
           sx={{
@@ -367,7 +367,7 @@ export default function CustomerHomePage() {
               Scheduled Home Services • Central Ops Dispatched
             </Typography>
             <Typography variant="caption" sx={{ color: '#0369A1', fontSize: '11px', display: 'block' }}>
-              Select a service below to reserve your slot. Salem Central Ops assigns verified technicians.
+              Select a service below to reserve your slot. Shazu One Central Ops assigns verified technicians.
             </Typography>
           </Box>
         </Paper>
@@ -1085,7 +1085,7 @@ export default function CustomerHomePage() {
             </Box>
           </Box>
           <Typography variant="caption" sx={{ display: 'block', color: '#94A3B8', fontSize: '10.5px', mt: 1.5 }}>
-            Copyright 2026 SalemSeva Technologies. All rights reserved.
+            Copyright 2026 Shazu One Technologies. All rights reserved.
           </Typography>
         </Box>
 

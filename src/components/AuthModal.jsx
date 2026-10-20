@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import Modal, { ModalHeader, ModalBody, ModalFooter } from './Modal';
 import {
   Box,
@@ -197,7 +197,7 @@ export default function AuthModal() {
           </Box>
           <Box>
             <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#FFF', fontSize: '15px', lineHeight: 1.2 }}>
-              SalemSeva account
+              Shazu One account
             </Typography>
             <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '11px' }}>
               Salem home services marketplace

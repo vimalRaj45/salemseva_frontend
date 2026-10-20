@@ -1,4 +1,4 @@
-// SalemSeva Multi-Language & Google Translate Service
+﻿// Shazu One Multi-Language & Google Translate Service
 export const SUPPORTED_LANGUAGES = [
   { code: 'en', label: 'English', nativeName: 'English', badge: 'EN', region: 'Default' },
   { code: 'ta', label: 'Tamil', nativeName: 'தமிழ்', badge: 'TA', region: 'சேலம் & தமிழ்நாடு' },
@@ -9,21 +9,21 @@ export const SUPPORTED_LANGUAGES = [
 ];
 
 export function getCurrentLanguage() {
-  return localStorage.getItem('salemseva_lang') || 'en';
+  return localStorage.getItem('shazuone_lang') || 'en';
 }
 
 export function isLanguageChosen() {
-  return !!localStorage.getItem('salemseva_lang_chosen');
+  return !!localStorage.getItem('shazuone_lang_chosen');
 }
 
 export function markLanguageChosen() {
-  localStorage.setItem('salemseva_lang_chosen', 'true');
+  localStorage.setItem('shazuone_lang_chosen', 'true');
 }
 
 export function changeAppLanguage(langCode) {
   try {
-    localStorage.setItem('salemseva_lang', langCode);
-    localStorage.setItem('salemseva_lang_chosen', 'true');
+    localStorage.setItem('shazuone_lang', langCode);
+    localStorage.setItem('shazuone_lang_chosen', 'true');
 
     // Set Google Translate cookie for path=/
     const cookieVal = langCode === 'en' ? '' : `/en/${langCode}`;

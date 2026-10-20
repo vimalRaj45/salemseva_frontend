@@ -1,22 +1,22 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <title>SalemSeva - Salem Home Services Platform </title>
+    <title>Shazu One — All Your Home Services. One Platform.</title>
     <!-- Progressive Web App (PWA) Manifest & Meta -->
     <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#0284C7" />
+    <meta name="theme-color" content="#0D3B66" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="SalemSeva" />
+    <meta name="apple-mobile-web-app-title" content="Shazu One" />
     <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png" />
     <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512x512.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <!-- Official Razorpay Checkout JS SDK -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
@@ -139,17 +139,17 @@
     </script>
     <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
   </head>
-  <body style="margin: 0; padding: 0; background-color: #F8FAFC; font-family: 'Outfit', 'Inter', 'Noto Sans Tamil', sans-serif; overflow-x: hidden; width: 100%;">
+  <body style="margin: 0; padding: 0; background-color: #F8FAFC; font-family: 'Poppins', 'Montserrat', 'Noto Sans Tamil', sans-serif; overflow-x: hidden; width: 100%;">
     <div id="google_translate_element" style="display:none !important; position: absolute; top: -9999px; left: -9999px; opacity: 0; pointer-events: none;"></div>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
-    <!-- SalemSeva PWA Offline Service Worker Registration -->
+    <!-- Shazu One PWA Offline Service Worker Registration -->
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
           navigator.serviceWorker.register('/sw.js')
             .then(function(reg) {
-              console.log('SalemSeva PWA Service Worker active:', reg.scope);
+              console.log('Shazu One PWA Service Worker active:', reg.scope);
             })
             .catch(function(err) {
               console.warn('PWA registration note:', err);

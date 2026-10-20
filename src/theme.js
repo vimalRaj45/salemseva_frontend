@@ -1,34 +1,34 @@
-import { createTheme } from '@mui/material/styles';
+﻿import { createTheme } from '@mui/material/styles';
 
 export const theme = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: '#0066CC', // Official Salem Brand Blue
-      light: '#3385D6',
-      dark: '#0052CC',
+      main: '#0D3B66', // Shazu One Primary Blue
+      light: '#1A5490',
+      dark: '#072B4F',
       contrastText: '#FFFFFF',
     },
     secondary: {
-      main: '#FF6600', // Official SalemSeva Vibrant Orange
-      light: '#FF8533',
-      dark: '#E65C00',
+      main: '#F7931E', // Shazu One Accent Orange
+      light: '#FAA94B',
+      dark: '#D97B10',
       contrastText: '#FFFFFF',
     },
     success: {
-      main: '#16A34A', // Salem Eco Green (Plumbing tile)
-      light: '#22C55E',
-      dark: '#15803D',
+      main: '#2E7D32', // Shazu One Secondary Green (Plumbing tile)
+      light: '#43A047',
+      dark: '#1B5E20',
       contrastText: '#FFFFFF',
     },
     warning: {
-      main: '#FF6600', // Salem Orange (Electrical tile)
+      main: '#F7931E', // Shazu One Accent Orange (Electrical tile)
       light: '#F59E0B',
       dark: '#D97706',
       contrastText: '#FFFFFF',
     },
     info: {
-      main: '#0D9488', // Salem Clean Teal (Cleaning tile)
+      main: '#0D9488', // Shazu One Teal (Cleaning tile)
       light: '#14B8A6',
       dark: '#0F766E',
       contrastText: '#FFFFFF',
@@ -51,7 +51,7 @@ export const theme = createTheme({
     divider: '#E2E8F0',
   },
   typography: {
-    fontFamily: '"Outfit", "Inter", "Noto Sans Tamil", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    fontFamily: '"Poppins", "Montserrat", "Noto Sans Tamil", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     h1: { fontWeight: 800, fontSize: 'clamp(1.75rem, 1.3rem + 1.8vw, 2.5rem)', letterSpacing: '-0.02em', color: '#0F172A', lineHeight: 1.2 },
     h2: { fontWeight: 800, fontSize: 'clamp(1.4rem, 1.15rem + 1.1vw, 2rem)', letterSpacing: '-0.015em', color: '#0F172A', lineHeight: 1.25 },
     h3: { fontWeight: 700, fontSize: 'clamp(1.2rem, 1.05rem + 0.6vw, 1.5rem)', letterSpacing: '-0.01em', color: '#0F172A', lineHeight: 1.3 },
@@ -76,7 +76,7 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           '&:focus-visible': {
-            outline: '2px solid #0066CC',
+            outline: '2px solid #0D3B66',
             outlineOffset: '2px',
           },
         },
@@ -96,7 +96,7 @@ export const theme = createTheme({
             boxShadow: 'none',
           },
           '&:focus-visible': {
-            outline: '2px solid #0066CC',
+            outline: '2px solid #0D3B66',
             outlineOffset: '2px',
           },
           '&.Mui-disabled': {
@@ -104,13 +104,13 @@ export const theme = createTheme({
           },
         },
         containedPrimary: {
-          backgroundColor: '#0066CC',
+          backgroundColor: '#0D3B66',
           color: '#FFFFFF',
           '&:hover': {
-            backgroundColor: '#0052CC',
+            backgroundColor: '#072B4F',
           },
           '&:active': {
-            backgroundColor: '#003D99',
+            backgroundColor: '#051E36',
           },
         },
         outlined: {
@@ -151,7 +151,7 @@ export const theme = createTheme({
           fontSize: '0.75rem',
           height: 26,
           '&:focus-visible': {
-            outline: '2px solid #0066CC',
+            outline: '2px solid #0D3B66',
             outlineOffset: '1px',
           },
         },
@@ -183,10 +183,10 @@ export const theme = createTheme({
           minWidth: 'auto',
           minHeight: '48px',
           '&.Mui-selected': {
-            color: '#0066CC',
+            color: '#0D3B66',
           },
           '&:focus-visible': {
-            outline: '2px solid #0066CC',
+            outline: '2px solid #0D3B66',
             outlineOffset: '-2px',
           },
         },
@@ -214,7 +214,7 @@ export const theme = createTheme({
             borderColor: '#94A3B8',
           },
           '&.Mui-focused fieldset': {
-            borderColor: '#0066CC',
+            borderColor: '#0D3B66',
             borderWidth: '2px',
           },
           '&.Mui-error fieldset': {

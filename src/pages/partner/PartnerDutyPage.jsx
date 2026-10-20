@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import {
   Container,
   Box,
@@ -114,7 +114,7 @@ export default function PartnerDutyPage() {
   // Strict Persistent Technician Identity Resolution (Independent localStorage key)
   const activeTech = techUser || (() => {
     try {
-      const saved = localStorage.getItem('salemseva_tech_user');
+      const saved = localStorage.getItem('shazuone_tech_user');
       if (saved) return JSON.parse(saved);
       if (user && (user.role === 'technician' || user.role === 'partner')) return user;
       return null;
@@ -154,7 +154,7 @@ export default function PartnerDutyPage() {
 
   const handleShareTechWhatsApp = () => {
     const text = encodeURIComponent(
-      `வணக்கம் நண்பா! சேலத்தில் தினசரி ₹1,500+ சம்பாதிக்க SalemSeva-வில் டெக்னீசியனாக இணையுங்கள். \n\nஎனது ரெஃபரல் கோட் *${techReferralCode}* பயன்படுத்தி இணையும்போது உங்களுக்கு ₹${partnerWelcomeBonus} டூல் கிட் போனஸ் கிடைக்கும்: ${window.location.origin}/partner/onboarding`
+      `வணக்கம் நண்பா! சேலத்தில் தினசரி ₹1,500+ சம்பாதிக்க Shazu One-வில் டெக்னீசியனாக இணையுங்கள். \n\nஎனது ரெஃபரல் கோட் *${techReferralCode}* பயன்படுத்தி இணையும்போது உங்களுக்கு ₹${partnerWelcomeBonus} டூல் கிட் போனஸ் கிடைக்கும்: ${window.location.origin}/partner/onboarding`
     );
     window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
   };
@@ -187,7 +187,7 @@ export default function PartnerDutyPage() {
     if (!isVerified) {
       return false;
     }
-    const saved = localStorage.getItem('salemseva_partner_is_online');
+    const saved = localStorage.getItem('shazuone_partner_is_online');
     if (saved !== null) return saved === 'true';
     if (activeTech && typeof activeTech.isOnline === 'boolean') return activeTech.isOnline;
     return false;
@@ -233,7 +233,7 @@ export default function PartnerDutyPage() {
             };
             await loginTech(updated);
             updateUser(updated);
-            localStorage.setItem('salemseva_tech_user', JSON.stringify(updated));
+            localStorage.setItem('shazuone_tech_user', JSON.stringify(updated));
             if (isDbVerified) {
               setIsOnline(Boolean(t.is_online));
             }
@@ -256,11 +256,11 @@ export default function PartnerDutyPage() {
   useEffect(() => {
     if (isKycLocked && isOnline) {
       setIsOnline(false);
-      localStorage.setItem('salemseva_partner_is_online', 'false');
+      localStorage.setItem('shazuone_partner_is_online', 'false');
     }
   }, [isKycLocked, isOnline]);
   const [step, setStep] = useState(() => {
-    const saved = localStorage.getItem('salemseva_partner_step');
+    const saved = localStorage.getItem('shazuone_partner_step');
     return saved ? parseInt(saved, 10) : 1;
   }); // 1: Incoming Feed | 2: Active Trip | 3: Diagnostic & Quote
   const [bottomNav, setBottomNav] = useState(0); // 0: Duty | 1: Incentives & Referrals | 2: History & Pay | 3: Profile
@@ -636,7 +636,7 @@ export default function PartnerDutyPage() {
     }
   };
 
-  // Helper to send coordinates to SalemSeva backend
+  // Helper to send coordinates to Shazu One backend
   const broadcastLocation = async (lat, lng, speed = 25) => {
     try {
       const phone = activeTech?.phone || user?.phone || '';
@@ -793,7 +793,7 @@ export default function PartnerDutyPage() {
   const [cancellationNotice, setCancellationNotice] = useState(null);
   const [acknowledgedCancelIds, setAcknowledgedCancelIds] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem('salemseva_ack_cancels') || '[]');
+      return JSON.parse(localStorage.getItem('shazuone_ack_cancels') || '[]');
     } catch (e) {
       return [];
     }
@@ -803,13 +803,13 @@ export default function PartnerDutyPage() {
     if (cancellationNotice) {
       const updated = [...acknowledgedCancelIds, cancellationNotice.bookingId];
       setAcknowledgedCancelIds(updated);
-      localStorage.setItem('salemseva_ack_cancels', JSON.stringify(updated));
+      localStorage.setItem('shazuone_ack_cancels', JSON.stringify(updated));
     }
     setCancellationNotice(null);
     setActiveJob(null);
     setStep(1);
-    localStorage.removeItem('salemseva_partner_step');
-    localStorage.removeItem('salemseva_partner_active_job');
+    localStorage.removeItem('shazuone_partner_step');
+    localStorage.removeItem('shazuone_partner_active_job');
   };
 
   // Poll real active job & synchronized duty state from Neon DB
@@ -826,7 +826,7 @@ export default function PartnerDutyPage() {
         if (data.success && isMounted) {
           if (data.technician && typeof data.technician.is_online === 'boolean') {
             setIsOnline(data.technician.is_online);
-            localStorage.setItem('salemseva_partner_is_online', data.technician.is_online ? 'true' : 'false');
+            localStorage.setItem('shazuone_partner_is_online', data.technician.is_online ? 'true' : 'false');
             if (updateUser && user && user.isOnline !== data.technician.is_online) {
               updateUser({ isOnline: data.technician.is_online });
             }
@@ -854,8 +854,8 @@ export default function PartnerDutyPage() {
             setCancellationNotice(data.cancelNotice);
             setActiveJob(null);
             setStep(1);
-            localStorage.removeItem('salemseva_partner_step');
-            localStorage.removeItem('salemseva_partner_active_job');
+            localStorage.removeItem('shazuone_partner_step');
+            localStorage.removeItem('shazuone_partner_active_job');
           } else if (data.technician?.is_online === false) {
             setActiveJob(null);
           } else if (data.activeJob) {
@@ -864,23 +864,23 @@ export default function PartnerDutyPage() {
             // Lock session into corresponding stage so refresh never disconnects
             if (st === 'matching' || st === 'accepted') {
               setStep(1);
-              localStorage.removeItem('salemseva_partner_step');
+              localStorage.removeItem('shazuone_partner_step');
             } else if (st === 'en_route') {
               setStep(2);
-              localStorage.setItem('salemseva_partner_step', '2');
+              localStorage.setItem('shazuone_partner_step', '2');
             } else if (['arrived', 'inspecting', 'quote_presented', 'quote_approved'].includes(st)) {
               setStep(3);
-              localStorage.setItem('salemseva_partner_step', '3');
+              localStorage.setItem('shazuone_partner_step', '3');
             } else if (st === 'completed') {
               setActiveJob(null);
               setStep(1);
-              localStorage.removeItem('salemseva_partner_step');
+              localStorage.removeItem('shazuone_partner_step');
             }
           } else {
             setActiveJob(null);
             setStep(1);
-            localStorage.removeItem('salemseva_partner_step');
-            localStorage.removeItem('salemseva_partner_active_job');
+            localStorage.removeItem('shazuone_partner_step');
+            localStorage.removeItem('shazuone_partner_active_job');
           }
         }
       } catch (err) {
@@ -892,13 +892,13 @@ export default function PartnerDutyPage() {
     const interval = setInterval(fetchDuty, 1200);
 
     const handleSync = () => fetchDuty();
-    window.addEventListener('salemseva_new_booking_created', handleSync);
+    window.addEventListener('Shazu One_new_booking_created', handleSync);
     window.addEventListener('storage', handleSync);
 
     return () => {
       isMounted = false;
       clearInterval(interval);
-      window.removeEventListener('salemseva_new_booking_created', handleSync);
+      window.removeEventListener('Shazu One_new_booking_created', handleSync);
       window.removeEventListener('storage', handleSync);
     };
   }, [activeTech?.phone, user?.phone, acknowledgedCancelIds]);
@@ -925,11 +925,11 @@ export default function PartnerDutyPage() {
     fetchScheduledLeads();
     const schedInterval = setInterval(fetchScheduledLeads, 4000);
     const handleSync = () => fetchScheduledLeads();
-    window.addEventListener('salemseva_new_booking_created', handleSync);
+    window.addEventListener('Shazu One_new_booking_created', handleSync);
     window.addEventListener('storage', handleSync);
     return () => {
       clearInterval(schedInterval);
-      window.removeEventListener('salemseva_new_booking_created', handleSync);
+      window.removeEventListener('Shazu One_new_booking_created', handleSync);
       window.removeEventListener('storage', handleSync);
     };
   }, [activeTech?.phone, user?.phone]);
@@ -1006,10 +1006,10 @@ export default function PartnerDutyPage() {
       });
       setIsOnline(true);
       setIsGpsBroadcasting(true);
-      localStorage.setItem('salemseva_partner_is_online', 'true');
+      localStorage.setItem('shazuone_partner_is_online', 'true');
       if (updateUser) updateUser({ isOnline: true });
-      localStorage.setItem('salemseva_partner_active_job', jobId);
-      localStorage.setItem('salemseva_partner_step', '2');
+      localStorage.setItem('shazuone_partner_active_job', jobId);
+      localStorage.setItem('shazuone_partner_step', '2');
       setStep(2);
       setTechToast('பயணம் தொடங்கியது! நேரலை GPS வழித்தடம் திறக்கப்பட்டது (Journey started! GPS live navigation active).');
       broadcastLocation(liveGps.lat, liveGps.lng, 25);
@@ -1017,9 +1017,9 @@ export default function PartnerDutyPage() {
       console.warn('Start trip note:', e);
       setIsOnline(true);
       setIsGpsBroadcasting(true);
-      localStorage.setItem('salemseva_partner_is_online', 'true');
-      localStorage.setItem('salemseva_partner_active_job', jobId);
-      localStorage.setItem('salemseva_partner_step', '2');
+      localStorage.setItem('shazuone_partner_is_online', 'true');
+      localStorage.setItem('shazuone_partner_active_job', jobId);
+      localStorage.setItem('shazuone_partner_step', '2');
       setStep(2);
     } finally {
       setIsProcessing(false);
@@ -1103,8 +1103,8 @@ export default function PartnerDutyPage() {
     }
   };
 
-  const storedPartnerJob = localStorage.getItem('salemseva_partner_active_job');
-  const storedActiveBooking = localStorage.getItem('salemseva_active_booking');
+  const storedPartnerJob = localStorage.getItem('shazuone_partner_active_job');
+  const storedActiveBooking = localStorage.getItem('shazuone_active_booking');
   const activeBookingId = (activeJob?.id && activeJob.id !== 'null') 
     ? activeJob.id 
     : ((paramBookingId && paramBookingId !== 'null') 
@@ -1256,7 +1256,7 @@ export default function PartnerDutyPage() {
       // 1. Ask device location permission when technician goes online
       setIsOnline(true);
       setIsGpsBroadcasting(true);
-      localStorage.setItem('salemseva_partner_is_online', 'true');
+      localStorage.setItem('shazuone_partner_is_online', 'true');
       if (updateUser) {
         updateUser({ isOnline: true });
       }
@@ -1265,7 +1265,7 @@ export default function PartnerDutyPage() {
       // 2. Going offline -> Stop location broadcasting immediately
       setIsOnline(false);
       setIsGpsBroadcasting(false);
-      localStorage.setItem('salemseva_partner_is_online', 'false');
+      localStorage.setItem('shazuone_partner_is_online', 'false');
       if (updateUser) {
         updateUser({ isOnline: false });
       }
@@ -1285,7 +1285,7 @@ export default function PartnerDutyPage() {
     setIsProcessing(true);
     setLoadingMsg({
       title: 'நிர்வாக கோரிக்கையை ஏற்கிறது...',
-      subtitle: 'Connecting to Salem Central Ops & Switching Duty to Online'
+      subtitle: 'Connecting to Shazu One Central Ops & Switching Duty to Online'
     });
     try {
       const res = await fetch(`${API_V1_URL}/partner/duty/accept-offline-request`, {
@@ -1301,13 +1301,13 @@ export default function PartnerDutyPage() {
       if (data.success) {
         setIsOnline(true);
         setIsGpsBroadcasting(true);
-        localStorage.setItem('salemseva_partner_is_online', 'true');
+        localStorage.setItem('shazuone_partner_is_online', 'true');
         if (updateUser) {
           updateUser({ isOnline: true });
         }
         setOfflineJobRequest(null);
         setStep(2); // Go directly to En Route active job navigation
-        localStorage.setItem('salemseva_partner_step', '2');
+        localStorage.setItem('shazuone_partner_step', '2');
         setTechToast('கோரிக்கை ஏற்கப்பட்டது! நீங்கள் இப்போது ஆன்லைனில் உள்ளீர்கள். வாடிக்கையாளர் இருப்பிடத்திற்கு புறப்படவும்.');
       } else {
         setTechToast(data.error || 'Failed to accept offline request');
@@ -1477,10 +1477,10 @@ export default function PartnerDutyPage() {
                   />
                 </Box>
                 <Typography variant="body2" sx={{ color: '#78350F', fontSize: '12px', mb: 1.5, lineHeight: 1.5 }}>
-                  உங்கள் ஆதார் அட்டை மற்றும் தொழில் விவரங்கள் சேலம் நிர்வாக அலுவலகத்திற்கு (Salem Central Operations Desk) சரிபார்ப்புக்கு அனுப்பப்பட்டுள்ளது. நிர்வாகி ஒப்புதல் அளித்தவுடன் உங்களது Duty Radar தானாகவே இயங்கும்.
+                  உங்கள் ஆதார் அட்டை மற்றும் தொழில் விவரங்கள் சேலம் நிர்வாக அலுவலகத்திற்கு (Shazu One Central Operations Desk) சரிபார்ப்புக்கு அனுப்பப்பட்டுள்ளது. நிர்வாகி ஒப்புதல் அளித்தவுடன் உங்களது Duty Radar தானாகவே இயங்கும்.
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#92400E', fontSize: '11px', display: 'block', mb: 1.5 }}>
-                  * For security reasons, partner duty dispatch is locked until your Aadhaar document is verified by Salem Central Ops.
+                  * For security reasons, partner duty dispatch is locked until your Aadhaar document is verified by Shazu One Central Ops.
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                   {(activeTech?.aadhaarCardUrl || activeTech?.aadhaar_card_url) && (
@@ -1523,7 +1523,7 @@ export default function PartnerDutyPage() {
                           };
                           updateUser(updated);
                           await loginTech(updated);
-                          localStorage.setItem('salemseva_tech_user', JSON.stringify(updated));
+                          localStorage.setItem('shazuone_tech_user', JSON.stringify(updated));
                           setIsOnline(data.technician.is_online);
                           if (isVerified) {
                             setTechToast('வாழ்த்துகள்! உங்கள் ஆதார் KYC அங்கீகரிக்கப்பட்டது. நீங்கள் இப்போது பணியைத் தொடங்கலாம்!');
@@ -1591,7 +1591,7 @@ export default function PartnerDutyPage() {
             </Paper>
 
 
-            {/* 1.2 SalemSeva 3-Stage Escrow & Settlement Protocol Card */}
+            {/* 1.2 Shazu One 3-Stage Escrow & Settlement Protocol Card */}
             <Paper
               elevation={0}
               sx={{
@@ -1605,7 +1605,7 @@ export default function PartnerDutyPage() {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.8 }}>
                 <ShieldIcon sx={{ color: '#0284C7', fontSize: 18 }} />
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '12px', textTransform: 'uppercase', letterSpacing: 0.3 }}>
-                  SalemSeva Instant Settlement Protocol (3-Stage Escrow)
+                  Shazu One Instant Settlement Protocol (3-Stage Escrow)
                 </Typography>
               </Box>
 
@@ -1959,7 +1959,7 @@ export default function PartnerDutyPage() {
                     </Typography>
 
                     <Typography variant="body2" sx={{ color: '#CBD5E1', fontSize: '12.5px', maxWidth: 440, mx: 'auto', mb: 2.5, lineHeight: 1.6 }}>
-                      சேலம் தலைமை நிர்வாக அலுவலகம் (Salem Central Operations) உங்கள் ஆதார் அட்டை மற்றும் தொழில் விவரங்களை சரிபார்த்த பிறகு உங்கள் Duty Dashboard திறக்கப்படும். அதுவரை வேலை கோரிக்கைகள் அனுப்பப்படாது.
+                      சேலம் தலைமை நிர்வாக அலுவலகம் (Shazu One Central Operations) உங்கள் ஆதார் அட்டை மற்றும் தொழில் விவரங்களை சரிபார்த்த பிறகு உங்கள் Duty Dashboard திறக்கப்படும். அதுவரை வேலை கோரிக்கைகள் அனுப்பப்படாது.
                     </Typography>
 
                     <Box sx={{ display: 'flex', gap: 1.2, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -2008,7 +2008,7 @@ export default function PartnerDutyPage() {
                               };
                               await loginTech(updatedUser);
                               updateUser(updatedUser);
-                              localStorage.setItem('salemseva_tech_user', JSON.stringify(updatedUser));
+                              localStorage.setItem('shazuone_tech_user', JSON.stringify(updatedUser));
                               setIsOnline(data.technician.is_online);
                               if (isVerified) {
                                 setTechToast('Congratulations! Your partner account is approved by admin. You can now go online and accept doorstep jobs!');
@@ -2445,7 +2445,7 @@ export default function PartnerDutyPage() {
                                   <strong style={{ color: '#34D399' }}>₹{activeJob.visit_fee || activeJob.visitFee || 99}.00 (100% to your wallet)</strong>
                                 </Box>
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                  <span style={{ color: '#94A3B8' }}>SalemSeva Platform Cut:</span>
+                                  <span style={{ color: '#94A3B8' }}>Shazu One Platform Cut:</span>
                                   <strong style={{ color: '#94A3B8' }}>₹0.00 (Zero Commission)</strong>
                                 </Box>
                               </Box>
@@ -2673,7 +2673,7 @@ export default function PartnerDutyPage() {
                                         setActiveJob(prev => prev ? { ...prev, status: 'accepted' } : null);
                                       }
                                       setStep(1);
-                                      localStorage.removeItem('salemseva_partner_step');
+                                      localStorage.removeItem('shazuone_partner_step');
                                       setIsProcessing(false);
                                       setTechToast('கோரிக்கை ஏற்கப்பட்டது! வாடிக்கையாளருக்கு அறிவிக்கப்பட்டது (Request accepted! Customer notified).');
                                     }}
@@ -4146,7 +4146,7 @@ export default function PartnerDutyPage() {
                       </Box>
 
                       <Typography variant="caption" sx={{ color: '#1E40AF', fontSize: '11.5px', display: 'block', mb: 1.5, lineHeight: 1.4 }}>
-                        When you reach the customer's house, the customer will ask you: <em>"What is your SalemSeva PIN?"</em>. Tell them the 4 digits below so they can verify your identity on their screen and let you inside.
+                        When you reach the customer's house, the customer will ask you: <em>"What is your Shazu One PIN?"</em>. Tell them the 4 digits below so they can verify your identity on their screen and let you inside.
                       </Typography>
 
                       {/* Prominent 4-Digit Display for Tech */}
@@ -4328,9 +4328,9 @@ export default function PartnerDutyPage() {
                             setActiveJob(prev => ({ ...prev, status: 'quote_presented' }));
                           }
                           setQuoteSent(true);
-                          localStorage.setItem('salemseva_quote_status_' + activeBookingId, 'quote_presented');
-                          localStorage.setItem('salemseva_active_booking', activeBookingId);
-                          window.dispatchEvent(new CustomEvent('salemseva_quote_updated', { detail: { bookingId: activeBookingId, status: 'quote_presented' } }));
+                          localStorage.setItem('shazuone_quote_status_' + activeBookingId, 'quote_presented');
+                          localStorage.setItem('shazuone_active_booking', activeBookingId);
+                          window.dispatchEvent(new CustomEvent('Shazu One_quote_updated', { detail: { bookingId: activeBookingId, status: 'quote_presented' } }));
                           window.dispatchEvent(new Event('storage'));
                         } catch (err) {
                           console.warn('Status update fallback:', err);
@@ -4444,10 +4444,10 @@ export default function PartnerDutyPage() {
                       } catch (err) {
                         console.warn('Status update fallback:', err);
                       }
-                      localStorage.removeItem('salemseva_partner_step');
-                      localStorage.removeItem('salemseva_partner_active_job');
-                      localStorage.setItem('salemseva_quote_status_' + activeBookingId, 'completed');
-                      window.dispatchEvent(new CustomEvent('salemseva_status_updated', { detail: { bookingId: activeBookingId, status: 'completed' } }));
+                      localStorage.removeItem('shazuone_partner_step');
+                      localStorage.removeItem('shazuone_partner_active_job');
+                      localStorage.setItem('shazuone_quote_status_' + activeBookingId, 'completed');
+                      window.dispatchEvent(new CustomEvent('Shazu One_status_updated', { detail: { bookingId: activeBookingId, status: 'completed' } }));
                       window.dispatchEvent(new Event('storage'));
                       setIsProcessing(false);
                       setStep(1);
@@ -5036,7 +5036,7 @@ export default function PartnerDutyPage() {
                           <strong>₹{job.techPayout.toFixed(2)}</strong>
                         </Box>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748B' }}>
-                          <span>SalemSeva Platform Commission (5%):</span>
+                          <span>Shazu One Platform Commission (5%):</span>
                           <span>₹{job.platformCommission.toFixed(2)}</span>
                         </Box>
                       </Paper>
@@ -5214,7 +5214,7 @@ export default function PartnerDutyPage() {
                 onClick={() => {
                   handleOpenCall({
                     id: activeBookingId || 'SLM-OPS-HELP',
-                    customerName: 'Salem Central Ops Desk (Anand)',
+                    customerName: 'Shazu One Central Ops Desk (Anand)',
                     customerPhone: '0427-2448888'
                   });
                 }}
@@ -5238,7 +5238,7 @@ export default function PartnerDutyPage() {
                 onClick={() => {
                   handleOpenChat({
                     id: activeBookingId || 'SLM-OPS-HELP',
-                    customerName: 'Salem Central Ops Desk (Anand)',
+                    customerName: 'Shazu One Central Ops Desk (Anand)',
                     customerPhone: '0427-2448888'
                   });
                 }}
@@ -5448,7 +5448,7 @@ export default function PartnerDutyPage() {
                 <Divider sx={{ borderColor: '#F1F5F9' }} />
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
                   <span style={{ color: '#64748B' }}>Email Address:</span>
-                  <strong style={{ color: '#0F172A' }}>{user?.email || 'partner@salemseva.in'}</strong>
+                  <strong style={{ color: '#0F172A' }}>{user?.email || 'partner@Shazu One.in'}</strong>
                 </Box>
                 <Divider sx={{ borderColor: '#F1F5F9' }} />
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
@@ -5473,7 +5473,7 @@ export default function PartnerDutyPage() {
               </Box>
 
               <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 1 }}>
-                Base Hub: <strong>SalemSeva Fairlands Central Hub (Salem - 636016)</strong>
+                Base Hub: <strong>Shazu One Fairlands Central Hub (Salem - 636016)</strong>
               </Typography>
 
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.6, mb: 1.5 }}>
@@ -5597,7 +5597,7 @@ export default function PartnerDutyPage() {
                 <Divider sx={{ borderColor: '#F1F5F9' }} />
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: '#64748B' }}>Settlement Model:</span>
-                  <strong style={{ color: '#2563EB' }}>SalemSeva Direct (98% Technician Share)</strong>
+                  <strong style={{ color: '#2563EB' }}>Shazu One Direct (98% Technician Share)</strong>
                 </Box>
               </Box>
             </Paper>
@@ -5784,7 +5784,7 @@ export default function PartnerDutyPage() {
         />
         <ModalBody>
           <Typography variant="body2" sx={{ color: '#0F172A', mb: 2, lineHeight: 1.5, fontSize: '14px' }}>
-            SalemSeva requires device location <strong>only while you are on duty</strong> to calculate live customer ETAs, doorstep route navigation in Salem, and dispatch nearby high-paying jobs.
+            Shazu One requires device location <strong>only while you are on duty</strong> to calculate live customer ETAs, doorstep route navigation in Salem, and dispatch nearby high-paying jobs.
           </Typography>
           <Box sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px' }}>
             <Typography variant="caption" sx={{ color: '#0A66C2', fontWeight: 700, display: 'block', mb: 0.5, fontSize: '12px' }}>
@@ -6141,7 +6141,7 @@ export default function PartnerDutyPage() {
                   Immediate Central Operations Handover
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#B91C1C', fontSize: '11px', display: 'block', lineHeight: 1.5 }}>
-                  If you can no longer attend this appointment due to an emergency or breakdown, Salem Central Ops will immediately reassign this customer to another verified technician in your trade without service interruption.
+                  If you can no longer attend this appointment due to an emergency or breakdown, Shazu One Central Ops will immediately reassign this customer to another verified technician in your trade without service interruption.
                 </Typography>
               </Box>
 

@@ -1,4 +1,4 @@
-import { API_V1_URL } from '../../config';
+﻿import { API_V1_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
 import {
   Container,
@@ -63,7 +63,7 @@ export default function MatchingPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const urlBookingId = searchParams.get('bookingId');
-  const storedBookingId = localStorage.getItem('salemseva_active_booking');
+  const storedBookingId = localStorage.getItem('shazuone_active_booking');
   const bookingId = urlBookingId || storedBookingId || '';
 
   const [loading, setLoading] = useState(true);
@@ -117,7 +117,7 @@ export default function MatchingPage() {
       navigate('/', { replace: true });
       return;
     }
-    localStorage.setItem('salemseva_active_booking', bookingId);
+    localStorage.setItem('shazuone_active_booking', bookingId);
     let isMounted = true;
     const fetchBookingDetails = async () => {
       try {
@@ -239,7 +239,7 @@ export default function MatchingPage() {
           key: keyId,
           amount: 9900,
           currency: 'INR',
-          name: 'SalemSeva (சேலம் சேவை)',
+          name: 'Shazu One (சேலம் சேவை)',
           description: 'Part 1: Doorstep Inspection & Travel Advance (₹99)',
           order_id: (orderId.startsWith('order_') && orderId.length > 20) ? orderId : undefined,
           handler: async function (response) {
@@ -251,7 +251,7 @@ export default function MatchingPage() {
           },
           prefill: {
             name: 'Vimal Raj',
-            email: 'customer@salemseva.in',
+            email: 'customer@Shazu One.in',
             contact: '+919842711234'
           },
           theme: {
@@ -366,7 +366,7 @@ export default function MatchingPage() {
     } catch (err) {
       console.warn('Cancel request fallback:', err);
     } finally {
-      localStorage.removeItem('salemseva_active_booking');
+      localStorage.removeItem('shazuone_active_booking');
       setIsCancelling(false);
       navigate('/');
     }
@@ -664,7 +664,7 @@ export default function MatchingPage() {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                 <ShieldIcon sx={{ color: '#2563EB', fontSize: 20 }} />
                 <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#0F172A', fontSize: '14px' }}>
-                  Salem Central Ops Availability Guarantee
+                  Shazu One Central Ops Availability Guarantee
                 </Typography>
               </Box>
 
@@ -905,7 +905,7 @@ export default function MatchingPage() {
 
                 <Typography variant="caption" sx={{ color: '#475569', fontSize: '11.5px', display: 'block', lineHeight: 1.45, mb: 1 }}>
                   • <strong>100% (₹99) disbursed to technician</strong> for Salem travel & fuel expenses.
-                  <br />• <strong>SalemSeva charges ₹0 platform commission</strong> for inspection.
+                  <br />• <strong>Shazu One charges ₹0 platform commission</strong> for inspection.
                 </Typography>
 
                 <Divider sx={{ my: 1, borderColor: '#E2E8F0' }} />
@@ -927,7 +927,7 @@ export default function MatchingPage() {
                 {[
                   { id: 'upi', label: 'Instant UPI (Google Pay / PhonePe / Paytm / BHIM)', desc: 'Fastest 1-tap confirmation', icon: <QrCodeIcon sx={{ fontSize: 18, color: '#2563EB' }} /> },
                   { id: 'card', label: 'Debit / Credit Card / NetBanking', desc: 'All Indian cards supported', icon: <CreditCardIcon sx={{ fontSize: 18, color: '#0F172A' }} /> },
-                  { id: 'wallet', label: 'SalemSeva Wallet / 1-Click Escrow', desc: 'Zero gateway fees', icon: <AccountBalanceWalletIcon sx={{ fontSize: 18, color: '#16A34A' }} /> }
+                  { id: 'wallet', label: 'Shazu One Wallet / 1-Click Escrow', desc: 'Zero gateway fees', icon: <AccountBalanceWalletIcon sx={{ fontSize: 18, color: '#16A34A' }} /> }
                 ].map(mode => {
                   const isSelected = selectedPayMethod === mode.id;
                   return (
@@ -1119,7 +1119,7 @@ export default function MatchingPage() {
       {/* Processing Loader */}
       <ProcessingBackdrop
         open={isProcessing}
-        title="Syncing booking with Salem Central Ops..."
+        title="Syncing booking with Shazu One Central Ops..."
         subtitle="Real-time dispatch pipeline updating state"
         badge="Ops Dispatch"
       />

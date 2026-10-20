@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+﻿import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -164,7 +164,7 @@ export default function SideNavbar({
             >
               <img
                 src="/logo.png"
-                alt="SalemSeva"
+                alt="Shazu One"
                 style={{ width: '100%', height: '100%', objectFit: 'contain' }}
               />
             </div>
@@ -355,7 +355,7 @@ export default function SideNavbar({
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: '15px', fontWeight: 800, color: isDarkMode ? '#F8FAFC' : '#0F172A' }}>
-                      Welcome to SalemSeva
+                      Welcome to Shazu One
                     </div>
                     <div style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 500 }}>
                       Hyperlocal Services Hub in Salem
@@ -407,7 +407,7 @@ export default function SideNavbar({
                 />
                 <SideNavItem
                   icon={<Sparkles size={18} color="#0066CC" />}
-                  label="How SalemSeva Works"
+                  label="How Shazu One Works"
                   sublabel="Doorstep dispatch guide & guarantee"
                   active={currentPath === '/how-it-works'}
                   isDark={isDarkMode}
@@ -710,7 +710,7 @@ export default function SideNavbar({
               <span onClick={() => handleNav('/refund-policy')} style={{ color: '#0066CC', cursor: 'pointer', fontWeight: 600 }}>Refunds</span>
             </div>
             <span style={{ fontSize: '10px', color: isDarkMode ? '#64748B' : '#94A3B8' }}>
-              SalemSeva v2.4 • Smart City Service Mesh
+              Shazu One v2.4 • Smart City Service Mesh
             </span>
           </div>
         </div>

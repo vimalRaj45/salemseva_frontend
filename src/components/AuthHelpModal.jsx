@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -141,7 +141,7 @@ export default function AuthHelpModal({ open, onClose, defaultRole = 'customer' 
               Ticket Registered: {submittedTicket.ticket_number}
             </Typography>
             <Typography variant="body2" sx={{ color: '#475569', mb: 2, fontSize: '13.5px', px: 2 }}>
-              Your login assistance ticket has been dispatched to Salem Central Operations Desk.
+              Your login assistance ticket has been dispatched to Shazu One Central Operations Desk.
             </Typography>
 
             <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', borderRadius: '10px', border: '1px solid #E2E8F0', mb: 2, textAlign: 'left' }}>

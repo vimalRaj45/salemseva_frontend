@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -92,7 +92,7 @@ export default function LocationPickerModal({
 
   const handleConfirm = () => {
     if (isOutOfRegion) {
-      toast.error('SalemSeva exclusively serves the Salem region (PIN 636xxx). Please select a valid Salem locality.');
+      toast.error('Shazu One exclusively serves the Salem region (PIN 636xxx). Please select a valid Salem locality.');
       return;
     }
 
@@ -171,7 +171,7 @@ export default function LocationPickerModal({
               Location outside Salem region
             </Typography>
             <Typography sx={{ color: '#7F1D1D', fontSize: '12px', lineHeight: 1.45 }}>
-              Your device ({detectedPlaceInfo?.name || 'Outside Area'}) is ~{Math.round(detectedPlaceInfo?.distanceKm || 0)} km from Salem. SalemSeva doorstep service is available within Salem PINs (636xxx). Please select a Salem locality below.
+              Your device ({detectedPlaceInfo?.name || 'Outside Area'}) is ~{Math.round(detectedPlaceInfo?.distanceKm || 0)} km from Salem. Shazu One doorstep service is available within Salem PINs (636xxx). Please select a Salem locality below.
             </Typography>
           </Box>
         )}

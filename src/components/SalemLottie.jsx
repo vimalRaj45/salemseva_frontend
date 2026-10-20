@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+﻿import React, { useEffect, useRef } from 'react';
 import lottie from 'lottie-web';
 import { Box } from '@mui/material';
 
@@ -31,7 +31,7 @@ export default function SalemLottie({
   width = 180,
   height = 180,
   style = {},
-  ariaLabel = 'SalemSeva animated illustration'
+  ariaLabel = 'Shazu One animated illustration'
 }) {
   const containerRef = useRef(null);
   const animInstanceRef = useRef(null);

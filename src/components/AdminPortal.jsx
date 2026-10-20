@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -85,7 +85,7 @@ export default function AdminPortal({ onResolveTicket }) {
           status,
           resolutionSummary: resolutionSummary.trim(),
           adminNotes: adminNotes.trim(),
-          resolvedBy: 'Salem Central Operations Desk (Anand Lead)'
+          resolvedBy: 'Shazu One Central Operations Desk (Anand Lead)'
         })
       });
       const data = await res.json();
@@ -112,7 +112,7 @@ export default function AdminPortal({ onResolveTicket }) {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 800, color: '#38BDF8', display: 'flex', alignItems: 'center', gap: 1 }}>
-            <DashboardIcon /> SalemSeva Operations & Quality Desk
+            <DashboardIcon /> Shazu One Operations & Quality Desk
           </Typography>
           <Typography variant="body2" sx={{ color: '#94A3B8' }}>
             Salem City Live Dispatch & Escrow Settlement Monitor • Anand (Ops Lead)
@@ -158,7 +158,7 @@ export default function AdminPortal({ onResolveTicket }) {
             <CardContent sx={{ p: 2 }}>
               <Typography variant="caption" sx={{ color: '#94A3B8' }}>REPEAT CUST RATE</Typography>
               <Typography variant="h4" sx={{ fontWeight: 800, color: '#A855F7', my: 0.5 }}>41.2%</Typography>
-              <Typography variant="caption" sx={{ color: '#C4B5FD' }}>Salem Seva Loyalty</Typography>
+              <Typography variant="caption" sx={{ color: '#C4B5FD' }}>Shazu One Loyalty</Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -305,7 +305,7 @@ export default function AdminPortal({ onResolveTicket }) {
                 <TableCell>Job ID</TableCell>
                 <TableCell>Gross Customer Paid</TableCell>
                 <TableCell>Technician Share (85% + Visit)</TableCell>
-                <TableCell>SalemSeva Commission (15%)</TableCell>
+                <TableCell>Shazu One Commission (15%)</TableCell>
                 <TableCell>Escrow Status</TableCell>
               </TableRow>
             </TableHead>

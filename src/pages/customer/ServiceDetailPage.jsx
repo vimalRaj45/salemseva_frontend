@@ -1,4 +1,4 @@
-import { API_V1_URL } from '../../config';
+﻿import { API_V1_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
 import {
   Container,
@@ -129,7 +129,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
     dates: {}
   });
 
-  // Booking Mode: Standardized on Scheduled Appointments with Salem Central Ops Slot Allocation
+  // Booking Mode: Standardized on Scheduled Appointments with Shazu One Central Ops Slot Allocation
   const todayISO = new Date().toISOString().split('T')[0];
   const bookingMode = 'scheduled';
   const [selectedDateISO, setSelectedDateISO] = useState(todayISO);
@@ -182,7 +182,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
   });
 
   const [userLocation, setUserLocation] = useState(() => {
-    const saved = localStorage.getItem('salemseva_user_location');
+    const saved = localStorage.getItem('Shazu One_user_location');
     return saved ? JSON.parse(saved) : {
       locality: 'Fairlands',
       pincode: '636016',
@@ -453,8 +453,8 @@ export default function ServiceDetailPage({ onStartBooking }) {
         const bId = data.booking.id;
         const bObj = data.booking;
 
-        localStorage.setItem('salemseva_active_booking', bId);
-        window.dispatchEvent(new CustomEvent('salemseva_new_booking_created', { detail: { bookingId: bId, booking: bObj } }));
+        localStorage.setItem('shazuone_active_booking', bId);
+        window.dispatchEvent(new CustomEvent('Shazu One_new_booking_created', { detail: { bookingId: bId, booking: bObj } }));
         window.dispatchEvent(new Event('storage'));
         if (onStartBooking) onStartBooking(bObj);
         setIsPayingScheduled(false);
@@ -534,7 +534,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
         key: keyId,
         amount: Math.round(payableNow * 100),
         currency: 'INR',
-        name: 'SalemSeva Scheduled Booking',
+        name: 'Shazu One Scheduled Booking',
         description: `Advance Visit Fee Reservation (${currentServiceName})`,
         image: '/logo.png',
         order_id: orderId,
@@ -567,7 +567,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
         },
         prefill: {
           name: user?.name || 'Vimal Raj',
-          email: user?.email || 'customer@salemseva.in',
+          email: user?.email || 'customer@Shazu One.in',
           contact: (user?.phone || '+919842711234').replace(/\s+/g, '')
         },
         theme: {
@@ -1141,7 +1141,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
             </Typography>
           </Box>
           <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 1.8, fontSize: { xs: '12.5px', sm: '13.5px' } }}>
-            Salem Central Operations allocates verified specialists across Salem. For urgent needs, select <strong>"Earliest Today (Emergency • Central Ops Fast Dispatch)"</strong> for immediate priority assignment.
+            Shazu One Central Operations allocates verified specialists across Salem. For urgent needs, select <strong>"Earliest Today (Emergency • Central Ops Fast Dispatch)"</strong> for immediate priority assignment.
           </Typography>
 
           {/* Scheduled Slot Picker UI */}
@@ -1482,7 +1482,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
         {/* Quality & Guarantees Accordion Section */}
         <Box sx={{ mb: 3 }}>
           <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', mb: 1.2, fontSize: { xs: '12px', sm: '13px' } }}>
-            SalemSeva Quality & Guarantees
+            Shazu One Quality & Guarantees
           </Typography>
 
           {/* Accordion 1: Labour Pricing & Zero Product Selling */}
@@ -1496,7 +1496,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
               </Box>
             </AccordionSummary>
             <AccordionDetails sx={{ pt: 0, color: '#475569', fontSize: { xs: '13px', sm: '14px' }, lineHeight: 1.6 }}>
-              SalemSeva charges strictly for doorstep inspection and skilled workmanship. We do not sell or force spare parts. If any materials or replacement components are needed, you are completely free to provide them yourself or purchase them from any vendor of your choice.
+              Shazu One charges strictly for doorstep inspection and skilled workmanship. We do not sell or force spare parts. If any materials or replacement components are needed, you are completely free to provide them yourself or purchase them from any vendor of your choice.
             </AccordionDetails>
           </Accordion>
 
@@ -1622,7 +1622,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
       <ProcessingBackdrop
         open={isProcessing}
         title="Registering scheduled appointment..."
-        subtitle="Submitting slot to Salem Central Operations Desk"
+        subtitle="Submitting slot to Shazu One Central Operations Desk"
         badge="Central Ops Queue"
       />
 
@@ -1636,7 +1636,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
         <ModalHeader
           id="scheduled-payment-title"
           title="Reserve scheduled slot"
-          subtitle="Salem Central Operations guaranteed doorstep slot"
+          subtitle="Shazu One Central Operations guaranteed doorstep slot"
           onClose={() => !isPayingScheduled && setScheduledPaymentModalOpen(false)}
           icon={<CalendarMonthIcon sx={{ color: '#0A66C2', fontSize: 20 }} />}
         />
@@ -1874,7 +1874,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <AdminPanelSettingsIcon sx={{ color: '#0A66C2', fontSize: 18 }} />
               <Typography sx={{ color: '#0F172A', fontWeight: 600, fontSize: '12px' }}>
-                Sent to Salem Central Operations Desk
+                Sent to Shazu One Central Operations Desk
               </Typography>
             </Box>
             <Typography sx={{ color: '#64748B', fontSize: '12px', mt: 0.5, lineHeight: 1.4 }}>

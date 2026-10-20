@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Box, Paper, Typography, Button, IconButton } from '@mui/material';
 import GetAppIcon from '@mui/icons-material/GetApp';
 import CloseIcon from '@mui/icons-material/Close';
@@ -15,7 +15,7 @@ export default function PwaInstallPrompt() {
     }
 
     // Check if user dismissed recently
-    const dismissedUntil = localStorage.getItem('salemseva_pwa_dismissed');
+    const dismissedUntil = localStorage.getItem('Shazu One_pwa_dismissed');
     if (dismissedUntil && Date.now() < Number(dismissedUntil)) {
       return;
     }
@@ -46,7 +46,7 @@ export default function PwaInstallPrompt() {
   const handleDismiss = () => {
     setShowPrompt(false);
     // Dismiss for 3 days
-    localStorage.setItem('salemseva_pwa_dismissed', String(Date.now() + 3 * 24 * 60 * 60 * 1000));
+    localStorage.setItem('Shazu One_pwa_dismissed', String(Date.now() + 3 * 24 * 60 * 60 * 1000));
   };
 
   if (!showPrompt) return null;
@@ -80,7 +80,7 @@ export default function PwaInstallPrompt() {
         <Box
           component="img"
           src="/icons/icon-192x192.png"
-          alt="SalemSeva App Icon"
+          alt="Shazu One App Icon"
           sx={{
             width: 44,
             height: 44,
@@ -93,7 +93,7 @@ export default function PwaInstallPrompt() {
 
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#FFFFFF', fontSize: '13px', lineHeight: 1.2 }}>
-            Install SalemSeva App
+            Install Shazu One App
           </Typography>
           <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '11px', display: 'block', mt: 0.2, lineHeight: 1.3 }}>
             Add to home screen for 1-tap bookings and offline updates.

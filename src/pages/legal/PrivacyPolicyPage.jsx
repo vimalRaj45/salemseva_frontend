@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import LegalLayout from './LegalLayout';
 import {
   Lock,
@@ -38,7 +38,7 @@ export default function PrivacyPolicyPage() {
         </div>
 
         <p style={{ fontSize: '14.5px', lineHeight: 1.75, color: '#334155', margin: '0 0 16px 0' }}>
-          SalemSeva adheres to strict data minimization principles under the Digital Personal Data Protection Act, 2023 (DPDP). We collect solely the information indispensable for scheduling, verifying, and dispatching doorstep technical assistance across Salem district:
+          Shazu One adheres to strict data minimization principles under the Digital Personal Data Protection Act, 2023 (DPDP). We collect solely the information indispensable for scheduling, verifying, and dispatching doorstep technical assistance across Salem district:
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
@@ -92,7 +92,7 @@ export default function PrivacyPolicyPage() {
         </div>
 
         <p style={{ fontSize: '14.5px', lineHeight: 1.75, color: '#334155', margin: '0 0 16px 0' }}>
-          To prevent personal harassment, spam solicitation, or unauthorized off-platform contact, SalemSeva implements zero-exposure communication relays:
+          To prevent personal harassment, spam solicitation, or unauthorized off-platform contact, Shazu One implements zero-exposure communication relays:
         </p>
 
         <div style={{ backgroundColor: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '8px', padding: '16px', marginBottom: '16px' }}>
@@ -149,7 +149,7 @@ export default function PrivacyPolicyPage() {
             Zero Third-Party Commercial Data Brokerage
           </strong>
           <p style={{ margin: 0, fontSize: '13px', color: '#475569', lineHeight: 1.6 }}>
-            SalemSeva does not sell, barter, or monetize user profiles, address history, or spending habits to third-party advertisers, lead brokers, or marketing networks.
+            Shazu One does not sell, barter, or monetize user profiles, address history, or spending habits to third-party advertisers, lead brokers, or marketing networks.
           </p>
         </div>
 
@@ -179,11 +179,11 @@ export default function PrivacyPolicyPage() {
         <div style={{ backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <strong style={{ fontSize: '13px', color: '#0F172A', display: 'block' }}>Data Protection Officer (DPO)</strong>
-            <span style={{ fontSize: '12.5px', color: '#64748B' }}>Compliance & Privacy Office, Salem Central Operations</span>
+            <span style={{ fontSize: '12.5px', color: '#64748B' }}>Compliance & Privacy Office, Shazu One Central Operations</span>
           </div>
           <div>
             <strong style={{ fontSize: '13px', color: '#0F172A', display: 'block' }}>Formal Inquiries</strong>
-            <span style={{ fontSize: '12.5px', color: '#0284C7', fontWeight: 600 }}>privacy@salemseva.in</span>
+            <span style={{ fontSize: '12.5px', color: '#0284C7', fontWeight: 600 }}>privacy@Shazu One.in</span>
           </div>
         </div>
       </section>

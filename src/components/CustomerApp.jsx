@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -527,7 +527,7 @@ export default function CustomerApp({ currentStep, setStep, activeBooking, setAc
           </Typography>
           <Box sx={{ color: '#166534', bgcolor: '#F0FDF4', p: 2, borderRadius: '12px', border: '1px solid #BBF7D0' }}>
             <Typography variant="body2" sx={{ fontSize: '13px', lineHeight: 1.4 }}>
-              Under SalemSeva Escrow Policy, you are entitled to a <strong>100% free warranty revisit or diagnostic refund</strong>.
+              Under Shazu One Escrow Policy, you are entitled to a <strong>100% free warranty revisit or diagnostic refund</strong>.
             </Typography>
           </Box>
         </ModalBody>

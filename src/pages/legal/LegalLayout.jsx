@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -113,7 +113,7 @@ export default function LegalLayout({
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Scale size={18} color="#0284C7" />
               <span style={{ fontWeight: 800, fontSize: '15px', color: '#0F172A', letterSpacing: '-0.3px' }}>
-                SalemSeva Legal
+                Shazu One Legal
               </span>
             </div>
           </div>
@@ -251,7 +251,7 @@ export default function LegalLayout({
                   <ShieldCheck size={15} color="#16A34A" style={{ flexShrink: 0, marginTop: '2px' }} />
                   <div>
                     <span style={{ display: 'block', color: '#94A3B8', fontSize: '11px' }}>Legal Entity</span>
-                    <strong style={{ color: '#1E293B' }}>SalemSeva Intermediary Network</strong>
+                    <strong style={{ color: '#1E293B' }}>Shazu One Intermediary Network</strong>
                   </div>
                 </div>
               </div>
@@ -338,7 +338,7 @@ export default function LegalLayout({
                   <span>Compliance Desk, Salem Central HQ</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px', color: '#0284C7', fontWeight: 600 }}>
                     <Mail size={13} />
-                    <span>legal@salemseva.in</span>
+                    <span>legal@Shazu One.in</span>
                   </div>
                 </div>
               </div>
@@ -369,7 +369,7 @@ export default function LegalLayout({
                   marginBottom: '8px'
                 }}
               >
-                Official Legal Repository • SalemSeva Platform
+                Official Legal Repository • Shazu One Platform
               </span>
               <h1
                 style={{

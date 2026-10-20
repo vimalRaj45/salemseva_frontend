@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -50,7 +50,7 @@ export default function PartnerApp({ currentStep, setStep }) {
       <Box sx={{ p: 2, bgcolor: '#0F172A', color: '#FFF', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box>
           <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#FFF' }}>
-            {isTa ? 'சேலம்சேவா டெக்னீசியன்' : 'SalemSeva Partner'}
+            {isTa ? 'சேலம்சேவா டெக்னீசியன்' : 'Shazu One Partner'}
           </Typography>
           <Typography variant="caption" sx={{ color: '#94A3B8' }}>
             K. Ramesh • Fairlands Zone

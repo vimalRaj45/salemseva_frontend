@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { API_V1_URL } from '../../config';
 import {
   Container,
@@ -43,7 +43,7 @@ export default function RatingEscalationPage() {
   const { creditWallet, rewardSettings } = useAuth();
   const reviewRewardCredits = parseFloat(rewardSettings?.review_reward_credits || 25);
   const [searchParams] = useSearchParams();
-  const bookingId = searchParams.get('bookingId') || localStorage.getItem('salemseva_active_booking') || '';
+  const bookingId = searchParams.get('bookingId') || localStorage.getItem('shazuone_active_booking') || '';
 
   const [techName, setTechName] = useState('the technician');
   const [rating, setRating] = useState(5);
@@ -127,12 +127,12 @@ export default function RatingEscalationPage() {
         tags: selectedTags,
         feedback: feedbackText
       });
-      localStorage.setItem(`salemseva_rated_${bookingId}`, 'true');
-      localStorage.removeItem('salemseva_active_booking');
+      localStorage.setItem(`Shazu One_rated_${bookingId}`, 'true');
+      localStorage.removeItem('shazuone_active_booking');
     } catch (e) {
       console.warn('Review submission fallback:', e);
-      localStorage.setItem(`salemseva_rated_${bookingId}`, 'true');
-      localStorage.removeItem('salemseva_active_booking');
+      localStorage.setItem(`Shazu One_rated_${bookingId}`, 'true');
+      localStorage.removeItem('shazuone_active_booking');
     }
     setTimeout(() => {
       setIsProcessing(false);
@@ -205,7 +205,7 @@ export default function RatingEscalationPage() {
               fontSize: '12px'
             }}
           >
-            <strong>Salem Central Ops Escalation:</strong> We are sorry your experience was not satisfactory. Please select the issues below and provide details so our ops manager can arrange a free re-visit or refund.
+            <strong>Shazu One Central Ops Escalation:</strong> We are sorry your experience was not satisfactory. Please select the issues below and provide details so our ops manager can arrange a free re-visit or refund.
           </Alert>
         )}
 
@@ -362,7 +362,7 @@ export default function RatingEscalationPage() {
       {/* Processing Loader */}
       <ProcessingBackdrop
         open={isProcessing}
-        title={ratingInfo.isLow ? 'Escalating to Salem Central Ops...' : 'Submitting rating...'}
+        title={ratingInfo.isLow ? 'Escalating to Shazu One Central Ops...' : 'Submitting rating...'}
         subtitle={ratingInfo.isLow ? 'Logging feedback ticket with Salem operations desk' : 'Crediting Seva wallet balance'}
         badge="Live Feedback"
       />

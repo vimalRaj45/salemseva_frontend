@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -66,7 +66,7 @@ const PARTNER_SLIDES = [
     id: 'partner_earnings',
     badge: 'Technician Partner Fleet',
     title: 'Earn 98% on Every Doorstep Job',
-    desc: 'Join Salem trade network. SalemSeva retains only 2% platform fee, giving you 98% direct daily earnings.',
+    desc: 'Join Salem trade network. Shazu One retains only 2% platform fee, giving you 98% direct daily earnings.',
     illustration: ILLUSTRATIONS.partnerService,
     points: [
       '98% net service revenue paid out to you',
@@ -114,7 +114,7 @@ export default function FirstTimeOnboardingPage() {
   const progress = ((activeSlide + 1) / slides.length) * 100;
 
   const handleFinish = () => {
-    localStorage.setItem('salemseva_has_seen_onboarding', 'true');
+    localStorage.setItem('Shazu One_has_seen_onboarding', 'true');
     if (role === 'partner') {
       navigate('/partner/onboarding');
     } else {

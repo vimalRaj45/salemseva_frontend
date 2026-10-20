@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -222,7 +222,7 @@ export default function SupportTicketModal({
   return (
     <Modal open={open} onClose={onClose} maxWidth="sm">
       <ModalHeader
-        title="SalemSeva Support Desk"
+        title="Shazu One Support Desk"
         subtitle={
           isTechnician
             ? 'Technician Duty Assistance, Dispute Resolution & Escalation'
@@ -326,7 +326,7 @@ export default function SupportTicketModal({
               />
 
               <Typography variant="body2" sx={{ color: '#475569', fontSize: '13px', mb: 2, maxWidth: '400px', mx: 'auto' }}>
-                Your request has been prioritized and assigned to Salem Central Operations. Our desk agent will review and update you on{' '}
+                Your request has been prioritized and assigned to Shazu One Central Operations. Our desk agent will review and update you on{' '}
                 <strong>+91 {createdTicket.creator_phone}</strong>.
               </Typography>
 

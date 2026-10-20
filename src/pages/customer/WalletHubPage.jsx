@@ -1,4 +1,4 @@
-import { API_V1_URL } from '../../config';
+﻿import { API_V1_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
 import {
   Container,
@@ -58,7 +58,7 @@ export default function WalletHubPage() {
       type: 'CREDIT',
       category: 'SIGNUP_BONUS',
       timestamp: 'Sep 25, 2026',
-      description: 'Instant +50 Seva Credits for registering on SalemSeva'
+      description: 'Instant +50 Seva Credits for registering on Shazu One'
     },
     {
       id: 'tx-002',
@@ -105,7 +105,7 @@ export default function WalletHubPage() {
 
   const shareWhatsApp = () => {
     const text = encodeURIComponent(
-      `வணக்கம்! சேலத்தில் நம்பகமான எலக்ட்ரீசியன், பிளம்பர், AC சர்வீஸ் பெற SalemSeva பயன்பாட்டைப் பயன்படுத்துங்கள். \n\nஎனது ரெஃபரல் கோட் *${myReferralCode}* பயன்படுத்தி முதல் புக்கிங்கில் ₹${refereeDiscount} தள்ளுபடி பெறுங்கள்: ${window.location.origin}/`
+      `வணக்கம்! சேலத்தில் நம்பகமான எலக்ட்ரீசியன், பிளம்பர், AC சர்வீஸ் பெற Shazu One பயன்பாட்டைப் பயன்படுத்துங்கள். \n\nஎனது ரெஃபரல் கோட் *${myReferralCode}* பயன்படுத்தி முதல் புக்கிங்கில் ₹${refereeDiscount} தள்ளுபடி பெறுங்கள்: ${window.location.origin}/`
     );
     window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
   };
@@ -360,7 +360,7 @@ export default function WalletHubPage() {
                   100% Cashless Escrow Protection & Safety
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#475569', fontSize: '11.5px', display: 'block', lineHeight: 1.45 }}>
-                  Payment is held safely in SalemSeva escrow. Funds are released to verified technicians only after your OTP service completion verification.
+                  Payment is held safely in Shazu One escrow. Funds are released to verified technicians only after your OTP service completion verification.
                 </Typography>
               </Box>
             </Paper>

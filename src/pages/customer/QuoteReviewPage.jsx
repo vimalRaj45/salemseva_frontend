@@ -1,4 +1,4 @@
-import { API_V1_URL } from '../../config';
+﻿import { API_V1_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
 import {
   Container,
@@ -42,7 +42,7 @@ import CancelBookingModal from '../../components/CancelBookingModal';
 export default function QuoteReviewPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const bookingId = searchParams.get('bookingId') || localStorage.getItem('salemseva_active_booking') || '';
+  const bookingId = searchParams.get('bookingId') || localStorage.getItem('shazuone_active_booking') || '';
 
   const [procureOption, setProcureOption] = useState('tech_buys');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -65,7 +65,7 @@ export default function QuoteReviewPage() {
       navigate('/', { replace: true });
       return;
     }
-    localStorage.setItem('salemseva_active_booking', bookingId);
+    localStorage.setItem('shazuone_active_booking', bookingId);
     setIsLoading(true);
     fetch(`${API_V1_URL}/bookings/${bookingId}/quote`)
       .then(res => res.json())
@@ -149,7 +149,7 @@ export default function QuoteReviewPage() {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.8 }}>
             <ShieldIcon sx={{ color: '#16A34A', fontSize: 20 }} />
             <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#166534', fontSize: '13px' }}>
-              SalemSeva Direct Labor Guarantee (நேரடி தொழிலாளர் உத்தரவாதம்)
+              Shazu One Direct Labor Guarantee (நேரடி தொழிலாளர் உத்தரவாதம்)
             </Typography>
           </Box>
           <Typography variant="caption" sx={{ color: '#14532D', display: 'block', fontSize: '11.5px', lineHeight: 1.5 }}>
@@ -245,7 +245,7 @@ export default function QuoteReviewPage() {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
               <ShieldIcon sx={{ color: '#2563EB', fontSize: 14 }} />
               <Typography variant="body2" sx={{ color: '#2563EB', fontSize: '12.5px', fontWeight: 600 }}>
-                SalemSeva Platform & Safety Fee (5% on Labor):
+                Shazu One Platform & Safety Fee (5% on Labor):
               </Typography>
             </Box>
             <Typography variant="body2" sx={{ fontWeight: 700, color: '#2563EB', fontSize: '13px' }}>

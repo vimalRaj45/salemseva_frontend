@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import {
   Dialog,
   Box,
@@ -10,7 +10,7 @@ import {
 import { X } from 'lucide-react';
 
 /**
- * Standard SalemSeva Reusable Modal System
+ * Standard Shazu One Reusable Modal System
  * Mobile: Bottom sheet with drag handle, 24px top radius, max-height 90vh
  * Desktop: Centered modal dialog, standard max-width, fixed header, scrollable body, sticky footer
  */

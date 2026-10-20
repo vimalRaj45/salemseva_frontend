@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   X,
@@ -47,7 +47,7 @@ const PARTNER_SLIDES = [
     id: 'partner_earnings',
     badge: 'Technician Partner Fleet',
     title: 'Earn 98% on Every Doorstep Job',
-    desc: 'Join Salem premier trade network. SalemSeva retains only 2% platform facilitation, giving you 98% direct bank payouts every day.',
+    desc: 'Join Salem premier trade network. Shazu One retains only 2% platform facilitation, giving you 98% direct bank payouts every day.',
     image: '/assets/illustrations/partner_service.jpg',
     points: ['98% net service revenue payout', 'Daily automated Razorpay settlements', 'Zero registration fees']
   },
@@ -109,7 +109,7 @@ export default function FirstTimeOnboardingModal({ isOpen, onClose, onOpenAuth }
   };
 
   const handleDismiss = () => {
-    localStorage.setItem('salemseva_has_seen_onboarding', 'true');
+    localStorage.setItem('Shazu One_has_seen_onboarding', 'true');
     if (onClose) onClose();
   };
 

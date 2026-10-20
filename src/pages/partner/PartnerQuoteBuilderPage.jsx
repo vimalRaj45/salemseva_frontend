@@ -1,4 +1,4 @@
-import { API_V1_URL } from '../../config';
+﻿import { API_V1_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
 import {
   Container,
@@ -37,8 +37,8 @@ export default function PartnerQuoteBuilderPage() {
 
   // Safely resolve active booking ID
   const rawParam = searchParams.get('bookingId');
-  const storedJobId = localStorage.getItem('salemseva_partner_active_job');
-  const storedCustId = localStorage.getItem('salemseva_active_booking');
+  const storedJobId = localStorage.getItem('shazuone_partner_active_job');
+  const storedCustId = localStorage.getItem('shazuone_active_booking');
   
   const resolvedId = (rawParam && rawParam !== 'null' && rawParam !== 'undefined')
     ? rawParam
@@ -170,9 +170,9 @@ export default function PartnerQuoteBuilderPage() {
         body: JSON.stringify({ status: 'quote_presented', partsMode: 'none' })
       });
 
-      localStorage.setItem('salemseva_quote_status_' + bookingId, 'quote_presented');
-      localStorage.setItem('salemseva_active_booking', bookingId);
-      window.dispatchEvent(new CustomEvent('salemseva_quote_updated', { detail: { bookingId, status: 'quote_presented' } }));
+      localStorage.setItem('shazuone_quote_status_' + bookingId, 'quote_presented');
+      localStorage.setItem('shazuone_active_booking', bookingId);
+      window.dispatchEvent(new CustomEvent('Shazu One_quote_updated', { detail: { bookingId, status: 'quote_presented' } }));
       window.dispatchEvent(new Event('storage'));
 
       setSuccessToast(true);
@@ -311,7 +311,7 @@ export default function PartnerQuoteBuilderPage() {
               </Box>
 
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1, color: '#2563EB' }}>
-                <Typography variant="body2" sx={{ fontWeight: 700 }}>SalemSeva Platform Fee (5% on Labor)</Typography>
+                <Typography variant="body2" sx={{ fontWeight: 700 }}>Shazu One Platform Fee (5% on Labor)</Typography>
                 <Typography variant="body2" sx={{ fontWeight: 800 }}>+₹{platformShare.toFixed(2)}</Typography>
               </Box>
 

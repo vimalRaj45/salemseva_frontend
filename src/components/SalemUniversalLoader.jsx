@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 
 /**
  * SalemSeamlessLoader
@@ -18,22 +18,22 @@ export default function SalemSeamlessLoader({
       title: 'Finding Verified Technician...',
       desc: 'Scanning top-rated certified professionals within 3.5 km in Salem.',
       progress: 72,
-      note: '100% Escrow Protected • SalemSeva'
+      note: '100% Escrow Protected • Shazu One'
     },
     dispatch: {
       title: 'Technician on the Way',
       desc: 'Partner en route with verified safety equipment and tools (ETA ~8m).',
       progress: 88,
-      note: 'Live GPS Active • SalemSeva'
+      note: 'Live GPS Active • Shazu One'
     },
     payment: {
       title: 'Authorizing Escrow...',
       desc: 'Securing booking deposit. Zero deduction without job completion.',
       progress: 55,
-      note: 'Bank-Grade Encryption • SalemSeva'
+      note: 'Bank-Grade Encryption • Shazu One'
     },
     startup: {
-      title: 'Connecting to SalemSeva...',
+      title: 'Connecting to Shazu One...',
       desc: 'Loading real-time service availability and pricing across Salem.',
       progress: 40,
       note: 'Hyperlocal Service Grid'
