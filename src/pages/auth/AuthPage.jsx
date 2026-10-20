@@ -164,7 +164,7 @@ export default function AuthPage({ initialMode = 'login' }) {
 
     setIsLoading(true);
     try {
-      const loggedUser = await loginWithCredentials({ identifier, password });
+      const loggedUser = await loginWithCredentials({ identifier, password, role: selectedRole });
       setIsLoading(false);
       toast.success(`Welcome back, ${loggedUser.name}!`);
       if (loggedUser.role === 'technician' || loggedUser.role === 'partner') {

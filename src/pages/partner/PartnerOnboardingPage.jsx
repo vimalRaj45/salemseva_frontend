@@ -1,4 +1,4 @@
-﻿import { API_V1_URL } from '../../config';
+import { API_V1_URL } from '../../config';
 import React, { useState } from 'react';
 import {
   Container,
@@ -156,7 +156,7 @@ export default function PartnerOnboardingPage() {
           role: 'technician',
           name: data.technician?.full_name || name,
           phone: data.technician?.phone || (mobile.startsWith('+91') ? mobile : `+91 ${mobile}`),
-          email: data.technician?.email || `${(name || 'tech').toLowerCase().replace(/[^a-z]/g, '')}@Shazu One.in`,
+          email: data.technician?.email || `${(name || 'tech').toLowerCase().replace(/[^a-z]/g, '')}@shazuone.in`,
           trade: data.technician?.primary_trade || trade,
           tradeName: tradeNames[trade] || 'Home Services Specialist',
           years_experience: parseInt(yearsExperience, 10) || 0,
@@ -191,7 +191,7 @@ export default function PartnerOnboardingPage() {
           role: 'technician',
           name: name,
           phone: mobile.startsWith('+91') ? mobile : `+91 ${mobile}`,
-          email: `${name.toLowerCase().replace(/[^a-z]/g, '')}@Shazu One.in`,
+          email: `${name.toLowerCase().replace(/[^a-z]/g, '')}@shazuone.in`,
           trade,
           tradeName: tradeNames[trade] || 'Home Services Specialist',
           isKycVerified: false,

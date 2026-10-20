@@ -1,4 +1,4 @@
-﻿import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import {
   Button,
   Typography,
@@ -325,12 +325,12 @@ export function AuthProvider({ children }) {
   };
 
   // Production Username / Phone / Email + Password Login
-  const loginWithCredentials = async ({ identifier, password }) => {
+  const loginWithCredentials = async ({ identifier, password, role }) => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier, password })
+        body: JSON.stringify({ identifier, password, role })
       });
       const data = await res.json();
       if (!data.success) {

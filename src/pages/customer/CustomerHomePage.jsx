@@ -213,7 +213,7 @@ export default function CustomerHomePage() {
 
   return (
     <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', pb: { xs: 2, md: 4 } }}>
-      <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3, md: 4 }, pt: { xs: 1.5, md: 3 } }}>
+      <Container maxWidth={false} sx={{ maxWidth: '1440px', px: { xs: 1, sm: 2, md: 3 }, pt: { xs: 1, md: 2 } }}>
         
         {/* Guest Mode Explorer Notification Banner */}
         {!user && (
@@ -1119,7 +1119,6 @@ export default function CustomerHomePage() {
                 if (!user) navigate('/login');
                 else navigate('/wallet');
               }
-              if (newValue === 3) navigate('/partner');
             }}
             sx={{
               height: 56,
@@ -1144,10 +1143,6 @@ export default function CustomerHomePage() {
             <BottomNavigationAction
               label={user ? "Wallet" : "Sign In"}
               icon={<AccountCircleIcon sx={{ fontSize: 20 }} />}
-            />
-            <BottomNavigationAction
-              label="Partner Zone"
-              icon={<StorefrontIcon sx={{ fontSize: 20 }} />}
             />
           </BottomNavigation>
         </Box>
