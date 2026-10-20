@@ -360,14 +360,64 @@ export default function AuthPage({ initialMode = 'login' }) {
             {/* ================= CASE 1: SIGN IN FORM ================= */}
             {authMode === 'login' ? (
               <Box component="form" onSubmit={handleLoginSubmit}>
+                {/* Role Switcher Pill Bar for Sign In */}
+                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, mb: 1.8 }}>
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setSelectedRole('customer');
+                      if (identifier === '94432 88901') setIdentifier('98427 11234');
+                      setErrorMessage('');
+                    }}
+                    startIcon={<Home size={15} />}
+                    sx={{
+                      py: 0.7,
+                      borderRadius: '9px',
+                      fontSize: '11.5px',
+                      fontWeight: 800,
+                      textTransform: 'none',
+                      bgcolor: selectedRole === 'customer' ? '#EFF6FF' : '#F8FAFC',
+                      color: selectedRole === 'customer' ? '#0066CC' : '#64748B',
+                      border: selectedRole === 'customer' ? '1.5px solid #0066CC' : '1px solid #E2E8F0',
+                      boxShadow: selectedRole === 'customer' ? '0 2px 6px rgba(0, 102, 204, 0.12)' : 'none',
+                      '&:hover': { bgcolor: selectedRole === 'customer' ? '#DBEAFE' : '#F1F5F9' }
+                    }}
+                  >
+                    Customer Login
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setSelectedRole('technician');
+                      if (identifier === '98427 11234') setIdentifier('94432 88901');
+                      setErrorMessage('');
+                    }}
+                    startIcon={<Wrench size={15} />}
+                    sx={{
+                      py: 0.7,
+                      borderRadius: '9px',
+                      fontSize: '11.5px',
+                      fontWeight: 800,
+                      textTransform: 'none',
+                      bgcolor: selectedRole === 'technician' ? '#ECFDF5' : '#F8FAFC',
+                      color: selectedRole === 'technician' ? '#059669' : '#64748B',
+                      border: selectedRole === 'technician' ? '1.5px solid #059669' : '1px solid #E2E8F0',
+                      boxShadow: selectedRole === 'technician' ? '0 2px 6px rgba(5, 150, 105, 0.12)' : 'none',
+                      '&:hover': { bgcolor: selectedRole === 'technician' ? '#D1FAE5' : '#F1F5F9' }
+                    }}
+                  >
+                    Tech / Partner Login
+                  </Button>
+                </Box>
+
                 {/* Email / Mobile Field */}
                 <Box sx={{ mb: 1.4 }}>
                   <Typography variant="caption" sx={{ fontWeight: 700, color: '#334155', display: 'block', mb: 0.5, fontSize: '11.5px' }}>
-                    Email or Mobile Number
+                    {selectedRole === 'technician' ? 'Technician Registered Mobile' : 'Email or Mobile Number'}
                   </Typography>
                   <TextField
                     fullWidth
-                    placeholder="Enter your email or 98427 11234"
+                    placeholder={selectedRole === 'technician' ? 'Enter technician mobile (e.g. 94432 88901)' : 'Enter your email or 98427 11234'}
                     variant="outlined"
                     size="small"
                     value={identifier}
@@ -375,7 +425,7 @@ export default function AuthPage({ initialMode = 'login' }) {
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
-                          <Mail size={16} color="#94A3B8" />
+                          {selectedRole === 'technician' ? <Phone size={16} color="#059669" /> : <Mail size={16} color="#94A3B8" />}
                         </InputAdornment>
                       ),
                       sx: {
@@ -383,9 +433,9 @@ export default function AuthPage({ initialMode = 'login' }) {
                         bgcolor: '#FFFFFF',
                         fontSize: '13px',
                         height: '38px',
-                        '& fieldset': { borderColor: '#E2E8F0' },
-                        '&:hover fieldset': { borderColor: '#94A3B8' },
-                        '&.Mui-focused fieldset': { borderColor: '#0066CC', borderWidth: '1.5px' }
+                        '& fieldset': { borderColor: selectedRole === 'technician' ? '#A7F3D0' : '#E2E8F0' },
+                        '&:hover fieldset': { borderColor: selectedRole === 'technician' ? '#059669' : '#94A3B8' },
+                        '&.Mui-focused fieldset': { borderColor: selectedRole === 'technician' ? '#059669' : '#0066CC', borderWidth: '1.5px' }
                       }
                     }}
                   />
@@ -394,7 +444,7 @@ export default function AuthPage({ initialMode = 'login' }) {
                 {/* Password Field */}
                 <Box sx={{ mb: 1.2 }}>
                   <Typography variant="caption" sx={{ fontWeight: 700, color: '#334155', display: 'block', mb: 0.5, fontSize: '11.5px' }}>
-                    Password
+                    {selectedRole === 'technician' ? 'Technician Duty Password' : 'Password'}
                   </Typography>
                   <TextField
                     fullWidth
@@ -429,7 +479,7 @@ export default function AuthPage({ initialMode = 'login' }) {
                         height: '38px',
                         '& fieldset': { borderColor: '#E2E8F0' },
                         '&:hover fieldset': { borderColor: '#94A3B8' },
-                        '&.Mui-focused fieldset': { borderColor: '#0066CC', borderWidth: '1.5px' }
+                        '&.Mui-focused fieldset': { borderColor: selectedRole === 'technician' ? '#059669' : '#0066CC', borderWidth: '1.5px' }
                       }
                     }}
                   />
@@ -445,7 +495,7 @@ export default function AuthPage({ initialMode = 'login' }) {
                         onChange={(e) => setRememberMe(e.target.checked)}
                         sx={{
                           color: '#CBD5E1',
-                          '&.Mui-checked': { color: '#0066CC' },
+                          '&.Mui-checked': { color: selectedRole === 'technician' ? '#059669' : '#0066CC' },
                           p: 0.5
                         }}
                       />
@@ -463,7 +513,7 @@ export default function AuthPage({ initialMode = 'login' }) {
                     sx={{
                       p: 0,
                       minWidth: 'auto',
-                      color: '#0066CC',
+                      color: selectedRole === 'technician' ? '#059669' : '#0066CC',
                       fontWeight: 700,
                       fontSize: '12px',
                       textTransform: 'none',
@@ -481,20 +531,85 @@ export default function AuthPage({ initialMode = 'login' }) {
                   variant="contained"
                   disabled={isLoading}
                   sx={{
-                    bgcolor: '#0066CC',
+                    bgcolor: selectedRole === 'technician' ? '#059669' : '#0066CC',
                     color: '#FFFFFF',
                     py: 1,
                     borderRadius: '10px',
                     fontWeight: 800,
                     fontSize: '13.5px',
                     textTransform: 'none',
-                    boxShadow: '0 4px 14px rgba(0, 102, 204, 0.25)',
+                    boxShadow: selectedRole === 'technician' ? '0 4px 14px rgba(5, 150, 105, 0.28)' : '0 4px 14px rgba(0, 102, 204, 0.25)',
                     transition: 'all 0.15s ease',
-                    '&:hover': { bgcolor: '#0052CC', transform: 'translateY(-1px)' }
+                    '&:hover': {
+                      bgcolor: selectedRole === 'technician' ? '#047857' : '#0052CC',
+                      transform: 'translateY(-1px)'
+                    }
                   }}
                 >
-                  {isLoading ? <CircularProgress size={20} color="inherit" /> : 'Sign in'}
+                  {isLoading ? (
+                    <CircularProgress size={20} color="inherit" />
+                  ) : (
+                    selectedRole === 'technician' ? 'Sign in as Technician / Partner' : 'Sign in'
+                  )}
                 </Button>
+
+                {/* Dedicated Click Here for Tech Login / Customer Login Callout */}
+                <Box
+                  sx={{
+                    mt: 1.5,
+                    p: 1.1,
+                    textAlign: 'center',
+                    borderRadius: '10px',
+                    bgcolor: selectedRole === 'technician' ? '#EFF6FF' : '#F0FDF4',
+                    border: selectedRole === 'technician' ? '1px dashed #BFDBFE' : '1px dashed #86EFAC'
+                  }}
+                >
+                  {selectedRole === 'technician' ? (
+                    <Typography variant="body2" sx={{ fontSize: '12px', color: '#334155' }}>
+                      Looking for customer home service booking?{' '}
+                      <Box
+                        component="span"
+                        onClick={() => {
+                          setSelectedRole('customer');
+                          setIdentifier('98427 11234');
+                          setPassword('salem123');
+                          setErrorMessage('');
+                        }}
+                        sx={{
+                          color: '#0066CC',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          textDecoration: 'underline',
+                          '&:hover': { color: '#0052CC' }
+                        }}
+                      >
+                        Click here for Customer Login
+                      </Box>
+                    </Typography>
+                  ) : (
+                    <Typography variant="body2" sx={{ fontSize: '12px', color: '#166534' }}>
+                      Are you a Service Professional / Partner?{' '}
+                      <Box
+                        component="span"
+                        onClick={() => {
+                          setSelectedRole('technician');
+                          setIdentifier('94432 88901');
+                          setPassword('salem123');
+                          setErrorMessage('');
+                        }}
+                        sx={{
+                          color: '#059669',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          textDecoration: 'underline',
+                          '&:hover': { color: '#047857' }
+                        }}
+                      >
+                        Click here for Tech Login
+                      </Box>
+                    </Typography>
+                  )}
+                </Box>
 
                 {/* OR Divider */}
                 <Box sx={{ display: 'flex', alignItems: 'center', my: 1.4 }}>
