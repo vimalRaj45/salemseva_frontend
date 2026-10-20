@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shazu One | Doorstep Home Services, Electricians, Plumbers &amp; AC Repairs in Salem</title>
+  <meta name="description" content="Salem's dedicated doorstep home repairs platform. Book verified AC mechanics, electricians, and plumbers with transparent upfront quotes and 2-part escrow safety.">
+  <link rel="icon" type="image/svg+xml" href="shazu-one-brand-svg/logo/favicon.svg">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS via CDN with customized Shazu One theme -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              navy: '#022F6E',
+              cobalt: '#0C3693',
+              blue: '#0C3693',
+              blueDark: '#022F6E',
+              blueDeep: '#01193B',
+              blueLight: '#0A86EC',
+              green: '#2B9236',
+              greenDark: '#1E7528',
+              greenLight: '#EBF7ED',
+              mint: '#7DC93F',
+              orange: '#F7931E',
+              orangeDark: '#E07E11',
+              orangeLight: '#FFF7ED',
+              surface: '#FFFFFF',
+              page: '#F8FAF9',
+              border: '#E2E8F0',
+            }
+          },
+          fontFamily: {
+            display: ['Space Grotesk', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            sans: ['Plus Jakarta Sans', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Opening Splash Screen Fall & Bounce Animation */
+    @keyframes logoFallAndJump {
+      0% {
+        opacity: 0;
+        transform: translateY(-220px) scale(0.92);
+      }
+      50% {
+        opacity: 1;
+        transform: translateY(0px) scale(1.02);
+      }
+      68% {
+        transform: translateY(-26px) scale(0.98);
+      }
+      84% {
+        transform: translateY(0px) scale(1.008);
+      }
+      94% {
+        transform: translateY(-4px) scale(0.998);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0px) scale(1);
+      }
+    }
+
+    .anim-fall-bounce {
+      animation: logoFallAndJump 1.25s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    }
+
+    /* Scroll Reveal System */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1), transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: opacity, transform;
+    }
+    .reveal.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .reveal-scale {
+      opacity: 0;
+      transform: scale(0.95);
+      transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1), transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: opacity, transform;
+    }
+    .reveal-scale.active {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* High-Converting Eye-Catching Shaking / Wiggle Animation for Get App CTA */
+    @keyframes attractShake {
+      0%, 72%, 100% {
+        transform: rotate(0deg) scale(1);
+      }
+      76% {
+        transform: rotate(-6deg) scale(1.08);
+      }
+      80% {
+        transform: rotate(6deg) scale(1.08);
+      }
+      84% {
+        transform: rotate(-4deg) scale(1.06);
+      }
+      88% {
+        transform: rotate(4deg) scale(1.04);
+      }
+      92% {
+        transform: rotate(-2deg) scale(1.02);
+      }
+      96% {
+        transform: rotate(0deg) scale(1);
+      }
+    }
+
+    .anim-shake-cta {
+      animation: attractShake 3.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) infinite;
+      transform-origin: center center;
+      display: inline-flex;
+    }
+
+    .anim-shake-cta:hover {
+      animation-play-state: paused;
+      transform: scale(1.06);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .anim-fall-bounce, .anim-shake-cta {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+      }
+      .reveal, .reveal-scale {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-brand-page text-slate-800 font-sans antialiased overflow-x-hidden selection:bg-brand-orange selection:text-white">
+  <!-- Premium Startup Opening Chime Audio -->
+  <audio id="openingAudio" src="startup_chime.wav" preload="auto"></audio>
+
+  <!-- =========================================================================
+       Opening Screen: Logo with Tagline Falls Down from Top, Bounces & Opens Page
+       Clean Brand White Aesthetic: Zero Color Mismatch, Silky Drop & Single Bounce
+       ========================================================================= -->
+  <div id="openingScreen" onclick="dismissOpeningScreen()" class="fixed inset-0 z-[100] bg-white flex flex-col items-center justify-center select-none cursor-pointer transition-all duration-700 ease-out">
+    
+    <!-- Subtle Brand Ambient Tint (Official Navy & Green: Zero Color Clashes) -->
+    <div class="absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none">
+      <div class="absolute w-[600px] h-[600px] bg-brand-blue/5 rounded-full blur-3xl -translate-x-24 -translate-y-12"></div>
+      <div class="absolute w-[500px] h-[500px] bg-brand-green/5 rounded-full blur-3xl translate-x-24 translate-y-12"></div>
+      <div class="w-[450px] h-[450px] opacity-[0.035] transform scale-125">
+        <img src="shazu-one-brand-svg/logo/favicon.svg" alt="" class="w-full h-full object-contain">
+      </div>
+    </div>
+
+    <!-- Falling & Bouncing Logo & Tagline Wrapper (Fully falls down from top & jumps once!) -->
+    <div class="anim-fall-bounce flex flex-col items-center text-center px-4 sm:px-6 relative z-10 max-w-sm sm:max-w-md w-full">
+      <!-- Direct Official Logo with Tagline (Sleek proportional scaling for phone & desktop) -->
+      <div class="w-full flex items-center justify-center py-2 sm:py-4">
+        <img src="logo.svg" alt="Shazu One - All Your Home Services. One Platform." class="w-full max-w-[260px] sm:max-w-[380px] h-auto object-contain drop-shadow-sm">
+      </div>
+
+      <!-- Official Brand Green Trust Badge with Sound Waves -->
+      <div class="mt-3 sm:mt-4 inline-flex items-center gap-2 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-bold text-brand-navy bg-brand-greenLight border border-brand-green/20 shadow-xs">
+        <span class="w-2 h-2 rounded-full bg-brand-green animate-pulse"></span>
+        <span class="tracking-wide">Salem's Dedicated Doorstep Platform</span>
+      </div>
+    </div>
+
+    <!-- Sound & Interaction Hint -->
+    <div class="absolute bottom-6 sm:bottom-8 text-center flex flex-col items-center gap-1.5 text-[11px] sm:text-xs text-slate-400 font-medium tracking-wider">
+      <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100/80 text-slate-500 text-[10px]">
+        <svg class="w-3 h-3 stroke-[2.2] stroke-current fill-none animate-pulse" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+        <span>Premium Sound</span>
+      </div>
+      <span>Tap anywhere to continue</span>
+    </div>
+  </div>
+
+  <!-- Top Real-Time Notification Strip (Compact & Single-Line on Mobile) -->
+  <aside class="bg-brand-blueDeep text-white py-1 sm:py-1.5 px-3 sm:px-4 text-[11px] sm:text-xs font-medium border-b border-brand-cobalt/40 relative z-50">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-2 text-left">
+      <div class="flex items-center gap-1.5 sm:gap-2 overflow-hidden text-ellipsis whitespace-nowrap">
+        <span class="inline-flex items-center px-1.5 py-0.2 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-wider bg-brand-orange text-white flex-shrink-0">
+          Live Salem
+        </span>
+        <span class="text-slate-200 text-[10px] sm:text-xs overflow-hidden text-ellipsis whitespace-nowrap">
+          <span class="hidden sm:inline">Aadhaar-Verified Specialists Dispatching across Fairlands, Hasthampatti, Suramangalam &amp; Junction</span>
+          <span class="sm:hidden">Specialists on-demand in Fairlands, Suramangalam &amp; Junction</span>
+        </span>
+      </div>
+      <div class="flex items-center gap-2 text-[10px] sm:text-xs text-slate-300 flex-shrink-0">
+        <span>&#8377;199 Deposit</span>
+        <span class="w-1 h-1 rounded-full bg-brand-mint"></span>
+        <span class="hidden sm:inline">OTP Escrow</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Sticky Top Navigation Bar (Sleek Compact Proportions) -->
+  <nav class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-xs transition-all duration-200">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 md:h-18 flex items-center justify-between">
+      <a href="#" class="flex items-center group">
+        <!-- Official Shazu One Logo with Tagline (Scaled down for compact balance) -->
+        <img src="logo.svg" alt="Shazu One - All Your Home Services. One Platform." class="h-8 sm:h-10 md:h-11 w-auto object-contain transition-transform group-hover:scale-[1.02]">
+      </a>
+
+      <!-- Desktop Navigation Links -->
+      <ul class="hidden md:flex items-center gap-6 lg:gap-8 list-none text-xs sm:text-sm font-bold text-slate-700">
+        <li><a href="#services-section" class="hover:text-brand-cobalt transition-colors">Doorstep Services</a></li>
+        <li><a href="#specialists-section" class="hover:text-brand-cobalt transition-colors">Salem Specialists</a></li>
+        <li><a href="#escrow-protocol" class="hover:text-brand-cobalt transition-colors">2-Part Escrow</a></li>
+        <li><a href="#download-app" class="hover:text-brand-cobalt transition-colors">Download App</a></li>
+      </ul>
+
+      <!-- Action Buttons (Compact & Proportional) -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <a href="http://localhost:5173" class="hidden sm:inline-flex items-center justify-center px-3.5 py-1.5 rounded-full text-xs font-bold text-brand-cobalt hover:bg-slate-100 border border-slate-300 transition-all">
+          Sign In
+        </a>
+        <a href="app/ShazuOne.apk" download class="anim-shake-cta relative inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs font-extrabold bg-brand-orange hover:bg-brand-orangeDark text-white shadow-md shadow-brand-orange/30 transition-all hover:-translate-y-0.5 flex-shrink-0 group">
+          <span class="absolute -inset-0.5 rounded-full bg-brand-orange/40 animate-ping pointer-events-none"></span>
+          <svg class="relative w-3.5 h-3.5 stroke-[2.4] stroke-current fill-none transition-transform group-hover:translate-y-0.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span class="relative sm:inline tracking-wide">Get App</span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Header Section with Official Shazu One Navy Brand Foundation & Ambient Emblem Watermark -->
+  <header class="bg-gradient-to-br from-brand-navy via-brand-cobalt to-[#072F5E] text-white relative pt-3 sm:pt-6 pb-8 sm:pb-14 overflow-hidden shadow-lg">
+    
+    <!-- Giant Background Emblem Watermark (Emblem icon only: NO text collision or awkward words!) -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none select-none z-0">
+      <!-- Right Ambient Circular Emblem Watermark -->
+      <div class="absolute -right-20 -bottom-20 w-[480px] sm:w-[600px] h-[480px] sm:h-[600px] opacity-[0.05] transform rotate-12">
+        <img src="shazu-one-brand-svg/logo/favicon.svg" alt="" class="w-full h-full object-contain">
+      </div>
+
+      <!-- Center Ambient Glow -->
+      <div class="absolute top-1/3 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-brand-orange/10 rounded-full blur-3xl pointer-events-none"></div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+
+      <!-- Header Spotlight Carousel / Slider (Clean Glassmorphism on Navy Brand) -->
+      <div class="relative my-2 sm:my-4 rounded-xl sm:rounded-3xl bg-white/[0.08] backdrop-blur-xl border border-white/20 overflow-hidden shadow-lg z-10" id="heroSlider">
+        <!-- Slides Track (True Horizontal Side-by-Side: Image NEVER goes to bottom on mobile!) -->
+        <div class="flex transition-transform duration-500 ease-out w-full" id="heroSliderTrack">
+          
+          <!-- Slide 1: Fast Doorstep Services -->
+          <div class="w-full flex-shrink-0 p-3 sm:p-5 md:p-7 grid grid-cols-12 gap-2 sm:gap-6 items-center text-white min-h-[145px] sm:min-h-[185px] md:min-h-[225px]">
+            <div class="col-span-7 flex flex-col items-start justify-center text-left pr-1 sm:pr-4">
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] sm:text-xs font-black uppercase tracking-wider bg-brand-orange/20 border border-brand-orange/40 text-brand-orange mb-1 sm:mb-1.5">
+                <svg class="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[2.5] stroke-current fill-none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                45-Min Dispatch
+              </span>
+              <h2 class="font-display font-black text-xs sm:text-lg md:text-2xl leading-tight mb-1 sm:mb-1.5 tracking-tight text-white line-clamp-2">
+                Salem’s Certified Technicians at Your Doorstep
+              </h2>
+              <p class="text-[10px] sm:text-xs md:text-sm text-slate-200 mb-2 sm:mb-3 line-clamp-1 sm:line-clamp-2 leading-relaxed">
+                AC repair, wiring diagnostics, plumbing, and deep sanitation with transparent upfront pricing.
+              </p>
+              <div class="flex items-center gap-2">
+                <button onclick="document.getElementById('services-section').scrollIntoView({behavior: 'smooth'})" class="px-2.5 py-1 sm:px-4 sm:py-2 rounded-full text-[10px] sm:text-xs font-bold bg-brand-orange hover:bg-brand-orangeDark text-white shadow-xs transition-transform hover:-translate-y-0.5 inline-flex items-center gap-1">
+                  <span>Book Now</span>
+                  <svg class="w-3 h-3 stroke-[2.5] stroke-current fill-none" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </button>
+                <button onclick="openLocalityModal()" class="hidden sm:inline-flex px-3 py-1.5 rounded-full text-xs font-semibold bg-white/10 hover:bg-white/20 border border-white/30 text-white transition-all">
+                  <span>Coverage Areas</span>
+                </button>
+              </div>
+              <div class="hidden sm:flex flex-wrap gap-2 text-[10px] sm:text-xs font-medium text-slate-200 mt-2">
+                <span class="inline-flex items-center gap-1"><svg class="w-3 h-3 text-brand-mint stroke-[3] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Aadhaar Verified</span>
+                <span class="inline-flex items-center gap-1"><svg class="w-3 h-3 text-brand-mint stroke-[3] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>&#8377;199 Deposit</span>
+              </div>
+            </div>
+            <div class="col-span-5 flex items-center justify-center pl-1 sm:pl-0">
+              <img src="illustrations/hero_illustration.jpg" alt="Certified Home Service Specialist Technician arriving at doorstep" class="w-full max-h-28 sm:max-h-40 md:max-h-52 object-cover rounded-lg sm:rounded-xl shadow-md border border-white/20 transition-transform duration-300 hover:scale-[1.02]">
+            </div>
+          </div>
+
+          <!-- Slide 2: 30-Day Workmanship Warranty -->
+          <div class="w-full flex-shrink-0 p-3 sm:p-5 md:p-7 grid grid-cols-12 gap-2 sm:gap-6 items-center text-white min-h-[145px] sm:min-h-[185px] md:min-h-[225px]">
+            <div class="col-span-7 flex flex-col items-start justify-center text-left pr-1 sm:pr-4">
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] sm:text-xs font-black uppercase tracking-wider bg-brand-green/40 border border-brand-mint/60 text-brand-mint mb-1 sm:mb-1.5">
+                <svg class="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[2.5] stroke-current fill-none" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                30-Day Warranty
+              </span>
+              <h2 class="font-display font-black text-xs sm:text-lg md:text-2xl leading-tight mb-1 sm:mb-1.5 tracking-tight text-white line-clamp-2">
+                Guaranteed Workmanship with Free Re-Check
+              </h2>
+              <p class="text-[10px] sm:text-xs md:text-sm text-slate-200 mb-2 sm:mb-3 line-clamp-1 sm:line-clamp-2 leading-relaxed">
+                Every AC overhaul, motor fix, and distribution box repair includes a 30-day workmanship assurance.
+              </p>
+              <div class="flex items-center gap-2">
+                <button onclick="document.getElementById('services-section').scrollIntoView({behavior: 'smooth'})" class="px-2.5 py-1 sm:px-4 sm:py-2 rounded-full text-[10px] sm:text-xs font-bold bg-brand-orange hover:bg-brand-orangeDark text-white shadow-xs transition-transform hover:-translate-y-0.5 inline-flex items-center gap-1">
+                  <span>Explore Services</span>
+                  <svg class="w-3 h-3 stroke-[2.5] stroke-current fill-none" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </button>
+                <a href="#escrow-protocol" class="hidden sm:inline-flex px-3 py-1.5 rounded-full text-xs font-semibold bg-white/10 hover:bg-white/20 border border-white/30 text-white transition-all">
+                  <span>Protocol</span>
+                </a>
+              </div>
+              <div class="hidden sm:flex flex-wrap gap-2 text-[10px] sm:text-xs font-medium text-slate-200 mt-2">
+                <span class="inline-flex items-center gap-1"><svg class="w-3 h-3 text-brand-mint stroke-[3] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Certified Masters</span>
+                <span class="inline-flex items-center gap-1"><svg class="w-3 h-3 text-brand-mint stroke-[3] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Free Re-Check</span>
+              </div>
+            </div>
+            <div class="col-span-5 flex items-center justify-center pl-1 sm:pl-0">
+              <img src="illustrations/guarantee_illustration.jpg" alt="Certified Specialist Inspecting AC Unit with 100% Warranty Seal" class="w-full max-h-28 sm:max-h-40 md:max-h-52 object-cover rounded-lg sm:rounded-xl shadow-md border border-white/20 transition-transform duration-300 hover:scale-[1.02]">
+            </div>
+          </div>
+
+          <!-- Slide 3: 2-Part Escrow Security -->
+          <div class="w-full flex-shrink-0 p-3 sm:p-5 md:p-7 grid grid-cols-12 gap-2 sm:gap-6 items-center text-white min-h-[145px] sm:min-h-[185px] md:min-h-[225px]">
+            <div class="col-span-7 flex flex-col items-start justify-center text-left pr-1 sm:pr-4">
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] sm:text-xs font-black uppercase tracking-wider bg-blue-500/30 border border-blue-300/40 text-blue-200 mb-1 sm:mb-1.5">
+                <svg class="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[2.5] stroke-current fill-none" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Zero Advance Risk
+              </span>
+              <h2 class="font-display font-black text-xs sm:text-lg md:text-2xl leading-tight mb-1 sm:mb-1.5 tracking-tight text-white line-clamp-2">
+                2-Part Escrow. Pay Only When Satisfied.
+              </h2>
+              <p class="text-[10px] sm:text-xs md:text-sm text-slate-200 mb-2 sm:mb-3 line-clamp-1 sm:line-clamp-2 leading-relaxed">
+                Repair fund is held safely in automated escrow and released only via your private OTP.
+              </p>
+              <div class="flex items-center gap-2">
+                <button onclick="document.getElementById('escrow-protocol').scrollIntoView({behavior: 'smooth'})" class="px-2.5 py-1 sm:px-4 sm:py-2 rounded-full text-[10px] sm:text-xs font-bold bg-brand-orange hover:bg-brand-orangeDark text-white shadow-xs transition-transform hover:-translate-y-0.5 inline-flex items-center gap-1">
+                  <span>How It Works</span>
+                  <svg class="w-3 h-3 stroke-[2.5] stroke-current fill-none" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </button>
+                <a href="#services-section" class="hidden sm:inline-flex px-3 py-1.5 rounded-full text-xs font-semibold bg-white/10 hover:bg-white/20 border border-white/30 text-white transition-all">
+                  <span>Explore Rates</span>
+                </a>
+              </div>
+              <div class="hidden sm:flex flex-wrap gap-2 text-[10px] sm:text-xs font-medium text-slate-200 mt-2">
+                <span class="inline-flex items-center gap-1"><svg class="w-3 h-3 text-brand-mint stroke-[3] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Locked Escrow</span>
+                <span class="inline-flex items-center gap-1"><svg class="w-3 h-3 text-brand-mint stroke-[3] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>OTP Gate</span>
+              </div>
+            </div>
+            <div class="col-span-5 flex items-center justify-center pl-1 sm:pl-0">
+              <img src="illustrations/escrow_illustration.jpg" alt="3D Escrow Vault Shield Security Illustration" class="w-full max-h-28 sm:max-h-40 md:max-h-52 object-cover rounded-lg sm:rounded-xl shadow-md border border-white/20 transition-transform duration-300 hover:scale-[1.02]">
+            </div>
+          </div>
+
+          <!-- Slide 4: Official Android App & Tracking -->
+          <div class="w-full flex-shrink-0 p-3 sm:p-5 md:p-7 grid grid-cols-12 gap-2 sm:gap-6 items-center text-white min-h-[145px] sm:min-h-[185px] md:min-h-[225px]">
+            <div class="col-span-7 flex flex-col items-start justify-center text-left pr-1 sm:pr-4">
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] sm:text-xs font-black uppercase tracking-wider bg-brand-orange/30 border border-brand-orange/50 text-brand-orangeLight mb-1 sm:mb-1.5">
+                <svg class="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[2.5] stroke-current fill-none" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                Android App
+              </span>
+              <h2 class="font-display font-black text-xs sm:text-lg md:text-2xl leading-tight mb-1 sm:mb-1.5 tracking-tight text-white line-clamp-2">
+                Live Dispatch &amp; Real-Time Technician Tracking
+              </h2>
+              <p class="text-[10px] sm:text-xs md:text-sm text-slate-200 mb-2 sm:mb-3 line-clamp-1 sm:line-clamp-2 leading-relaxed">
+                Live GPS route tracking across Salem, direct specialist call, and digital job cards.
+              </p>
+              <div class="flex items-center gap-2">
+                <a href="app/ShazuOne.apk" download class="px-2.5 py-1 sm:px-4 sm:py-2 rounded-full text-[10px] sm:text-xs font-bold bg-brand-orange hover:bg-brand-orangeDark text-white shadow-xs transition-transform hover:-translate-y-0.5 inline-flex items-center gap-1">
+                  <svg class="w-3 h-3 stroke-[2.5] stroke-current fill-none" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  <span>Get App (11 MB)</span>
+                </a>
+              </div>
+              <div class="hidden sm:flex flex-wrap gap-2 text-[10px] sm:text-xs font-medium text-slate-200 mt-2">
+                <span class="inline-flex items-center gap-1"><svg class="w-3 h-3 text-brand-mint stroke-[3] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Live GPS</span>
+                <span class="inline-flex items-center gap-1"><svg class="w-3 h-3 text-brand-mint stroke-[3] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>PDF Receipts</span>
+              </div>
+            </div>
+            <div class="col-span-5 flex items-center justify-center pl-1 sm:pl-0">
+              <img src="illustrations/app_tracking_illustration.jpg" alt="Shazu One Android App Live GPS Tracking Illustration" class="w-full max-h-28 sm:max-h-40 md:max-h-52 object-cover rounded-lg sm:rounded-xl shadow-md border border-white/20 transition-transform duration-300 hover:scale-[1.02]">
+            </div>
+          </div>
+        </div>
+
+        <!-- Sleek Carousel Left / Right Chevron Arrows (Visible on all devices!) -->
+        <button onclick="prevHeroSlide()" aria-label="Previous Slide" class="flex absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-black/25 hover:bg-black/40 text-white backdrop-blur-xs border border-white/20 shadow-xs items-center justify-center transition-all z-20 hover:scale-105">
+          <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <button onclick="nextHeroSlide()" aria-label="Next Slide" class="flex absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-black/25 hover:bg-black/40 text-white backdrop-blur-xs border border-white/20 shadow-xs items-center justify-center transition-all z-20 hover:scale-105">
+          <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+
+        <!-- Carousel Dash Indicator Bars (Matches user reference image!) -->
+        <div class="absolute bottom-1.5 sm:bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-1 sm:gap-1.5 z-20">
+          <button onclick="jumpToHeroSlide(0)" aria-label="Slide 1" class="hero-dot w-3.5 sm:w-6 h-1 rounded-full bg-white/40 transition-all duration-300"></button>
+          <button onclick="jumpToHeroSlide(1)" aria-label="Slide 2" class="hero-dot w-3.5 sm:w-6 h-1 rounded-full bg-white/40 transition-all duration-300"></button>
+          <button onclick="jumpToHeroSlide(2)" aria-label="Slide 3" class="hero-dot w-3.5 sm:w-6 h-1 rounded-full bg-white/40 transition-all duration-300"></button>
+          <button onclick="jumpToHeroSlide(3)" aria-label="Slide 4" class="hero-dot w-3.5 sm:w-6 h-1 rounded-full bg-white/40 transition-all duration-300"></button>
+        </div>
+      </div>
+
+      <!-- Super Title & Compact Search Bar -->
+      <div class="text-center max-w-3xl mx-auto mt-4 sm:mt-6 mb-3 sm:mb-5 reveal">
+        <h1 class="font-display font-black text-lg sm:text-2xl md:text-3xl lg:text-4xl tracking-tight text-white mb-1 sm:mb-2 leading-snug">
+          Order home repairs &amp; cleaning. Discover verified Salem specialists.
+        </h1>
+        <p class="text-[11px] sm:text-xs md:text-sm text-slate-200 mb-3 sm:mb-4 max-w-lg mx-auto">
+          Standardized rates, GPS-tracked dispatch, and zero advance deposit.
+        </p>
+
+        <!-- Compact Search Bar (Single-row sleek layout on mobile & desktop) -->
+        <div class="bg-white rounded-xl sm:rounded-2xl p-1 sm:p-1.5 shadow-md flex flex-col sm:flex-row items-center gap-1 sm:gap-2 max-w-2xl mx-auto border border-white/40">
+          <!-- Locality Selector -->
+          <button type="button" onclick="openLocalityModal()" class="w-full sm:w-auto flex items-center justify-between sm:justify-start gap-1.5 px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200/80 rounded-lg sm:rounded-xl text-brand-navy font-bold text-xs transition-colors flex-shrink-0" id="localityTriggerBtn">
+            <div class="flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-brand-orange stroke-[2.2] stroke-current fill-none" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span id="currentLocalityText">Fairlands, Salem</span>
+            </div>
+            <svg class="w-3 h-3 text-slate-500 stroke-[2.2] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+
+          <!-- Search Input -->
+          <div class="flex items-center gap-1.5 flex-1 w-full px-2 py-0.5">
+            <svg class="w-3.5 h-3.5 text-slate-400 stroke-[2.2] stroke-current fill-none" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="serviceSearchInput" placeholder="Search AC, electrician, plumber..." class="w-full bg-transparent text-slate-800 placeholder-slate-400 text-xs font-medium focus:outline-none" onkeyup="filterServices(this.value)">
+          </div>
+
+          <!-- Explore Button -->
+          <button type="button" onclick="document.getElementById('services-section').scrollIntoView({behavior: 'smooth'})" class="w-full sm:w-auto px-4 py-1.5 rounded-lg sm:rounded-xl text-xs font-bold bg-brand-orange hover:bg-brand-orangeDark text-white transition-colors flex items-center justify-center gap-1 flex-shrink-0 shadow-xs">
+            <span>Explore</span>
+            <svg class="w-3.5 h-3.5 stroke-[2.2] stroke-current fill-none" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- 3 Compact Category Pillar Cards (Side-by-side 3-column row on mobile!) -->
+      <div class="grid grid-cols-3 gap-2 sm:gap-4 mt-3 sm:mt-6 reveal">
+        <!-- Card 1: AC & Cooling -->
+        <div onclick="document.getElementById('services-section').scrollIntoView({behavior: 'smooth'})" class="bg-white rounded-xl sm:rounded-2xl p-2.5 sm:p-4 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 cursor-pointer flex flex-col justify-between min-h-[95px] sm:min-h-[140px] border border-slate-100 relative group">
+          <div>
+            <div class="font-display font-black text-xs sm:text-base text-brand-navy tracking-tight leading-tight">AC &amp; COOLING</div>
+            <div class="hidden sm:block text-[11px] font-medium text-slate-500 uppercase tracking-wider mt-0.5">Split &amp; Gas Flush</div>
+            <span class="inline-block mt-1 sm:mt-1.5 px-1.5 py-0.2 rounded text-[9px] sm:text-[11px] font-extrabold uppercase tracking-wide bg-amber-50 text-brand-orange border border-amber-200">
+              Starts &#8377;499
+            </span>
+          </div>
+          <div class="flex items-center justify-between mt-1 sm:mt-2">
+            <span class="text-[10px] sm:text-xs font-bold text-brand-orange group-hover:underline">Explore</span>
+            <div class="w-5 h-5 sm:w-7 sm:h-7 rounded-full bg-brand-orange text-white flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
+              <svg class="w-3 h-3 stroke-[2.2] stroke-current fill-none" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Electrical -->
+        <div onclick="document.getElementById('services-section').scrollIntoView({behavior: 'smooth'})" class="bg-white rounded-xl sm:rounded-2xl p-2.5 sm:p-4 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 cursor-pointer flex flex-col justify-between min-h-[95px] sm:min-h-[140px] border border-slate-100 relative group">
+          <div>
+            <div class="font-display font-black text-xs sm:text-base text-brand-navy tracking-tight leading-tight">ELECTRICAL</div>
+            <div class="hidden sm:block text-[11px] font-medium text-slate-500 uppercase tracking-wider mt-0.5">Wiring &amp; Fans</div>
+            <span class="inline-block mt-1 sm:mt-1.5 px-1.5 py-0.2 rounded text-[9px] sm:text-[11px] font-extrabold uppercase tracking-wide bg-emerald-50 text-brand-green border border-emerald-200">
+              &#8377;199 Deposit
+            </span>
+          </div>
+          <div class="flex items-center justify-between mt-1 sm:mt-2">
+            <span class="text-[10px] sm:text-xs font-bold text-brand-green group-hover:underline">Explore</span>
+            <div class="w-5 h-5 sm:w-7 sm:h-7 rounded-full bg-brand-green text-white flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
+              <svg class="w-3 h-3 stroke-[2.2] stroke-current fill-none" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: Plumbing -->
+        <div onclick="document.getElementById('services-section').scrollIntoView({behavior: 'smooth'})" class="bg-white rounded-xl sm:rounded-2xl p-2.5 sm:p-4 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 cursor-pointer flex flex-col justify-between min-h-[95px] sm:min-h-[140px] border border-slate-100 relative group">
+          <div>
+            <div class="font-display font-black text-xs sm:text-base text-brand-navy tracking-tight leading-tight">PLUMBING</div>
+            <div class="hidden sm:block text-[11px] font-medium text-slate-500 uppercase tracking-wider mt-0.5">Pipes &amp; Tanks</div>
+            <span class="inline-block mt-1 sm:mt-1.5 px-1.5 py-0.2 rounded text-[9px] sm:text-[11px] font-extrabold uppercase tracking-wide bg-sky-50 text-brand-cobalt border border-sky-200">
+              Clear Rates
+            </span>
+          </div>
+          <div class="flex items-center justify-between mt-1 sm:mt-2">
+            <span class="text-[10px] sm:text-xs font-bold text-brand-cobalt group-hover:underline">Explore</span>
+            <div class="w-5 h-5 sm:w-7 sm:h-7 rounded-full bg-brand-cobalt text-white flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
+              <svg class="w-3 h-3 stroke-[2.2] stroke-current fill-none" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>      </div>
+    </div>
+  </header>
+
+  <!-- Slider Section 1: Standard Doorstep Repair Services -->
+  <section class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10 reveal" id="services-section">
+    <div class="flex items-center justify-between mb-3 sm:mb-5">
+      <div>
+        <h2 class="font-display font-extrabold text-xl sm:text-2xl text-brand-blue tracking-tight">
+          Standard Doorstep Repair Services
+        </h2>
+        <p class="text-xs sm:text-sm text-slate-500 mt-1">
+          Salem standardized hourly rates and flat diagnostic fees.
+        </p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="scrollTrack('servicesTrack', -260)" aria-label="Previous" class="w-9 h-9 rounded-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 flex items-center justify-center shadow-sm transition">
+          <svg class="w-4 h-4 stroke-[2.2] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <button onclick="scrollTrack('servicesTrack', 260)" aria-label="Next" class="w-9 h-9 rounded-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 flex items-center justify-center shadow-sm transition">
+          <svg class="w-4 h-4 stroke-[2.2] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Horizontal Scroll Track -->
+    <div class="flex gap-4 overflow-x-auto no-scrollbar scroll-smooth pb-3" id="servicesTrack">
+      <!-- Item 1: AC Jet Service -->
+      <div class="service-card flex-shrink-0 w-28 sm:w-40 flex flex-col items-center text-center p-2.5 sm:p-3.5 bg-white rounded-xl sm:rounded-2xl border border-slate-200/80 hover:border-brand-orange hover:shadow-md transition cursor-pointer">
+        <div class="w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-sky-50 flex items-center justify-center mb-3">
+          <svg class="w-5 h-5 sm:w-7 sm:h-7 text-sky-600 stroke-[2] stroke-current fill-none" viewBox="0 0 24 24"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M4.93 19.07l14.14-14.14"/></svg>
+        </div>
+        <span class="text-xs sm:text-sm font-bold text-slate-800 line-clamp-1">AC Jet Wash</span>
+        <span class="text-[11px] font-extrabold text-brand-orange mt-1">₹499 Flat</span>
+        <span class="text-[10px] text-slate-400 mt-0.5">Filter &amp; Coil Flush</span>
+      </div>
+
+      <!-- Item 2: AC Gas Check -->
+      <div class="service-card flex-shrink-0 w-28 sm:w-40 flex flex-col items-center text-center p-2.5 sm:p-3.5 bg-white rounded-xl sm:rounded-2xl border border-slate-200/80 hover:border-brand-orange hover:shadow-md transition cursor-pointer">
+        <div class="w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-blue-50 flex items-center justify-center mb-3">
+          <svg class="w-5 h-5 sm:w-7 sm:h-7 text-blue-600 stroke-[2] stroke-current fill-none" viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+        </div>
+        <span class="text-xs sm:text-sm font-bold text-slate-800 line-clamp-1">Gas Pressure Check</span>
+        <span class="text-[11px] font-extrabold text-brand-orange mt-1">₹349 Visit</span>
+        <span class="text-[10px] text-slate-400 mt-0.5">Manifold Gauge Test</span>
+      </div>
+
+      <!-- Item 3: MCB Tripping -->
+      <div class="service-card flex-shrink-0 w-28 sm:w-40 flex flex-col items-center text-center p-2.5 sm:p-3.5 bg-white rounded-xl sm:rounded-2xl border border-slate-200/80 hover:border-brand-orange hover:shadow-md transition cursor-pointer">
+        <div class="w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-amber-50 flex items-center justify-center mb-3">
+          <svg class="w-5 h-5 sm:w-7 sm:h-7 text-amber-600 stroke-[2] stroke-current fill-none" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <span class="text-xs sm:text-sm font-bold text-slate-800 line-clamp-1">MCB Trip Diagnosis</span>
+        <span class="text-[11px] font-extrabold text-brand-green mt-1">₹199 Fee</span>
+        <span class="text-[10px] text-slate-400 mt-0.5">Short Circuit Scan</span>
+      </div>
+
+      <!-- Item 4: Fan Installation -->
+      <div class="service-card flex-shrink-0 w-28 sm:w-40 flex flex-col items-center text-center p-2.5 sm:p-3.5 bg-white rounded-xl sm:rounded-2xl border border-slate-200/80 hover:border-brand-orange hover:shadow-md transition cursor-pointer">
+        <div class="w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-orange-50 flex items-center justify-center mb-3">
+          <svg class="w-5 h-5 sm:w-7 sm:h-7 text-orange-600 stroke-[2] stroke-current fill-none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2a4 4 0 0 1 4 4c0 3-4 6-4 6s-4-3-4-6a4 4 0 0 1 4-4z"/><path d="M22 12a4 4 0 0 1-4 4c-3 0-6-4-6-4s3-4 6-4a4 4 0 0 1 4 4z"/></svg>
+        </div>
+        <span class="text-xs sm:text-sm font-bold text-slate-800 line-clamp-1">Ceiling Fan Fit</span>
+        <span class="text-[11px] font-extrabold text-brand-green mt-1">₹149 / unit</span>
+        <span class="text-[10px] text-slate-400 mt-0.5">Rod &amp; Regulator Check</span>
+      </div>
+
+      <!-- Item 5: Tap Leak Fix -->
+      <div class="service-card flex-shrink-0 w-28 sm:w-40 flex flex-col items-center text-center p-2.5 sm:p-3.5 bg-white rounded-xl sm:rounded-2xl border border-slate-200/80 hover:border-brand-orange hover:shadow-md transition cursor-pointer">
+        <div class="w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-teal-50 flex items-center justify-center mb-3">
+          <svg class="w-5 h-5 sm:w-7 sm:h-7 text-teal-600 stroke-[2] stroke-current fill-none" viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+        </div>
+        <span class="text-xs sm:text-sm font-bold text-slate-800 line-clamp-1">Tap &amp; Valve Leak</span>
+        <span class="text-[11px] font-extrabold text-brand-blue mt-1">₹129 Labor</span>
+        <span class="text-[10px] text-slate-400 mt-0.5">Washer &amp; Spindle Fix</span>
+      </div>
+
+      <!-- Item 6: Water Tank Clean -->
+      <div class="service-card flex-shrink-0 w-28 sm:w-40 flex flex-col items-center text-center p-2.5 sm:p-3.5 bg-white rounded-xl sm:rounded-2xl border border-slate-200/80 hover:border-brand-orange hover:shadow-md transition cursor-pointer">
+        <div class="w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-cyan-50 flex items-center justify-center mb-3">
+          <svg class="w-5 h-5 sm:w-7 sm:h-7 text-cyan-600 stroke-[2] stroke-current fill-none" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        </div>
+        <span class="text-xs sm:text-sm font-bold text-slate-800 line-clamp-1">Overhead Tank Wash</span>
+        <span class="text-[11px] font-extrabold text-brand-blue mt-1">₹699 Flat</span>
+        <span class="text-[10px] text-slate-400 mt-0.5">Sludge Siphon &amp; UV</span>
+      </div>
+
+      <!-- Item 7: Switchboard Overhaul -->
+      <div class="service-card flex-shrink-0 w-28 sm:w-40 flex flex-col items-center text-center p-2.5 sm:p-3.5 bg-white rounded-xl sm:rounded-2xl border border-slate-200/80 hover:border-brand-orange hover:shadow-md transition cursor-pointer">
+        <div class="w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-violet-50 flex items-center justify-center mb-3">
+          <svg class="w-5 h-5 sm:w-7 sm:h-7 text-violet-600 stroke-[2] stroke-current fill-none" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/><line x1="9" y1="15" x2="9.01" y2="15"/><line x1="15" y1="15" x2="15.01" y2="15"/></svg>
+        </div>
+        <span class="text-xs sm:text-sm font-bold text-slate-800 line-clamp-1">Switchboard Wiring</span>
+        <span class="text-[11px] font-extrabold text-brand-green mt-1">₹199 / board</span>
+        <span class="text-[10px] text-slate-400 mt-0.5">Earthing &amp; Fuse Check</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slider Section 2: Verified Salem Technicians -->
+  <section class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10 reveal" id="specialists-section">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h2 class="font-display font-extrabold text-xl sm:text-2xl text-brand-blue tracking-tight">
+          Verified Local Salem Technicians
+        </h2>
+        <p class="text-xs sm:text-sm text-slate-500 mt-1">
+          Aadhaar-authenticated trade specialists with genuine local customer reviews.
+        </p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="scrollTrack('specialistsTrack', -280)" aria-label="Previous" class="w-9 h-9 rounded-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 flex items-center justify-center transition shadow-sm">
+          <svg class="w-4 h-4 stroke-[2.2] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <button onclick="scrollTrack('specialistsTrack', 280)" aria-label="Next" class="w-9 h-9 rounded-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 flex items-center justify-center transition shadow-sm">
+          <svg class="w-4 h-4 stroke-[2.2] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Specialists Track -->
+    <div class="flex gap-4 overflow-x-auto no-scrollbar scroll-smooth pb-3" id="specialistsTrack">
+      <!-- Specialist 1 -->
+      <div class="flex-shrink-0 w-72 p-5 bg-white rounded-2xl border border-slate-200 hover:shadow-lg transition flex flex-col justify-between">
+        <div>
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center font-display font-bold text-brand-blue text-sm">
+              KR
+            </div>
+            <div>
+              <h3 class="font-bold text-sm text-slate-900">K. Ramesh</h3>
+              <span class="text-xs text-brand-orange font-semibold">Master HVAC Technician</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 text-xs text-slate-600 mb-3">
+            <span class="inline-flex items-center gap-1 font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">
+              4.9 Rating
+            </span>
+            <span>&bull;</span>
+            <span>342 Jobs in Salem</span>
+          </div>
+          <p class="text-xs text-slate-500 line-clamp-2">
+            Specializes in inverter AC PCB diagnostics and coil welding. Serving Fairlands and Alagapuram.
+          </p>
+        </div>
+        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+          <span class="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded">Aadhaar Verified</span>
+          <span class="text-slate-500 font-medium">8 Yrs Exp</span>
+        </div>
+      </div>
+
+      <!-- Specialist 2 -->
+      <div class="flex-shrink-0 w-72 p-5 bg-white rounded-2xl border border-slate-200 hover:shadow-lg transition flex flex-col justify-between">
+        <div>
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center font-display font-bold text-brand-green text-sm">
+              SN
+            </div>
+            <div>
+              <h3 class="font-bold text-sm text-slate-900">Senthil Nathan</h3>
+              <span class="text-xs text-brand-green font-semibold">Licensed Wireman</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 text-xs text-slate-600 mb-3">
+            <span class="inline-flex items-center gap-1 font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">
+              4.8 Rating
+            </span>
+            <span>&bull;</span>
+            <span>418 Jobs in Salem</span>
+          </div>
+          <p class="text-xs text-slate-500 line-clamp-2">
+            Industrial and residential switchboard wiring, 3-phase line balancing in Hasthampatti.
+          </p>
+        </div>
+        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+          <span class="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded">Govt "C" License</span>
+          <span class="text-slate-500 font-medium">11 Yrs Exp</span>
+        </div>
+      </div>
+
+      <!-- Specialist 3 -->
+      <div class="flex-shrink-0 w-72 p-5 bg-white rounded-2xl border border-slate-200 hover:shadow-lg transition flex flex-col justify-between">
+        <div>
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center font-display font-bold text-brand-blue text-sm">
+              VK
+            </div>
+            <div>
+              <h3 class="font-bold text-sm text-slate-900">V. Karthikeyan</h3>
+              <span class="text-xs text-brand-blue font-semibold">Master Plumber</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 text-xs text-slate-600 mb-3">
+            <span class="inline-flex items-center gap-1 font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">
+              4.9 Rating
+            </span>
+            <span>&bull;</span>
+            <span>285 Jobs in Salem</span>
+          </div>
+          <p class="text-xs text-slate-500 line-clamp-2">
+            Concealed wall leak acoustic detection and pressure pump line servicing across Suramangalam.
+          </p>
+        </div>
+        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+          <span class="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded">Aadhaar Verified</span>
+          <span class="text-slate-500 font-medium">9 Yrs Exp</span>
+        </div>
+      </div>
+
+      <!-- Specialist 4 -->
+      <div class="flex-shrink-0 w-72 p-5 bg-white rounded-2xl border border-slate-200 hover:shadow-lg transition flex flex-col justify-between">
+        <div>
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center font-display font-bold text-brand-orange text-sm">
+              MA
+            </div>
+            <div>
+              <h3 class="font-bold text-sm text-slate-900">M. Anand</h3>
+              <span class="text-xs text-brand-orange font-semibold">Appliance Specialist</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 text-xs text-slate-600 mb-3">
+            <span class="inline-flex items-center gap-1 font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">
+              4.7 Rating
+            </span>
+            <span>&bull;</span>
+            <span>194 Jobs in Salem</span>
+          </div>
+          <p class="text-xs text-slate-500 line-clamp-2">
+            Washing machine drive belt repairs and water heater element replacements in Meyyanur.
+          </p>
+        </div>
+        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+          <span class="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded">Aadhaar Verified</span>
+          <span class="text-slate-500 font-medium">6 Yrs Exp</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2-Part Escrow Safety Guarantee Section -->
+  <section class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10 reveal" id="escrow-protocol">
+    <div class="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-slate-200 shadow-lg grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-8 items-center relative overflow-hidden">
+      <!-- Watermark inside Escrow Card -->
+      <div class="absolute -left-20 -bottom-20 w-72 h-72 opacity-[0.03] pointer-events-none select-none">
+        <svg viewBox="0 0 200 200" class="w-full h-full">
+          
+  <defs>
+    <linearGradient id="logoBody" gradientUnits="userSpaceOnUse" x1="30" y1="10" x2="165" y2="195">
+      <stop offset="0%" stop-color="#0A86EC"/>
+      <stop offset="45%" stop-color="#0A5CC4"/>
+      <stop offset="100%" stop-color="#02307F"/>
+    </linearGradient>
+    <linearGradient id="logoSwoosh" gradientUnits="userSpaceOnUse" x1="25" y1="185" x2="190" y2="120">
+      <stop offset="0%" stop-color="#08B8DC"/>
+      <stop offset="45%" stop-color="#17A898"/>
+      <stop offset="100%" stop-color="#7DC93F"/>
+    </linearGradient>
+    <clipPath id="logoClip"><circle cx="100" cy="100" r="100.8"/></clipPath>
+  </defs>
+  <circle cx="100" cy="100" r="100" fill="url(#logoBody)"/>
+  <g clip-path="url(#logoClip)">
+    <path fill="url(#logoSwoosh)" fill-rule="evenodd" d="M197.23,83.29 196.41,82.88 195.18,83.29 193.95,88.01 192.72,90.27 192.31,92.11 189.23,98.06 189.03,99.09 186.16,104.01 185.75,105.45 184.31,107.29 183.69,110.78 181.64,114.47 180.41,115.70 179.59,117.34 177.95,118.58 176.51,121.24 175.08,122.27 174.67,123.29 172.82,125.14 170.77,128.42 167.69,132.11 166.46,132.94 166.26,133.76 165.03,134.99 164.00,135.40 161.74,138.27 160.51,138.68 159.49,140.53 158.46,140.94 158.05,141.76 155.38,144.22 153.74,145.04 149.23,149.14 147.79,149.76 144.31,153.04 140.41,155.71 138.77,156.12 137.74,157.35 135.90,157.96 135.28,158.99 133.02,160.01 131.18,161.45 121.74,166.37 114.15,169.66 112.10,170.07 110.66,170.89 108.82,171.09 106.97,172.12 105.33,172.32 103.28,173.35 100.20,173.76 98.56,174.58 94.66,174.99 93.02,175.60 90.36,175.60 89.74,176.01 87.07,176.22 86.25,176.63 77.43,177.25 64.30,177.04 58.76,176.01 54.66,175.81 52.40,174.99 48.10,174.78 47.28,174.17 48.51,173.35 47.89,172.53 46.87,172.53 46.25,172.94 45.43,172.12 42.76,171.91 36.40,169.66 32.30,167.60 30.45,167.40 28.61,166.37 27.79,166.58 27.58,167.19 37.63,176.63 43.17,180.94 46.66,183.19 48.30,183.81 49.33,184.84 54.05,187.30 55.28,187.50 59.58,189.76 65.53,192.22 67.17,192.43 68.61,193.25 71.28,193.66 73.53,194.68 76.82,195.09 79.48,195.91 81.74,195.91 86.46,196.94 92.41,197.14 93.02,197.55 105.54,197.55 107.59,196.94 112.10,196.73 121.54,194.89 124.00,193.86 126.67,193.45 128.10,192.63 129.95,192.43 141.64,187.50 151.69,181.96 156.21,178.48 158.67,177.04 169.54,167.40 173.23,163.71 176.10,159.81 178.98,156.73 183.49,149.96 189.03,140.12 193.13,130.47 193.54,128.01 195.59,122.68 196.00,119.40 197.03,116.32 197.64,109.14 198.26,107.50 198.05,105.65 198.67,104.63 198.26,103.40 198.26,92.52 198.67,91.09 198.05,90.27 198.46,88.21 197.85,87.19 197.85,85.55 197.23,84.52ZM70.46,7.59 70.05,7.18 68.61,7.39 67.17,8.42 65.33,8.62 59.58,11.08 52.40,14.77 50.97,16.01 49.12,16.83 43.79,20.31 34.15,28.11 26.56,35.90 25.53,37.96 23.68,39.39 23.48,40.21 24.51,40.42 25.74,38.57 27.99,36.72 33.74,30.37 35.38,29.34 43.79,21.95 47.07,20.31 51.79,16.62 56.71,14.16 57.33,14.16 61.64,11.70 64.51,10.47 65.94,10.26 67.58,9.03 69.43,8.83ZM84.41,4.11 81.94,3.70 79.48,4.72 76.82,4.93 74.76,5.95 72.10,6.36 71.28,7.39 73.12,7.80 74.97,6.77 77.84,6.36 79.28,5.54 83.18,5.13 84.20,4.72Z"/>
+  </g>
+  <path fill="#FFFFFF" fill-rule="evenodd" d="M141.64,115.09 141.03,116.11 141.23,124.73 143.08,125.96 149.85,125.96 150.67,125.55 151.90,124.32 151.90,122.88 152.31,122.27 152.31,118.37 151.90,117.75 152.10,116.32 151.69,115.50 148.82,114.47 143.90,114.47ZM125.43,115.50 125.02,116.32 125.02,123.70 126.46,125.55 127.49,125.96 134.46,125.76 136.31,124.11 136.51,119.81 136.31,115.70 135.90,115.09 133.23,114.47 126.87,114.68ZM141.44,99.91 141.03,100.73 141.64,109.75 143.08,109.96 143.69,109.55 147.38,109.55 148.00,109.96 151.08,109.96 151.69,109.55 151.49,103.81 152.10,102.78 152.10,101.96 151.69,101.34 151.90,100.11 151.49,99.50 148.21,99.50 147.18,98.88 144.72,98.88 143.69,99.50ZM125.23,100.52 125.02,108.93 125.84,109.96 135.28,109.96 135.90,109.55 136.10,107.70 135.69,106.47 136.31,105.45 136.31,100.52 135.69,99.50 133.64,99.50 132.00,98.68 129.54,98.68 128.51,99.29 126.25,99.70ZM180.82,115.70 180.21,115.09 179.39,115.29 178.98,116.52 176.92,118.17 170.98,125.76 168.51,128.22 167.49,128.63 167.08,129.45 164.21,132.11 162.36,133.14 161.74,133.96 160.51,134.37 159.69,135.40 155.38,137.86 154.36,138.88 152.92,139.29 151.69,140.32 150.46,140.53 149.85,141.35 148.41,141.55 146.97,142.58 145.33,142.78 143.90,143.81 140.41,144.22 139.18,145.04 135.90,144.83 131.18,142.58 125.23,142.78 124.00,143.81 119.90,145.45 119.28,146.27 116.41,147.71 115.59,148.73 112.31,150.17 111.07,151.19 110.46,150.58 110.25,144.01 110.46,88.21 109.64,87.19 109.23,84.93 105.54,81.45 104.30,81.24 102.46,80.01 97.33,80.01 95.89,81.03 94.46,81.24 91.59,83.50 90.56,83.70 89.74,84.73 88.30,85.14 85.64,87.60 82.97,88.83 82.35,89.65 81.12,90.06 80.30,90.88 78.66,91.50 77.43,92.93 77.02,97.04 77.02,102.37 77.43,103.81 78.05,104.42 78.46,105.86 79.89,106.27 80.92,107.09 82.35,107.09 83.38,106.27 84.82,105.86 85.64,104.83 86.87,104.42 89.53,102.37 90.36,102.57 90.77,103.19 90.36,104.01 90.36,105.04 90.77,105.65 90.77,134.17 90.36,134.78 90.36,140.73 90.77,141.35 90.77,160.01 89.74,161.24 87.48,162.27 85.43,162.27 83.38,163.50 81.12,163.71 79.69,164.73 77.84,165.14 72.30,168.63 71.48,169.66 70.66,169.86 69.64,170.89 68.61,171.09 67.38,172.12 65.74,172.32 64.30,173.35 62.25,173.35 61.23,173.76 53.02,173.76 49.94,173.35 49.53,174.17 50.35,174.99 51.99,174.78 52.40,175.19 53.64,175.19 55.69,176.01 61.02,176.22 64.30,177.04 66.35,177.04 67.38,177.66 68.82,177.25 78.05,177.25 78.66,177.66 80.71,177.66 81.74,177.04 83.18,177.04 85.02,176.43 88.51,176.01 91.38,176.22 93.84,175.19 98.56,174.78 100.41,173.76 103.28,173.55 105.13,172.53 106.97,172.32 109.02,171.30 110.66,171.09 112.10,170.27 114.15,169.86 120.31,167.40 127.90,163.71 128.72,162.89 130.36,162.27 131.18,161.45 132.41,161.04 140.20,156.32 153.13,146.68 161.13,139.70 170.16,130.06 177.54,121.04 178.57,118.99 179.39,118.17 179.59,117.14ZM164.62,72.62 160.72,68.93 157.85,67.50 157.23,66.67 155.80,66.26 154.97,65.24 151.90,63.80 150.67,62.57 148.41,61.55 141.44,56.62 140.41,56.42 137.74,54.37 136.51,53.96 135.69,52.93 132.41,51.49 128.51,48.42 125.84,46.78 124.82,46.57 121.95,44.31 119.28,43.08 116.61,40.83 114.97,40.42 113.74,39.19 111.90,38.37 106.97,34.67 104.92,34.26 102.87,33.03 98.36,33.03 95.69,34.47 94.46,34.67 93.23,35.70 92.20,35.90 89.33,38.37 87.48,39.19 86.05,40.62 84.00,41.65 81.12,44.11 79.89,44.52 77.23,46.57 75.59,47.19 73.94,49.03 72.92,49.24 69.64,51.90 66.97,53.14 66.15,54.16 63.89,55.19 62.46,56.62 59.99,57.85 58.97,59.08 56.51,60.32 53.43,62.98 50.76,64.21 48.30,66.26 47.07,66.67 43.99,69.34 42.15,70.16 40.30,71.80 35.99,74.27 34.35,76.73 33.74,78.78 32.92,79.60 32.92,84.52 33.94,85.96 34.56,88.42 35.58,88.83 36.40,89.86 38.87,91.50 45.63,91.50 46.25,92.11 46.46,144.42 47.48,145.86 47.89,147.50 49.12,148.94 51.38,150.37 54.05,151.60 56.92,151.81 59.99,151.40 62.66,149.35 63.69,149.14 64.92,147.50 65.33,145.86 66.56,143.81 66.56,80.83 67.58,79.60 67.58,78.78 68.20,77.75 70.46,75.29 73.53,73.24 74.76,72.83 76.20,71.39 79.07,69.34 79.89,69.14 80.92,68.11 85.23,65.85 86.46,64.42 87.89,64.01 90.56,61.75 93.43,60.32 94.25,59.29 97.13,58.06 98.77,56.83 102.66,57.24 104.92,59.08 106.36,59.50 108.82,61.55 112.51,63.60 116.20,66.47 119.49,68.11 120.10,68.93 123.18,70.37 124.00,71.39 126.05,72.21 127.69,73.85 130.36,75.09 131.38,76.32 132.82,76.73 135.28,78.78 136.72,79.19 137.74,80.21 140.61,81.65 141.23,82.47 142.46,82.88 143.28,83.91 144.51,84.32 145.13,85.14 146.77,85.75 149.03,87.60 150.05,87.80 151.90,89.04 158.26,89.04 159.90,87.80 161.74,87.39 163.39,85.75 164.82,83.70 165.03,82.06 166.05,80.01 165.85,75.70 165.03,74.68Z"/>
+
+        </svg>
+      </div>
+
+      <div class="lg:col-span-5 flex justify-center relative z-10">
+        <img src="illustrations/escrow_illustration.jpg" alt="3D Escrow Vault Shield in Shazu One brand colors" class="w-full max-w-sm sm:max-w-md h-64 sm:h-80 object-cover rounded-2xl shadow-xl border border-slate-200">
+      </div>
+
+      <div class="lg:col-span-7 relative z-10">
+        <span class="inline-block px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider bg-brand-orange/10 text-brand-orange border border-brand-orange/20 mb-3">
+          Transparent Financial Architecture
+        </span>
+        <h2 class="font-display font-black text-2xl sm:text-3xl text-brand-blue tracking-tight leading-tight mb-4">
+          The 2-Part Escrow Safety Guarantee
+        </h2>
+        <p class="text-sm sm:text-base text-slate-600 mb-6 leading-relaxed">
+          Traditional contractors demand upfront cash before work even begins, leaving homeowners unprotected. Shazu One splits every job into two clear gates:
+        </p>
+
+        <div class="flex flex-col gap-4">
+          <!-- Step 1 -->
+          <div class="flex items-start gap-4">
+            <div class="w-8 h-8 rounded-full bg-brand-blue text-white flex items-center justify-center font-display font-extrabold text-sm flex-shrink-0 shadow-sm">
+              1
+            </div>
+            <div>
+              <h3 class="font-bold text-sm sm:text-base text-brand-blue">₹99 Flat Diagnostic Visit Deposit</h3>
+              <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+                Paid to lock your time slot and cover the technician’s travel to your doorstep anywhere in Salem.
+              </p>
+            </div>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="flex items-start gap-4">
+            <div class="w-8 h-8 rounded-full bg-brand-orange text-white flex items-center justify-center font-display font-extrabold text-sm flex-shrink-0 shadow-sm">
+              2
+            </div>
+            <div>
+              <h3 class="font-bold text-sm sm:text-base text-brand-blue">Digital Job Card &amp; Escrow Lock</h3>
+              <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+                The technician diagnoses the issue and generates an itemized quote for service labor. You review the exact amount before committing funds to escrow.
+              </p>
+            </div>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="flex items-start gap-4">
+            <div class="w-8 h-8 rounded-full bg-brand-green text-white flex items-center justify-center font-display font-extrabold text-sm flex-shrink-0 shadow-sm">
+              3
+            </div>
+            <div>
+              <h3 class="font-bold text-sm sm:text-base text-brand-blue">Client OTP Sign-Off Gate</h3>
+              <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+                Funds are only transferred from escrow to the technician after the fix is tested and you share your private 4-digit completion OTP.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- App Download Banner -->
+  <section class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8 reveal" id="download-app">
+    <div class="bg-gradient-to-r from-brand-blueDeep via-brand-blue to-slate-900 rounded-3xl p-8 sm:p-12 text-center text-white shadow-2xl relative overflow-hidden">
+      <!-- Watermark inside App Download Banner -->
+      <div class="absolute right-0 top-1/2 -translate-y-1/2 w-96 h-96 opacity-[0.06] pointer-events-none select-none">
+        <svg viewBox="0 0 200 200" class="w-full h-full">
+          
+  <defs>
+    <linearGradient id="logoBody" gradientUnits="userSpaceOnUse" x1="30" y1="10" x2="165" y2="195">
+      <stop offset="0%" stop-color="#0A86EC"/>
+      <stop offset="45%" stop-color="#0A5CC4"/>
+      <stop offset="100%" stop-color="#02307F"/>
+    </linearGradient>
+    <linearGradient id="logoSwoosh" gradientUnits="userSpaceOnUse" x1="25" y1="185" x2="190" y2="120">
+      <stop offset="0%" stop-color="#08B8DC"/>
+      <stop offset="45%" stop-color="#17A898"/>
+      <stop offset="100%" stop-color="#7DC93F"/>
+    </linearGradient>
+    <clipPath id="logoClip"><circle cx="100" cy="100" r="100.8"/></clipPath>
+  </defs>
+  <circle cx="100" cy="100" r="100" fill="url(#logoBody)"/>
+  <g clip-path="url(#logoClip)">
+    <path fill="url(#logoSwoosh)" fill-rule="evenodd" d="M197.23,83.29 196.41,82.88 195.18,83.29 193.95,88.01 192.72,90.27 192.31,92.11 189.23,98.06 189.03,99.09 186.16,104.01 185.75,105.45 184.31,107.29 183.69,110.78 181.64,114.47 180.41,115.70 179.59,117.34 177.95,118.58 176.51,121.24 175.08,122.27 174.67,123.29 172.82,125.14 170.77,128.42 167.69,132.11 166.46,132.94 166.26,133.76 165.03,134.99 164.00,135.40 161.74,138.27 160.51,138.68 159.49,140.53 158.46,140.94 158.05,141.76 155.38,144.22 153.74,145.04 149.23,149.14 147.79,149.76 144.31,153.04 140.41,155.71 138.77,156.12 137.74,157.35 135.90,157.96 135.28,158.99 133.02,160.01 131.18,161.45 121.74,166.37 114.15,169.66 112.10,170.07 110.66,170.89 108.82,171.09 106.97,172.12 105.33,172.32 103.28,173.35 100.20,173.76 98.56,174.58 94.66,174.99 93.02,175.60 90.36,175.60 89.74,176.01 87.07,176.22 86.25,176.63 77.43,177.25 64.30,177.04 58.76,176.01 54.66,175.81 52.40,174.99 48.10,174.78 47.28,174.17 48.51,173.35 47.89,172.53 46.87,172.53 46.25,172.94 45.43,172.12 42.76,171.91 36.40,169.66 32.30,167.60 30.45,167.40 28.61,166.37 27.79,166.58 27.58,167.19 37.63,176.63 43.17,180.94 46.66,183.19 48.30,183.81 49.33,184.84 54.05,187.30 55.28,187.50 59.58,189.76 65.53,192.22 67.17,192.43 68.61,193.25 71.28,193.66 73.53,194.68 76.82,195.09 79.48,195.91 81.74,195.91 86.46,196.94 92.41,197.14 93.02,197.55 105.54,197.55 107.59,196.94 112.10,196.73 121.54,194.89 124.00,193.86 126.67,193.45 128.10,192.63 129.95,192.43 141.64,187.50 151.69,181.96 156.21,178.48 158.67,177.04 169.54,167.40 173.23,163.71 176.10,159.81 178.98,156.73 183.49,149.96 189.03,140.12 193.13,130.47 193.54,128.01 195.59,122.68 196.00,119.40 197.03,116.32 197.64,109.14 198.26,107.50 198.05,105.65 198.67,104.63 198.26,103.40 198.26,92.52 198.67,91.09 198.05,90.27 198.46,88.21 197.85,87.19 197.85,85.55 197.23,84.52ZM70.46,7.59 70.05,7.18 68.61,7.39 67.17,8.42 65.33,8.62 59.58,11.08 52.40,14.77 50.97,16.01 49.12,16.83 43.79,20.31 34.15,28.11 26.56,35.90 25.53,37.96 23.68,39.39 23.48,40.21 24.51,40.42 25.74,38.57 27.99,36.72 33.74,30.37 35.38,29.34 43.79,21.95 47.07,20.31 51.79,16.62 56.71,14.16 57.33,14.16 61.64,11.70 64.51,10.47 65.94,10.26 67.58,9.03 69.43,8.83ZM84.41,4.11 81.94,3.70 79.48,4.72 76.82,4.93 74.76,5.95 72.10,6.36 71.28,7.39 73.12,7.80 74.97,6.77 77.84,6.36 79.28,5.54 83.18,5.13 84.20,4.72Z"/>
+  </g>
+  <path fill="#FFFFFF" fill-rule="evenodd" d="M141.64,115.09 141.03,116.11 141.23,124.73 143.08,125.96 149.85,125.96 150.67,125.55 151.90,124.32 151.90,122.88 152.31,122.27 152.31,118.37 151.90,117.75 152.10,116.32 151.69,115.50 148.82,114.47 143.90,114.47ZM125.43,115.50 125.02,116.32 125.02,123.70 126.46,125.55 127.49,125.96 134.46,125.76 136.31,124.11 136.51,119.81 136.31,115.70 135.90,115.09 133.23,114.47 126.87,114.68ZM141.44,99.91 141.03,100.73 141.64,109.75 143.08,109.96 143.69,109.55 147.38,109.55 148.00,109.96 151.08,109.96 151.69,109.55 151.49,103.81 152.10,102.78 152.10,101.96 151.69,101.34 151.90,100.11 151.49,99.50 148.21,99.50 147.18,98.88 144.72,98.88 143.69,99.50ZM125.23,100.52 125.02,108.93 125.84,109.96 135.28,109.96 135.90,109.55 136.10,107.70 135.69,106.47 136.31,105.45 136.31,100.52 135.69,99.50 133.64,99.50 132.00,98.68 129.54,98.68 128.51,99.29 126.25,99.70ZM180.82,115.70 180.21,115.09 179.39,115.29 178.98,116.52 176.92,118.17 170.98,125.76 168.51,128.22 167.49,128.63 167.08,129.45 164.21,132.11 162.36,133.14 161.74,133.96 160.51,134.37 159.69,135.40 155.38,137.86 154.36,138.88 152.92,139.29 151.69,140.32 150.46,140.53 149.85,141.35 148.41,141.55 146.97,142.58 145.33,142.78 143.90,143.81 140.41,144.22 139.18,145.04 135.90,144.83 131.18,142.58 125.23,142.78 124.00,143.81 119.90,145.45 119.28,146.27 116.41,147.71 115.59,148.73 112.31,150.17 111.07,151.19 110.46,150.58 110.25,144.01 110.46,88.21 109.64,87.19 109.23,84.93 105.54,81.45 104.30,81.24 102.46,80.01 97.33,80.01 95.89,81.03 94.46,81.24 91.59,83.50 90.56,83.70 89.74,84.73 88.30,85.14 85.64,87.60 82.97,88.83 82.35,89.65 81.12,90.06 80.30,90.88 78.66,91.50 77.43,92.93 77.02,97.04 77.02,102.37 77.43,103.81 78.05,104.42 78.46,105.86 79.89,106.27 80.92,107.09 82.35,107.09 83.38,106.27 84.82,105.86 85.64,104.83 86.87,104.42 89.53,102.37 90.36,102.57 90.77,103.19 90.36,104.01 90.36,105.04 90.77,105.65 90.77,134.17 90.36,134.78 90.36,140.73 90.77,141.35 90.77,160.01 89.74,161.24 87.48,162.27 85.43,162.27 83.38,163.50 81.12,163.71 79.69,164.73 77.84,165.14 72.30,168.63 71.48,169.66 70.66,169.86 69.64,170.89 68.61,171.09 67.38,172.12 65.74,172.32 64.30,173.35 62.25,173.35 61.23,173.76 53.02,173.76 49.94,173.35 49.53,174.17 50.35,174.99 51.99,174.78 52.40,175.19 53.64,175.19 55.69,176.01 61.02,176.22 64.30,177.04 66.35,177.04 67.38,177.66 68.82,177.25 78.05,177.25 78.66,177.66 80.71,177.66 81.74,177.04 83.18,177.04 85.02,176.43 88.51,176.01 91.38,176.22 93.84,175.19 98.56,174.78 100.41,173.76 103.28,173.55 105.13,172.53 106.97,172.32 109.02,171.30 110.66,171.09 112.10,170.27 114.15,169.86 120.31,167.40 127.90,163.71 128.72,162.89 130.36,162.27 131.18,161.45 132.41,161.04 140.20,156.32 153.13,146.68 161.13,139.70 170.16,130.06 177.54,121.04 178.57,118.99 179.39,118.17 179.59,117.14ZM164.62,72.62 160.72,68.93 157.85,67.50 157.23,66.67 155.80,66.26 154.97,65.24 151.90,63.80 150.67,62.57 148.41,61.55 141.44,56.62 140.41,56.42 137.74,54.37 136.51,53.96 135.69,52.93 132.41,51.49 128.51,48.42 125.84,46.78 124.82,46.57 121.95,44.31 119.28,43.08 116.61,40.83 114.97,40.42 113.74,39.19 111.90,38.37 106.97,34.67 104.92,34.26 102.87,33.03 98.36,33.03 95.69,34.47 94.46,34.67 93.23,35.70 92.20,35.90 89.33,38.37 87.48,39.19 86.05,40.62 84.00,41.65 81.12,44.11 79.89,44.52 77.23,46.57 75.59,47.19 73.94,49.03 72.92,49.24 69.64,51.90 66.97,53.14 66.15,54.16 63.89,55.19 62.46,56.62 59.99,57.85 58.97,59.08 56.51,60.32 53.43,62.98 50.76,64.21 48.30,66.26 47.07,66.67 43.99,69.34 42.15,70.16 40.30,71.80 35.99,74.27 34.35,76.73 33.74,78.78 32.92,79.60 32.92,84.52 33.94,85.96 34.56,88.42 35.58,88.83 36.40,89.86 38.87,91.50 45.63,91.50 46.25,92.11 46.46,144.42 47.48,145.86 47.89,147.50 49.12,148.94 51.38,150.37 54.05,151.60 56.92,151.81 59.99,151.40 62.66,149.35 63.69,149.14 64.92,147.50 65.33,145.86 66.56,143.81 66.56,80.83 67.58,79.60 67.58,78.78 68.20,77.75 70.46,75.29 73.53,73.24 74.76,72.83 76.20,71.39 79.07,69.34 79.89,69.14 80.92,68.11 85.23,65.85 86.46,64.42 87.89,64.01 90.56,61.75 93.43,60.32 94.25,59.29 97.13,58.06 98.77,56.83 102.66,57.24 104.92,59.08 106.36,59.50 108.82,61.55 112.51,63.60 116.20,66.47 119.49,68.11 120.10,68.93 123.18,70.37 124.00,71.39 126.05,72.21 127.69,73.85 130.36,75.09 131.38,76.32 132.82,76.73 135.28,78.78 136.72,79.19 137.74,80.21 140.61,81.65 141.23,82.47 142.46,82.88 143.28,83.91 144.51,84.32 145.13,85.14 146.77,85.75 149.03,87.60 150.05,87.80 151.90,89.04 158.26,89.04 159.90,87.80 161.74,87.39 163.39,85.75 164.82,83.70 165.03,82.06 166.05,80.01 165.85,75.70 165.03,74.68Z"/>
+
+        </svg>
+      </div>
+
+      <div class="relative z-10">
+        <h2 class="font-display font-black text-2xl sm:text-4xl tracking-tight mb-3">
+          Download Shazu One for Android
+        </h2>
+        <p class="text-sm sm:text-base text-slate-300 max-w-xl mx-auto mb-6 leading-relaxed">
+          Salem’s dedicated doorstep maintenance application. Lightweight, native performance, zero commercial advertising, and instant digital invoicing.
+        </p>
+
+        <div class="flex flex-col items-center gap-3">
+          <a href="app/ShazuOne.apk" download class="inline-flex items-center gap-3 px-8 py-4 rounded-full text-sm sm:text-base font-extrabold bg-brand-orange hover:bg-brand-orangeDark text-white shadow-xl transition-transform hover:-translate-y-0.5">
+            <svg class="w-5 h-5 stroke-[2.2] stroke-current fill-none" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Download ShazuOne.apk (11.2 MB)</span>
+          </a>
+
+          <div class="flex flex-wrap justify-center gap-4 text-xs text-slate-400 mt-2 font-medium">
+            <span>Package: com.shazuone.app</span>
+            <span>&bull;</span>
+            <span>Android 8.0 &amp; Above</span>
+            <span>&bull;</span>
+            <span>Aadhaar-Verified Specialists</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer with Shazusoft Tech Signature -->
+  <footer class="bg-white border-t border-slate-200 pt-8 sm:pt-12 pb-6 sm:pb-8 text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-8 mb-12">
+        <!-- Brand Info -->
+<div class="md:col-span-5">
+          <div class="flex items-center mb-4">
+            <img src="logo.svg" alt="Shazu One - All Your Home Services. One Platform." class="h-9 sm:h-10 w-auto object-contain">
+          </div>
+          <p class="text-xs sm:text-sm text-slate-500 max-w-sm leading-relaxed mb-4">
+            Salem’s dedicated on-demand home maintenance network. Transforming home repairs with 2-part escrow protection and verified local trade masters.
+          </p>
+          <div class="text-xs text-slate-400">
+            Salem Operations Office, Fairlands, Salem, Tamil Nadu &ndash; 636016
+          </div>
+        </div>
+
+        <!-- Links Column 1: Services -->
+        <div class="md:col-span-2">
+          <div class="font-display font-bold text-xs uppercase tracking-wider text-brand-blue mb-3">Services</div>
+          <ul class="flex flex-col gap-2 list-none">
+            <li><a href="#services-section" class="hover:text-brand-orange transition-colors">AC Servicing</a></li>
+            <li><a href="#services-section" class="hover:text-brand-orange transition-colors">Electrical Wiring</a></li>
+            <li><a href="#services-section" class="hover:text-brand-orange transition-colors">Plumbing &amp; Leak Fix</a></li>
+            <li><a href="#services-section" class="hover:text-brand-orange transition-colors">Water Tank Cleaning</a></li>
+          </ul>
+        </div>
+
+        <!-- Links Column 2: Platform -->
+        <div class="md:col-span-2">
+          <div class="font-display font-bold text-xs uppercase tracking-wider text-brand-blue mb-3">Platform</div>
+          <ul class="flex flex-col gap-2 list-none">
+            <li><a href="#escrow-protocol" class="hover:text-brand-orange transition-colors">2-Part Escrow</a></li>
+            <li><a href="#specialists-section" class="hover:text-brand-orange transition-colors">Specialist Verification</a></li>
+            <li><a href="#services-section" class="hover:text-brand-orange transition-colors">Rate Cards</a></li>
+            <li><a href="app/ShazuOne.apk" download class="hover:text-brand-orange transition-colors">Download APK</a></li>
+          </ul>
+        </div>
+
+        <!-- Links Column 3: Salem Zones -->
+        <div class="md:col-span-3">
+          <div class="font-display font-bold text-xs uppercase tracking-wider text-brand-blue mb-3">Salem Zones</div>
+          <ul class="flex flex-col gap-2 list-none">
+            <li><button onclick="selectLocality('Fairlands &amp; Alagapuram')" class="text-left hover:text-brand-orange transition-colors">Fairlands &amp; Alagapuram</button></li>
+            <li><button onclick="selectLocality('Hasthampatti &amp; Gorimedu')" class="text-left hover:text-brand-orange transition-colors">Hasthampatti &amp; Gorimedu</button></li>
+            <li><button onclick="selectLocality('Suramangalam &amp; Junction')" class="text-left hover:text-brand-orange transition-colors">Suramangalam &amp; Junction</button></li>
+            <li><button onclick="selectLocality('Meyyanur &amp; 5 Roads')" class="text-left hover:text-brand-orange transition-colors">Meyyanur &amp; 5 Roads</button></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Professional "Developed by Shazusoft Tech" Architecture Signature -->
+      <div class="my-8 p-6 rounded-2xl bg-gradient-to-r from-brand-blueDeep via-brand-blueDark to-brand-blue border border-brand-orange/40 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-xl bg-brand-orange/20 border border-brand-orange/40 flex items-center justify-center flex-shrink-0">
+            <svg class="w-6 h-6 text-brand-orange stroke-[2] stroke-current fill-none" viewBox="0 0 24 24">
+              <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+              <polyline points="2 17 12 22 22 17"/>
+              <polyline points="2 12 12 17 22 12"/>
+            </svg>
+          </div>
+          <div>
+            <div class="text-[10px] font-bold uppercase tracking-widest text-slate-300">Architected &amp; Developed by</div>
+            <div class="font-display font-extrabold text-lg text-white">Shazusoft Tech</div>
+            <div class="text-[11px] font-semibold text-brand-mint">Enterprise Cloud &amp; Marketplace Systems</div>
+          </div>
+        </div>
+        <p class="text-xs text-slate-300 max-w-md text-center md:text-right leading-relaxed">
+          Engineered by Shazusoft Tech with event-driven backend services, real-time WebRTC media signaling &amp; multi-tenant escrow financial engines.
+        </p>
+      </div>
+
+      <!-- Copyright row -->
+      <div class="border-t border-slate-200 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400 text-center sm:text-left">
+        <div>
+          &copy; 2026 Shazu One Inc. All rights reserved. Built for Salem, Tamil Nadu.
+        </div>
+        <div class="flex items-center gap-4">
+          <a href="#" class="hover:text-brand-blue transition-colors">Privacy Policy</a>
+          <a href="#" class="hover:text-brand-blue transition-colors">Terms of Service</a>
+          <a href="#" class="hover:text-brand-blue transition-colors">Escrow Guarantee</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Pure Tailwind Locality Selector Modal (NO browser alert) -->
+  <div id="localityModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden" role="dialog" aria-modal="true" aria-labelledby="localityModalTitle">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-100 relative transform transition-all">
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+        <div>
+          <h3 id="localityModalTitle" class="font-display font-black text-lg text-brand-blue tracking-tight">Select Salem Locality</h3>
+          <p class="text-xs text-slate-500 mt-0.5">Choose your neighborhood for technician availability</p>
+        </div>
+        <button type="button" onclick="closeLocalityModal()" aria-label="Close modal" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors">
+          <svg class="w-4 h-4 stroke-[2.5] stroke-current fill-none" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <!-- Locality List -->
+      <div class="flex flex-col gap-2 my-4 max-h-72 overflow-y-auto no-scrollbar">
+        <button type="button" onclick="selectLocality('Fairlands, Salem')" class="locality-btn w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:border-brand-orange hover:bg-orange-50/50 text-left transition group">
+          <div class="flex items-center gap-3">
+            <svg class="w-4 h-4 text-brand-orange stroke-[2] stroke-current fill-none" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <div>
+              <div class="text-xs sm:text-sm font-bold text-slate-900">Fairlands &amp; Alagapuram</div>
+              <div class="text-[11px] text-slate-500">Fastest 30-45 min dispatch</div>
+            </div>
+          </div>
+          <span class="text-xs font-bold text-brand-green bg-emerald-50 px-2 py-0.5 rounded">Active</span>
+        </button>
+
+        <button type="button" onclick="selectLocality('Hasthampatti, Salem')" class="locality-btn w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:border-brand-orange hover:bg-orange-50/50 text-left transition group">
+          <div class="flex items-center gap-3">
+            <svg class="w-4 h-4 text-brand-orange stroke-[2] stroke-current fill-none" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <div>
+              <div class="text-xs sm:text-sm font-bold text-slate-900">Hasthampatti &amp; Gorimedu</div>
+              <div class="text-[11px] text-slate-500">Active wiremen &amp; AC technicians</div>
+            </div>
+          </div>
+          <span class="text-xs font-bold text-brand-green bg-emerald-50 px-2 py-0.5 rounded">Active</span>
+        </button>
+
+        <button type="button" onclick="selectLocality('Suramangalam, Salem')" class="locality-btn w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:border-brand-orange hover:bg-orange-50/50 text-left transition group">
+          <div class="flex items-center gap-3">
+            <svg class="w-4 h-4 text-brand-orange stroke-[2] stroke-current fill-none" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <div>
+              <div class="text-xs sm:text-sm font-bold text-slate-900">Suramangalam &amp; Junction</div>
+              <div class="text-[11px] text-slate-500">Plumbing &amp; electrical coverage</div>
+            </div>
+          </div>
+          <span class="text-xs font-bold text-brand-green bg-emerald-50 px-2 py-0.5 rounded">Active</span>
+        </button>
+
+        <button type="button" onclick="selectLocality('Meyyanur, Salem')" class="locality-btn w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:border-brand-orange hover:bg-orange-50/50 text-left transition group">
+          <div class="flex items-center gap-3">
+            <svg class="w-4 h-4 text-brand-orange stroke-[2] stroke-current fill-none" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <div>
+              <div class="text-xs sm:text-sm font-bold text-slate-900">Meyyanur &amp; 5 Roads</div>
+              <div class="text-[11px] text-slate-500">Appliance repair &amp; sanitation</div>
+            </div>
+          </div>
+          <span class="text-xs font-bold text-brand-green bg-emerald-50 px-2 py-0.5 rounded">Active</span>
+        </button>
+
+        <button type="button" onclick="selectLocality('Ammapet, Salem')" class="locality-btn w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:border-brand-orange hover:bg-orange-50/50 text-left transition group">
+          <div class="flex items-center gap-3">
+            <svg class="w-4 h-4 text-brand-orange stroke-[2] stroke-current fill-none" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <div>
+              <div class="text-xs sm:text-sm font-bold text-slate-900">Ammapet &amp; Shevapet</div>
+              <div class="text-[11px] text-slate-500">Doorstep visits available</div>
+            </div>
+          </div>
+          <span class="text-xs font-bold text-brand-green bg-emerald-50 px-2 py-0.5 rounded">Active</span>
+        </button>
+      </div>
+
+      <div class="text-center pt-2">
+        <button type="button" onclick="closeLocalityModal()" class="w-full py-2.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+          Confirm &amp; Done
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive JavaScript Engine -->
+  <script>
+    /* Opening Screen Dismissal Logic */
+
+    // =========================================================================
+    // Premium Opening Startup Chime (Web Audio API Synthesizer + Audio Fallback)
+    // =========================================================================
+    let audioHasPlayed = false;
+
+    function playPremiumOpeningChime() {
+      if (audioHasPlayed) return;
+      audioHasPlayed = true;
+
+      // 1. Try Web Audio API (Zero Latency Studio Chord Synthesizer)
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) {
+          const ctx = new AudioCtx();
+          if (ctx.state === 'suspended') {
+            ctx.resume();
+          }
+          const now = ctx.currentTime;
+
+          // Warm sub-bass bloom on drop
+          const sub = ctx.createOscillator();
+          const subGain = ctx.createGain();
+          sub.type = 'sine';
+          sub.frequency.setValueAtTime(95, now);
+          sub.frequency.exponentialRampToValueAtTime(50, now + 0.35);
+          subGain.gain.setValueAtTime(0.28, now);
+          subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+          sub.connect(subGain);
+          subGain.connect(ctx.destination);
+          sub.start(now);
+          sub.stop(now + 0.45);
+
+          // Crystalline Luxury Chime Chord: C5, E5, G5, C6, E6
+          const notes = [
+            { f: 523.25, t: now + 0.04, dur: 1.4, g: 0.16 },
+            { f: 659.25, t: now + 0.11, dur: 1.6, g: 0.18 },
+            { f: 783.99, t: now + 0.19, dur: 1.8, g: 0.20 },
+            { f: 1046.50, t: now + 0.27, dur: 2.1, g: 0.22 },
+            { f: 1318.51, t: now + 0.35, dur: 1.9, g: 0.15 }
+          ];
+
+          notes.forEach(n => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(n.f, n.t);
+
+            gain.gain.setValueAtTime(0, n.t);
+            gain.gain.linearRampToValueAtTime(n.g, n.t + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.0001, n.t + n.dur);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(n.t);
+            osc.stop(n.t + n.dur);
+          });
+          return;
+        }
+      } catch (err) {
+        console.log('Web Audio context not allowed or error:', err);
+      }
+
+      // 2. Fallback to HTML5 audio element
+      try {
+        const audio = document.getElementById('openingAudio');
+        if (audio) {
+          audio.currentTime = 0;
+          audio.play().catch(() => {});
+        }
+      } catch (e) {}
+    }
+
+    // Auto-trigger on page ready and on opening screen tap
+    window.addEventListener('load', () => {
+      setTimeout(playPremiumOpeningChime, 150);
+    });
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(playPremiumOpeningChime, 150);
+    });
+    document.addEventListener('click', playPremiumOpeningChime, { once: true });
+    document.addEventListener('touchstart', playPremiumOpeningChime, { once: true });
+
+    let openingDismissed = false;
+    function dismissOpeningScreen() {
+      playPremiumOpeningChime();
+      if (openingDismissed) return;
+      openingDismissed = true;
+      const screen = document.getElementById('openingScreen');
+      if (screen) {
+        screen.style.opacity = '0';
+        screen.style.transform = 'scale(1.04)';
+        screen.style.pointerEvents = 'none';
+        setTimeout(() => {
+          screen.style.display = 'none';
+        }, 700);
+      }
+    }
+
+    // Auto dismiss after 2.3 seconds
+    setTimeout(dismissOpeningScreen, 2300);
+
+    // Dismiss on any keyboard press
+    document.addEventListener('keydown', (e) => {
+      if (!openingDismissed && e.key !== 'Escape') {
+        dismissOpeningScreen();
+      }
+    });
+
+    /* Carousel Logic */
+    let currentHeroSlide = 0;
+    const heroTrack = document.getElementById('heroSliderTrack');
+    const heroDots = document.querySelectorAll('.hero-dot');
+    const totalHeroSlides = 4;
+    let heroAutoPlayInterval = null;
+
+    function updateHeroSlideUI() {
+      if (heroTrack) {
+        heroTrack.style.transform = `translateX(-${currentHeroSlide * 100}%)`;
+      }
+      heroDots.forEach((dot, idx) => {
+        if (idx === currentHeroSlide) {
+          dot.classList.add('w-6', 'bg-brand-orange');
+          dot.classList.remove('w-2.5', 'bg-white/40');
+        } else {
+          dot.classList.remove('w-6', 'bg-brand-orange');
+          dot.classList.add('w-2.5', 'bg-white/40');
+        }
+      });
+    }
+
+    function nextHeroSlide() {
+      currentHeroSlide = (currentHeroSlide + 1) % totalHeroSlides;
+      updateHeroSlideUI();
+    }
+
+    function prevHeroSlide() {
+      currentHeroSlide = (currentHeroSlide - 1 + totalHeroSlides) % totalHeroSlides;
+      updateHeroSlideUI();
+    }
+
+    function jumpToHeroSlide(index) {
+      currentHeroSlide = index;
+      updateHeroSlideUI();
+      resetHeroAutoPlay();
+    }
+
+    function startHeroAutoPlay() {
+      if (!heroAutoPlayInterval) {
+        heroAutoPlayInterval = setInterval(nextHeroSlide, 5000);
+      }
+    }
+
+    function stopHeroAutoPlay() {
+      if (heroAutoPlayInterval) {
+        clearInterval(heroAutoPlayInterval);
+        heroAutoPlayInterval = null;
+      }
+    }
+
+    function resetHeroAutoPlay() {
+      stopHeroAutoPlay();
+      startHeroAutoPlay();
+    }
+
+    const heroSliderElem = document.getElementById('heroSlider');
+    if (heroSliderElem) {
+      heroSliderElem.addEventListener('mouseenter', stopHeroAutoPlay);
+      heroSliderElem.addEventListener('mouseleave', startHeroAutoPlay);
+      heroSliderElem.addEventListener('touchstart', stopHeroAutoPlay, { passive: true });
+      heroSliderElem.addEventListener('touchend', startHeroAutoPlay, { passive: true });
+    }
+
+    startHeroAutoPlay();
+
+    /* Horizontal Slider Smooth Scroll */
+    function scrollTrack(trackId, offset) {
+      const track = document.getElementById(trackId);
+      if (track) {
+        track.scrollBy({ left: offset, behavior: 'smooth' });
+      }
+    }
+
+    /* Live Service Search Filter */
+    function filterServices(query) {
+      const q = (query || '').toLowerCase().trim();
+      const cards = document.querySelectorAll('.service-card');
+      cards.forEach(card => {
+        const text = card.textContent.toLowerCase();
+        if (!q || text.includes(q)) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    /* Locality Selector Modal Logic (Zero browser alert) */
+    function openLocalityModal() {
+      const modal = document.getElementById('localityModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    function closeLocalityModal() {
+      const modal = document.getElementById('localityModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+    }
+
+    function selectLocality(localityName) {
+      const label = document.getElementById('currentLocalityText');
+      if (label) {
+        label.textContent = localityName;
+      }
+      try {
+        localStorage.setItem('shazuone_selected_locality', localityName);
+      } catch (e) {}
+      closeLocalityModal();
+    }
+
+    // Close modal on escape key or backdrop click
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeLocalityModal();
+    });
+
+    const localityModalElem = document.getElementById('localityModal');
+    if (localityModalElem) {
+      localityModalElem.addEventListener('click', (e) => {
+        if (e.target === localityModalElem) {
+          closeLocalityModal();
+        }
+      });
+    }
+
+    // Restore saved locality
+    try {
+      const savedLocality = localStorage.getItem('shazuone_selected_locality');
+      if (savedLocality) {
+        const label = document.getElementById('currentLocalityText');
+        if (label) label.textContent = savedLocality;
+      }
+    } catch (e) {}
+
+    /* Scroll Reveal Intersection Observer */
+    document.addEventListener('DOMContentLoaded', () => {
+      updateHeroSlideUI();
+      const revealElements = document.querySelectorAll('.reveal, .reveal-scale');
+      if ('IntersectionObserver' in window) {
+        const revealObserver = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('active');
+            }
+          });
+        }, {
+          threshold: 0.12,
+          rootMargin: '0px 0px -40px 0px'
+        });
+
+        revealElements.forEach(el => revealObserver.observe(el));
+      } else {
+        revealElements.forEach(el => el.classList.add('active'));
+      }
+    });
+  </script>
+</body>
+</html>

@@ -39,7 +39,7 @@ export default function LeafletMap({
   techPos = [11.6780, 78.1580], // Hasthampatti, Salem
   custPos = [11.6643, 78.1460], // Fairlands, Salem
   techName = 'Partner En Route',
-  custAddress = 'Plot 42, 5th Cross, Fairlands, Salem',
+  custAddress = 'Customer Doorstep Address, Salem',
   eta = '8 mins',
   distance = '1.8 km',
   height = 320 

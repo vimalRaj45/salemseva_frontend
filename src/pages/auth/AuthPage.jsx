@@ -82,7 +82,7 @@ const CAROUSEL_SLIDES = [
 export default function AuthPage({ initialMode = 'login' }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, loginWithCredentials, registerAccount, continueAsGuest, loginAsCustomer, loginAsTechnician, loginAsAdmin } = useAuth();
+  const { user, loginWithCredentials, registerAccount, continueAsGuest } = useAuth();
 
   // Role selection for onboarding: 'customer' | 'technician'
   const queryParams = new URLSearchParams(location.search);
@@ -650,87 +650,6 @@ export default function AuthPage({ initialMode = 'login' }) {
                 >
                   <span>Continue as a Guest (விருந்தினராக தொடரவும்)</span>
                 </Button>
-
-                {/* Quick 1-Click Demo Accounts Pill Bar */}
-                <Box sx={{ mt: 1.5, p: 1.1, bgcolor: '#F8FAFC', borderRadius: '10px', border: '1px dashed #CBD5E1' }}>
-                  <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 800, fontSize: '10.5px', display: 'block', mb: 0.8 }}>
-                    Quick Demo One-Click Sign In:
-                  </Typography>
-                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 0.8 }}>
-                    <Button
-                      size="small"
-                      onClick={() => {
-                        setIdentifier('98427 11234');
-                        setPassword('salem123');
-                        loginAsCustomer();
-                        toast.success('Logged in as Customer (Vimal Raj)');
-                        navigate(redirectTarget);
-                      }}
-                      sx={{
-                        py: 0.6,
-                        px: 0.8,
-                        borderRadius: '8px',
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        bgcolor: '#EFF6FF',
-                        color: '#0066CC',
-                        border: '1px solid #BFDBFE',
-                        textTransform: 'none',
-                        '&:hover': { bgcolor: '#DBEAFE' }
-                      }}
-                    >
-                      Customer
-                    </Button>
-                    <Button
-                      size="small"
-                      onClick={() => {
-                        setIdentifier('94432 88901');
-                        setPassword('salem123');
-                        loginAsTechnician();
-                        toast.success('Logged in as Partner Pro (K. Ramesh)');
-                        navigate('/partner');
-                      }}
-                      sx={{
-                        py: 0.6,
-                        px: 0.8,
-                        borderRadius: '8px',
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        bgcolor: '#ECFDF5',
-                        color: '#059669',
-                        border: '1px solid #A7F3D0',
-                        textTransform: 'none',
-                        '&:hover': { bgcolor: '#D1FAE5' }
-                      }}
-                    >
-                      Partner Pro
-                    </Button>
-                    <Button
-                      size="small"
-                      onClick={() => {
-                        setIdentifier('98420 99999');
-                        setPassword('salem123');
-                        loginAsAdmin();
-                        toast.success('Logged in as Central Ops Admin');
-                        navigate('/admin');
-                      }}
-                      sx={{
-                        py: 0.6,
-                        px: 0.8,
-                        borderRadius: '8px',
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        bgcolor: '#FFFBEB',
-                        color: '#D97706',
-                        border: '1px solid #FDE68A',
-                        textTransform: 'none',
-                        '&:hover': { bgcolor: '#FEF3C7' }
-                      }}
-                    >
-                      Admin
-                    </Button>
-                  </Box>
-                </Box>
               </Box>
             ) : (
               /* ================= CASE 2: REGISTER FORM ================= */

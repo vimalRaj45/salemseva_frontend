@@ -84,7 +84,7 @@ export default function CheckoutPage() {
           const rawLaborCost = items
             .filter(i => i.type !== 'Spare Part')
             .reduce((s, i) => s + (parseFloat(i.price) || 0) * (parseInt(i.qty, 10) || 1), 0);
-          const laborCost = rawLaborCost > 0 ? rawLaborCost : 250;
+          const laborCost = rawLaborCost;
           const fee = Math.round(laborCost * 0.05 * 100) / 100;
           setPartsAndLabor(laborCost + fee);
           if (data.booking?.visit_fee) {

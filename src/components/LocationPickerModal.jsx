@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -26,7 +26,7 @@ export default function LocationPickerModal({
     currentLocation?.locality || 'Fairlands'
   );
   const [doorAddress, setDoorAddress] = useState(
-    currentLocation?.address || 'Plot 42, 5th Cross, Fairlands, Salem - 636016'
+    currentLocation?.address || 'Door No / Street Address, Fairlands, Salem - 636016'
   );
   const [customPin, setCustomPin] = useState(
     currentLocation?.pincode || '636016'
