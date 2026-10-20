@@ -1084,9 +1084,74 @@ export default function CustomerHomePage() {
               Refund Policy
             </Box>
           </Box>
-          <Typography variant="caption" sx={{ display: 'block', color: '#94A3B8', fontSize: '10.5px', mt: 1.5 }}>
-            Copyright 2026 Shazu One Technologies. All rights reserved.
-          </Typography>
+          {/* Shazu Soft Technologies Developer Credit */}
+          <Box
+            sx={{
+              mt: 2.5,
+              pt: 2,
+              borderTop: '1px solid #F1F5F9',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 0.8
+            }}
+          >
+            <Box
+              component="a"
+              href="https://shazusofttechnologies.org/"
+              target="_blank"
+              rel="noopener noreferrer"
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 1.2,
+                textDecoration: 'none',
+                bgcolor: '#FFFFFF',
+                py: 0.8,
+                px: 2,
+                borderRadius: '30px',
+                border: '1.5px solid #E2E8F0',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                transition: 'all 0.25s ease',
+                '&:hover': {
+                  borderColor: '#0D3B66',
+                  bgcolor: '#F8FAFC',
+                  boxShadow: '0 4px 12px rgba(13, 59, 102, 0.12)',
+                  transform: 'translateY(-1px)'
+                }
+              }}
+            >
+              <Box
+                component="img"
+                src="/shazusoft_logo.png"
+                alt="Shazu Soft Technologies"
+                sx={{
+                  width: 24,
+                  height: 24,
+                  borderRadius: '50%',
+                  objectFit: 'contain'
+                }}
+              />
+              <Typography
+                sx={{
+                  color: '#0D3B66',
+                  fontSize: { xs: '11px', sm: '12px' },
+                  fontWeight: 700,
+                  letterSpacing: '-0.2px'
+                }}
+              >
+                Developed by{' '}
+                <Box component="span" sx={{ color: '#0D3B66', fontWeight: 800 }}>
+                  Shazu Soft Technologies
+                </Box>{' '}
+                | <Box component="span" sx={{ color: '#2E7D32', fontWeight: 700 }}>Transforming Ideas into Digital Excellence</Box>
+              </Typography>
+            </Box>
+            <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '10.5px' }}>
+              © 2026 Shazu One. All rights reserved.
+            </Typography>
+          </Box>
         </Box>
 
       </Container>
