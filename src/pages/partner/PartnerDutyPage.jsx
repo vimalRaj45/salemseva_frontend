@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Container,
   Box,
@@ -4351,7 +4351,7 @@ export default function PartnerDutyPage() {
                         severity="info" 
                         sx={{ borderRadius: '8px', fontSize: '12px', mb: 1.5, bgcolor: '#F0F9FF', color: '#0369A1', border: '1px solid #BAE6FD' }}
                       >
-                        Digital quote (₹900.00) sent to customer. Waiting for customer approval and escrow authorization.
+                        Digital quote (₹{step3Quote?.subtotal ? parseFloat(step3Quote.subtotal).toFixed(2) : '0.00'}) sent to customer. Waiting for customer approval and escrow authorization.
                       </Alert>
                       <Button
                         variant="outlined"

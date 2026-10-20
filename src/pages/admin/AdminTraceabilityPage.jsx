@@ -19,36 +19,6 @@ import SecurityIcon from '@mui/icons-material/Security';
 import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
 import ArticleIcon from '@mui/icons-material/Article';
 
-const defaultFallbackLogs = [
-  {
-    id: 'sample-1',
-    event_type: 'BOOKING_DISPATCHED',
-    created_at: new Date().toISOString(),
-    booking_id: 'BK-1042',
-    actor_type: 'SYSTEM',
-    actor_id: 'AUTO_DISPATCH_ENGINE',
-    description: 'Booking matched and dispatched to nearest available partner in Fairlands zone.'
-  },
-  {
-    id: 'sample-2',
-    event_type: 'OTP_DOORSTEP_VERIFIED',
-    created_at: new Date(Date.now() - 3600000).toISOString(),
-    booking_id: 'BK-1039',
-    actor_type: 'TECHNICIAN',
-    actor_id: 'TECH-402',
-    description: 'Technician arrived at doorstep. Secure one-time PIN verified by customer.'
-  },
-  {
-    id: 'sample-3',
-    event_type: 'PAYMENT_ESCROW_SETTLED',
-    created_at: new Date(Date.now() - 7200000).toISOString(),
-    booking_id: 'BK-1035',
-    actor_type: 'GATEWAY',
-    actor_id: 'RAZORPAY_ROUTE',
-    description: 'Customer payment authorized. Net payout disbursed to partner bank account.'
-  }
-];
-
 export default function AdminTraceabilityPage() {
   const navigate = useNavigate();
   const [logs, setLogs] = useState([]);
@@ -58,15 +28,15 @@ export default function AdminTraceabilityPage() {
     fetch(`${API_V1_URL}/admin/traceability`)
       .then(res => res.json())
       .then(data => {
-        if (data.success && data.logs && data.logs.length > 0) {
+        if (data.success && Array.isArray(data.logs)) {
           setLogs(data.logs);
         } else {
-          setLogs(defaultFallbackLogs);
+          setLogs([]);
         }
       })
       .catch(err => {
-        console.warn('Using live logs fallback:', err);
-        setLogs(defaultFallbackLogs);
+        console.warn('Real-time audit log fetch note:', err);
+        setLogs([]);
       })
       .finally(() => setLoading(false));
   }, []);
@@ -109,6 +79,16 @@ export default function AdminTraceabilityPage() {
               <CircularProgress size={32} sx={{ color: '#0284C7' }} />
               <Typography variant="caption" sx={{ display: 'block', mt: 1.5, color: '#64748B', fontWeight: 600 }}>
                 Loading audit trail records...
+              </Typography>
+            </Box>
+          ) : logs.length === 0 ? (
+            <Box sx={{ py: 6, textAlign: 'center' }}>
+              <ArticleIcon sx={{ fontSize: 44, color: '#94A3B8', mb: 1.5 }} />
+              <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', mb: 0.5 }}>
+                No Audit Logs Recorded Yet
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#64748B' }}>
+                All system state changes, payments, and dispatch events will be recorded here in real-time.
               </Typography>
             </Box>
           ) : (

@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { NativeNotifier } from '../services/nativeNotify';
@@ -45,12 +45,9 @@ export default function GlobalNotificationWatcher() {
         // A. Technician: Check for New Assigned Job if Online
         if (isPartnerOnline && partnerPhone) {
           try {
-            // Prepare phone: keep only digits, prepend '+' if missing. Use dummy in dev.
+            // Real partner phone: normalized digits
             let digits = partnerPhone.replace(/[^\d]/g, '');
-            let cleanPhone = digits ? `+${digits}` : '';
-            if (import.meta.env.DEV) {
-              cleanPhone = '1234567890';
-            }
+            let cleanPhone = digits ? (digits.length === 10 ? digits : digits.slice(-10)) : '';
             const syncRes = await fetch(`${API_BASE_URL}/api/v1/partner/duty/sync?phone=${encodeURIComponent(cleanPhone)}`);
             const syncData = await syncRes.json();
 

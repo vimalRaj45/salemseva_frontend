@@ -50,46 +50,29 @@ export default function WalletHubPage() {
 
   const [copied, setCopied] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
-  const [transactions, setTransactions] = useState([
-    {
-      id: 'tx-001',
-      title: 'Welcome Signup Bonus',
-      amount: 50,
-      type: 'CREDIT',
-      category: 'SIGNUP_BONUS',
-      timestamp: 'Sep 25, 2026',
-      description: 'Instant +50 Seva Credits for registering on Shazu One'
-    },
-    {
-      id: 'tx-002',
-      title: 'Referral: Kavitha (1st Service Done)',
-      amount: 100,
-      type: 'CREDIT',
-      category: 'REFERRAL_REWARD',
-      timestamp: 'Sep 28, 2026',
-      description: 'Friend Kavitha completed AC service in Meyyanur (+100 Credits)'
-    }
-  ]);
+  const [transactions, setTransactions] = useState([]);
   const [referralStats, setReferralStats] = useState({
-    friendsInvited: 3,
-    friendsCompleted: 1,
-    creditsEarned: 100
+    friendsInvited: 0,
+    friendsCompleted: 0,
+    creditsEarned: 0
   });
 
-  const myReferralCode = user?.referralCodeUsed || 'SALEM100';
+  const myReferralCode = user?.referralCodeUsed || 'SHAZU100';
 
   useEffect(() => {
     fetch(`${API_V1_URL}/wallet/customer`)
       .then(res => res.json())
       .then(data => {
         if (data.success) {
-          if (data.transactions && data.transactions.length > 0) {
+          if (Array.isArray(data.transactions)) {
             setTransactions(data.transactions);
+          } else {
+            setTransactions([]);
           }
           setReferralStats({
-            friendsInvited: data.friendsInvited || 3,
-            friendsCompleted: data.friendsCompleted || 1,
-            creditsEarned: data.creditsEarnedFromReferrals || 100
+            friendsInvited: data.friendsInvited || 0,
+            friendsCompleted: data.friendsCompleted || 0,
+            creditsEarned: data.creditsEarnedFromReferrals || 0
           });
         }
       })
@@ -505,51 +488,59 @@ export default function WalletHubPage() {
               </Typography>
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                {transactions.map((tx, idx) => {
-                  const isCredit = tx.type === 'CREDIT';
-                  return (
-                    <Box key={tx.id || idx}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 0.8 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
-                          <Box
+                {transactions.length === 0 ? (
+                  <Box sx={{ py: 3, textAlign: 'center' }}>
+                    <Typography variant="body2" sx={{ color: '#64748B', fontSize: '13px' }}>
+                      No wallet transactions yet. Referral bonuses and credits used at checkout will be recorded here in real-time.
+                    </Typography>
+                  </Box>
+                ) : (
+                  transactions.map((tx, idx) => {
+                    const isCredit = tx.type === 'CREDIT';
+                    return (
+                      <Box key={tx.id || idx}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 0.8 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                            <Box
+                              sx={{
+                                bgcolor: isCredit ? '#DCFCE7' : '#FEE2E2',
+                                p: 0.8,
+                                borderRadius: '10px',
+                                color: isCredit ? '#166534' : '#991B1B',
+                                display: 'flex'
+                              }}
+                            >
+                              {isCredit ? (
+                                tx.category === 'SIGNUP_BONUS' ? <CardGiftcardIcon sx={{ fontSize: 18 }} /> : <GroupAddIcon sx={{ fontSize: 18 }} />
+                              ) : (
+                                <ShoppingBagIcon sx={{ fontSize: 18 }} />
+                              )}
+                            </Box>
+                            <Box>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '12.5px', lineHeight: 1.2 }}>
+                                {tx.title}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: '#475569', fontSize: '11px' }}>
+                                {formatTxDate(tx.timestamp)} • {tx.description || (isCredit ? 'Credited to wallet' : 'Burned at checkout')}
+                              </Typography>
+                            </Box>
+                          </Box>
+                          <Typography
+                            variant="subtitle2"
                             sx={{
-                              bgcolor: isCredit ? '#DCFCE7' : '#FEE2E2',
-                              p: 0.8,
-                              borderRadius: '10px',
-                              color: isCredit ? '#166534' : '#991B1B',
-                              display: 'flex'
+                              fontWeight: 900,
+                              color: isCredit ? '#047857' : '#DC2626',
+                              fontSize: '13.5px'
                             }}
                           >
-                            {isCredit ? (
-                              tx.category === 'SIGNUP_BONUS' ? <CardGiftcardIcon sx={{ fontSize: 18 }} /> : <GroupAddIcon sx={{ fontSize: 18 }} />
-                            ) : (
-                              <ShoppingBagIcon sx={{ fontSize: 18 }} />
-                            )}
-                          </Box>
-                          <Box>
-                            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '12.5px', lineHeight: 1.2 }}>
-                              {tx.title}
-                            </Typography>
-                            <Typography variant="caption" sx={{ color: '#475569', fontSize: '11px' }}>
-                              {formatTxDate(tx.timestamp)} • {tx.description || (isCredit ? 'Credited to wallet' : 'Burned at checkout')}
-                            </Typography>
-                          </Box>
+                            {isCredit ? `+${tx.amount}` : `-${tx.amount}`} Credits
+                          </Typography>
                         </Box>
-                        <Typography
-                          variant="subtitle2"
-                          sx={{
-                            fontWeight: 900,
-                            color: isCredit ? '#047857' : '#DC2626',
-                            fontSize: '13.5px'
-                          }}
-                        >
-                          {isCredit ? `+${tx.amount}` : `-${tx.amount}`} Credits
-                        </Typography>
+                        {idx < transactions.length - 1 && <Divider sx={{ my: 0.6 }} />}
                       </Box>
-                      {idx < transactions.length - 1 && <Divider sx={{ my: 0.6 }} />}
-                    </Box>
-                  );
-                })}
+                    );
+                  })
+                )}
               </Box>
             </Card>
 

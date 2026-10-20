@@ -105,10 +105,30 @@ export default function CustomerHomePage() {
         const res = await fetch(`${API_V1_URL}/technicians`);
         const data = await res.json();
         if (data.success && Array.isArray(data.technicians)) {
-          setOnlineTechnicians(data.technicians.filter(t => t.isOnline !== false));
+          const tradeNames = {
+            ac: 'AC Master Specialist',
+            electrician: 'Senior Certified Electrician',
+            plumber: 'Master Sanitary Plumber',
+            cleaning: 'Deep Cleaning Specialist'
+          };
+          const mapped = data.technicians.map(t => ({
+            id: t.id,
+            name: t.name || t.full_name,
+            trade: t.trade || t.primary_trade,
+            tradeName: t.tradeName || tradeNames[t.trade || t.primary_trade] || 'Certified Specialist',
+            ratingAvg: parseFloat(t.ratingAvg || t.rating_avg || 5.0),
+            jobsCompleted: parseInt(t.jobsCompleted ?? t.jobs_completed_count ?? 0, 10),
+            serviceArea: t.serviceArea || ((t.assigned_localities && t.assigned_localities[0]) ? `${t.assigned_localities[0]}, Salem` : 'Fairlands, Salem'),
+            experienceYears: t.experienceYears || t.years_experience || 5,
+            isOnline: Boolean(t.is_online ?? t.isOnline ?? true)
+          }));
+          setOnlineTechnicians(mapped.filter(t => t.isOnline));
+        } else {
+          setOnlineTechnicians([]);
         }
       } catch (e) {
         console.warn('Failed to load online technicians:', e);
+        setOnlineTechnicians([]);
       }
     }
     loadOnlineTechs();
@@ -730,49 +750,7 @@ export default function CustomerHomePage() {
 
         {/* Active Specialists On Duty in Salem (Live Availability & Neighborhood Trust) */}
         {(() => {
-          const displayTechs = (onlineTechnicians && onlineTechnicians.length > 0) ? onlineTechnicians : [
-            {
-              id: 'tech_1',
-              name: 'Ramesh Kumar',
-              trade: 'ac',
-              tradeName: 'AC Master Specialist',
-              ratingAvg: 4.9,
-              jobsCompleted: 142,
-              serviceArea: 'Fairlands, Salem',
-              experienceYears: 8
-            },
-            {
-              id: 'tech_2',
-              name: 'Senthil Nathan',
-              trade: 'electrician',
-              tradeName: 'Senior Certified Electrician',
-              ratingAvg: 4.85,
-              jobsCompleted: 198,
-              serviceArea: 'Hasthampatti, Salem',
-              experienceYears: 10
-            },
-            {
-              id: 'tech_3',
-              name: 'V. Karthikeyan',
-              trade: 'plumber',
-              tradeName: 'Master Sanitary Plumber',
-              ratingAvg: 4.92,
-              jobsCompleted: 115,
-              serviceArea: 'Suramangalam, Salem',
-              experienceYears: 7
-            },
-            {
-              id: 'tech_4',
-              name: 'M. Anand',
-              trade: 'cleaning',
-              tradeName: 'Deep Cleaning Specialist',
-              ratingAvg: 4.88,
-              jobsCompleted: 86,
-              serviceArea: 'Ammapet, Salem',
-              experienceYears: 5
-            }
-          ];
-
+          const displayTechs = onlineTechnicians || [];
           const filteredTechs = displayTechs.filter(t => techTradeFilter === 'all' || t.trade === techTradeFilter);
 
           return (
@@ -823,8 +801,15 @@ export default function CustomerHomePage() {
                 ))}
               </Box>
 
-              <Grid container spacing={1.5}>
-                {(filteredTechs.length > 0 ? filteredTechs : displayTechs).slice(0, 4).map((tech) => (
+              {displayTechs.length === 0 ? (
+                <Paper elevation={0} sx={{ p: 2.5, textAlign: 'center', bgcolor: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+                  <Typography variant="body2" sx={{ color: '#64748B', fontSize: '13px' }}>
+                    Specialists are currently offline or completing ongoing visits. You can select any service above to reserve an advance slot with Salem Central Ops.
+                  </Typography>
+                </Paper>
+              ) : (
+                <Grid container spacing={1.5}>
+                  {(filteredTechs.length > 0 ? filteredTechs : displayTechs).slice(0, 4).map((tech) => (
                   <Grid item xs={12} sm={6} md={3} key={tech.id}>
                     <Paper
                       elevation={0}
@@ -909,6 +894,7 @@ export default function CustomerHomePage() {
                   </Grid>
                 ))}
               </Grid>
+              )}
             </Box>
           );
         })()}

@@ -143,11 +143,16 @@ export default function BookingHistoryPage() {
     fetch(`${API_V1_URL}/bookings/history`)
       .then(res => res.json())
       .then(data => {
-        if (data.success && data.bookings && data.bookings.length > 0) {
+        if (data.success && Array.isArray(data.bookings)) {
           setBookings(data.bookings);
+        } else {
+          setBookings([]);
         }
       })
-      .catch(err => console.warn('History fetch:', err))
+      .catch(err => {
+        console.warn('Real-time history fetch note:', err);
+        setBookings([]);
+      })
       .finally(() => setIsLoading(false));
   };
 

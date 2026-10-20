@@ -92,24 +92,28 @@ export default function MatchingPage() {
   const matchedDbTechs = dbTechnicians.filter(t => (t.trade || '').toLowerCase() === currentServiceId.toLowerCase());
   const technicianCandidates = matchedDbTechs.length > 0 ? matchedDbTechs : dbTechnicians;
 
+  const candidate = technicianCandidates[techIndex] || technicianCandidates[0] || null;
   const currentTech = (trackData?.technician && trackData.technician.name) ? {
     id: trackData.technician.id,
     name: trackData.technician.name,
     trade: trackData.technician.trade || `${(trackData.technician.primaryTrade || currentServiceId).toUpperCase()} Specialist`,
-    rating: trackData.technician.rating || trackData.technician.ratingAvg || 4.9,
-    jobsCount: trackData.technician.jobsCompleted || 350,
-    distance: trackData.technician.distanceKm ? `${trackData.technician.distanceKm} km away` : '1.2 km away',
+    rating: trackData.technician.rating || trackData.technician.ratingAvg || (trackData.technician.rating_avg ? parseFloat(trackData.technician.rating_avg) : 5.0),
+    jobsCount: trackData.technician.jobsCompleted || trackData.technician.jobs_completed_count || 0,
+    distance: trackData.technician.distanceKm ? `${trackData.technician.distanceKm} km away` : 'Nearby',
     locality: trackData.technician.serviceArea || trackData.technician.locality || 'Fairlands, Salem',
-    eta: trackData.technician.eta || '12 mins',
+    eta: trackData.technician.eta || '15 mins',
     phone: trackData.technician.phone
-  } : (technicianCandidates[techIndex] || technicianCandidates[0] || {
-    name: 'Salem Verified Specialist',
-    trade: `${currentServiceId.toUpperCase()} Service`,
-    rating: 4.9,
-    jobsCount: 150,
+  } : candidate ? {
+    id: candidate.id,
+    name: candidate.name,
+    trade: candidate.tradeName || `${(candidate.trade || currentServiceId).toUpperCase()} Specialist`,
+    rating: candidate.ratingAvg || 5.0,
+    jobsCount: candidate.jobsCompleted || 0,
     distance: 'Nearby',
-    locality: 'Salem Central Zone'
-  });
+    locality: candidate.serviceArea || 'Salem Central Zone',
+    eta: '15 mins',
+    phone: candidate.phone
+  } : null;
 
 
   useEffect(() => {
@@ -491,49 +495,57 @@ export default function MatchingPage() {
               />
 
               {/* Technician Candidate Preview */}
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 1.5,
-                  bgcolor: '#F8FAFC',
-                  border: '1px solid #E2E8F0',
-                  borderRadius: '6px',
-                  mb: 1.5
-                }}
-              >
-                <Box sx={{ display: 'flex', gap: 1.2, alignItems: 'center' }}>
-                  <Avatar sx={{ bgcolor: '#2563EB', width: 42, height: 42, borderRadius: '6px' }}>
-                    <EngineeringIcon sx={{ fontSize: 24, color: '#FFF' }} />
-                  </Avatar>
-                  <Box sx={{ flex: 1 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#0F172A', fontSize: '13.5px' }}>
-                        {currentTech.name}
+              {currentTech ? (
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 1.5,
+                    bgcolor: '#F8FAFC',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '6px',
+                    mb: 1.5
+                  }}
+                >
+                  <Box sx={{ display: 'flex', gap: 1.2, alignItems: 'center' }}>
+                    <Avatar sx={{ bgcolor: '#2563EB', width: 42, height: 42, borderRadius: '6px' }}>
+                      <EngineeringIcon sx={{ fontSize: 24, color: '#FFF' }} />
+                    </Avatar>
+                    <Box sx={{ flex: 1 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#0F172A', fontSize: '13.5px' }}>
+                          {currentTech.name}
+                        </Typography>
+                        <Chip
+                          icon={<CheckCircleIcon sx={{ color: '#16A34A !important', fontSize: 12 }} />}
+                          label="Verified Partner"
+                          size="small"
+                          sx={{ bgcolor: '#F0FDF4', color: '#166534', fontWeight: 600, fontSize: '9.5px', height: 18 }}
+                        />
+                      </Box>
+                      <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontSize: '11px' }}>
+                        {currentTech.trade} • {currentTech.jobsCount} jobs completed in Salem
                       </Typography>
-                      <Chip
-                        icon={<CheckCircleIcon sx={{ color: '#16A34A !important', fontSize: 12 }} />}
-                        label="DigiLocker verified"
-                        size="small"
-                        sx={{ bgcolor: '#F0FDF4', color: '#166534', fontWeight: 600, fontSize: '9.5px', height: 18 }}
-                      />
-                    </Box>
-                    <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontSize: '11px' }}>
-                      {currentTech.trade} • {currentTech.jobsCount} jobs completed in Salem
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.3 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.2 }}>
-                        <StarIcon sx={{ color: '#D97706', fontSize: 13 }} />
-                        <Typography variant="caption" sx={{ fontWeight: 600, color: '#0F172A', fontSize: '11px' }}>
-                          {currentTech.rating}
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.3 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.2 }}>
+                          <StarIcon sx={{ color: '#D97706', fontSize: 13 }} />
+                          <Typography variant="caption" sx={{ fontWeight: 600, color: '#0F172A', fontSize: '11px' }}>
+                            {currentTech.rating}
+                          </Typography>
+                        </Box>
+                        <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11px' }}>
+                          • {currentTech.distance} ({currentTech.locality})
                         </Typography>
                       </Box>
-                      <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11px' }}>
-                        • {currentTech.distance} ({currentTech.locality})
-                      </Typography>
                     </Box>
                   </Box>
+                </Paper>
+              ) : (
+                <Box sx={{ p: 2, textAlign: 'center', bgcolor: '#F8FAFC', borderRadius: '6px', mb: 1.5 }}>
+                  <Typography variant="body2" sx={{ color: '#64748B', fontSize: '12px' }}>
+                    Searching for nearest active specialists in your area...
+                  </Typography>
                 </Box>
-              </Paper>
+              )}
 
               <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 2, fontSize: '11px' }}>
                 Technician has 2 minutes to confirm availability. If busy, we will immediately cycle to the next verified partner in your Salem zone.
@@ -555,7 +567,7 @@ export default function MatchingPage() {
                 <CircularProgress size={20} thickness={5} sx={{ color: '#2563EB', flexShrink: 0 }} />
                 <Box>
                   <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#1E40AF', fontSize: '12.5px', lineHeight: 1.2 }}>
-                    Awaiting {currentTech.name}'s acceptance...
+                    Awaiting {currentTech?.name || 'technician'}'s acceptance...
                   </Typography>
                   <Typography variant="caption" sx={{ color: '#3B82F6', fontSize: '11px', display: 'block', mt: 0.2 }}>
                     As soon as technician accepts on their partner app, you will automatically transition to live GPS tracking.
@@ -860,22 +872,22 @@ export default function MatchingPage() {
                       borderRadius: '10px'
                     }}
                   >
-                    {currentTech.name.charAt(0)}
+                    {currentTech?.name ? currentTech.name.charAt(0) : 'T'}
                   </Avatar>
                   <Box>
                     <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '15px', lineHeight: 1.2 }}>
-                      {trackData?.technician?.name || currentTech.name}
+                      {trackData?.technician?.name || currentTech?.name || 'Assigned Specialist'}
                     </Typography>
                     <Typography variant="body2" sx={{ color: '#166534', fontWeight: 600, fontSize: '12px' }}>
-                      {currentTech.trade}
+                      {currentTech?.trade || 'Verified Specialist'}
                     </Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, mt: 0.2 }}>
                       <StarIcon sx={{ color: '#EAB308', fontSize: 14 }} />
                       <Typography variant="caption" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '11.5px' }}>
-                        {currentTech.rating}
+                        {currentTech?.rating || 5.0}
                       </Typography>
                       <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11px' }}>
-                        • {currentTech.jobsCount} jobs • {currentTech.distance}
+                        • {currentTech?.jobsCount || 0} jobs • {currentTech?.distance || 'Nearby'}
                       </Typography>
                     </Box>
                   </Box>
@@ -1052,7 +1064,7 @@ export default function MatchingPage() {
               Payment Window Expired (2 mins)
             </Typography>
             <Typography variant="body2" sx={{ color: '#64748B', fontSize: '12.5px', mb: 2.5, lineHeight: 1.45 }}>
-              The ₹99 inspection advance was not completed in time, so {currentTech.name}'s provisional assignment was released to other Salem customers.
+              The ₹99 inspection advance was not completed in time, so {currentTech?.name || 'the specialist'}'s provisional assignment was released to other Salem customers.
             </Typography>
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>

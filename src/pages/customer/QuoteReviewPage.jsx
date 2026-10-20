@@ -84,7 +84,7 @@ export default function QuoteReviewPage() {
   // Calculate breakdown
   const rawLaborCost = items
     .reduce((s, i) => s + (parseFloat(i.price) || 0) * (parseInt(i.qty, 10) || 1), 0);
-  const laborCost = rawLaborCost > 0 ? rawLaborCost : 250;
+  const laborCost = rawLaborCost;
 
   // Platform Fee is strictly 5% of Labor / Work Charge
   const platformFee = Math.round(laborCost * 0.05 * 100) / 100;
@@ -188,6 +188,12 @@ export default function QuoteReviewPage() {
                 <Skeleton variant="text" width="30%" height={20} />
               </Box>
             ))
+          ) : items.length === 0 ? (
+            <Box sx={{ py: 2.5, textAlign: 'center' }}>
+              <Typography variant="body2" sx={{ color: '#64748B', fontSize: '12.5px' }}>
+                Technician is inspecting and preparing the itemized labor tasks.
+              </Typography>
+            </Box>
           ) : (
             items.map((item, idx) => (
               <Box key={item.id || idx} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 0.8 }}>
