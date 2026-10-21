@@ -1,4 +1,4 @@
-﻿// Shazu One Progressive Web App Service Worker (v1.0.0)
+// Shazu One Progressive Web App Service Worker (v1.0.0)
 const CACHE_NAME = 'Shazu One-core-v1';
 const STATIC_ASSETS = [
   '/',
@@ -103,30 +103,72 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Push notification listener (ready for background ops notifications)
+// Push notification listener (Background VoIP call & dispatch notifications)
 self.addEventListener('push', (event) => {
-  if (event.data) {
-    try {
-      const payload = event.data.json();
-      const options = {
-        body: payload.body || 'Shazu One Service Notification',
-        icon: '/icons/icon-192x192.png',
-        badge: '/favicon.png',
-        vibrate: [200, 100, 200],
-        data: payload.url || '/'
-      };
-      event.waitUntil(self.registration.showNotification(payload.title || 'Shazu One', options));
-    } catch (_) {}
-  }
+  if (!event.data) return;
+
+  try {
+    const payload = event.data.json();
+    const isCall = payload.type === 'call' || payload.type === 'VOIP_INCOMING_CALL';
+    const isNewJob = payload.type === 'new_job';
+
+    let actions = [];
+    if (isCall) {
+      actions = [
+        { action: 'answer', title: 'Answer Call' },
+        { action: 'decline', title: 'Decline' }
+      ];
+    } else if (isNewJob) {
+      actions = [
+        { action: 'view_job', title: 'View & Accept' }
+      ];
+    }
+
+    const options = {
+      body: payload.body || 'Shazu One Service Notification',
+      icon: '/icons/icon-192x192.png',
+      badge: '/favicon.png',
+      tag: isCall ? `call-${payload.bookingId || Date.now()}` : `notif-${Date.now()}`,
+      renotify: true,
+      requireInteraction: isCall || isNewJob,
+      vibrate: isCall ? [400, 150, 400, 1800, 400, 150, 400] : [200, 100, 200],
+      actions: actions,
+      data: {
+        url: payload.url || (payload.role === 'customer' ? `/track?bookingId=${payload.bookingId}` : '/partner'),
+        bookingId: payload.bookingId,
+        type: payload.type || 'info',
+        role: payload.role
+      }
+    };
+
+    event.waitUntil(self.registration.showNotification(payload.title || 'Shazu One', options));
+  } catch (_) {}
 });
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const targetUrl = event.notification.data || '/';
+  const notifData = event.notification.data || {};
+  let targetUrl = notifData.url || '/';
+
+  if (event.action === 'answer' && notifData.bookingId) {
+    targetUrl = notifData.role === 'customer'
+      ? `/track?bookingId=${notifData.bookingId}&autoAnswer=true`
+      : `/partner?bookingId=${notifData.bookingId}&autoAnswer=true`;
+  } else if (event.action === 'decline' && notifData.bookingId) {
+    // Send decline beacon
+    fetch(`/api/v1/webrtc/call/end`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bookingId: notifData.bookingId, role: notifData.role || 'technician' })
+    }).catch(() => {});
+    return;
+  }
+
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
       for (const client of windowClients) {
         if (client.url.includes(self.location.origin) && 'focus' in client) {
+          client.navigate(targetUrl);
           return client.focus();
         }
       }

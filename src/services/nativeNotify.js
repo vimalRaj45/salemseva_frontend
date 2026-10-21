@@ -1,6 +1,7 @@
-﻿import { Capacitor } from '@capacitor/core';
+import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Haptics, NotificationType } from '@capacitor/haptics';
+import { RingtoneService } from './RingtoneService';
 
 class NativeNotificationService {
   constructor() {
@@ -85,9 +86,10 @@ class NativeNotificationService {
     } catch (e) {}
   }
 
-  // Trigger Incoming Call Alert (High Priority Heads-Up Banner & Continuous Vibration)
+  // Trigger Incoming Call Alert (High Priority Heads-Up Banner, WhatsApp-Style Continuous Ringtone & Vibration)
   async notifyIncomingCall({ callerName, bookingId, role }) {
-    this.vibrateCall();
+    // 1. Play continuous WhatsApp-style rhythmic chime ringtone
+    RingtoneService.startRinging();
 
     try {
       if (this.isNative) {
@@ -96,7 +98,7 @@ class NativeNotificationService {
             {
               id: Math.floor(Date.now() % 100000),
               title: `Incoming Call: ${callerName}`,
-              body: `Tap to answer incoming VoIP call for Booking #${bookingId}`,
+              body: `Incoming VoIP Call for Booking #${bookingId}. Tap to answer.`,
               schedule: { at: new Date(Date.now() + 50) },
               sound: 'default',
               smallIcon: 'ic_launcher',
@@ -108,21 +110,42 @@ class NativeNotificationService {
           ]
         });
       } else if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-        new Notification(`Incoming Call: ${callerName}`, {
-          body: `Tap to answer incoming VoIP call for Booking #${bookingId}`,
+        const notif = new Notification(`Incoming Call: ${callerName}`, {
+          body: `Incoming VoIP Call for Booking #${bookingId}. Click to answer.`,
           icon: '/logo.png',
           badge: '/logo.png',
-          tag: `call-${bookingId}`
+          tag: `call-${bookingId}`,
+          renotify: true,
+          requireInteraction: true,
+          data: { bookingId, role, type: 'call' }
         });
+
+        notif.onclick = () => {
+          window.focus();
+          notif.close();
+          RingtoneService.stopRinging();
+          const targetUrl = (role === 'customer' || role === 'Customer')
+            ? `/track?bookingId=${bookingId}&autoAnswer=true`
+            : `/partner?bookingId=${bookingId}&autoAnswer=true`;
+          if (window.location.pathname !== targetUrl.split('?')[0]) {
+            window.location.href = targetUrl;
+          }
+        };
       }
     } catch (e) {
       console.warn('Call notification error:', e);
     }
   }
 
+  // Stop Ringtone Audio
+  stopCallRingtone() {
+    RingtoneService.stopRinging();
+  }
+
   // Trigger New Work / Job Assigned Notification
   async notifyNewWorkAssigned({ serviceTitle, locality, bookingId, price }) {
-    this.vibrateCall();
+    // Play alert chime
+    RingtoneService.playNotificationChime();
 
     try {
       if (this.isNative) {
@@ -143,12 +166,19 @@ class NativeNotificationService {
           ]
         });
       } else if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-        new Notification(`New Service Assigned: ${serviceTitle || 'Home Service'}`, {
-          body: `Customer waiting in ${locality || 'Salem'}. Estimated: ₹${price || '299'}. Tap to review & accept.`,
+        const notif = new Notification(`New Service Assigned: ${serviceTitle || 'Home Service'}`, {
+          body: `Customer waiting in ${locality || 'Salem'}. Estimated: ₹${price || '299'}. Click to review & accept.`,
           icon: '/logo.png',
           badge: '/logo.png',
-          tag: `job-${bookingId}`
+          tag: `job-${bookingId}`,
+          requireInteraction: true
         });
+
+        notif.onclick = () => {
+          window.focus();
+          notif.close();
+          window.location.href = '/partner';
+        };
       }
     } catch (e) {
       console.warn('Job assigned notification error:', e);
@@ -157,6 +187,8 @@ class NativeNotificationService {
 
   // Trigger Incoming Chat Message Alert
   async notifyIncomingMessage({ senderName, messageText, bookingId }) {
+    RingtoneService.playNotificationChime();
+
     try {
       if (this.isNative) {
         await Haptics.notification({ type: NotificationType.Success });

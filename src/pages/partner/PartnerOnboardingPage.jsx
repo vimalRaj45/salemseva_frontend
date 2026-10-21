@@ -44,6 +44,21 @@ const ONBOARDING_STEPS = [
   { label: 'Payout Phone', tamil: 'கொடுப்பனவு எண்' }
 ];
 
+const SALEM_LOCALITIES = [
+  { id: 'Fairlands', name: 'Fairlands', tamil: 'ஃபேர்லான்ட்ஸ்' },
+  { id: 'Hasthampatti', name: 'Hasthampatti', tamil: 'அஸ்தம்பட்டி' },
+  { id: 'Alagapuram', name: 'Alagapuram', tamil: 'அழகாகபுரம்' },
+  { id: 'Suramangalam', name: 'Suramangalam / Junction', tamil: 'சூரமங்கலம் / ஜங்ஷன்' },
+  { id: 'Meyyanur', name: 'Meyyanur', tamil: 'மெய்யனூர்' },
+  { id: 'Ammapet', name: 'Ammapet', tamil: 'அம்மாபேட்டை' },
+  { id: 'Shevapet', name: 'Shevapet', tamil: 'செவ்வாய்பேட்டை' },
+  { id: 'Gugai', name: 'Gugai', tamil: 'குகை' },
+  { id: 'Kondalampatti', name: 'Kondalampatti', tamil: 'கொண்டலாம்பட்டி' },
+  { id: 'Gorimedu', name: 'Gorimedu', tamil: 'கோரிமேடு' },
+  { id: 'Kannankurichi', name: 'Kannankurichi (Yercaud Foothills)', tamil: 'கண்ணங்குறிச்சி' },
+  { id: 'Steel Plant Area', name: 'Steel Plant Area', tamil: 'ஸ்டீல் பிளாண்ட்' }
+];
+
 export default function PartnerOnboardingPage() {
   const navigate = useNavigate();
   const { rewardSettings, loginAsTechnician, user } = useAuth();
@@ -56,6 +71,12 @@ export default function PartnerOnboardingPage() {
   const [name, setName] = useState(() => searchParams.get('name') || user?.name || '');
   const [trade, setTrade] = useState(() => searchParams.get('trade') || user?.trade || 'ac');
   const [yearsExperience, setYearsExperience] = useState(() => searchParams.get('exp') || user?.years_experience || user?.experienceYears || '');
+  const [selectedLocalities, setSelectedLocalities] = useState(() => {
+    if (user?.assignedLocalities && Array.isArray(user.assignedLocalities) && user.assignedLocalities.length > 0) {
+      return user.assignedLocalities;
+    }
+    return ['Fairlands', 'Hasthampatti'];
+  });
   const [aadhaar, setAadhaar] = useState(() => user?.aadhaarNumber || '');
   const [aadhaarCardUrl, setAadhaarCardUrl] = useState(() => user?.aadhaarCardUrl || null);
   const [payoutPhone, setPayoutPhone] = useState(() => user?.payoutPhone || mobile || '');
@@ -80,6 +101,10 @@ export default function PartnerOnboardingPage() {
       }
       if (yearsExperience === '' || isNaN(parseInt(yearsExperience, 10)) || parseInt(yearsExperience, 10) < 0) {
         toast.error('உங்கள் பணி அனுபவத்தை உள்ளிடவும் (Please enter valid work experience in years)');
+        return;
+      }
+      if (!selectedLocalities || selectedLocalities.length === 0) {
+        toast.error('பணிபுரிய குறைந்தது ஒரு பகுதியையாவது தேர்ந்தெடுக்கவும் (Please select at least one area you are willing to work in Salem)');
         return;
       }
       setActiveStep(1);
@@ -132,6 +157,8 @@ export default function PartnerOnboardingPage() {
         password,
         trade,
         yearsExperience: parseInt(yearsExperience, 10) || 0,
+        serviceArea: selectedLocalities.join(', '),
+        assignedLocalities: selectedLocalities,
         noPoliceCaseAccepted,
         aadhaar,
         upiId: derivedUpiId,
@@ -167,8 +194,8 @@ export default function PartnerOnboardingPage() {
           upi_vpa: derivedUpi2 || data.technician?.upi_vpa,
           aadhaarCardUrl: aadhaarCardUrl || data.technician?.aadhaar_card_url,
           aadhaarNumber: aadhaar || data.technician?.aadhaar_number,
-          serviceArea: 'Fairlands, Salem',
-          assignedLocalities: ['Fairlands'],
+          serviceArea: selectedLocalities.join(', ') || 'Fairlands, Salem',
+          assignedLocalities: selectedLocalities.length > 0 ? selectedLocalities : ['Fairlands'],
           ratingAvg: 5.0,
           ratingCount: 0,
           jobsCompleted: 0
@@ -201,8 +228,8 @@ export default function PartnerOnboardingPage() {
           upi_vpa: cleanPayout3 ? `${cleanPayout3}@ybl` : '',
           aadhaarCardUrl,
           aadhaarNumber: aadhaar,
-          serviceArea: 'Fairlands, Salem',
-          assignedLocalities: ['Fairlands'],
+          serviceArea: selectedLocalities.join(', ') || 'Fairlands, Salem',
+          assignedLocalities: selectedLocalities.length > 0 ? selectedLocalities : ['Fairlands'],
           ratingAvg: 5.0,
           ratingCount: 0,
           jobsCompleted: 0
@@ -396,6 +423,103 @@ export default function PartnerOnboardingPage() {
                   FormHelperTextProps={{ sx: { color: '#64748B', fontSize: '11px', mt: 0.3 } }}
                   sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', fontWeight: 700 } }}
                 />
+              </Box>
+
+              {/* Working Areas in Salem (Multiple Select) */}
+              <Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.6, flexWrap: 'wrap', gap: 0.5 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 800, color: '#64748B', display: 'block' }}>
+                    பணிபுரிய விரும்பும் பகுதிகள் (AREAS WILLING TO WORK IN SALEM) *
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 0.8, alignItems: 'center' }}>
+                    <Chip
+                      size="small"
+                      label={`${selectedLocalities.length} Selected`}
+                      sx={{
+                        bgcolor: selectedLocalities.length > 0 ? '#E0F2FE' : '#F1F5F9',
+                        color: selectedLocalities.length > 0 ? '#0284C7' : '#64748B',
+                        fontWeight: 800,
+                        fontSize: '10.5px',
+                        height: 20
+                      }}
+                    />
+                    <Button
+                      size="small"
+                      onClick={() => {
+                        if (selectedLocalities.length === SALEM_LOCALITIES.length) {
+                          setSelectedLocalities(['Fairlands']);
+                        } else {
+                          setSelectedLocalities(SALEM_LOCALITIES.map((l) => l.name));
+                        }
+                      }}
+                      sx={{
+                        textTransform: 'none',
+                        fontSize: '11px',
+                        fontWeight: 800,
+                        py: 0,
+                        px: 0.8,
+                        minWidth: 0,
+                        color: '#0284C7'
+                      }}
+                    >
+                      {selectedLocalities.length === SALEM_LOCALITIES.length ? 'Reset (மீட்டமை)' : 'Select All (முழு சேலம்)'}
+                    </Button>
+                  </Box>
+                </Box>
+                <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11px', display: 'block', mb: 1 }}>
+                  சேலத்தில் நீங்கள் பணியாற்ற விரும்பும் பகுதிகளைத் தேர்வு செய்யவும் (ஒன்று அல்லது பல பகுதிகளைத் தேர்ந்தெடுக்கலாம்):
+                </Typography>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: 0.8,
+                    p: 1.2,
+                    bgcolor: '#FFFFFF',
+                    border: '1.5px solid #E2E8F0',
+                    borderRadius: '12px',
+                    '&:hover': { borderColor: '#CBD5E1' }
+                  }}
+                >
+                  {SALEM_LOCALITIES.map((loc) => {
+                    const isSelected = selectedLocalities.includes(loc.name);
+                    return (
+                      <Chip
+                        key={loc.id}
+                        label={`${loc.name} (${loc.tamil})`}
+                        icon={isSelected ? <CheckCircleIcon sx={{ fontSize: '14px !important', color: '#FFFFFF !important' }} /> : undefined}
+                        onClick={() => {
+                          if (isSelected) {
+                            if (selectedLocalities.length === 1) {
+                              toast.warning('குறைந்தது ஒரு பகுதியாவது தேர்ந்தெடுக்கப்பட வேண்டும்');
+                              return;
+                            }
+                            setSelectedLocalities(selectedLocalities.filter((item) => item !== loc.name));
+                          } else {
+                            setSelectedLocalities([...selectedLocalities, loc.name]);
+                          }
+                        }}
+                        clickable
+                        size="small"
+                        sx={{
+                          minHeight: 34,
+                          px: 0.5,
+                          borderRadius: '8px',
+                          fontWeight: 700,
+                          fontSize: '11.5px',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                          bgcolor: isSelected ? '#0284C7' : '#F8FAFC',
+                          color: isSelected ? '#FFFFFF' : '#334155',
+                          border: isSelected ? '1.5px solid #0284C7' : '1px solid #CBD5E1',
+                          '&:hover': {
+                            bgcolor: isSelected ? '#0369A1' : '#F1F5F9'
+                          }
+                        }}
+                      />
+                    );
+                  })}
+                </Box>
               </Box>
 
               {/* Technician Referral Code Field */}

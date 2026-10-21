@@ -83,6 +83,20 @@ export default function TrackingPage() {
   // Guard against double escrow release
   const escrowReleasedRef = useRef(false);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('autoAnswer') === 'true') {
+      setIsIncomingCall(true);
+      setCallOpen(true);
+    }
+    const handleOpenActiveCall = () => {
+      setIsIncomingCall(true);
+      setCallOpen(true);
+    };
+    window.addEventListener('shazuone_open_active_call', handleOpenActiveCall);
+    return () => window.removeEventListener('shazuone_open_active_call', handleOpenActiveCall);
+  }, []);
+
   const [incomingMessageToast, setIncomingMessageToast] = useState(null);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
 
@@ -839,7 +853,7 @@ export default function TrackingPage() {
 
                             {/* Masked Communication Notice */}
                             <Typography variant="caption" sx={{ display: 'block', color: '#166534', fontWeight: 600, fontSize: '10.5px', mb: 1.2, bgcolor: '#F0FDF4', p: 0.6, borderRadius: '6px' }}>
-                              🔒 Masked privacy relay active • Call & Chat directly with your technician
+                              Masked privacy relay active • Call & Chat directly with your technician
                             </Typography>
 
                             {/* Direct Communication Action Buttons */}
@@ -1842,6 +1856,7 @@ export default function TrackingPage() {
       <VoipCallModal 
         open={callOpen} 
         onClose={() => {
+          NativeNotifier.stopCallRingtone();
           setCallOpen(false);
           setIsIncomingCall(false);
         }} 

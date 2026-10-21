@@ -107,6 +107,33 @@ import { NativeNotifier } from '../../services/nativeNotify';
 import { API_V1_URL } from '../../config';
 import { resolveMediaUrl } from '../../utils/mediaUtils';
 
+// Helper to strictly match job lead locality against technician's chosen operating areas
+const isLeadInTechnicianLocalities = (lead, localities) => {
+  if (!lead) return false;
+  if (!localities || !Array.isArray(localities) || localities.length === 0) return true;
+  
+  const leadLoc = String(lead.locality || '').toLowerCase().trim();
+  const leadAddr = String(lead.address || lead.service_address || lead.serviceAddress || '').toLowerCase().trim();
+
+  return localities.some(rawLoc => {
+    if (!rawLoc) return false;
+    const clean = String(rawLoc).toLowerCase().trim();
+    if (!clean) return false;
+
+    // Direct match or substring
+    if (leadLoc && (leadLoc === clean || leadLoc.includes(clean) || clean.includes(leadLoc))) return true;
+    if (leadAddr && leadAddr.includes(clean)) return true;
+
+    // Sub-tokens (e.g. "Suramangalam / Junction" -> "suramangalam", "junction")
+    const parts = clean.split(/[\/,]+/).map(p => p.trim()).filter(Boolean);
+    for (const part of parts) {
+      if (leadLoc && (leadLoc === part || leadLoc.includes(part) || part.includes(leadLoc))) return true;
+      if (leadAddr && leadAddr.includes(part)) return true;
+    }
+    return false;
+  });
+};
+
 export default function PartnerDutyPage() {
   const navigate = useNavigate();
   const { user, techUser, updateUser, loginTech, logoutTech, loginAsTechnician, partnerIncentives, referTechnician, claimPartnerPayout, dbTechnicians, rewardSettings } = useAuth();
@@ -122,6 +149,8 @@ export default function PartnerDutyPage() {
       return null;
     }
   })();
+
+  const activeTechLocalities = activeTech?.assigned_localities || activeTech?.assignedLocalities || user?.assigned_localities || user?.assignedLocalities || [];
 
   // If not authenticated as a technician, redirect to dedicated technician login
   useEffect(() => {
@@ -270,6 +299,22 @@ export default function PartnerDutyPage() {
   const [isIncomingCall, setIsIncomingCall] = useState(false);
   const [incomingMessageToast, setIncomingMessageToast] = useState(null);
   const [selectedCommunicationJob, setSelectedCommunicationJob] = useState(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('autoAnswer') === 'true') {
+      setIsIncomingCall(true);
+      setCallOpen(true);
+    }
+    const handleOpenActiveCall = (e) => {
+      const job = e?.detail;
+      if (job) setSelectedCommunicationJob(job);
+      setIsIncomingCall(true);
+      setCallOpen(true);
+    };
+    window.addEventListener('shazuone_open_active_call', handleOpenActiveCall);
+    return () => window.removeEventListener('shazuone_open_active_call', handleOpenActiveCall);
+  }, []);
 
   const handleOpenCall = (job) => {
     setSelectedCommunicationJob(job || activeJob);
@@ -859,22 +904,32 @@ export default function PartnerDutyPage() {
           } else if (data.technician?.is_online === false) {
             setActiveJob(null);
           } else if (data.activeJob) {
-            setActiveJob(data.activeJob);
+            const techLocs = (data.technician && (data.technician.assigned_localities || data.technician.assignedLocalities)) || activeTechLocalities;
             const st = data.activeJob.status;
-            // Lock session into corresponding stage so refresh never disconnects
-            if (st === 'matching' || st === 'accepted') {
-              setStep(1);
-              localStorage.removeItem('shazuone_partner_step');
-            } else if (st === 'en_route') {
-              setStep(2);
-              localStorage.setItem('shazuone_partner_step', '2');
-            } else if (['arrived', 'inspecting', 'quote_presented', 'quote_approved'].includes(st)) {
-              setStep(3);
-              localStorage.setItem('shazuone_partner_step', '3');
-            } else if (st === 'completed') {
+            // Unassigned matching broadcast leads must strictly match technician's chosen operational areas
+            const isMatchLocality = (st !== 'matching') || isLeadInTechnicianLocalities(data.activeJob, techLocs);
+            if (!isMatchLocality) {
               setActiveJob(null);
               setStep(1);
               localStorage.removeItem('shazuone_partner_step');
+              localStorage.removeItem('shazuone_partner_active_job');
+            } else {
+              setActiveJob(data.activeJob);
+              // Lock session into corresponding stage so refresh never disconnects
+              if (st === 'matching' || st === 'accepted') {
+                setStep(1);
+                localStorage.removeItem('shazuone_partner_step');
+              } else if (st === 'en_route') {
+                setStep(2);
+                localStorage.setItem('shazuone_partner_step', '2');
+              } else if (['arrived', 'inspecting', 'quote_presented', 'quote_approved'].includes(st)) {
+                setStep(3);
+                localStorage.setItem('shazuone_partner_step', '3');
+              } else if (st === 'completed') {
+                setActiveJob(null);
+                setStep(1);
+                localStorage.removeItem('shazuone_partner_step');
+              }
             }
           } else {
             setActiveJob(null);
@@ -912,7 +967,9 @@ export default function PartnerDutyPage() {
       const res = await fetch(`${API_V1_URL}/partner/scheduled-leads?phone=${encodeURIComponent(phone)}`);
       const data = await res.json();
       if (data.success && data.leads) {
-        setOpenScheduledLeads(data.leads);
+        const techLocs = activeTechLocalities;
+        const filteredLeads = isLeadInTechnicianLocalities ? data.leads.filter(lead => isLeadInTechnicianLocalities(lead, techLocs)) : data.leads;
+        setOpenScheduledLeads(filteredLeads);
       }
     } catch (err) {
       console.warn('Scheduled leads fetch note:', err);
@@ -2781,7 +2838,7 @@ export default function PartnerDutyPage() {
 
                               <Chip
                                 icon={<CheckCircleIcon sx={{ color: '#34D399 !important', fontSize: 13 }} />}
-                                label="Online • Radar Active in Fairlands"
+                                label={`Online • Radar Active in ${activeTechLocalities.length > 0 ? (activeTechLocalities.length > 2 ? `${activeTechLocalities.slice(0, 2).join(', ')} +${activeTechLocalities.length - 2}` : activeTechLocalities.join(', ')) : 'Salem'}`}
                                 size="small"
                                 sx={{ bgcolor: '#1E293B', color: '#34D399', fontWeight: 700, fontSize: '11px', mb: 1.5 }}
                               />
@@ -5488,12 +5545,13 @@ export default function PartnerDutyPage() {
               </Typography>
 
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.6, mb: 1.5 }}>
-                {['Fairlands', 'Hasthampatti', 'Suramangalam', 'Alagapuram', 'Salem Junction', 'Ammapet', 'Meyyanur', 'Shevapet'].map((loc, idx) => (
+                {(activeTechLocalities.length > 0 ? activeTechLocalities : ['Fairlands']).map((loc, idx) => (
                   <Chip
                     key={idx}
-                    label={`${loc}`}
+                    icon={<CheckCircleIcon sx={{ fontSize: '13px !important', color: '#16A34A !important' }} />}
+                    label={loc}
                     size="small"
-                    sx={{ bgcolor: '#F1F5F9', color: '#334155', fontWeight: 600, fontSize: '11px' }}
+                    sx={{ bgcolor: '#F0FDF4', color: '#166534', border: '1px solid #BBF7D0', fontWeight: 700, fontSize: '11px' }}
                   />
                 ))}
               </Box>
@@ -5653,6 +5711,7 @@ export default function PartnerDutyPage() {
       <VoipCallModal 
         open={callOpen} 
         onClose={() => {
+          NativeNotifier.stopCallRingtone();
           setCallOpen(false);
           setIsIncomingCall(false);
         }} 

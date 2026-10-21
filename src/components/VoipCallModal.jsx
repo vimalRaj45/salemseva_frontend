@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import { Modal, ModalHeader, ModalBody, ModalFooter } from './Modal';
+import { RingtoneService } from '../services/RingtoneService';
 
 // Basic public STUN servers (already used in the original code)
 const DEFAULT_ICE_SERVERS = [
@@ -108,36 +109,13 @@ export default function VoipCallModal({
 
   const startRingtone = () => {
     try {
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (!AudioCtx) return;
-      const ctx = new AudioCtx();
-      audioContextRef.current = ctx;
-
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(440, ctx.currentTime);
-      gain.gain.setValueAtTime(0.04, ctx.currentTime);
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      ringtoneOscillatorRef.current = osc;
+      RingtoneService.startRinging();
     } catch (e) {}
   };
 
   const stopRingtone = () => {
     try {
-      if (ringtoneOscillatorRef.current) {
-        ringtoneOscillatorRef.current.stop();
-        ringtoneOscillatorRef.current.disconnect();
-        ringtoneOscillatorRef.current = null;
-      }
-      if (audioContextRef.current) {
-        audioContextRef.current.close();
-        audioContextRef.current = null;
-      }
+      RingtoneService.stopRinging();
     } catch (e) {}
   };
 

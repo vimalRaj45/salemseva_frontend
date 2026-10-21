@@ -1,14 +1,16 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { NativeNotifier } from '../services/nativeNotify';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Capacitor } from '@capacitor/core';
 import { API_BASE_URL } from '../config';
+import FocusCallOverlay from './FocusCallOverlay';
 
 export default function GlobalNotificationWatcher() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [incomingCall, setIncomingCall] = useState(null);
   const lastNotifiedJobRef = useRef(null);
   const lastNotifiedCallRef = useRef(null);
   const lastSeenMsgCountRef = useRef({});
@@ -20,9 +22,9 @@ export default function GlobalNotificationWatcher() {
         const extra = event.notification?.extra || {};
         if (extra.type === 'call' || extra.type === 'chat') {
           if (extra.role === 'Customer' || extra.role === 'customer') {
-            navigate(`/track?bookingId=${extra.bookingId}`);
+            navigate(`/track?bookingId=${extra.bookingId}&autoAnswer=true`);
           } else {
-            navigate('/partner');
+            navigate(`/partner?bookingId=${extra.bookingId}&autoAnswer=true`);
           }
         } else if (extra.type === 'new_job') {
           navigate('/partner');
@@ -90,6 +92,17 @@ export default function GlobalNotificationWatcher() {
                     role: isPartner ? 'Technician' : 'Customer'
                   });
                 }
+                setIncomingCall({
+                  bookingId: activeBookingId,
+                  callerName: call.callerName || (isPartner ? 'Customer' : 'Shazu One Specialist'),
+                  role: isPartner ? 'Technician' : 'Customer',
+                  locality: 'Doorstep Service, Salem'
+                });
+              } else if (!call.active || call.status !== 'RINGING') {
+                if (incomingCall) {
+                  setIncomingCall(null);
+                  NativeNotifier.stopCallRingtone();
+                }
               }
             }
           } catch (e) {}
@@ -128,8 +141,50 @@ export default function GlobalNotificationWatcher() {
     return () => {
       isMounted = false;
       clearInterval(interval);
+      NativeNotifier.stopCallRingtone();
     };
-  }, [user]);
+  }, [user, incomingCall]);
 
-  return null;
+  const handleAcceptCall = () => {
+    if (!incomingCall) return;
+    NativeNotifier.stopCallRingtone();
+    const targetBookingId = incomingCall.bookingId;
+    const targetRole = incomingCall.role;
+    setIncomingCall(null);
+
+    // Notify any active page listener to open WebRTC modal
+    window.dispatchEvent(new CustomEvent('shazuone_open_active_call', {
+      detail: { bookingId: targetBookingId, autoAnswer: true }
+    }));
+
+    if (targetRole === 'Customer' || targetRole === 'customer') {
+      navigate(`/track?bookingId=${targetBookingId}&autoAnswer=true`);
+    } else {
+      navigate(`/partner?bookingId=${targetBookingId}&autoAnswer=true`);
+    }
+  };
+
+  const handleDeclineCall = async () => {
+    if (!incomingCall) return;
+    NativeNotifier.stopCallRingtone();
+    const targetBookingId = incomingCall.bookingId;
+    const targetRole = incomingCall.role;
+    setIncomingCall(null);
+
+    try {
+      await fetch(`${API_BASE_URL}/api/v1/webrtc/call/end`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookingId: targetBookingId, role: targetRole })
+      });
+    } catch (e) {}
+  };
+
+  return (
+    <FocusCallOverlay
+      incomingCall={incomingCall}
+      onAccept={handleAcceptCall}
+      onDecline={handleDeclineCall}
+    />
+  );
 }
