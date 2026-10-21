@@ -196,7 +196,7 @@ export default function AdminTechnicianDossierPage() {
                   )}
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '12px' }}>
-                  Primary Trade: <strong style={{ color: '#38BDF8' }}>{getTradeLabel(tech.primary_trade)}</strong> • Phone: <strong>{tech.phone}</strong> • Locality: <strong>{tech.service_area || tech.locality || 'Fairlands, Salem'}</strong>
+                  Primary Trade: <strong style={{ color: '#38BDF8' }}>{getTradeLabel(tech.primary_trade)}</strong> • Phone: <strong>{tech.phone}</strong> • Experience: <strong>{tech.years_experience != null ? `${tech.years_experience} Years` : '0 Years'}</strong> • Locality: <strong>{Array.isArray(tech.assigned_localities) && tech.assigned_localities.length > 0 ? tech.assigned_localities.join(', ') : tech.service_area || tech.locality || 'Fairlands, Salem'}</strong>
                 </Typography>
               </Box>
             </Box>
@@ -271,7 +271,7 @@ export default function AdminTechnicianDossierPage() {
                   AADHAAR NUMBER
                 </Typography>
                 <Typography variant="body1" sx={{ fontWeight: 900, color: '#0F172A', fontFamily: 'monospace', letterSpacing: 1 }}>
-                  {tech.aadhaar_number ? `XXXX-XXXX-${tech.aadhaar_number.slice(-4)}` : 'Not Provided'}
+                  {tech.aadhaar_number ? tech.aadhaar_number : 'Not Provided'}
                 </Typography>
               </Box>
 

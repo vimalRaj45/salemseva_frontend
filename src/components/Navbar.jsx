@@ -848,7 +848,7 @@ export default function Navbar({
                   }}
                 >
                   <Wallet size={14} color="#047857" />
-                  <span>₹{user?.todayEarnings || 1450} TODAY</span>
+                  <span>₹{user?.todayEarnings != null ? user.todayEarnings : 0} TODAY</span>
                 </button>
               </>
             )}

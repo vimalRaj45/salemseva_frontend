@@ -173,8 +173,9 @@ export default function PartnerOnboardingPage() {
           ratingCount: 0,
           jobsCompleted: 0
         };
+        localStorage.removeItem('shazuone_partner_incentives');
         loginAsTechnician(techObj);
-        toast.success(`KYC & verification submitted! Welcome Partner ${techObj.name}.`);
+        toast.success(`Registration & KYC submitted! Operations team will review within 12 hours and notify you.`);
         navigate('/partner');
       })
       .catch(() => {
@@ -206,8 +207,9 @@ export default function PartnerOnboardingPage() {
           ratingCount: 0,
           jobsCompleted: 0
         };
+        localStorage.removeItem('shazuone_partner_incentives');
         loginAsTechnician(fallbackTech);
-        toast.success(`KYC & verification submitted! Welcome Partner ${name}.`);
+        toast.success(`Registration & KYC submitted! Operations team will review within 12 hours and notify you.`);
         navigate('/partner');
       });
   };

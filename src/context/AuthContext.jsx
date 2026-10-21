@@ -561,11 +561,11 @@ export function AuthProvider({ children }) {
   const [partnerIncentives, setPartnerIncentives] = useState(() => {
     const saved = localStorage.getItem('shazuone_partner_incentives');
     return saved ? JSON.parse(saved) : {
-      totalIncentiveEarned: 750,
-      availablePayout: 500,
-      settledPayout: 250,
-      starPoints: 24,
-      totalReferralsCount: 3,
+      totalIncentiveEarned: 0,
+      availablePayout: 0,
+      settledPayout: 0,
+      starPoints: 0,
+      totalReferralsCount: 0,
       zeroCommUnlocked: false
     };
   });
@@ -622,9 +622,9 @@ export function AuthProvider({ children }) {
 
   const referTechnician = async ({ name, phone, trade, locality }) => {
     const incentiveAmount = parseFloat(rewardSettings?.partner_referral_incentive || 100);
-    const newStarPoints = Math.min(30, (partnerIncentives.starPoints || 24) + 3);
-    const newTotal = (partnerIncentives.totalIncentiveEarned || 750) + incentiveAmount;
-    const newAvailable = (partnerIncentives.availablePayout || 500) + incentiveAmount;
+    const newStarPoints = Math.min(30, (partnerIncentives.starPoints || 0) + 3);
+    const newTotal = (partnerIncentives.totalIncentiveEarned || 0) + incentiveAmount;
+    const newAvailable = (partnerIncentives.availablePayout || 0) + incentiveAmount;
     const isZeroComm = newStarPoints >= 30;
 
     const updated = {

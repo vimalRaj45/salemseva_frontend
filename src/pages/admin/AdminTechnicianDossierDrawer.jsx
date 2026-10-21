@@ -28,6 +28,8 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import PhoneIcon from '@mui/icons-material/Phone';
 import RoomIcon from '@mui/icons-material/Room';
 import EngineeringIcon from '@mui/icons-material/Engineering';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import { resolveMediaUrl } from '../../utils/mediaUtils';
 import { API_V1_URL } from '../../config';
 
@@ -140,12 +142,49 @@ export default function AdminTechnicianDossierDrawer({
       <Box sx={{ p: 2.5, flex: 1, overflowY: 'auto' }}>
         {tech && (
           <>
-            {/* Top Stat Ribbon */}
+            {/* 12-Hour KYC Review SLA Alert Banner (when unverified) */}
+            {!tech.is_kyc_verified && (
+              <Box sx={{ mb: 2.2, p: 1.8, bgcolor: '#FEF3C7', border: '1px solid #FCD34D', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1.5, flexWrap: 'wrap' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                  <Avatar sx={{ bgcolor: '#F59E0B', color: '#FFF', width: 34, height: 34 }}>
+                    <AccessTimeIcon sx={{ fontSize: 20 }} />
+                  </Avatar>
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#92400E', fontSize: '13px' }}>
+                      Partner Registration Under Review (12-Hour SLA)
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#B45309', fontSize: '11px', display: 'block' }}>
+                      Registered partner details filed. Inspect Aadhaar and profile to activate duty radar.
+                    </Typography>
+                  </Box>
+                </Box>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    onClick={() => onKycDecision(tech.id, 'approve')}
+                    sx={{ bgcolor: '#16A34A', color: '#FFF', fontWeight: 800, fontSize: '11.5px', textTransform: 'none', borderRadius: '8px', px: 1.8, '&:hover': { bgcolor: '#15803D' } }}
+                  >
+                    Approve KYC
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => onKycDecision(tech.id, 'reject')}
+                    sx={{ color: '#DC2626', borderColor: '#FCA5A5', fontWeight: 700, fontSize: '11.5px', textTransform: 'none', borderRadius: '8px', px: 1.4 }}
+                  >
+                    Reject
+                  </Button>
+                </Box>
+              </Box>
+            )}
+
+            {/* Top Stat Ribbon: Full Filed Details */}
             <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '14px', mb: 2.5 }}>
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={4}>
+                <Grid item xs={12} sm={3}>
                   <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700, textTransform: 'uppercase', fontSize: '10px', display: 'block', mb: 0.4 }}>
-                    Contact & Locality
+                    Contact & Localities
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: 0.4 }}>
                     <PhoneIcon sx={{ fontSize: 14, color: '#0284C7' }} />
@@ -153,35 +192,58 @@ export default function AdminTechnicianDossierDrawer({
                   </Typography>
                   <Typography variant="caption" sx={{ color: '#64748B', display: 'flex', alignItems: 'center', gap: 0.4, mt: 0.3 }}>
                     <RoomIcon sx={{ fontSize: 13, color: '#F59E0B' }} />
-                    {tech.service_area || tech.locality || 'Fairlands, Salem'}
+                    {Array.isArray(tech.assigned_localities) && tech.assigned_localities.length > 0
+                      ? tech.assigned_localities.join(', ')
+                      : tech.service_area || tech.locality || 'Fairlands, Salem'}
                   </Typography>
                 </Grid>
 
-                <Grid item xs={6} sm={4}>
+                <Grid item xs={6} sm={3}>
                   <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700, textTransform: 'uppercase', fontSize: '10px', display: 'block', mb: 0.4 }}>
-                    Performance Rating
+                    Trade & Experience
                   </Typography>
-                  {Number(tech.jobs_completed_count) > 0 && Number(tech.rating_avg) > 0 ? (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      <StarIcon sx={{ fontSize: 16, color: '#F59E0B' }} />
-                      <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0F172A' }}>{tech.rating_avg}</Typography>
-                    </Box>
-                  ) : (
-                    <Typography variant="body2" sx={{ fontWeight: 800, color: '#64748B' }}>New Partner</Typography>
-                  )}
-                  <Typography variant="caption" sx={{ color: '#64748B' }}>{Number(tech.jobs_completed_count) || 0} Jobs Serviced</Typography>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0F172A', display: 'flex', alignItems: 'center', gap: 0.4 }}>
+                    <EngineeringIcon sx={{ fontSize: 15, color: '#0284C7' }} />
+                    {getTradeLabel(tech.primary_trade)}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#0284C7', fontWeight: 800, display: 'block', mt: 0.3 }}>
+                    {tech.years_experience != null ? `${tech.years_experience} Years Exp` : '0 Years Exp'}
+                  </Typography>
                 </Grid>
 
-                <Grid item xs={6} sm={4}>
+                <Grid item xs={6} sm={3}>
                   <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700, textTransform: 'uppercase', fontSize: '10px', display: 'block', mb: 0.4 }}>
-                    Lifetime Payouts
+                    Payout UPI ID
                   </Typography>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#059669' }}>
-                    ₹{(Number(financials?.lifetimeEarnings) || 0).toLocaleString()}
+                  <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#059669', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {tech.upi_vpa || 'Not Configured'}
                   </Typography>
-                  <Typography variant="caption" sx={{ color: '#64748B', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    UPI: {tech.upi_vpa || 'Not Configured'}
+                  <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mt: 0.3 }}>
+                    ₹{(Number(financials?.lifetimeEarnings) || 0).toLocaleString()} Lifetime Payout
                   </Typography>
+                </Grid>
+
+                <Grid item xs={12} sm={3}>
+                  <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700, textTransform: 'uppercase', fontSize: '10px', display: 'block', mb: 0.4 }}>
+                    Registration & Status
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#475569', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 0.3 }}>
+                    <CalendarMonthIcon sx={{ fontSize: 13, color: '#64748B' }} />
+                    {tech.created_at ? new Date(tech.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Recent'}
+                  </Typography>
+                  <Box sx={{ mt: 0.5 }}>
+                    <Chip
+                      label={tech.is_kyc_verified ? 'Verified Pro' : 'Pending Review'}
+                      size="small"
+                      sx={{
+                        bgcolor: tech.is_kyc_verified ? '#DCFCE7' : '#FEF3C7',
+                        color: tech.is_kyc_verified ? '#166534' : '#92400E',
+                        fontWeight: 800,
+                        fontSize: '10px',
+                        height: 20
+                      }}
+                    />
+                  </Box>
                 </Grid>
 
                 {/* Aadhaar KYC Uploaded Document View & Decision */}
@@ -196,8 +258,8 @@ export default function AdminTechnicianDossierDrawer({
                         <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', display: 'block' }}>
                           AADHAAR IDENTITY & e-KYC VERIFICATION
                         </Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A' }}>
-                          Aadhaar: {tech.aadhaar_number ? `XXXX-XXXX-${tech.aadhaar_number.slice(-4)}` : 'Not Provided'}
+                        <Typography variant="body2" sx={{ fontWeight: 900, color: '#0F172A', fontFamily: 'monospace' }}>
+                          Aadhaar: {tech.aadhaar_number ? tech.aadhaar_number : 'Not Provided'}
                         </Typography>
                       </Box>
                     </Box>

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Container,
   Box,
@@ -2604,9 +2604,16 @@ export default function AdminDashboardPage() {
                           >
                             {tech.full_name}
                           </Typography>
-                          <Typography variant="caption" sx={{ color: '#64748B' }}>
+                          <Typography variant="caption" sx={{ color: '#64748B', display: 'block' }}>
                             {tech.years_experience != null ? `${tech.years_experience} Years Experience` : '0 Years Experience'}
                           </Typography>
+                          {!tech.is_kyc_verified && (
+                            <Chip
+                              label="New Registration"
+                              size="small"
+                              sx={{ bgcolor: '#FEF3C7', color: '#92400E', fontWeight: 800, fontSize: '9px', height: 16, mt: 0.3 }}
+                            />
+                          )}
                         </Box>
                       </Box>
                     </TableCell>
@@ -2622,8 +2629,13 @@ export default function AdminDashboardPage() {
                       <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A' }}>
                         {tech.phone || 'No Phone'}
                       </Typography>
-                      <Typography variant="caption" sx={{ color: '#64748B' }}>
+                      <Typography variant="caption" sx={{ color: '#64748B', display: 'block' }}>
                         UPI: {tech.upi_vpa || 'Not Configured'}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: '#0284C7', fontWeight: 700, display: 'block', mt: 0.2 }}>
+                        Locality: {Array.isArray(tech.assigned_localities) && tech.assigned_localities.length > 0
+                          ? tech.assigned_localities.join(', ')
+                          : tech.service_area || tech.locality || 'Fairlands, Salem'}
                       </Typography>
                     </TableCell>
 
@@ -2651,8 +2663,8 @@ export default function AdminDashboardPage() {
                           >
                             View Aadhaar
                           </Button>
-                          <Typography variant="caption" sx={{ color: '#64748B', fontSize: '10px' }}>
-                            {tech.aadhaar_number ? `**** ${tech.aadhaar_number.slice(-4)}` : 'Doc Attached'}
+                          <Typography variant="caption" sx={{ color: '#0F172A', fontWeight: 800, fontSize: '10px', fontFamily: 'monospace' }}>
+                            {tech.aadhaar_number ? tech.aadhaar_number : 'Doc Attached'}
                           </Typography>
                         </Box>
                       ) : (
@@ -2694,6 +2706,13 @@ export default function AdminDashboardPage() {
                           size="small"
                           sx={{ bgcolor: tech.is_kyc_verified ? '#ECFDF5' : '#FFFBEB', color: tech.is_kyc_verified ? '#047857' : '#B45309', fontWeight: 800, fontSize: '9.5px', height: 18 }}
                         />
+                        {!tech.is_kyc_verified && (
+                          <Chip
+                            label="12h Review SLA"
+                            size="small"
+                            sx={{ bgcolor: '#FEF3C7', color: '#92400E', fontWeight: 800, fontSize: '9px', height: 16, border: '1px solid #FCD34D' }}
+                          />
+                        )}
                       </Box>
                     </TableCell>
 

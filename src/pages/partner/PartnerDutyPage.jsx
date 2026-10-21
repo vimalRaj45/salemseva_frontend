@@ -1442,7 +1442,7 @@ export default function PartnerDutyPage() {
               '&:hover': { bgcolor: bottomNav === 2 ? '#1E293B' : '#F1F5F9' }
             }}
           >
-            Settlements ({partnerJobs.length || 2})
+            Settlements ({partnerJobs.length})
           </Button>
         </Box>
 
@@ -1476,11 +1476,17 @@ export default function PartnerDutyPage() {
                     sx={{ bgcolor: '#FEF3C7', color: '#92400E', fontWeight: 900, fontSize: '10px' }}
                   />
                 </Box>
-                <Typography variant="body2" sx={{ color: '#78350F', fontSize: '12px', mb: 1.5, lineHeight: 1.5 }}>
-                  உங்கள் ஆதார் அட்டை மற்றும் தொழில் விவரங்கள் சேலம் நிர்வாக அலுவலகத்திற்கு (Shazu One Central Operations Desk) சரிபார்ப்புக்கு அனுப்பப்பட்டுள்ளது. நிர்வாகி ஒப்புதல் அளித்தவுடன் உங்களது Duty Radar தானாகவே இயங்கும்.
+                <Typography variant="body2" sx={{ color: '#78350F', fontSize: '12px', mb: 1.2, lineHeight: 1.5 }}>
+                  உங்கள் ஆதார் அட்டை மற்றும் தொழில் விவரங்கள் சேலம் தலைமை நிர்வாக அலுவலகத்திற்கு (Shazu One Central Operations Desk) சரிபார்ப்புக்கு அனுப்பப்பட்டுள்ளது. 12 மணி நேரத்திற்குள் சரிபார்த்து உங்களுக்குத் தெரிவிக்கப்படும். நிர்வாகி ஒப்புதல் அளித்தவுடன் உங்களது Duty Radar தானாகவே இயங்கும்.
                 </Typography>
+                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.6, bgcolor: '#FEF3C7', border: '1px solid #FCD34D', borderRadius: '6px', px: 1.2, py: 0.4, mb: 1.2 }}>
+                  <AccessTimeIcon sx={{ fontSize: 13, color: '#B45309' }} />
+                  <Typography variant="caption" sx={{ color: '#92400E', fontWeight: 800, fontSize: '11px' }}>
+                    12 மணி நேரத்திற்குள் சரிபார்க்கப்படும் • Review Turnaround: Within 12 Hours
+                  </Typography>
+                </Box>
                 <Typography variant="caption" sx={{ color: '#92400E', fontSize: '11px', display: 'block', mb: 1.5 }}>
-                  * For security reasons, partner duty dispatch is locked until your Aadhaar document is verified by Shazu One Central Ops.
+                  * We will review all your submitted registration details within 12 hours and let you know. Duty access will unlock immediately upon approval.
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                   {(activeTech?.aadhaarCardUrl || activeTech?.aadhaar_card_url) && (
@@ -1958,9 +1964,16 @@ export default function PartnerDutyPage() {
                       பணி தொடங்குவதற்கு முன் KYC சரிபார்ப்பு அவசியம் (Duty Access Locked)
                     </Typography>
 
-                    <Typography variant="body2" sx={{ color: '#CBD5E1', fontSize: '12.5px', maxWidth: 440, mx: 'auto', mb: 2.5, lineHeight: 1.6 }}>
-                      சேலம் தலைமை நிர்வாக அலுவலகம் (Shazu One Central Operations) உங்கள் ஆதார் அட்டை மற்றும் தொழில் விவரங்களை சரிபார்த்த பிறகு உங்கள் Duty Dashboard திறக்கப்படும். அதுவரை வேலை கோரிக்கைகள் அனுப்பப்படாது.
+                    <Typography variant="body2" sx={{ color: '#CBD5E1', fontSize: '12.5px', maxWidth: 440, mx: 'auto', mb: 1.5, lineHeight: 1.6 }}>
+                      சேலம் தலைமை நிர்வாக அலுவலகம் (Shazu One Central Operations) 12 மணி நேரத்திற்குள் உங்கள் ஆதார் அட்டை மற்றும் தொழில் விவரங்களை சரிபார்த்து உங்களுக்குத் தெரிவிக்கும். சரிபார்ப்பிற்குப் பிறகு உங்கள் Duty Dashboard திறக்கப்படும்.
                     </Typography>
+
+                    <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.8, bgcolor: 'rgba(251, 191, 36, 0.12)', border: '1px solid rgba(251, 191, 36, 0.3)', borderRadius: '20px', px: 2, py: 0.6, mb: 2.2 }}>
+                      <AccessTimeIcon sx={{ fontSize: 14, color: '#FBBF24' }} />
+                      <Typography variant="caption" sx={{ color: '#FDE68A', fontWeight: 800, fontSize: '11.5px' }}>
+                        12 மணி நேரத்திற்குள் சரிபார்க்கப்படும் • We will review within 12 hours and let you know
+                      </Typography>
+                    </Box>
 
                     <Box sx={{ display: 'flex', gap: 1.2, justifyContent: 'center', flexWrap: 'wrap' }}>
                       {(user?.aadhaarCardUrl || user?.aadhaar_card_url || activeTech?.aadhaarCardUrl || activeTech?.aadhaar_card_url) && (
@@ -4537,7 +4550,7 @@ export default function PartnerDutyPage() {
                     AVAILABLE INCENTIVE PAYOUT BALANCE
                   </Typography>
                   <Typography variant="h3" sx={{ fontWeight: 900, color: '#FFFFFF', my: 0.5, fontVariantNumeric: 'tabular-nums' }}>
-                    ₹{partnerIncentives?.availablePayout || 500}.00
+                    ₹{Number(partnerIncentives?.availablePayout || 0).toFixed(2)}
                   </Typography>
                 </Box>
                 <Chip
@@ -4563,7 +4576,7 @@ export default function PartnerDutyPage() {
                     மொத்த பரிந்துரை வருமானம் (Total Earned)
                   </Typography>
                   <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#FFFFFF', fontSize: '14px' }}>
-                    ₹{partnerIncentives?.totalIncentiveEarned || 750}.00
+                    ₹{Number(partnerIncentives?.totalIncentiveEarned || 0).toFixed(2)}
                   </Typography>
                 </Paper>
 
@@ -4572,7 +4585,7 @@ export default function PartnerDutyPage() {
                     வங்கிக்கு வரவானது (Settled)
                   </Typography>
                   <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#FDE047', fontSize: '14px' }}>
-                    ₹{partnerIncentives?.settledPayout || 250}.00
+                    ₹{Number(partnerIncentives?.settledPayout || 0).toFixed(2)}
                   </Typography>
                 </Paper>
               </Box>
@@ -4598,7 +4611,7 @@ export default function PartnerDutyPage() {
               >
                 {partnerIncentives?.availablePayout > 0 
                   ? `Claim Instant ₹${partnerIncentives.availablePayout}.00 to Payout Phone`
-                  : ' All Referral Incentives Settled'}
+                  : 'All Referral Incentives Settled'}
               </Button>
             </Card>
 
@@ -4622,7 +4635,7 @@ export default function PartnerDutyPage() {
                   </Typography>
                 </Box>
                 <Chip
-                  label={partnerIncentives?.zeroCommUnlocked ? '0% Commission Unlocked!' : `${partnerIncentives?.starPoints || 24} / 30 Points`}
+                  label={partnerIncentives?.zeroCommUnlocked ? '0% Commission Unlocked!' : `${partnerIncentives?.starPoints || 0} / 30 Points`}
                   size="small"
                   sx={{
                     bgcolor: partnerIncentives?.zeroCommUnlocked ? '#DCFCE7' : '#FEF3C7',
@@ -4635,7 +4648,7 @@ export default function PartnerDutyPage() {
 
               <LinearProgress
                 variant="determinate"
-                value={Math.min(100, (((partnerIncentives?.starPoints || 24) / 30) * 100))}
+                value={Math.min(100, (((partnerIncentives?.starPoints || 0) / 30) * 100))}
                 sx={{
                   height: 8,
                   borderRadius: 4,
@@ -4651,7 +4664,7 @@ export default function PartnerDutyPage() {
               <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontSize: '11px', lineHeight: 1.4 }}>
                 {partnerIncentives?.zeroCommUnlocked 
                   ? '100% Zero Commission active! You retain 100% of all customer labor & diagnostic payouts.'
-                  : `Earn ${Math.max(0, 30 - (partnerIncentives?.starPoints || 24))} more Star Points to unlock 100% Zero Commission! (+2 pts per 5 rating, +3 pts per referred technician).`}
+                  : `Earn ${Math.max(0, 30 - (partnerIncentives?.starPoints || 0))} more Star Points to unlock 100% Zero Commission! (+2 pts per 5 rating, +3 pts per referred technician).`}
               </Typography>
             </Card>
 
@@ -4872,9 +4885,7 @@ export default function PartnerDutyPage() {
                     மொத்த வருமானம் (Current Week Earnings)
                   </Typography>
                   <Typography variant="h4" sx={{ fontWeight: 800, color: '#38BDF8', my: 0.5, fontVariantNumeric: 'tabular-nums' }}>
-                    ₹{partnerJobs.length > 0 
-                      ? partnerJobs.reduce((sum, j) => sum + (j.techPayout || 0), 0).toFixed(2)
-                      : '8,950.00'}
+                    ₹{partnerJobs.reduce((sum, j) => sum + (j.techPayout || 0), 0).toFixed(2)}
                   </Typography>
                 </Box>
                 <Chip
@@ -4900,9 +4911,7 @@ export default function PartnerDutyPage() {
                     வங்கிக்கு வரவானது (Settled)
                   </Typography>
                   <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#34D399', fontSize: '13.5px' }}>
-                    ₹{partnerJobs.length > 0
-                      ? partnerJobs.filter(j => j.settlementStatus === 'SETTLED_TO_BANK').reduce((sum, j) => sum + (j.techPayout || 0), 0).toFixed(2)
-                      : '7,200.00'}
+                    ₹{partnerJobs.filter(j => j.settlementStatus === 'SETTLED_TO_BANK').reduce((sum, j) => sum + (j.techPayout || 0), 0).toFixed(2)}
                   </Typography>
                 </Paper>
 
@@ -4911,9 +4920,7 @@ export default function PartnerDutyPage() {
                     வெள்ளிக்கிழமை வரவு (Escrow)
                   </Typography>
                   <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#FBBF24', fontSize: '13.5px' }}>
-                    ₹{partnerJobs.length > 0
-                      ? partnerJobs.filter(j => j.settlementStatus === 'ESCROW_HELD').reduce((sum, j) => sum + (j.techPayout || 0), 0).toFixed(2)
-                      : '1,750.00'}
+                    ₹{partnerJobs.filter(j => j.settlementStatus === 'ESCROW_HELD').reduce((sum, j) => sum + (j.techPayout || 0), 0).toFixed(2)}
                   </Typography>
                 </Paper>
               </Box>
@@ -4936,16 +4943,20 @@ export default function PartnerDutyPage() {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
                 <StarsIcon sx={{ color: '#D97706', fontSize: 18 }} />
                 <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#92400E', fontSize: '12px' }}>
-                  ஸ்டார் கிளப்: 85 / 100 புள்ளிகள் (15 புள்ளிகளில் 0% கமிஷன்)
+                  ஸ்டார் கிளப்: {Number(activeTech?.star_points ?? partnerIncentives?.starPoints ?? 0)} / 100 புள்ளிகள் ({Math.max(0, 100 - Number(activeTech?.star_points ?? partnerIncentives?.starPoints ?? 0))} புள்ளிகளில் 0% கமிஷன்)
                 </Typography>
               </Box>
-              <Chip label="Level: Gold" size="small" sx={{ bgcolor: '#FEF3C7', color: '#92400E', fontWeight: 700, fontSize: '10px' }} />
+              <Chip
+                label={Number(activeTech?.star_points ?? partnerIncentives?.starPoints ?? 0) >= 80 ? 'Level: Gold' : Number(activeTech?.star_points ?? partnerIncentives?.starPoints ?? 0) >= 30 ? 'Level: Silver' : 'Level: Bronze'}
+                size="small"
+                sx={{ bgcolor: '#FEF3C7', color: '#92400E', fontWeight: 700, fontSize: '10px' }}
+              />
             </Paper>
 
             {/* 3. Filter Tabs for Settlements */}
             <Box sx={{ display: 'flex', gap: 0.8, mb: 1.5 }}>
               {[
-                { id: 'all', label: `All Jobs (${partnerJobs.length || 2})` },
+                { id: 'all', label: `All Jobs (${partnerJobs.length})` },
                 { id: 'settled', label: 'Settled to Bank (நேரடி வரவு)' },
                 { id: 'escrow', label: 'Pending Escrow' }
               ].map(f => (
