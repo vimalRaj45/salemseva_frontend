@@ -151,6 +151,7 @@ export default function FirstTimeOnboardingPage() {
         maxWidth="sm"
         sx={{
           height: '100%',
+          maxHeight: '100%',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
@@ -160,7 +161,7 @@ export default function FirstTimeOnboardingPage() {
         }}
       >
         {/* Professional Header: Logo on left, role switcher in center, language & skip on right */}
-        <Box sx={{ flexShrink: 0 }}>
+        <Box sx={{ flexShrink: 0, mb: 1 }}>
           <Box
             sx={{
               display: 'flex',
@@ -199,7 +200,7 @@ export default function FirstTimeOnboardingPage() {
               sx={{
                 display: 'flex',
                 bgcolor: '#F1F5F9',
-                p: 0.3,
+                p: 0.35,
                 borderRadius: '8px',
                 border: '1px solid #E2E8F0',
                 flexShrink: 0
@@ -211,18 +212,18 @@ export default function FirstTimeOnboardingPage() {
                   setRole('customer');
                   setActiveSlide(0);
                 }}
-                startIcon={<PersonIcon sx={{ fontSize: 13 }} />}
+                startIcon={<PersonIcon sx={{ fontSize: 14 }} />}
                 sx={{
-                  py: 0.25,
-                  px: { xs: 0.9, sm: 1.2 },
-                  fontSize: '11px',
+                  py: 0.35,
+                  px: { xs: 1, sm: 1.3 },
+                  fontSize: '11.5px',
                   fontWeight: 700,
                   borderRadius: '6px',
                   textTransform: 'none',
                   bgcolor: role === 'customer' ? '#FFFFFF' : 'transparent',
                   color: role === 'customer' ? '#0066CC' : '#64748B',
                   boxShadow: role === 'customer' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-                  minHeight: 26,
+                  minHeight: 28,
                   transition: 'all 0.15s ease'
                 }}
               >
@@ -234,18 +235,18 @@ export default function FirstTimeOnboardingPage() {
                   setRole('partner');
                   setActiveSlide(0);
                 }}
-                startIcon={<HandymanIcon sx={{ fontSize: 13 }} />}
+                startIcon={<HandymanIcon sx={{ fontSize: 14 }} />}
                 sx={{
-                  py: 0.25,
-                  px: { xs: 0.9, sm: 1.2 },
-                  fontSize: '11px',
+                  py: 0.35,
+                  px: { xs: 1, sm: 1.3 },
+                  fontSize: '11.5px',
                   fontWeight: 700,
                   borderRadius: '6px',
                   textTransform: 'none',
                   bgcolor: role === 'partner' ? '#FFFFFF' : 'transparent',
                   color: role === 'partner' ? '#059669' : '#64748B',
                   boxShadow: role === 'partner' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-                  minHeight: 26,
+                  minHeight: 28,
                   transition: 'all 0.15s ease'
                 }}
               >
@@ -254,21 +255,21 @@ export default function FirstTimeOnboardingPage() {
             </Box>
 
             {/* Language & Skip Buttons */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, flexShrink: 0 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, flexShrink: 0 }}>
               <Button
                 size="small"
                 onClick={() => setIsLangModalOpen(true)}
-                startIcon={<Globe size={12} color="#0284C7" />}
+                startIcon={<Globe size={13} color="#0284C7" />}
                 sx={{
                   color: '#0F172A',
                   fontWeight: 700,
-                  fontSize: '10.5px',
+                  fontSize: '11px',
                   textTransform: 'none',
                   bgcolor: '#F1F5F9',
                   borderRadius: '7px',
-                  px: 0.8,
-                  py: 0.2,
-                  minHeight: 26,
+                  px: 1,
+                  py: 0.3,
+                  minHeight: 28,
                   border: '1px solid #E2E8F0',
                   '&:hover': { bgcolor: '#E2E8F0' }
                 }}
@@ -280,8 +281,8 @@ export default function FirstTimeOnboardingPage() {
                 onClick={handleFinish}
                 aria-label="Skip Onboarding"
                 sx={{
-                  width: 26,
-                  height: 26,
+                  width: 28,
+                  height: 28,
                   borderRadius: '7px',
                   bgcolor: '#FFFFFF',
                   color: '#64748B',
@@ -290,7 +291,7 @@ export default function FirstTimeOnboardingPage() {
                   '&:hover': { bgcolor: '#F8FAFC', color: '#0F172A' }
                 }}
               >
-                <CloseIcon sx={{ fontSize: 15 }} />
+                <CloseIcon sx={{ fontSize: 16 }} />
               </IconButton>
             </Box>
           </Box>
@@ -310,41 +311,33 @@ export default function FirstTimeOnboardingPage() {
           />
         </Box>
 
-        {/* Slide Content Card: Concise, auto-scrolling fallback if screen is tiny */}
+        {/* Slide Content Card: Edge-to-edge full width illustration */}
         <Card
           elevation={0}
           sx={{
             flex: 1,
-            my: { xs: 0.8, sm: 1.2 },
             minHeight: 0,
+            my: { xs: 0.6, sm: 1 },
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'space-between',
             bgcolor: '#FFFFFF',
             border: '1px solid #E2E8F0',
-            borderRadius: '16px',
-            p: { xs: 1.4, sm: 2 },
-            boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)',
-            overflowY: 'auto',
-            '&::-webkit-scrollbar': { display: 'none' },
-            msOverflowStyle: 'none',
-            scrollbarWidth: 'none'
+            borderRadius: { xs: '18px', sm: '22px' },
+            boxShadow: '0 4px 20px rgba(15, 23, 42, 0.05)',
+            overflow: 'hidden'
           }}
         >
-          {/* Illustration Container: Proportional & Compact */}
+          {/* Edge-to-Edge Full Width Illustration */}
           <Box
             sx={{
-              height: { xs: 125, sm: 155, md: 175 },
+              height: { xs: '20vh', sm: '23vh', md: '25vh' },
+              minHeight: 120,
+              maxHeight: 200,
               width: '100%',
-              bgcolor: '#F8FAFC',
-              borderRadius: '10px',
+              bgcolor: '#F1F5F9',
               overflow: 'hidden',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: '1px solid #F1F5F9',
               flexShrink: 0,
-              mb: 1
+              position: 'relative'
             }}
           >
             <Box
@@ -354,106 +347,125 @@ export default function FirstTimeOnboardingPage() {
               sx={{
                 width: '100%',
                 height: '100%',
-                objectFit: 'contain'
+                objectFit: 'cover',
+                objectPosition: 'center',
+                display: 'block'
               }}
             />
           </Box>
 
-          {/* Text and Milestone Information */}
-          <Box sx={{ flex: 1, minHeight: 0 }}>
-            {/* Step Badge & Counter */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.4 }}>
-              <Chip
-                label={current.badge}
-                size="small"
-                sx={{
-                  bgcolor: role === 'customer' ? '#EFF6FF' : '#ECFDF5',
-                  color: role === 'customer' ? '#1E40AF' : '#047857',
-                  fontWeight: 800,
-                  fontSize: '10px',
-                  height: 19
-                }}
-              />
-              <Typography variant="caption" sx={{ color: '#94A3B8', fontWeight: 600, fontSize: '10.5px' }}>
-                Step {activeSlide + 1} of {slides.length}
-              </Typography>
-            </Box>
-
-            {/* Title */}
-            <Typography
-              variant="subtitle1"
-              sx={{
-                fontWeight: 800,
-                color: '#0F172A',
-                fontSize: { xs: '14px', sm: '16px' },
-                lineHeight: 1.25,
-                mb: 0.3
-              }}
-            >
-              {current.title}
-            </Typography>
-
-            {/* Description */}
-            <Typography
-              variant="body2"
-              sx={{
-                color: '#64748B',
-                fontSize: { xs: '11px', sm: '12px' },
-                lineHeight: 1.35,
-                mb: 0.9
-              }}
-            >
-              {current.desc}
-            </Typography>
-
-            {/* 3 Concise Key Guarantees */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.4, mb: 0.8 }}>
-              {current.points.map((pt, idx) => (
-                <Box key={idx} sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.7 }}>
-                  <CheckCircleIcon sx={{ fontSize: 14, color: role === 'customer' ? '#0066CC' : '#16A34A', flexShrink: 0, mt: 0.2 }} />
-                  <Typography variant="caption" sx={{ color: '#334155', fontWeight: 600, fontSize: '11px', lineHeight: 1.3 }}>
-                    {pt}
-                  </Typography>
-                </Box>
-              ))}
-            </Box>
-          </Box>
-
-          {/* Zero Product Push Disclaimer: Slim & Clean */}
+          {/* Text and Milestone Information Container */}
           <Box
             sx={{
-              p: 0.8,
-              borderRadius: '7px',
-              bgcolor: '#F8FAFC',
-              border: '1px solid #E2E8F0',
+              p: { xs: 1.6, sm: 2.2 },
+              flex: 1,
               display: 'flex',
-              alignItems: 'center',
-              gap: 0.7,
-              flexShrink: 0
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              minHeight: 0,
+              overflowY: 'auto',
+              '&::-webkit-scrollbar': { display: 'none' },
+              msOverflowStyle: 'none',
+              scrollbarWidth: 'none'
             }}
           >
-            <VerifiedUserIcon sx={{ fontSize: 15, color: '#059669', flexShrink: 0 }} />
-            <Typography variant="caption" sx={{ color: '#475569', fontSize: '10px', lineHeight: 1.25, fontWeight: 500 }}>
-              Pure skilled trade labour. Any replacement parts are completely your choice to purchase or provide.
-            </Typography>
+            <Box sx={{ mb: { xs: 0.8, sm: 1.2 } }}>
+              {/* Step Badge & Counter */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                <Chip
+                  label={current.badge}
+                  size="small"
+                  sx={{
+                    bgcolor: role === 'customer' ? '#EFF6FF' : '#ECFDF5',
+                    color: role === 'customer' ? '#1E40AF' : '#047857',
+                    fontWeight: 800,
+                    fontSize: '11px',
+                    height: 22,
+                    px: 0.6
+                  }}
+                />
+                <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700, fontSize: '11.5px' }}>
+                  Step {activeSlide + 1} of {slides.length}
+                </Typography>
+              </Box>
+
+              {/* Title */}
+              <Typography
+                variant="h6"
+                sx={{
+                  fontWeight: 900,
+                  color: '#0F172A',
+                  fontSize: { xs: '1.15rem', sm: '1.25rem', md: '1.35rem' },
+                  lineHeight: 1.22,
+                  letterSpacing: '-0.02em',
+                  mb: 0.4
+                }}
+              >
+                {current.title}
+              </Typography>
+
+              {/* Description */}
+              <Typography
+                variant="body2"
+                sx={{
+                  color: '#475569',
+                  fontSize: { xs: '12.5px', sm: '13px' },
+                  lineHeight: 1.4,
+                  mb: { xs: 0.8, sm: 1.2 }
+                }}
+              >
+                {current.desc}
+              </Typography>
+
+              {/* 3 Concise Key Guarantees */}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 0.6, sm: 0.8 } }}>
+                {current.points.map((pt, idx) => (
+                  <Box key={idx} sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.8 }}>
+                    <CheckCircleIcon sx={{ fontSize: 17, color: role === 'customer' ? '#0066CC' : '#16A34A', flexShrink: 0, mt: 0.15 }} />
+                    <Typography variant="body2" sx={{ color: '#1E293B', fontWeight: 600, fontSize: { xs: '12px', sm: '12.5px' }, lineHeight: 1.35 }}>
+                      {pt}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+
+            {/* Zero Product Push Disclaimer */}
+            <Box
+              sx={{
+                p: { xs: 0.9, sm: 1.1 },
+                borderRadius: '10px',
+                bgcolor: '#F8FAFC',
+                border: '1px solid #E2E8F0',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                flexShrink: 0
+              }}
+            >
+              <VerifiedUserIcon sx={{ fontSize: 17, color: '#059669', flexShrink: 0 }} />
+              <Typography variant="caption" sx={{ color: '#475569', fontSize: { xs: '11px', sm: '11.5px' }, lineHeight: 1.35, fontWeight: 500 }}>
+                Pure skilled trade labour. Any replacement parts are completely your choice to purchase or provide.
+              </Typography>
+            </Box>
           </Box>
         </Card>
 
         {/* Bottom Actions Dock */}
-        <Box sx={{ flexShrink: 0, display: 'flex', gap: 1, pt: 0.4 }}>
+        <Box sx={{ flexShrink: 0, display: 'flex', gap: 1.2, pt: 0.4 }}>
           <Button
             variant="outlined"
             onClick={handlePrev}
             disabled={activeSlide === 0}
-            startIcon={<ArrowBackIcon sx={{ fontSize: 15 }} />}
+            startIcon={<ArrowBackIcon sx={{ fontSize: 16 }} />}
             sx={{
               flex: 1,
-              height: 38,
-              borderRadius: '8px',
+              height: { xs: 40, sm: 44 },
+              borderRadius: '9px',
               borderColor: '#CBD5E1',
-              color: '#475569',
+              color: '#334155',
               fontWeight: 700,
-              fontSize: '12px',
+              fontSize: { xs: '13px', sm: '13.5px' },
               textTransform: 'none',
               '&:disabled': { opacity: 0.35 }
             }}
@@ -464,15 +476,15 @@ export default function FirstTimeOnboardingPage() {
           <Button
             variant="contained"
             onClick={handleNext}
-            endIcon={<ArrowForwardIcon sx={{ fontSize: 15 }} />}
+            endIcon={<ArrowForwardIcon sx={{ fontSize: 16 }} />}
             sx={{
               flex: 1.8,
-              height: 38,
-              borderRadius: '8px',
+              height: { xs: 40, sm: 44 },
+              borderRadius: '9px',
               bgcolor: role === 'customer' ? '#0066CC' : '#059669',
               color: '#FFFFFF',
               fontWeight: 800,
-              fontSize: '12.5px',
+              fontSize: { xs: '13px', sm: '13.5px' },
               textTransform: 'none',
               boxShadow: 'none',
               '&:hover': {
