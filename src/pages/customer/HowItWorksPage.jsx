@@ -184,7 +184,8 @@ export default function HowItWorksPage() {
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          py: { xs: 1, sm: 1.5 },
+          pt: { xs: 'max(env(safe-area-inset-top, 0px), 8px)', sm: 'max(env(safe-area-inset-top, 0px), 12px)' },
+          pb: { xs: 'max(env(safe-area-inset-bottom, 0px), 10px)', sm: 'max(env(safe-area-inset-bottom, 0px), 14px)' },
           px: { xs: 1.5, sm: 2.5 },
           boxSizing: 'border-box'
         }}

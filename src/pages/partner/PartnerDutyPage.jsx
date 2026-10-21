@@ -915,27 +915,46 @@ export default function PartnerDutyPage() {
               localStorage.removeItem('shazuone_partner_active_job');
             } else {
               setActiveJob(data.activeJob);
+              localStorage.setItem('shazuone_partner_active_job', data.activeJob.id);
               // Lock session into corresponding stage so refresh never disconnects
               if (st === 'matching' || st === 'accepted') {
                 setStep(1);
-                localStorage.removeItem('shazuone_partner_step');
               } else if (st === 'en_route') {
                 setStep(2);
                 localStorage.setItem('shazuone_partner_step', '2');
-              } else if (['arrived', 'inspecting', 'quote_presented', 'quote_approved'].includes(st)) {
+              } else if (['arrived', 'inspecting', 'quote_presented', 'quote_approved', 'in_progress'].includes(st)) {
                 setStep(3);
                 localStorage.setItem('shazuone_partner_step', '3');
               } else if (st === 'completed') {
                 setActiveJob(null);
                 setStep(1);
                 localStorage.removeItem('shazuone_partner_step');
+                localStorage.removeItem('shazuone_partner_active_job');
               }
             }
           } else {
-            setActiveJob(null);
-            setStep(1);
-            localStorage.removeItem('shazuone_partner_step');
-            localStorage.removeItem('shazuone_partner_active_job');
+            // Check if there is an accepted or active job in myScheduledJobs
+            const scheduledActive = (data.myScheduledJobs || []).find(j => 
+              ['accepted', 'en_route', 'arrived', 'inspecting', 'quote_presented', 'quote_approved', 'in_progress'].includes(j.status)
+            );
+            if (scheduledActive) {
+              setActiveJob(scheduledActive);
+              localStorage.setItem('shazuone_partner_active_job', scheduledActive.id);
+              if (scheduledActive.status === 'en_route') {
+                setStep(2);
+                localStorage.setItem('shazuone_partner_step', '2');
+              } else if (['arrived', 'inspecting', 'quote_presented', 'quote_approved', 'in_progress'].includes(scheduledActive.status)) {
+                setStep(3);
+                localStorage.setItem('shazuone_partner_step', '3');
+              } else {
+                setStep(1);
+              }
+            } else {
+              setActiveJob(null);
+              setStep(1);
+              localStorage.removeItem('shazuone_partner_step');
+              localStorage.removeItem('shazuone_partner_active_job');
+            }
           }
         }
       } catch (err) {
@@ -1014,8 +1033,18 @@ export default function PartnerDutyPage() {
           if (ph || tid) {
             const dRes = await fetch(`${API_V1_URL}/partner/duty?phone=${encodeURIComponent(ph)}&technicianId=${encodeURIComponent(tid)}`);
             const dJson = await dRes.json();
-            if (dJson.success && dJson.myScheduledJobs) {
-              setMyScheduledJobs(dJson.myScheduledJobs);
+            if (dJson.success) {
+              if (dJson.myScheduledJobs) {
+                setMyScheduledJobs(dJson.myScheduledJobs);
+              }
+              if (dJson.activeJob) {
+                setActiveJob(dJson.activeJob);
+              } else if (dJson.myScheduledJobs) {
+                const claimed = dJson.myScheduledJobs.find(j => String(j.id) === String(leadId));
+                if (claimed) {
+                  setActiveJob(claimed);
+                }
+              }
             }
           }
         } catch (e) {}
@@ -1053,12 +1082,15 @@ export default function PartnerDutyPage() {
   // Start Trip to customer doorstep for a scheduled or accepted booking
   const handleStartTripForJob = async (jobId) => {
     try {
+      const techId = activeTech?.id || user?.id;
+      const techPhone = activeTech?.phone || user?.phone;
       await fetch(`${API_V1_URL}/bookings/${jobId}/status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           status: 'en_route',
-          technicianId: user?.id
+          technicianId: techId,
+          technicianPhone: techPhone
         })
       });
       setIsOnline(true);
@@ -1067,6 +1099,7 @@ export default function PartnerDutyPage() {
       if (updateUser) updateUser({ isOnline: true });
       localStorage.setItem('shazuone_partner_active_job', jobId);
       localStorage.setItem('shazuone_partner_step', '2');
+      setActiveJob(prev => prev ? { ...prev, id: jobId, status: 'en_route', technician_id: techId } : { id: jobId, status: 'en_route', technician_id: techId });
       setStep(2);
       setTechToast('பயணம் தொடங்கியது! நேரலை GPS வழித்தடம் திறக்கப்பட்டது (Journey started! GPS live navigation active).');
       broadcastLocation(liveGps.lat, liveGps.lng, 25);
@@ -1077,6 +1110,7 @@ export default function PartnerDutyPage() {
       localStorage.setItem('shazuone_partner_is_online', 'true');
       localStorage.setItem('shazuone_partner_active_job', jobId);
       localStorage.setItem('shazuone_partner_step', '2');
+      setActiveJob(prev => prev ? { ...prev, id: jobId, status: 'en_route' } : { id: jobId, status: 'en_route' });
       setStep(2);
     } finally {
       setIsProcessing(false);
@@ -2473,7 +2507,7 @@ export default function PartnerDutyPage() {
                           );
                         })()}
                         {activeJob && activeJob.status === 'accepted' ? (
-                          /* WAITING FOR CUSTOMER RAZORPAY PAYMENT (₹99 ADVANCE) */
+                          /* ACCEPTED & CONFIRMED JOB READY FOR TRANSIT */
                           <Card
                             elevation={0}
                             sx={{
@@ -2482,71 +2516,112 @@ export default function PartnerDutyPage() {
                               borderRadius: '12px',
                               p: 2.5,
                               mb: 2,
-                              border: '2px solid #F59E0B',
-                              boxShadow: '0 4px 24px rgba(245, 158, 11, 0.25)'
+                              border: '2px solid #10B981',
+                              boxShadow: '0 4px 24px rgba(16, 185, 129, 0.25)'
                             }}
                           >
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5, flexWrap: 'wrap', gap: 1 }}>
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                                <HourglassTopIcon sx={{ color: '#F59E0B', fontSize: 20 }} />
-                                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#FEF08A', fontSize: 'clamp(0.8125rem, 1.8vw, 0.9375rem)' }}>
-                                  வாடிக்கையாளர் கட்டணம் செலுத்தும் வரை காத்திருக்கவும்
+                                <CheckCircleIcon sx={{ color: '#10B981', fontSize: 22 }} />
+                                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#FFFFFF', fontSize: 'clamp(0.875rem, 1.8vw, 1rem)' }}>
+                                  பணி உறுதி செய்யப்பட்டது (Job Accepted & Confirmed)
                                 </Typography>
                               </Box>
                               <Chip
-                                icon={<LockIcon sx={{ fontSize: '12px !important', color: '#92400E !important' }} />}
-                                label={`Awaiting ₹${activeJob.visit_fee || activeJob.visitFee || 99}`}
+                                icon={<CheckCircleIcon sx={{ fontSize: '14px !important', color: '#065F46 !important' }} />}
+                                label={`Ready • ₹${activeJob.visit_fee || activeJob.visitFee || 99} Visit Fee`}
                                 size="small"
-                                sx={{ bgcolor: '#FEF3C7', color: '#92400E', fontWeight: 800, fontSize: '10.5px', height: 22 }}
+                                sx={{ bgcolor: '#D1FAE5', color: '#064E3B', fontWeight: 800, fontSize: '11px', height: 24 }}
                               />
                             </Box>
 
-                            <Typography variant="body2" sx={{ color: '#E2E8F0', fontSize: 'clamp(0.75rem, 1.5vw, 0.875rem)', mb: 1.5, lineHeight: 1.5 }}>
-                              You accepted booking <strong>#{activeJob.id}</strong>. Customer <strong>{activeJob.customerName || 'Customer'}</strong> ({activeJob.locality || 'Fairlands, Salem'}) is currently completing the <strong>₹{activeJob.visit_fee || activeJob.visitFee || 99}.00 Doorstep Travel & Inspection Advance</strong> via Razorpay.
-                            </Typography>
-
-                            <Paper elevation={0} sx={{ p: 1.4, bgcolor: '#1E293B', border: '1px solid #334155', borderRadius: '8px', mb: 1.5 }}>
-                              <Typography variant="caption" sx={{ color: '#38BDF8', fontWeight: 700, display: 'block', mb: 0.8, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '10px' }}>
-                                RAZORPAY ESCROW GUARANTEE FOR PARTNERS
-                              </Typography>
-                              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.6, fontSize: 'clamp(0.75rem, 1.5vw, 0.875rem)' }}>
-                                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                  <span style={{ color: '#94A3B8' }}>Doorstep Travel & Fuel Advance:</span>
-                                  <strong style={{ color: '#34D399' }}>₹{activeJob.visit_fee || activeJob.visitFee || 99}.00 (100% to your wallet)</strong>
+                            <Box sx={{ bgcolor: '#1E293B', borderRadius: '10px', p: 1.8, mb: 2, border: '1px solid #334155' }}>
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                                <Box>
+                                  <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '11px' }}>
+                                    Booking #{activeJob.id} • {activeJob.bookingType || 'Instant Dispatch'}
+                                  </Typography>
+                                  <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#F8FAFC', fontSize: '15px' }}>
+                                    {activeJob.customerName || 'Customer'}
+                                  </Typography>
                                 </Box>
-                                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                  <span style={{ color: '#94A3B8' }}>Shazu One Platform Cut:</span>
-                                  <strong style={{ color: '#94A3B8' }}>₹0.00 (Zero Commission)</strong>
-                                </Box>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#34D399', fontSize: '15px' }}>
+                                  ₹{activeJob.visit_fee || activeJob.visitFee || 99}.00
+                                </Typography>
                               </Box>
-                            </Paper>
+                              <Typography variant="body2" sx={{ color: '#CBD5E1', display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.8, fontSize: '13px' }}>
+                                <LocationOnIcon sx={{ color: '#F59E0B', fontSize: 16 }} />
+                                {activeJob.address || activeJob.locality || 'Fairlands, Salem'}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: '#94A3B8', display: 'block', fontSize: '12px' }}>
+                                <strong>Issue:</strong> {activeJob.issueDescription || 'Doorstep Service & Diagnostic Inspection'}
+                              </Typography>
+                            </Box>
 
-                            <Alert severity="warning" sx={{ bgcolor: 'rgba(245, 158, 11, 0.12)', color: '#FCD34D', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '8px', fontSize: 'clamp(0.75rem, 1.5vw, 0.8125rem)', mb: 2, py: 0.5 }}>
-                              <strong>கவனம்:</strong> வாடிக்கையாளர் Razorpay மூலம் ₹{activeJob.visit_fee || activeJob.visitFee || 99} செலுத்திய பின்பே அழைப்பு (Call), செய்தி (Chat), மற்றும் GPS வழித்தடம் (Navigation) திறக்கப்படும். அதுவரை பைக்கை எடுக்க வேண்டாம்.
-                            </Alert>
+                            {/* Start Ride Primary Action */}
+                            <Button
+                              variant="contained"
+                              fullWidth
+                              size="large"
+                              onClick={() => handleStartTripForJob(activeJob.id)}
+                              startIcon={<NavigationIcon sx={{ fontSize: 20 }} />}
+                              sx={{
+                                bgcolor: '#10B981',
+                                color: '#FFFFFF',
+                                fontWeight: 800,
+                                fontSize: 'clamp(0.875rem, 1.8vw, 0.95rem)',
+                                py: 1.2,
+                                borderRadius: '8px',
+                                textTransform: 'none',
+                                mb: 1.5,
+                                boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)',
+                                '&:hover': { bgcolor: '#059669' }
+                              }}
+                            >
+                              Start Ride Now - கிளம்புகிறேன் (Live GPS)
+                            </Button>
 
-                            {/* Locked Action Buttons with visual indicators */}
+                            {/* Direct Communication Actions */}
                             <Box sx={{ display: 'flex', gap: 1 }}>
                               <Button
-                                disabled
-                                variant="contained"
+                                variant="outlined"
                                 fullWidth
                                 size="small"
+                                component="a"
+                                href={activeJob.customerPhone ? `tel:${activeJob.customerPhone}` : '#'}
                                 startIcon={<PhoneIcon sx={{ fontSize: 16 }} />}
-                                sx={{ bgcolor: '#334155 !important', color: '#94A3B8 !important', borderRadius: '6px', py: 0.8, fontSize: 'clamp(0.75rem, 1.5vw, 0.8125rem)', textTransform: 'none' }}
+                                sx={{
+                                  borderColor: '#0284C7',
+                                  color: '#38BDF8',
+                                  fontWeight: 700,
+                                  borderRadius: '6px',
+                                  py: 0.8,
+                                  fontSize: 'clamp(0.75rem, 1.5vw, 0.8125rem)',
+                                  textTransform: 'none',
+                                  '&:hover': { bgcolor: 'rgba(2, 132, 199, 0.1)', borderColor: '#38BDF8' }
+                                }}
                               >
-                                Call (Locked)
+                                Call Customer
                               </Button>
 
                               <Button
-                                disabled
-                                variant="contained"
+                                variant="outlined"
                                 fullWidth
                                 size="small"
+                                onClick={() => setChatDrawerOpen(true)}
                                 startIcon={<ChatBubbleOutlineIcon sx={{ fontSize: 16 }} />}
-                                sx={{ bgcolor: '#334155 !important', color: '#94A3B8 !important', borderRadius: '6px', py: 0.8, fontSize: 'clamp(0.75rem, 1.5vw, 0.8125rem)', textTransform: 'none' }}
+                                sx={{
+                                  borderColor: '#475569',
+                                  color: '#E2E8F0',
+                                  fontWeight: 700,
+                                  borderRadius: '6px',
+                                  py: 0.8,
+                                  fontSize: 'clamp(0.75rem, 1.5vw, 0.8125rem)',
+                                  textTransform: 'none',
+                                  '&:hover': { bgcolor: 'rgba(71, 85, 105, 0.2)', borderColor: '#94A3B8' }
+                                }}
                               >
-                                Chat (Locked)
+                                Chat
                               </Button>
                             </Box>
                           </Card>
@@ -2717,24 +2792,27 @@ export default function PartnerDutyPage() {
                                     size="small"
                                     onClick={async () => {
                                       try {
+                                        const techId = activeTech?.id || user?.id;
+                                        const techPhone = activeTech?.phone || user?.phone;
                                         await fetch(`${API_V1_URL}/bookings/${activeJob.id}/status`, {
                                           method: 'POST',
                                           headers: { 'Content-Type': 'application/json' },
                                           body: JSON.stringify({
                                             status: 'accepted',
-                                            technicianId: activeTech?.id || user?.id,
-                                            technicianPhone: activeTech?.phone || user?.phone
+                                            technicianId: techId,
+                                            technicianPhone: techPhone
                                           })
                                         });
-                                        setActiveJob(prev => prev ? { ...prev, status: 'accepted' } : null);
+                                        const updatedJob = { ...activeJob, status: 'accepted', technician_id: techId };
+                                        setActiveJob(updatedJob);
+                                        localStorage.setItem('shazuone_partner_active_job', activeJob.id);
                                         try {
-                                          const ph = activeTech?.phone || user?.phone || '';
-                                          const tid = activeTech?.id || user?.id || '';
-                                          if (ph || tid) {
-                                            const dRes = await fetch(`${API_V1_URL}/partner/duty?phone=${encodeURIComponent(ph)}&technicianId=${encodeURIComponent(tid)}`);
+                                          if (techPhone || techId) {
+                                            const dRes = await fetch(`${API_V1_URL}/partner/duty?phone=${encodeURIComponent(techPhone || '')}&technicianId=${encodeURIComponent(techId || '')}`);
                                             const dJson = await dRes.json();
-                                            if (dJson.success && dJson.myScheduledJobs) {
-                                              setMyScheduledJobs(dJson.myScheduledJobs);
+                                            if (dJson.success) {
+                                              if (dJson.myScheduledJobs) setMyScheduledJobs(dJson.myScheduledJobs);
+                                              if (dJson.activeJob) setActiveJob(dJson.activeJob);
                                             }
                                           }
                                         } catch (e) {}
@@ -2743,7 +2821,6 @@ export default function PartnerDutyPage() {
                                         setActiveJob(prev => prev ? { ...prev, status: 'accepted' } : null);
                                       }
                                       setStep(1);
-                                      localStorage.removeItem('shazuone_partner_step');
                                       setIsProcessing(false);
                                       setTechToast('கோரிக்கை ஏற்கப்பட்டது! வாடிக்கையாளருக்கு அறிவிக்கப்பட்டது (Request accepted! Customer notified).');
                                     }}

@@ -55,9 +55,9 @@ html, body {
   flex-direction: column;
 }
 
-/* Header Safe Area Clearance */
+/* Header and Navigation Sizing */
 header, .app-header {
-  padding-top: max(env(safe-area-inset-top, 0px), 0px) !important;
+  box-sizing: border-box !important;
 }
 
 /* Fixed Bottom Navigation Safe Area Clearance */
@@ -188,10 +188,33 @@ body.translated-rtl {
   position: static !important;
 }
 
-font, font[style] {
-  vertical-align: baseline !important;
+/* Prevent Google Translate font tags from breaking flexbox and inline text alignments */
+font,
+font[style],
+font > font {
+  vertical-align: inherit !important;
+  font-family: inherit !important;
+  line-height: inherit !important;
+  color: inherit !important;
   background: transparent !important;
   box-shadow: none !important;
+}
+
+button font,
+a font,
+.MuiButtonBase-root font,
+.MuiChip-root font,
+.MuiTypography-root font,
+[role="button"] font {
+  display: inline !important;
+  vertical-align: middle !important;
+  line-height: inherit !important;
+}
+
+/* Ensure Indic & Tamil script ascenders/descenders render cleanly without clipping */
+html.translated-ltr,
+html.translated-rtl {
+  font-family: 'Poppins', 'Noto Sans Tamil', -apple-system, BlinkMacSystemFont, sans-serif !important;
 }
 
 .goog-text-highlight {

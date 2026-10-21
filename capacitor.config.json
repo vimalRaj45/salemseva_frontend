@@ -15,8 +15,9 @@
     },
     "Haptics": {},
     "StatusBar": {
-      "style": "DARK",
-      "backgroundColor": "#0F172A"
+      "style": "LIGHT",
+      "backgroundColor": "#FFFFFF",
+      "overlays": false
     }
   }
 }

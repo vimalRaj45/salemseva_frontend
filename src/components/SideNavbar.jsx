@@ -10,8 +10,6 @@ import {
   Activity,
   ShieldCheck,
   Globe,
-  Sun,
-  Moon,
   LogOut,
   User,
   PhoneCall,
@@ -524,12 +522,6 @@ export default function SideNavbar({
                     onClose();
                     onOpenLanguageModal();
                   }}
-                />
-                <SideNavItem
-                  icon={isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-                  label={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-                  isDark={isDarkMode}
-                  onClick={toggleDarkMode}
                 />
                 <SideNavItem
                   icon={<LifeBuoy size={18} color="#0066CC" />}

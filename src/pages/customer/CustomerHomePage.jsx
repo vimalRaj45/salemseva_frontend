@@ -872,7 +872,10 @@ export default function CustomerHomePage() {
                           color: '#0F172A',
                           fontSize: { xs: '12.5px', sm: '14px' },
                           mb: { xs: 0.3, sm: 0.5 },
-                          lineHeight: 1.25
+                          lineHeight: 1.3,
+                          minHeight: { xs: '34px', sm: '38px' },
+                          display: 'flex',
+                          alignItems: 'center'
                         }}
                       >
                         {svc.name || svc.name_en || svc.title}
@@ -887,7 +890,8 @@ export default function CustomerHomePage() {
                           display: '-webkit-box',
                           WebkitLineClamp: 2,
                           WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden'
+                          overflow: 'hidden',
+                          minHeight: { xs: '28px', sm: '32px' }
                         }}
                       >
                         {isClosed ? 'Reserve advance slot dispatched by Central Ops' : meta.desc}
@@ -1442,8 +1446,7 @@ export default function CustomerHomePage() {
           borderTop: '1px solid #E2E8F0',
           boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.05)',
           zIndex: 1000,
-          display: { xs: 'block', md: 'none' },
-          pb: 'env(safe-area-inset-bottom, 0px)'
+          display: { xs: 'block', md: 'none' }
         }}
       >
         <Box

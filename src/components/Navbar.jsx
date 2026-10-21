@@ -15,8 +15,6 @@ import {
   HelpCircle,
   ShieldCheck,
   Briefcase,
-  Sun,
-  Moon,
   Sparkles,
   Zap,
   Activity,
@@ -124,21 +122,14 @@ export default function Navbar({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Theme detection / toggle
+  // Clean standard light theme enforcement
   useEffect(() => {
-    const isDark = document.documentElement.classList.contains('dark');
-    setIsDarkMode(isDark);
+    document.documentElement.classList.remove('dark');
+    try {
+      localStorage.removeItem('theme');
+    } catch (_) {}
+    setIsDarkMode(false);
   }, []);
-
-  const toggleDarkMode = () => {
-    const nextDark = !isDarkMode;
-    setIsDarkMode(nextDark);
-    if (nextDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  };
 
   // Close popovers on click outside or escape key
   useEffect(() => {
@@ -269,7 +260,7 @@ export default function Navbar({
             : '0 2px 12px -2px rgba(15, 23, 42, 0.08)'
           : '0 1px 3px rgba(0,0,0,0.03)',
         transition: 'all 0.2s ease',
-        paddingTop: 'env(safe-area-inset-top, 0px)',
+        paddingTop: 0,
         fontFamily: "'Inter', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif"
       }}
     >
@@ -646,7 +637,7 @@ export default function Navbar({
                       flexShrink: 0
                     }}
                   >
-                    ⌘K
+                    Cmd+K
                   </span>
                 </div>
               </form>
@@ -976,29 +967,6 @@ export default function Navbar({
                 </span>
               </button>
             )}
-
-            {/* 3.4 Dark/Light Theme Toggle (Desktop only; in hamburger drawer on mobile) */}
-            <button
-              type="button"
-              onClick={toggleDarkMode}
-              title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-              style={{
-                display: isMobile ? 'none' : 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '38px',
-                height: '38px',
-                borderRadius: '10px',
-                boxSizing: 'border-box',
-                backgroundColor: isDarkMode ? '#1E293B' : '#F8FAFC',
-                border: isDarkMode ? '1px solid #334155' : '1px solid #E2E8F0',
-                color: isDarkMode ? '#FBBF24' : '#64748B',
-                cursor: 'pointer',
-                flexShrink: 0
-              }}
-            >
-              {isDarkMode ? <Sun size={16} color="#FBBF24" /> : <Moon size={16} color="#475569" />}
-            </button>
 
             {/* 3.5 User Avatar & Adaptive Role Dropdown (If Logged In) OR Clean Sign In Button */}
             {user ? (
@@ -1486,8 +1454,7 @@ export default function Navbar({
         onClose={() => setIsSideNavOpen(false)}
         user={user}
         creditsAmount={creditsAmount}
-        isDarkMode={isDarkMode}
-        toggleDarkMode={toggleDarkMode}
+        isDarkMode={false}
         onOpenLanguageModal={() => setIsLanguageModalOpen(true)}
         onOpenFeedbackModal={() => setIsFeedbackModalOpen(true)}
         onOpenSupportTicketModal={() => setIsSupportTicketModalOpen(true)}
