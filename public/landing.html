@@ -201,7 +201,7 @@
     <div class="anim-fall-bounce flex flex-col items-center text-center px-4 sm:px-6 relative z-10 max-w-sm sm:max-w-md w-full">
       <!-- Direct Official Logo with Tagline (Sleek proportional scaling for phone & desktop) -->
       <div class="w-full flex items-center justify-center py-2 sm:py-4">
-        <img src="logo.svg" alt="Shazu One - All Your Home Services. One Platform." class="w-full max-w-[260px] sm:max-w-[380px] h-auto object-contain drop-shadow-sm">
+        <img src="logo.svg" alt="Shazu One - All Your Home Services. One Platform." class="w-full max-w-[260px] sm:max-w-[380px] h-auto object-contain drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)]">
       </div>
 
       <!-- Official Brand Green Trust Badge with Sound Waves -->
@@ -272,9 +272,9 @@
   </nav>
 
   <!-- Hero Header Section with Official Shazu One Navy Brand Foundation & Ambient Emblem Watermark -->
-  <header class="bg-gradient-to-br from-brand-navy via-brand-cobalt to-[#072F5E] text-white relative pt-3 sm:pt-6 pb-8 sm:pb-14 overflow-hidden shadow-lg w-full max-w-full">
+  <header class="bg-gradient-to-br from-brand-navy via-brand-cobalt to-[#072F5E] text-white relative pt-0 pb-8 sm:pb-14 overflow-hidden shadow-lg w-full max-w-full">
     
-    <!-- Giant Background Emblem Watermark (Emblem icon only: NO text collision or awkward words!) -->
+        <!-- Giant Background Emblem Watermark (Emblem icon only: NO text collision or awkward words!) -->
     <div class="absolute inset-0 overflow-hidden pointer-events-none select-none z-0">
       <!-- Right Ambient Circular Emblem Watermark -->
       <div class="absolute -right-20 -bottom-20 w-[480px] sm:w-[600px] h-[480px] sm:h-[600px] opacity-[0.05] transform rotate-12">
@@ -285,168 +285,188 @@
       <div class="absolute top-1/3 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-brand-orange/10 rounded-full blur-3xl pointer-events-none"></div>
     </div>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-
-            <!-- Header Spotlight Carousel / Slider (Clean Glassmorphism on Navy Brand - Premium Unified Card) -->
-      <div class="relative my-2 sm:my-4 rounded-xl sm:rounded-3xl bg-white/[0.09] backdrop-blur-xl border border-white/20 overflow-hidden shadow-xl z-10" id="heroSlider">
-        <!-- Slides Track (Unified Side-by-Side with Framed 3D Asset & Full Actions on Mobile) -->
-        <div class="flex transition-transform duration-500 ease-out w-full" id="heroSliderTrack">
+        <!-- Full-Width Edge-to-Edge Hero Slider (Full-Bleed Image with Overlaid Text) -->
+    <div class="relative w-full overflow-hidden shadow-2xl z-10 bg-brand-navy border-b border-white/10" id="heroSlider">
+      <!-- Slides Track (Full-Bleed 100% Viewport Width with Overlaid Content) -->
+      <div class="flex transition-transform duration-500 ease-out w-full" id="heroSliderTrack">
+        
+        <!-- Slide 1: Fast Doorstep Services -->
+        <div class="w-full flex-shrink-0 relative min-h-[300px] sm:min-h-[360px] md:min-h-[420px] lg:min-h-[460px] flex items-center overflow-hidden select-none">
+          <!-- Full-Bleed Background Image (Spans entire slide, edge-to-edge) -->
+          <img src="illustrations/hero_illustration.jpg" onerror="this.onerror=null; this.src='frontend/public/' + this.getAttribute('src');" alt="Certified Home Service Specialist arriving at doorstep" class="absolute inset-0 w-full h-full object-cover object-right md:object-center">
           
-          <!-- Slide 1: Fast Doorstep Services -->
-          <div class="w-full flex-shrink-0 px-7 sm:px-12 md:px-14 py-3 sm:py-5 md:py-6 grid grid-cols-12 gap-2.5 sm:gap-6 items-center text-white min-h-[160px] sm:min-h-[190px] md:min-h-[230px]">
-            <div class="col-span-7 flex flex-col items-start justify-center text-left pr-0.5 sm:pr-2">
-              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] sm:text-xs font-black uppercase tracking-wider bg-brand-orange/20 border border-brand-orange/40 text-brand-orangeLight mb-1 sm:mb-1.5">
-                <svg class="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[2.5] stroke-current fill-none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <!-- Subtle Dark Scrim Overlay: Keeps text 100% readable while background image is clearly visible -->
+          <div class="absolute inset-0 bg-gradient-to-r from-[#071F42]/85 via-[#071F42]/50 to-transparent"></div>
+          <div class="absolute inset-0 bg-gradient-to-t from-[#071F42]/50 via-transparent to-transparent sm:hidden"></div>
+
+          <!-- Text Overlaid Inside the Image -->
+          <div class="max-w-7xl mx-auto px-6 sm:px-12 md:px-16 w-full relative z-10 py-8 sm:py-12">
+            <div class="max-w-xl md:max-w-2xl flex flex-col items-start text-left">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider bg-brand-orange/30 border border-brand-orange/50 text-white mb-2 sm:mb-3 shadow-md backdrop-blur-sm">
+                <svg class="w-3 h-3 stroke-[2.5] stroke-current fill-none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 45-Min Dispatch
               </span>
-              <h2 class="font-display font-black text-xs sm:text-lg md:text-2xl leading-tight mb-1 sm:mb-1.5 tracking-tight text-white">
+              <h2 class="font-display font-black text-xl sm:text-3xl md:text-4xl lg:text-5xl leading-tight mb-2 sm:mb-3 tracking-tight text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]">
                 Salem’s Certified Technicians at Your Doorstep
               </h2>
-              <p class="text-[9.5px] sm:text-xs md:text-sm text-slate-200 mb-2 sm:mb-2.5 leading-relaxed font-normal">
+              <p class="text-xs sm:text-base md:text-lg text-slate-100 mb-4 sm:mb-6 leading-relaxed font-medium max-w-xl drop-shadow-[0_1px_6px_rgba(0,0,0,0.8)]">
                 AC repair, wiring diagnostics, plumbing, and deep sanitation with transparent upfront pricing.
               </p>
-              <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
-                <button onclick="document.getElementById('services-section').scrollIntoView({behavior: 'smooth'})" class="px-2.5 py-1 sm:px-4 sm:py-2 rounded-full text-[9.5px] sm:text-xs font-bold bg-brand-orange hover:bg-brand-orangeDark text-white shadow-xs transition-transform hover:-translate-y-0.5 inline-flex items-center gap-1">
+              <div class="flex flex-wrap items-center gap-2.5 sm:gap-4 mb-3 sm:mb-4">
+                <button onclick="document.getElementById('services-section').scrollIntoView({behavior: 'smooth'})" class="px-4 py-2 sm:px-6 sm:py-3 rounded-full text-xs sm:text-sm font-bold bg-brand-orange hover:bg-brand-orangeDark text-white shadow-lg transition-transform hover:-translate-y-0.5 inline-flex items-center gap-2">
                   <span>Book Now</span>
-                  <svg class="w-3 h-3 stroke-[2.5] stroke-current fill-none" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                  <svg class="w-4 h-4 stroke-[2.5] stroke-current fill-none" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </button>
-                <button onclick="openLocalityModal()" class="inline-flex px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-[9.5px] sm:text-xs font-semibold bg-white/10 hover:bg-white/20 border border-white/25 text-white transition-all">
+                <button onclick="openLocalityModal()" class="inline-flex px-4 py-2 sm:px-5 sm:py-3 rounded-full text-xs sm:text-sm font-semibold bg-white/20 hover:bg-white/30 border border-white/35 text-white backdrop-blur-md transition-all shadow-md">
                   <span>Coverage Areas</span>
                 </button>
               </div>
-              <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[9px] sm:text-xs font-medium text-slate-200">
-                <span class="inline-flex items-center gap-1"><svg class="w-2.5 h-2.5 sm:w-3 sm:h-3 text-brand-mint stroke-[3] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Aadhaar Verified</span>
-                <span class="inline-flex items-center gap-1"><svg class="w-2.5 h-2.5 sm:w-3 sm:h-3 text-brand-mint stroke-[3] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>&#8377;199 Deposit</span>
-              </div>
-            </div>
-            <div class="col-span-5 flex items-center justify-center">
-              <div class="w-full bg-white rounded-xl sm:rounded-2xl p-1 sm:p-1.5 shadow-lg border border-white/25 flex items-center justify-center overflow-hidden">
-                <img src="illustrations/hero_illustration.jpg" onerror="this.onerror=null; this.src='frontend/public/' + this.getAttribute('src');" alt="Certified Home Service Specialist Technician arriving at doorstep" class="w-full h-auto max-h-24 sm:max-h-36 md:max-h-48 object-cover rounded-lg sm:rounded-xl transition-transform duration-300 hover:scale-[1.02]">
+              <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm font-semibold text-slate-100 drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]">
+                <span class="inline-flex items-center gap-1.5"><svg class="w-4 h-4 text-brand-mint stroke-[3] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Aadhaar Verified</span>
+                <span class="inline-flex items-center gap-1.5"><svg class="w-4 h-4 text-brand-mint stroke-[3] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>&#8377;199 Deposit</span>
               </div>
             </div>
           </div>
+        </div>
 
-          <!-- Slide 2: 30-Day Workmanship Warranty -->
-          <div class="w-full flex-shrink-0 px-7 sm:px-12 md:px-14 py-3 sm:py-5 md:py-6 grid grid-cols-12 gap-2.5 sm:gap-6 items-center text-white min-h-[160px] sm:min-h-[190px] md:min-h-[230px]">
-            <div class="col-span-7 flex flex-col items-start justify-center text-left pr-0.5 sm:pr-2">
-              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] sm:text-xs font-black uppercase tracking-wider bg-brand-green/30 border border-brand-mint/50 text-brand-mint mb-1 sm:mb-1.5">
-                <svg class="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[2.5] stroke-current fill-none" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <!-- Slide 2: 30-Day Workmanship Warranty -->
+        <div class="w-full flex-shrink-0 relative min-h-[300px] sm:min-h-[360px] md:min-h-[420px] lg:min-h-[460px] flex items-center overflow-hidden select-none">
+          <!-- Full-Bleed Background Image -->
+          <img src="illustrations/guarantee_illustration.jpg" onerror="this.onerror=null; this.src='frontend/public/' + this.getAttribute('src');" alt="Certified Specialist Inspecting AC Unit with 100% Warranty Seal" class="absolute inset-0 w-full h-full object-cover object-right md:object-center">
+          
+          <!-- Subtle Dark Scrim -->
+          <div class="absolute inset-0 bg-gradient-to-r from-[#071F42]/85 via-[#071F42]/50 to-transparent"></div>
+          <div class="absolute inset-0 bg-gradient-to-t from-[#071F42]/50 via-transparent to-transparent sm:hidden"></div>
+
+          <!-- Text Overlaid Inside the Image -->
+          <div class="max-w-7xl mx-auto px-6 sm:px-12 md:px-16 w-full relative z-10 py-8 sm:py-12">
+            <div class="max-w-xl md:max-w-2xl flex flex-col items-start text-left">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider bg-emerald-500/30 border border-emerald-400/50 text-white mb-2 sm:mb-3 shadow-md backdrop-blur-sm">
+                <svg class="w-3 h-3 stroke-[2.5] stroke-current fill-none" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 30-Day Warranty
               </span>
-              <h2 class="font-display font-black text-xs sm:text-lg md:text-2xl leading-tight mb-1 sm:mb-1.5 tracking-tight text-white">
+              <h2 class="font-display font-black text-xl sm:text-3xl md:text-4xl lg:text-5xl leading-tight mb-2 sm:mb-3 tracking-tight text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]">
                 Guaranteed Workmanship with Free Re-Check
               </h2>
-              <p class="text-[9.5px] sm:text-xs md:text-sm text-slate-200 mb-2 sm:mb-2.5 leading-relaxed font-normal">
+              <p class="text-xs sm:text-base md:text-lg text-slate-100 mb-4 sm:mb-6 leading-relaxed font-medium max-w-xl drop-shadow-[0_1px_6px_rgba(0,0,0,0.8)]">
                 Every AC overhaul, motor fix, and distribution box repair includes a 30-day workmanship assurance.
               </p>
-              <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
-                <button onclick="document.getElementById('services-section').scrollIntoView({behavior: 'smooth'})" class="px-2.5 py-1 sm:px-4 sm:py-2 rounded-full text-[9.5px] sm:text-xs font-bold bg-brand-orange hover:bg-brand-orangeDark text-white shadow-xs transition-transform hover:-translate-y-0.5 inline-flex items-center gap-1">
+              <div class="flex flex-wrap items-center gap-2.5 sm:gap-4 mb-3 sm:mb-4">
+                <button onclick="document.getElementById('services-section').scrollIntoView({behavior: 'smooth'})" class="px-4 py-2 sm:px-6 sm:py-3 rounded-full text-xs sm:text-sm font-bold bg-brand-orange hover:bg-brand-orangeDark text-white shadow-lg transition-transform hover:-translate-y-0.5 inline-flex items-center gap-2">
                   <span>Explore Services</span>
-                  <svg class="w-3 h-3 stroke-[2.5] stroke-current fill-none" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                  <svg class="w-4 h-4 stroke-[2.5] stroke-current fill-none" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </button>
-                <a href="#escrow-protocol" class="inline-flex px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-[9.5px] sm:text-xs font-semibold bg-white/10 hover:bg-white/20 border border-white/25 text-white transition-all">
+                <a href="#escrow-protocol" class="inline-flex px-4 py-2 sm:px-5 sm:py-3 rounded-full text-xs sm:text-sm font-semibold bg-white/20 hover:bg-white/30 border border-white/35 text-white backdrop-blur-md transition-all shadow-md">
                   <span>Protocol</span>
                 </a>
               </div>
-              <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[9px] sm:text-xs font-medium text-slate-200">
-                <span class="inline-flex items-center gap-1"><svg class="w-2.5 h-2.5 sm:w-3 sm:h-3 text-brand-mint stroke-[3] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Certified Masters</span>
-                <span class="inline-flex items-center gap-1"><svg class="w-2.5 h-2.5 sm:w-3 sm:h-3 text-brand-mint stroke-[3] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Free Re-Check</span>
-              </div>
-            </div>
-            <div class="col-span-5 flex items-center justify-center">
-              <div class="w-full bg-white rounded-xl sm:rounded-2xl p-1 sm:p-1.5 shadow-lg border border-white/25 flex items-center justify-center overflow-hidden">
-                <img src="illustrations/guarantee_illustration.jpg" onerror="this.onerror=null; this.src='frontend/public/' + this.getAttribute('src');" alt="Certified Specialist Inspecting AC Unit with 100% Warranty Seal" class="w-full h-auto max-h-24 sm:max-h-36 md:max-h-48 object-cover rounded-lg sm:rounded-xl transition-transform duration-300 hover:scale-[1.02]">
+              <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm font-semibold text-slate-100 drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]">
+                <span class="inline-flex items-center gap-1.5"><svg class="w-4 h-4 text-brand-mint stroke-[3] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Certified Masters</span>
+                <span class="inline-flex items-center gap-1.5"><svg class="w-4 h-4 text-brand-mint stroke-[3] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Free Re-Check</span>
               </div>
             </div>
           </div>
+        </div>
 
-          <!-- Slide 3: 2-Part Escrow Security (Matches Reference Design) -->
-          <div class="w-full flex-shrink-0 px-7 sm:px-12 md:px-14 py-3 sm:py-5 md:py-6 grid grid-cols-12 gap-2.5 sm:gap-6 items-center text-white min-h-[160px] sm:min-h-[190px] md:min-h-[230px]">
-            <div class="col-span-7 flex flex-col items-start justify-center text-left pr-0.5 sm:pr-2">
-              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] sm:text-xs font-black uppercase tracking-wider bg-blue-500/25 border border-blue-400/30 text-blue-200 mb-1 sm:mb-1.5">
-                <svg class="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[2.5] stroke-current fill-none" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <!-- Slide 3: 2-Part Escrow Security -->
+        <div class="w-full flex-shrink-0 relative min-h-[300px] sm:min-h-[360px] md:min-h-[420px] lg:min-h-[460px] flex items-center overflow-hidden select-none">
+          <!-- Full-Bleed Background Image -->
+          <img src="illustrations/escrow_illustration.jpg" onerror="this.onerror=null; this.src='frontend/public/' + this.getAttribute('src');" alt="3D Escrow Vault Shield Security Illustration" class="absolute inset-0 w-full h-full object-cover object-right md:object-center">
+          
+          <!-- Subtle Dark Scrim -->
+          <div class="absolute inset-0 bg-gradient-to-r from-[#071F42]/85 via-[#071F42]/50 to-transparent"></div>
+          <div class="absolute inset-0 bg-gradient-to-t from-[#071F42]/50 via-transparent to-transparent sm:hidden"></div>
+
+          <!-- Text Overlaid Inside the Image -->
+          <div class="max-w-7xl mx-auto px-6 sm:px-12 md:px-16 w-full relative z-10 py-8 sm:py-12">
+            <div class="max-w-xl md:max-w-2xl flex flex-col items-start text-left">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider bg-blue-500/30 border border-blue-400/50 text-white mb-2 sm:mb-3 shadow-md backdrop-blur-sm">
+                <svg class="w-3 h-3 stroke-[2.5] stroke-current fill-none" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                 Zero Advance Risk
               </span>
-              <h2 class="font-display font-black text-xs sm:text-lg md:text-2xl leading-tight mb-1 sm:mb-1.5 tracking-tight text-white">
+              <h2 class="font-display font-black text-xl sm:text-3xl md:text-4xl lg:text-5xl leading-tight mb-2 sm:mb-3 tracking-tight text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]">
                 2-Part Escrow. Pay Only When Satisfied.
               </h2>
-              <p class="text-[9.5px] sm:text-xs md:text-sm text-slate-200 mb-2 sm:mb-2.5 leading-relaxed font-normal">
+              <p class="text-xs sm:text-base md:text-lg text-slate-100 mb-4 sm:mb-6 leading-relaxed font-medium max-w-xl drop-shadow-[0_1px_6px_rgba(0,0,0,0.8)]">
                 Repair fund is held safely in automated escrow and released only via your private OTP.
               </p>
-              <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
-                <button onclick="document.getElementById('escrow-protocol').scrollIntoView({behavior: 'smooth'})" class="px-2.5 py-1 sm:px-4 sm:py-2 rounded-full text-[9.5px] sm:text-xs font-bold bg-brand-orange hover:bg-brand-orangeDark text-white shadow-xs transition-transform hover:-translate-y-0.5 inline-flex items-center gap-1">
+              <div class="flex flex-wrap items-center gap-2.5 sm:gap-4 mb-3 sm:mb-4">
+                <button onclick="document.getElementById('escrow-protocol').scrollIntoView({behavior: 'smooth'})" class="px-4 py-2 sm:px-6 sm:py-3 rounded-full text-xs sm:text-sm font-bold bg-brand-orange hover:bg-brand-orangeDark text-white shadow-lg transition-transform hover:-translate-y-0.5 inline-flex items-center gap-2">
                   <span>How It Works</span>
-                  <svg class="w-3 h-3 stroke-[2.5] stroke-current fill-none" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                  <svg class="w-4 h-4 stroke-[2.5] stroke-current fill-none" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </button>
-                <a href="#services-section" class="inline-flex px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-[9.5px] sm:text-xs font-semibold bg-white/10 hover:bg-white/20 border border-white/25 text-white transition-all">
+                <a href="#services-section" class="inline-flex px-4 py-2 sm:px-5 sm:py-3 rounded-full text-xs sm:text-sm font-semibold bg-white/20 hover:bg-white/30 border border-white/35 text-white backdrop-blur-md transition-all shadow-md">
                   <span>Explore Rates</span>
                 </a>
               </div>
-              <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[9px] sm:text-xs font-medium text-slate-200">
-                <span class="inline-flex items-center gap-1"><svg class="w-2.5 h-2.5 sm:w-3 sm:h-3 text-brand-mint stroke-[3] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Locked Escrow</span>
-                <span class="inline-flex items-center gap-1"><svg class="w-2.5 h-2.5 sm:w-3 sm:h-3 text-brand-mint stroke-[3] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>OTP Gate</span>
-              </div>
-            </div>
-            <div class="col-span-5 flex items-center justify-center">
-              <div class="w-full bg-white rounded-xl sm:rounded-2xl p-1 sm:p-1.5 shadow-lg border border-white/25 flex items-center justify-center overflow-hidden">
-                <img src="illustrations/escrow_illustration.jpg" onerror="this.onerror=null; this.src='frontend/public/' + this.getAttribute('src');" alt="3D Escrow Vault Shield Security Illustration" class="w-full h-auto max-h-24 sm:max-h-36 md:max-h-48 object-cover rounded-lg sm:rounded-xl transition-transform duration-300 hover:scale-[1.02]">
+              <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm font-semibold text-slate-100 drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]">
+                <span class="inline-flex items-center gap-1.5"><svg class="w-4 h-4 text-brand-mint stroke-[3] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Locked Escrow</span>
+                <span class="inline-flex items-center gap-1.5"><svg class="w-4 h-4 text-brand-mint stroke-[3] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>OTP Gate</span>
               </div>
             </div>
           </div>
+        </div>
 
-          <!-- Slide 4: Official Android App & Tracking -->
-          <div class="w-full flex-shrink-0 px-7 sm:px-12 md:px-14 py-3 sm:py-5 md:py-6 grid grid-cols-12 gap-2.5 sm:gap-6 items-center text-white min-h-[160px] sm:min-h-[190px] md:min-h-[230px]">
-            <div class="col-span-7 flex flex-col items-start justify-center text-left pr-0.5 sm:pr-2">
-              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] sm:text-xs font-black uppercase tracking-wider bg-brand-orange/25 border border-brand-orange/40 text-brand-orangeLight mb-1 sm:mb-1.5">
-                <svg class="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[2.5] stroke-current fill-none" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+        <!-- Slide 4: Official Android App & Tracking -->
+        <div class="w-full flex-shrink-0 relative min-h-[300px] sm:min-h-[360px] md:min-h-[420px] lg:min-h-[460px] flex items-center overflow-hidden select-none">
+          <!-- Full-Bleed Background Image -->
+          <img src="illustrations/app_tracking_illustration.jpg" onerror="this.onerror=null; this.src='frontend/public/' + this.getAttribute('src');" alt="Shazu One Android App Live GPS Tracking Illustration" class="absolute inset-0 w-full h-full object-cover object-right md:object-center">
+          
+          <!-- Subtle Dark Scrim -->
+          <div class="absolute inset-0 bg-gradient-to-r from-[#071F42]/85 via-[#071F42]/50 to-transparent"></div>
+          <div class="absolute inset-0 bg-gradient-to-t from-[#071F42]/50 via-transparent to-transparent sm:hidden"></div>
+
+          <!-- Text Overlaid Inside the Image -->
+          <div class="max-w-7xl mx-auto px-6 sm:px-12 md:px-16 w-full relative z-10 py-8 sm:py-12">
+            <div class="max-w-xl md:max-w-2xl flex flex-col items-start text-left">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider bg-brand-orange/30 border border-brand-orange/50 text-white mb-2 sm:mb-3 shadow-md backdrop-blur-sm">
+                <svg class="w-3 h-3 stroke-[2.5] stroke-current fill-none" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
                 Android App
               </span>
-              <h2 class="font-display font-black text-xs sm:text-lg md:text-2xl leading-tight mb-1 sm:mb-1.5 tracking-tight text-white">
+              <h2 class="font-display font-black text-xl sm:text-3xl md:text-4xl lg:text-5xl leading-tight mb-2 sm:mb-3 tracking-tight text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]">
                 Live Dispatch &amp; Real-Time Technician Tracking
               </h2>
-              <p class="text-[9.5px] sm:text-xs md:text-sm text-slate-200 mb-2 sm:mb-2.5 leading-relaxed font-normal">
+              <p class="text-xs sm:text-base md:text-lg text-slate-100 mb-4 sm:mb-6 leading-relaxed font-medium max-w-xl drop-shadow-[0_1px_6px_rgba(0,0,0,0.8)]">
                 Live GPS route tracking across Salem, direct specialist call, and digital job cards.
               </p>
-              <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
-                <a href="app/ShazuOne.apk" download class="px-2.5 py-1 sm:px-4 sm:py-2 rounded-full text-[9.5px] sm:text-xs font-bold bg-brand-orange hover:bg-brand-orangeDark text-white shadow-xs transition-transform hover:-translate-y-0.5 inline-flex items-center gap-1">
-                  <svg class="w-3 h-3 stroke-[2.5] stroke-current fill-none" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+              <div class="flex flex-wrap items-center gap-2.5 sm:gap-4 mb-3 sm:mb-4">
+                <a href="app/ShazuOne.apk" download class="px-4 py-2 sm:px-6 sm:py-3 rounded-full text-xs sm:text-sm font-bold bg-brand-orange hover:bg-brand-orangeDark text-white shadow-lg transition-transform hover:-translate-y-0.5 inline-flex items-center gap-2">
+                  <svg class="w-4 h-4 stroke-[2.5] stroke-current fill-none" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
                   <span>Get App (11 MB)</span>
                 </a>
-                <a href="#download-app" class="inline-flex px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-[9.5px] sm:text-xs font-semibold bg-white/10 hover:bg-white/20 border border-white/25 text-white transition-all">
+                <a href="#download-app" class="inline-flex px-4 py-2 sm:px-5 sm:py-3 rounded-full text-xs sm:text-sm font-semibold bg-white/20 hover:bg-white/30 border border-white/35 text-white backdrop-blur-md transition-all shadow-md">
                   <span>Direct APK</span>
                 </a>
               </div>
-              <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[9px] sm:text-xs font-medium text-slate-200">
-                <span class="inline-flex items-center gap-1"><svg class="w-2.5 h-2.5 sm:w-3 sm:h-3 text-brand-mint stroke-[3] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Live GPS</span>
-                <span class="inline-flex items-center gap-1"><svg class="w-2.5 h-2.5 sm:w-3 sm:h-3 text-brand-mint stroke-[3] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>PDF Receipts</span>
-              </div>
-            </div>
-            <div class="col-span-5 flex items-center justify-center">
-              <div class="w-full bg-white rounded-xl sm:rounded-2xl p-1 sm:p-1.5 shadow-lg border border-white/25 flex items-center justify-center overflow-hidden">
-                <img src="illustrations/app_tracking_illustration.jpg" onerror="this.onerror=null; this.src='frontend/public/' + this.getAttribute('src');" alt="Shazu One Android App Live GPS Tracking Illustration" class="w-full h-auto max-h-24 sm:max-h-36 md:max-h-48 object-cover rounded-lg sm:rounded-xl transition-transform duration-300 hover:scale-[1.02]">
+              <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm font-semibold text-slate-100 drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]">
+                <span class="inline-flex items-center gap-1.5"><svg class="w-4 h-4 text-brand-mint stroke-[3] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Live GPS</span>
+                <span class="inline-flex items-center gap-1.5"><svg class="w-4 h-4 text-brand-mint stroke-[3] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>PDF Receipts</span>
               </div>
             </div>
           </div>
         </div>
-
-        <!-- Sleek Carousel Left / Right Chevron Arrows (Refined for Mobile & Desktop) -->
-        <button onclick="prevHeroSlide()" aria-label="Previous Slide" class="flex absolute left-1 sm:left-2.5 top-1/2 -translate-y-1/2 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-slate-900/40 hover:bg-slate-900/70 text-white backdrop-blur-md border border-white/25 shadow-md items-center justify-center transition-all z-20 hover:scale-105 active:scale-95">
-          <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-        </button>
-        <button onclick="nextHeroSlide()" aria-label="Next Slide" class="flex absolute right-1 sm:right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-slate-900/40 hover:bg-slate-900/70 text-white backdrop-blur-md border border-white/25 shadow-md items-center justify-center transition-all z-20 hover:scale-105 active:scale-95">
-          <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-        </button>
-
-        <!-- Carousel Dash Indicator Bars (Matches user reference image!) -->
-        <div class="absolute bottom-1.5 sm:bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-1 sm:gap-1.5 z-20">
-          <button onclick="jumpToHeroSlide(0)" aria-label="Slide 1" class="hero-dot w-6 sm:w-8 h-1 sm:h-1.5 rounded-full bg-brand-orange transition-all duration-300"></button>
-          <button onclick="jumpToHeroSlide(1)" aria-label="Slide 2" class="hero-dot w-3 sm:w-5 h-1 sm:h-1.5 rounded-full bg-white/40 transition-all duration-300"></button>
-          <button onclick="jumpToHeroSlide(2)" aria-label="Slide 3" class="hero-dot w-3 sm:w-5 h-1 sm:h-1.5 rounded-full bg-white/40 transition-all duration-300"></button>
-          <button onclick="jumpToHeroSlide(3)" aria-label="Slide 4" class="hero-dot w-3 sm:w-5 h-1 sm:h-1.5 rounded-full bg-white/40 transition-all duration-300"></button>
-        </div>
       </div>
 
-            <!-- Super Title & Compact Search Bar -->
+      <!-- Sleek Carousel Left / Right Chevron Arrows (Refined Frosted Glass) -->
+      <button onclick="prevHeroSlide()" aria-label="Previous Slide" class="flex absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-slate-900/60 hover:bg-slate-900/85 text-white backdrop-blur-md border border-white/25 shadow-lg items-center justify-center transition-all z-20 hover:scale-105 active:scale-95">
+        <svg class="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <button onclick="nextHeroSlide()" aria-label="Next Slide" class="flex absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-slate-900/60 hover:bg-slate-900/85 text-white backdrop-blur-md border border-white/25 shadow-lg items-center justify-center transition-all z-20 hover:scale-105 active:scale-95">
+        <svg class="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5] stroke-current fill-none" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+
+      <!-- Carousel Dash Indicator Bars -->
+      <div class="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1 sm:gap-1.5 z-20">
+        <button onclick="jumpToHeroSlide(0)" aria-label="Slide 1" class="hero-dot w-6 sm:w-8 h-1 sm:h-1.5 rounded-full bg-brand-orange transition-all duration-300"></button>
+        <button onclick="jumpToHeroSlide(1)" aria-label="Slide 2" class="hero-dot w-3 sm:w-5 h-1 sm:h-1.5 rounded-full bg-white/40 transition-all duration-300"></button>
+        <button onclick="jumpToHeroSlide(2)" aria-label="Slide 3" class="hero-dot w-3 sm:w-5 h-1 sm:h-1.5 rounded-full bg-white/40 transition-all duration-300"></button>
+        <button onclick="jumpToHeroSlide(3)" aria-label="Slide 4" class="hero-dot w-3 sm:w-5 h-1 sm:h-1.5 rounded-full bg-white/40 transition-all duration-300"></button>
+      </div>
+    </div>
+
+    <!-- Container for Search Bar and Below Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pt-4 sm:pt-6">
+      <!-- Super Title & Compact Search Bar -->
       <div class="text-center max-w-3xl mx-auto mt-4 sm:mt-6 mb-3 sm:mb-5 reveal">
         <h1 class="font-display font-black text-lg sm:text-2xl md:text-3xl lg:text-4xl tracking-tight text-white mb-1 sm:mb-2 leading-snug">
           Order home repairs &amp; cleaning. Discover verified Salem specialists.
