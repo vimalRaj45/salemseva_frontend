@@ -217,3 +217,22 @@ font, font[style] {
   }
 }
 
+/* React Hot Toast Single-Line Styling */
+div:has(> [data-hot-toast]),
+[data-hot-toast] {
+  max-width: min(580px, calc(100vw - 36px)) !important;
+  white-space: nowrap !important;
+}
+[data-hot-toast] [role="status"] {
+  margin: 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+[data-hot-toast] svg {
+  width: 15px !important;
+  height: 15px !important;
+  flex-shrink: 0 !important;
+}
+
+

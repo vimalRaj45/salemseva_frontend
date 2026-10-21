@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shazu One - 6 Premium Loading Screen Designs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #0B1120;
+      color: #F8FAFC;
+      min-height: 100vh;
+      padding: 24px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Top Navigation Header */
+    .header {
+      max-width: 1400px;
+      margin: 0 auto 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      border-bottom: 1px solid #1E293B;
+      padding-bottom: 20px;
+    }
+
+    @media (min-width: 768px) {
+      .header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-title img {
+      height: 32px;
+      width: auto;
+    }
+
+    .header-info h1 {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+      color: #FFFFFF;
+    }
+
+    .header-info p {
+      font-size: 13px;
+      color: #94A3B8;
+      margin-top: 2px;
+    }
+
+    .view-mode-pills {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #1E293B;
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid #334155;
+    }
+
+    .pill-btn {
+      background: transparent;
+      border: none;
+      color: #94A3B8;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .pill-btn.active {
+      background: #0284C7;
+      color: #FFFFFF;
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
+    }
+
+    /* Showcase Grid: 6 Simulated Mobile Devices */
+    .showcase-grid {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 28px;
+    }
+
+    .device-card {
+      background: #0F172A;
+      border: 1px solid #1E293B;
+      border-radius: 20px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      transition: transform 0.25s ease, border-color 0.25s ease;
+    }
+
+    .device-card:hover {
+      border-color: #0284C7;
+      transform: translateY(-4px);
+    }
+
+    .card-meta {
+      padding: 16px 20px;
+      border-bottom: 1px solid #1E293B;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #131D31;
+    }
+
+    .card-meta-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .design-badge {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(2, 132, 199, 0.2);
+      color: #38BDF8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .design-name {
+      font-size: 14px;
+      font-weight: 800;
+      color: #F8FAFC;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .action-btn {
+      background: #1E293B;
+      border: 1px solid #334155;
+      color: #E2E8F0;
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .action-btn:hover {
+      background: #0284C7;
+      color: #FFFFFF;
+      border-color: #0284C7;
+    }
+
+    /* Screen Stage Frame */
+    .screen-stage {
+      position: relative;
+      height: 480px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ========================================================================= */
+    /* DESIGN 1: THE RADAR PULSE (Uber / Linear minimal on-demand style)         */
+    /* ========================================================================= */
+    .stage-1 {
+      background: #FFFFFF;
+      color: #0F172A;
+    }
+
+    .pulse-container {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .radar-core {
+      position: relative;
+      width: 86px;
+      height: 86px;
+      border-radius: 24px;
+      background: #FFFFFF;
+      box-shadow: 0 12px 30px rgba(2, 132, 199, 0.15);
+      border: 1px solid #E2E8F0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+    }
+
+    .radar-core img {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+    }
+
+    .radar-ring {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      border: 1.5px solid #0284C7;
+      pointer-events: none;
+      animation: ripple 2.6s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+      z-index: 1;
+    }
+
+    .radar-ring:nth-child(2) {
+      animation-delay: 0.8s;
+      border-color: #10B981;
+    }
+
+    .radar-ring:nth-child(3) {
+      animation-delay: 1.6s;
+      border-color: #0284C7;
+    }
+
+    @keyframes ripple {
+      0% {
+        width: 86px;
+        height: 86px;
+        opacity: 0.8;
+      }
+      100% {
+        width: 260px;
+        height: 260px;
+        opacity: 0;
+      }
+    }
+
+    .stage-1 .stage-title {
+      margin-top: 32px;
+      font-size: 15px;
+      font-weight: 800;
+      color: #0F172A;
+      letter-spacing: -0.2px;
+    }
+
+    .stage-1 .stage-sub {
+      margin-top: 4px;
+      font-size: 11.5px;
+      color: #64748B;
+      font-weight: 600;
+    }
+
+    .stage-1 .stage-progress {
+      margin-top: 20px;
+      width: 140px;
+      height: 4px;
+      background: #F1F5F9;
+      border-radius: 99px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .stage-1 .stage-progress-bar {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 40%;
+      background: linear-gradient(90deg, #0284C7, #10B981);
+      border-radius: 99px;
+      animation: progressSlide 1.8s ease-in-out infinite alternate;
+    }
+
+    @keyframes progressSlide {
+      0% { left: 0%; width: 25%; }
+      100% { left: 65%; width: 35%; }
+    }
+
+    /* ========================================================================= */
+    /* DESIGN 2: GLASSMORPHIC HOLOGRAM (Apple / Stripe iOS 18 frosted card style)*/
+    /* ========================================================================= */
+    .stage-2 {
+      background: radial-gradient(circle at 20% 20%, rgba(2, 132, 199, 0.15) 0%, transparent 60%),
+                  radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.15) 0%, transparent 60%),
+                  #F8FAFC;
+      color: #0F172A;
+    }
+
+    .glass-card-stage {
+      width: 280px;
+      padding: 32px 24px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1.5px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.9);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      animation: floatGentle 3.5s ease-in-out infinite;
+    }
+
+    @keyframes floatGentle {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+
+    .glass-logo-wrap {
+      width: 68px;
+      height: 68px;
+      border-radius: 18px;
+      background: #FFFFFF;
+      box-shadow: 0 8px 24px rgba(2, 132, 199, 0.12);
+      border: 1px solid #E2E8F0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .glass-logo-wrap img {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+    }
+
+    .glass-card-stage h2 {
+      font-size: 15px;
+      font-weight: 900;
+      color: #0D3B66;
+      margin-bottom: 4px;
+    }
+
+    .glass-card-stage p {
+      font-size: 11px;
+      color: #64748B;
+      line-height: 1.4;
+      margin-bottom: 18px;
+    }
+
+    .dot-pulse-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dot-pulse {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #0284C7;
+      animation: dotFade 1.4s ease-in-out infinite;
+    }
+
+    .dot-pulse:nth-child(2) { animation-delay: 0.25s; background: #059669; }
+    .dot-pulse:nth-child(3) { animation-delay: 0.5s; background: #D97706; }
+
+    @keyframes dotFade {
+      0%, 100% { transform: scale(0.7); opacity: 0.3; }
+      50% { transform: scale(1.2); opacity: 1; }
+    }
+
+    /* ========================================================================= */
+    /* DESIGN 3: KINETIC ORBIT (Web3 & Dark Tech Dispatcher)                     */
+    /* ========================================================================= */
+    .stage-3 {
+      background: #090D16;
+      color: #FFFFFF;
+    }
+
+    .orbit-system {
+      position: relative;
+      width: 220px;
+      height: 220px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .orbit-track {
+      position: absolute;
+      width: 190px;
+      height: 190px;
+      border-radius: 50%;
+      border: 1px dashed rgba(56, 189, 248, 0.3);
+      animation: rotateOrbit 12s linear infinite;
+    }
+
+    .orbit-node {
+      position: absolute;
+      top: -6px;
+      left: calc(50% - 6px);
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #38BDF8;
+      box-shadow: 0 0 12px #38BDF8;
+    }
+
+    .orbit-track-inner {
+      position: absolute;
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      animation: rotateOrbit 7s linear infinite reverse;
+    }
+
+    .orbit-node-inner {
+      position: absolute;
+      top: -5px;
+      left: calc(50% - 5px);
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #10B981;
+      box-shadow: 0 0 10px #10B981;
+    }
+
+    @keyframes rotateOrbit {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .orbit-core {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: #0F172A;
+      border: 1.5px solid #38BDF8;
+      box-shadow: 0 0 25px rgba(56, 189, 248, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+    }
+
+    .orbit-core img {
+      width: 42px;
+      height: 42px;
+      object-fit: contain;
+    }
+
+    .orbit-info {
+      margin-top: 18px;
+      text-align: center;
+    }
+
+    .orbit-info h3 {
+      font-size: 13.5px;
+      font-weight: 800;
+      color: #F8FAFC;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .orbit-info p {
+      font-size: 11px;
+      color: #38BDF8;
+      font-family: monospace;
+      margin-top: 4px;
+    }
+
+    /* ========================================================================= */
+    /* DESIGN 4: MORPHING FULL LOGO (Airbnb / Swiggy Clean Hero Splash)          */
+    /* ========================================================================= */
+    .stage-4 {
+      background: #FFFFFF;
+      color: #0F172A;
+    }
+
+    .morph-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .morph-logo {
+      width: 210px;
+      height: auto;
+      object-fit: contain;
+      filter: drop-shadow(0 10px 24px rgba(13, 59, 102, 0.12));
+      animation: logoBreathe 2.4s ease-in-out infinite;
+    }
+
+    @keyframes logoBreathe {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 10px 24px rgba(13, 59, 102, 0.12)); }
+      50% { transform: scale(1.03); filter: drop-shadow(0 14px 32px rgba(2, 132, 199, 0.22)); }
+    }
+
+    .morph-subtitle {
+      margin-top: 24px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #EFF6FF;
+      border: 1px solid #BFDBFE;
+      padding: 6px 14px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #1E3A8A;
+    }
+
+    .morph-subtitle .status-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10B981;
+      box-shadow: 0 0 6px #10B981;
+    }
+
+    .morph-wave {
+      display: flex;
+      gap: 5px;
+      margin-top: 20px;
+    }
+
+    .wave-bar {
+      width: 3px;
+      height: 18px;
+      background: #0284C7;
+      border-radius: 99px;
+      animation: waveGrow 1.2s ease-in-out infinite;
+    }
+
+    .wave-bar:nth-child(2) { animation-delay: 0.15s; background: #059669; }
+    .wave-bar:nth-child(3) { animation-delay: 0.3s; background: #0284C7; }
+    .wave-bar:nth-child(4) { animation-delay: 0.45s; background: #059669; }
+
+    @keyframes waveGrow {
+      0%, 100% { transform: scaleY(0.4); }
+      50% { transform: scaleY(1.3); }
+    }
+
+    /* ========================================================================= */
+    /* DESIGN 5: DUAL-RING PRECISION SPINNER (Tesla / Material 3 Precision)     */
+    /* ========================================================================= */
+    .stage-5 {
+      background: #F8FAFC;
+      color: #0F172A;
+    }
+
+    .spinner-stage-box {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .spinner-svg-wrap {
+      position: relative;
+      width: 110px;
+      height: 110px;
+    }
+
+    .spinner-svg-wrap svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .spinner-svg-wrap circle {
+      fill: none;
+      stroke-width: 4;
+      stroke-linecap: round;
+    }
+
+    .circle-bg {
+      stroke: #E2E8F0;
+    }
+
+    .circle-accent {
+      stroke: #0066CC;
+      stroke-dasharray: 280;
+      stroke-dashoffset: 75;
+      animation: dashRotate 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes dashRotate {
+      0% {
+        stroke-dashoffset: 260;
+        transform: rotate(0deg);
+      }
+      50% {
+        stroke-dashoffset: 75;
+        transform: rotate(180deg);
+      }
+      100% {
+        stroke-dashoffset: 260;
+        transform: rotate(360deg);
+      }
+    }
+
+    .spinner-center-logo {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 46px;
+      height: 46px;
+      object-fit: contain;
+    }
+
+    .stage-5 h4 {
+      font-size: 14px;
+      font-weight: 800;
+      color: #0F172A;
+      margin-top: 24px;
+    }
+
+    .stage-5 .steps-row {
+      display: flex;
+      gap: 16px;
+      margin-top: 14px;
+    }
+
+    .step-item {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #64748B;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .step-item.active {
+      color: #059669;
+    }
+
+    .step-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    /* ========================================================================= */
+    /* DESIGN 6: CENTRAL OPS DISPATCHER (Salem Live Geo-Tracking Radar)         */
+    /* ========================================================================= */
+    .stage-6 {
+      background: #020617;
+      color: #FFFFFF;
+      background-image: 
+        radial-gradient(rgba(56, 189, 248, 0.08) 1px, transparent 1px),
+        radial-gradient(rgba(16, 185, 129, 0.06) 1px, transparent 1px);
+      background-size: 24px 24px;
+      background-position: 0 0, 12px 12px;
+    }
+
+    .ops-hud {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .ops-logo-badge {
+      width: 82px;
+      height: 82px;
+      border-radius: 22px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1.5px solid #10B981;
+      box-shadow: 0 0 30px rgba(16, 185, 129, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .ops-logo-badge img {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+    }
+
+    .ops-sweep-line {
+      position: absolute;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #10B981, transparent);
+      top: 0;
+      animation: sweepDown 2s ease-in-out infinite;
+    }
+
+    @keyframes sweepDown {
+      0% { top: 0%; opacity: 0; }
+      50% { opacity: 1; }
+      100% { top: 100%; opacity: 0; }
+    }
+
+    .ops-hud h3 {
+      font-size: 14px;
+      font-weight: 800;
+      color: #F8FAFC;
+      letter-spacing: -0.2px;
+    }
+
+    .ops-badge-pill {
+      margin-top: 6px;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 99px;
+      background: rgba(16, 185, 129, 0.15);
+      color: #34D399;
+      border: 1px solid rgba(52, 211, 153, 0.3);
+      font-family: monospace;
+    }
+
+    .ops-subtext {
+      margin-top: 16px;
+      font-size: 11px;
+      color: #94A3B8;
+      max-width: 240px;
+      line-height: 1.4;
+    }
+
+    /* Modal for Fullscreen Preview */
+    .fullscreen-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.95);
+      padding: 20px;
+    }
+
+    .fullscreen-modal.active {
+      display: flex;
+    }
+
+    .modal-frame {
+      width: 100%;
+      max-width: 420px;
+      height: 720px;
+      max-height: 90vh;
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+      border: 2px solid #334155;
+      position: relative;
+    }
+
+    .close-modal-btn {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      background: #1E293B;
+      color: #FFFFFF;
+      border: 1px solid #475569;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      z-index: 10001;
+    }
+
+    .close-modal-btn:hover {
+      background: #DC2626;
+      border-color: #DC2626;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="brand-title">
+      <img src="/logo-mark.svg" alt="Shazu One">
+      <div class="header-info">
+        <h1>Shazu One Loading Screen Concepts</h1>
+        <p>Interactive preview of 6 branded splash animations using our official logo kit.</p>
+      </div>
+    </div>
+
+    <div class="view-mode-pills">
+      <button class="pill-btn active" onclick="filterCategory('all', this)">All 6 Designs</button>
+      <button class="pill-btn" onclick="filterCategory('light', this)">Light Themes</button>
+      <button class="pill-btn" onclick="filterCategory('dark', this)">Dark & Ops Themes</button>
+    </div>
+  </header>
+
+  <!-- Showcase Grid of 6 Designs -->
+  <main class="showcase-grid">
+
+    <!-- DESIGN 1 -->
+    <div class="device-card" data-theme="light">
+      <div class="card-meta">
+        <div class="card-meta-left">
+          <span class="design-badge">Design 1</span>
+          <span class="design-name">The Radar Pulse</span>
+        </div>
+        <div class="card-actions">
+          <button class="action-btn" onclick="openFullscreen('stage-1')">Preview Fullscreen</button>
+        </div>
+      </div>
+      <div class="screen-stage stage-1" id="stage-1">
+        <div class="pulse-container">
+          <div class="radar-ring"></div>
+          <div class="radar-ring"></div>
+          <div class="radar-ring"></div>
+          <div class="radar-core">
+            <img src="/logo-mark.svg" alt="Shazu One">
+          </div>
+          <div class="stage-title">Shazu One</div>
+          <div class="stage-sub">Locating verified specialists in Salem...</div>
+          <div class="stage-progress">
+            <div class="stage-progress-bar"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DESIGN 2 -->
+    <div class="device-card" data-theme="light">
+      <div class="card-meta">
+        <div class="card-meta-left">
+          <span class="design-badge">Design 2</span>
+          <span class="design-name">Glassmorphic Hologram</span>
+        </div>
+        <div class="card-actions">
+          <button class="action-btn" onclick="openFullscreen('stage-2')">Preview Fullscreen</button>
+        </div>
+      </div>
+      <div class="screen-stage stage-2" id="stage-2">
+        <div class="glass-card-stage">
+          <div class="glass-logo-wrap">
+            <img src="/logo-mark.svg" alt="Shazu One">
+          </div>
+          <h2>Shazu One</h2>
+          <p>All Your Home Services.<br>One Platform.</p>
+          <div class="dot-pulse-row">
+            <div class="dot-pulse"></div>
+            <div class="dot-pulse"></div>
+            <div class="dot-pulse"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DESIGN 3 -->
+    <div class="device-card" data-theme="dark">
+      <div class="card-meta">
+        <div class="card-meta-left">
+          <span class="design-badge">Design 3</span>
+          <span class="design-name">Kinetic Orbit</span>
+        </div>
+        <div class="card-actions">
+          <button class="action-btn" onclick="openFullscreen('stage-3')">Preview Fullscreen</button>
+        </div>
+      </div>
+      <div class="screen-stage stage-3" id="stage-3">
+        <div class="orbit-system">
+          <div class="orbit-track">
+            <div class="orbit-node"></div>
+          </div>
+          <div class="orbit-track-inner">
+            <div class="orbit-node-inner"></div>
+          </div>
+          <div class="orbit-core">
+            <img src="/logo-mark.svg" alt="Shazu One">
+          </div>
+        </div>
+        <div class="orbit-info" style="position: absolute; bottom: 45px;">
+          <h3>Salem Dispatch Engine</h3>
+          <p>CONNECTING_CENTRAL_OPS...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- DESIGN 4 -->
+    <div class="device-card" data-theme="light">
+      <div class="card-meta">
+        <div class="card-meta-left">
+          <span class="design-badge">Design 4</span>
+          <span class="design-name">Brand Wordmark Morph</span>
+        </div>
+        <div class="card-actions">
+          <button class="action-btn" onclick="openFullscreen('stage-4')">Preview Fullscreen</button>
+        </div>
+      </div>
+      <div class="screen-stage stage-4" id="stage-4">
+        <div class="morph-wrapper">
+          <img src="/logo.svg" alt="Shazu One" class="morph-logo">
+          <div class="morph-subtitle">
+            <span class="status-indicator"></span>
+            Salem Verified Network
+          </div>
+          <div class="morph-wave">
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DESIGN 5 -->
+    <div class="device-card" data-theme="light">
+      <div class="card-meta">
+        <div class="card-meta-left">
+          <span class="design-badge">Design 5</span>
+          <span class="design-name">Precision Spinner</span>
+        </div>
+        <div class="card-actions">
+          <button class="action-btn" onclick="openFullscreen('stage-5')">Preview Fullscreen</button>
+        </div>
+      </div>
+      <div class="screen-stage stage-5" id="stage-5">
+        <div class="spinner-stage-box">
+          <div class="spinner-svg-wrap">
+            <svg viewBox="0 0 100 100">
+              <circle class="circle-bg" cx="50" cy="50" r="42" />
+              <circle class="circle-accent" cx="50" cy="50" r="42" />
+            </svg>
+            <img src="/logo-mark.svg" alt="Shazu One" class="spinner-center-logo">
+          </div>
+          <h4>Shazu One</h4>
+          <div class="steps-row">
+            <span class="step-item active"><span class="step-dot"></span> 636 Region</span>
+            <span class="step-item active"><span class="step-dot"></span> KYC Verified</span>
+            <span class="step-item"><span class="step-dot"></span> Ready</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DESIGN 6 -->
+    <div class="device-card" data-theme="dark">
+      <div class="card-meta">
+        <div class="card-meta-left">
+          <span class="design-badge">Design 6</span>
+          <span class="design-name">Central Ops Dispatcher</span>
+        </div>
+        <div class="card-actions">
+          <button class="action-btn" onclick="openFullscreen('stage-6')">Preview Fullscreen</button>
+        </div>
+      </div>
+      <div class="screen-stage stage-6" id="stage-6">
+        <div class="ops-hud">
+          <div class="ops-logo-badge">
+            <div class="ops-sweep-line"></div>
+            <img src="/logo-mark.svg" alt="Shazu One">
+          </div>
+          <h3>Central Ops Dispatched</h3>
+          <span class="ops-badge-pill">ACTIVE SALEM 636001-636016</span>
+          <p class="ops-subtext">25-35 min doorstep response time with real-time GPS tracking</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Fullscreen Modal Preview -->
+  <div class="fullscreen-modal" id="fullscreenModal">
+    <button class="close-modal-btn" onclick="closeFullscreen()">Exit Preview</button>
+    <div class="modal-frame" id="modalFrame"></div>
+  </div>
+
+  <script>
+    function filterCategory(cat, el) {
+      document.querySelectorAll('.pill-btn').forEach(btn => btn.classList.remove('active'));
+      el.classList.add('active');
+
+      const cards = document.querySelectorAll('.device-card');
+      cards.forEach(card => {
+        if (cat === 'all') {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = card.dataset.theme === cat ? 'flex' : 'none';
+        }
+      });
+    }
+
+    function openFullscreen(stageId) {
+      const stage = document.getElementById(stageId);
+      const modal = document.getElementById('fullscreenModal');
+      const frame = document.getElementById('modalFrame');
+
+      frame.className = 'modal-frame ' + stageId;
+      frame.innerHTML = stage.innerHTML;
+      modal.classList.add('active');
+    }
+
+    function closeFullscreen() {
+      const modal = document.getElementById('fullscreenModal');
+      modal.classList.remove('active');
+      document.getElementById('modalFrame').innerHTML = '';
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeFullscreen();
+    });
+  </script>
+</body>
+</html>

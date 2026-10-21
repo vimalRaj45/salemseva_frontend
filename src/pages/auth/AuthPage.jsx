@@ -211,20 +211,24 @@ export default function AuthPage({ initialMode = 'login' }) {
   return (
     <Box
       sx={{
-        bgcolor: '#F1F5F9',
-        backgroundImage: `
-          radial-gradient(at 10% 12%, rgba(2, 132, 199, 0.16) 0px, transparent 45%),
-          radial-gradient(at 90% 88%, rgba(5, 150, 105, 0.16) 0px, transparent 45%),
-          radial-gradient(at 85% 15%, rgba(99, 102, 241, 0.12) 0px, transparent 40%),
-          radial-gradient(at 15% 85%, rgba(14, 165, 233, 0.14) 0px, transparent 45%),
-          linear-gradient(135deg, #F8FAFC 0%, #EDF2F7 100%)
-        `,
-        height: '100vh',
-        maxHeight: '100vh',
+        bgcolor: { xs: '#FFFFFF', md: '#F1F5F9' },
+        backgroundImage: {
+          xs: 'none',
+          md: `
+            radial-gradient(at 10% 12%, rgba(2, 132, 199, 0.16) 0px, transparent 45%),
+            radial-gradient(at 90% 88%, rgba(5, 150, 105, 0.16) 0px, transparent 45%),
+            radial-gradient(at 85% 15%, rgba(99, 102, 241, 0.12) 0px, transparent 40%),
+            radial-gradient(at 15% 85%, rgba(14, 165, 233, 0.14) 0px, transparent 45%),
+            linear-gradient(135deg, #F8FAFC 0%, #EDF2F7 100%)
+          `
+        },
+        height: { xs: '100dvh', md: '100vh' },
+        minHeight: { xs: '100dvh', md: '100vh' },
+        maxHeight: { xs: '100dvh', md: '100vh' },
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        p: { xs: 1, sm: 1.5, md: 2 },
+        p: { xs: 0, md: 2 },
         boxSizing: 'border-box',
         position: 'relative',
         overflow: 'hidden'
@@ -233,6 +237,7 @@ export default function AuthPage({ initialMode = 'login' }) {
       {/* Ambient Blurry Gradient Orbs behind Glass Card */}
       <Box
         sx={{
+          display: { xs: 'none', md: 'block' },
           position: 'absolute',
           top: '-80px',
           left: '-60px',
@@ -247,6 +252,7 @@ export default function AuthPage({ initialMode = 'login' }) {
       />
       <Box
         sx={{
+          display: { xs: 'none', md: 'block' },
           position: 'absolute',
           bottom: '-90px',
           right: '-60px',
@@ -261,6 +267,7 @@ export default function AuthPage({ initialMode = 'login' }) {
       />
       <Box
         sx={{
+          display: { xs: 'none', md: 'block' },
           position: 'absolute',
           top: '30%',
           right: '12%',
@@ -277,6 +284,7 @@ export default function AuthPage({ initialMode = 'login' }) {
       {/* Official Shazu One Ambient Brand Watermarks in Background */}
       <Box
         sx={{
+          display: { xs: 'none', md: 'block' },
           position: 'absolute',
           bottom: { xs: '-80px', md: '-120px' },
           right: { xs: '-60px', md: '-100px' },
@@ -299,6 +307,7 @@ export default function AuthPage({ initialMode = 'login' }) {
 
       <Box
         sx={{
+          display: { xs: 'none', md: 'block' },
           position: 'absolute',
           top: { xs: '-60px', md: '-90px' },
           left: { xs: '-50px', md: '-80px' },
@@ -334,7 +343,7 @@ export default function AuthPage({ initialMode = 'login' }) {
           WebkitBackdropFilter: 'blur(16px)',
           border: '1.5px solid rgba(255, 255, 255, 0.85)',
           boxShadow: '0 12px 32px 0 rgba(2, 132, 199, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.9)',
-          display: 'flex',
+          display: { xs: 'none', md: 'flex' },
           alignItems: 'center',
           justifyContent: 'center',
           p: { xs: 1.1, md: 1.4 },
@@ -366,7 +375,7 @@ export default function AuthPage({ initialMode = 'login' }) {
           WebkitBackdropFilter: 'blur(16px)',
           border: '1.5px solid rgba(255, 255, 255, 0.85)',
           boxShadow: '0 12px 32px 0 rgba(5, 150, 105, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.9)',
-          display: 'flex',
+          display: { xs: 'none', md: 'flex' },
           alignItems: 'center',
           justifyContent: 'center',
           p: { xs: 1.1, md: 1.4 },
@@ -448,31 +457,33 @@ export default function AuthPage({ initialMode = 'login' }) {
         />
       </Box>
 
-      {/* Main Container Card: Premium Glassmorphism Look */}
+      {/* Main Container Card: Full-bleed on Mobile, Glassmorphism on Desktop */}
       <Card
         elevation={0}
         sx={{
           position: 'relative',
           zIndex: 2,
           width: '100%',
-          maxWidth: { xs: '100%', sm: '460px', md: '980px', lg: '1020px' },
-          bgcolor: 'rgba(255, 255, 255, 0.88)',
-          backdropFilter: 'blur(20px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-          borderRadius: { xs: '16px', md: '20px' },
-          border: '1.5px solid rgba(255, 255, 255, 0.9)',
-          boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.6) inset',
+          maxWidth: { xs: '100%', md: '980px', lg: '1020px' },
+          height: { xs: '100%', md: 'min(620px, calc(100vh - 28px))' },
+          maxHeight: { xs: '100%', md: 'calc(100vh - 28px)' },
+          bgcolor: { xs: '#FFFFFF', md: 'rgba(255, 255, 255, 0.88)' },
+          backdropFilter: { xs: 'none', md: 'blur(20px) saturate(180%)' },
+          WebkitBackdropFilter: { xs: 'none', md: 'blur(20px) saturate(180%)' },
+          borderRadius: { xs: 0, md: '20px' },
+          border: { xs: 'none', md: '1.5px solid rgba(255, 255, 255, 0.9)' },
+          boxShadow: { xs: 'none', md: '0 25px 50px -12px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.6) inset' },
           overflow: 'hidden',
           display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: '1.12fr 0.88fr' },
-          maxHeight: { md: 'calc(100vh - 28px)' },
-          height: { md: 'min(620px, calc(100vh - 28px))' }
+          gridTemplateColumns: { xs: '1fr', md: '1.12fr 0.88fr' }
         }}
       >
         {/* ===================== LEFT PANE: AUTHENTICATION FORM ===================== */}
         <Box
           sx={{
-            p: { xs: 1.8, sm: 2.2, md: 2.5, lg: 2.8 },
+            p: { xs: '18px 20px', sm: '22px 24px', md: 2.5, lg: 2.8 },
+            pt: { xs: 'calc(16px + env(safe-area-inset-top, 0px))', md: 2.5 },
+            pb: { xs: 'calc(18px + env(safe-area-inset-bottom, 0px))', md: 2.5 },
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
@@ -518,17 +529,18 @@ export default function AuthPage({ initialMode = 'login' }) {
               />
             </Box>
 
-            {/* Segmented Role Switcher Pill */}
+            {/* Apple / Linear Minimal Segmented Role Switcher */}
             <Box
               sx={{
-                bgcolor: 'rgba(241, 245, 249, 0.85)',
-                backdropFilter: 'blur(8px)',
-                p: 0.35,
-                borderRadius: '9px',
+                bgcolor: '#F1F5F9',
+                p: '3px',
+                borderRadius: '10px',
+                border: '1px solid #E2E8F0',
                 display: 'grid',
                 gridTemplateColumns: '1fr 1fr',
-                gap: 0.35,
-                mb: { xs: 1.2, md: 1.4 }
+                gap: '4px',
+                mb: { xs: 1.3, md: 1.5 },
+                position: 'relative'
               }}
             >
               <Button
@@ -538,24 +550,41 @@ export default function AuthPage({ initialMode = 'login' }) {
                   if (identifier === '94432 88901') setIdentifier('98427 11234');
                   setErrorMessage('');
                 }}
-                startIcon={<User size={13} />}
                 sx={{
-                  py: 0.5,
-                  px: { xs: 0.5, sm: 1 },
+                  py: 0.6,
+                  px: 1,
                   borderRadius: '7px',
-                  fontSize: { xs: '11px', sm: '11.5px' },
-                  fontWeight: selectedRole === 'customer' ? 800 : 600,
                   textTransform: 'none',
                   bgcolor: selectedRole === 'customer' ? '#FFFFFF' : 'transparent',
                   color: selectedRole === 'customer' ? '#0F172A' : '#64748B',
-                  boxShadow: selectedRole === 'customer' ? '0 2px 5px rgba(15, 23, 42, 0.06)' : 'none',
-                  transition: 'all 0.15s ease',
+                  boxShadow: selectedRole === 'customer'
+                    ? '0 2px 6px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04)'
+                    : 'none',
+                  transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 0.8,
+                  border: selectedRole === 'customer' ? '1px solid rgba(0,0,0,0.04)' : '1px solid transparent',
                   '&:hover': {
-                    bgcolor: selectedRole === 'customer' ? '#FFFFFF' : '#E2E8F0'
+                    bgcolor: selectedRole === 'customer' ? '#FFFFFF' : 'rgba(255, 255, 255, 0.5)',
+                    color: '#0F172A'
                   }
                 }}
               >
-                Customer (வாடிக்கையாளர்)
+                <User
+                  size={14}
+                  color={selectedRole === 'customer' ? '#0284C7' : '#94A3B8'}
+                  style={{ flexShrink: 0 }}
+                />
+                <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.6 }}>
+                  <Typography sx={{ fontSize: '12px', fontWeight: selectedRole === 'customer' ? 800 : 600, color: 'inherit', lineHeight: 1 }}>
+                    Customer
+                  </Typography>
+                  <Typography sx={{ fontSize: '9.5px', fontWeight: 500, color: selectedRole === 'customer' ? '#0284C7' : '#94A3B8', lineHeight: 1 }}>
+                    வாடிக்கையாளர்
+                  </Typography>
+                </Box>
               </Button>
 
               <Button
@@ -565,24 +594,41 @@ export default function AuthPage({ initialMode = 'login' }) {
                   if (identifier === '98427 11234') setIdentifier('94432 88901');
                   setErrorMessage('');
                 }}
-                startIcon={<Wrench size={13} />}
                 sx={{
-                  py: 0.5,
-                  px: { xs: 0.5, sm: 1 },
+                  py: 0.6,
+                  px: 1,
                   borderRadius: '7px',
-                  fontSize: { xs: '11px', sm: '11.5px' },
-                  fontWeight: selectedRole === 'technician' ? 800 : 600,
                   textTransform: 'none',
                   bgcolor: selectedRole === 'technician' ? '#FFFFFF' : 'transparent',
-                  color: selectedRole === 'technician' ? '#059669' : '#64748B',
-                  boxShadow: selectedRole === 'technician' ? '0 2px 5px rgba(15, 23, 42, 0.06)' : 'none',
-                  transition: 'all 0.15s ease',
+                  color: selectedRole === 'technician' ? '#0F172A' : '#64748B',
+                  boxShadow: selectedRole === 'technician'
+                    ? '0 2px 6px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04)'
+                    : 'none',
+                  transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 0.8,
+                  border: selectedRole === 'technician' ? '1px solid rgba(0,0,0,0.04)' : '1px solid transparent',
                   '&:hover': {
-                    bgcolor: selectedRole === 'technician' ? '#FFFFFF' : '#E2E8F0'
+                    bgcolor: selectedRole === 'technician' ? '#FFFFFF' : 'rgba(255, 255, 255, 0.5)',
+                    color: '#0F172A'
                   }
                 }}
               >
-                Partner (பணியாளர்)
+                <Wrench
+                  size={14}
+                  color={selectedRole === 'technician' ? '#059669' : '#94A3B8'}
+                  style={{ flexShrink: 0 }}
+                />
+                <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.6 }}>
+                  <Typography sx={{ fontSize: '12px', fontWeight: selectedRole === 'technician' ? 800 : 600, color: 'inherit', lineHeight: 1 }}>
+                    Partner
+                  </Typography>
+                  <Typography sx={{ fontSize: '9.5px', fontWeight: 500, color: selectedRole === 'technician' ? '#059669' : '#94A3B8', lineHeight: 1 }}>
+                    பணியாளர்
+                  </Typography>
+                </Box>
               </Button>
             </Box>
 

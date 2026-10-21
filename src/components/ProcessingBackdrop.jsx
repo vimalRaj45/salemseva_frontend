@@ -1,5 +1,5 @@
 import React from 'react';
-import SalemSeamlessLoader from './SalemSeamlessLoader';
+import BrandLoadingScreen from './BrandLoadingScreen';
 
 export default function ProcessingBackdrop({
   open = false,
@@ -19,17 +19,22 @@ export default function ProcessingBackdrop({
       resolvedMode = 'dispatch';
     } else if (text.includes('connect') || text.includes('startup') || text.includes('loading')) {
       resolvedMode = 'startup';
+    } else if (text.includes('match') || text.includes('search')) {
+      resolvedMode = 'matching';
+    } else if (text.includes('track') || text.includes('gps')) {
+      resolvedMode = 'tracking';
     } else {
       resolvedMode = 'booking';
     }
   }
 
   return (
-    <SalemSeamlessLoader
+    <BrandLoadingScreen
       open={open}
       mode={resolvedMode}
-      customTitle={title}
-      customDesc={subtitle}
+      title={title}
+      subtitle={subtitle}
+      badge={badge}
     />
   );
 }

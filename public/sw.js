@@ -42,6 +42,11 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Ignore non-HTTP/HTTPS schemes (e.g. chrome-extension://, capacitor://, data:)
+  if (!url.protocol.startsWith('http')) {
+    return;
+  }
+
   // 1. API requests: Network-first strategy with offline fallback
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(

@@ -1,4 +1,4 @@
-﻿import { API_V1_URL } from './config';
+import { API_V1_URL } from './config';
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Box } from '@mui/material';
@@ -265,21 +265,31 @@ function AppContent() {
       {/* PWA Floating Install Prompt */}
       <PwaInstallPrompt />
 
-      {/* Global React Hot Toast Notifier */}
+      {/* Global React Hot Toast Notifier - Single-Line Clean Bottom-Left Toast */}
       <Toaster
-        position="top-center"
+        position="bottom-left"
+        containerStyle={{
+          bottom: 20,
+          left: 20,
+        }}
         toastOptions={{
-          duration: 3500,
+          duration: 3200,
           style: {
             background: '#0F172A',
             color: '#FFFFFF',
-            fontSize: '13px',
+            fontSize: '12px',
             fontWeight: 600,
-            borderRadius: '12px',
-            padding: '10px 16px',
-            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)',
-            marginTop: 'calc(10px + env(safe-area-inset-top, 0px))',
-            border: '1px solid #334155'
+            borderRadius: '8px',
+            padding: '8px 18px',
+            boxShadow: '0 6px 20px rgba(0, 0, 0, 0.22)',
+            border: '1px solid #334155',
+            maxWidth: 'min(580px, calc(100vw - 36px))',
+            whiteSpace: 'nowrap',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            lineHeight: 1.4,
+            letterSpacing: '0.1px'
           },
           success: {
             iconTheme: {
