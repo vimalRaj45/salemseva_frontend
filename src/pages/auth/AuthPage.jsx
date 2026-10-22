@@ -1284,50 +1284,51 @@ export default function AuthPage({ initialMode = 'login' }) {
       <Dialog
         open={showRoleModal}
         onClose={() => setShowRoleModal(false)}
-        maxWidth="sm"
+        maxWidth="xs"
         fullWidth
         PaperProps={{
           sx: {
             borderRadius: '20px',
-            p: { xs: 2.5, sm: 3.5 },
+            p: { xs: 2, sm: 2.5 },
             bgcolor: '#FFFFFF',
             boxShadow: '0 25px 60px -15px rgba(15, 23, 42, 0.25)',
             border: '1px solid #E2E8F0',
-            maxWidth: '520px',
-            m: 2
+            maxWidth: { xs: '340px', sm: '420px' },
+            mx: 'auto',
+            my: 'auto'
           }
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Box
               component="img"
               src="/logo-mark.svg"
               onError={(e) => { e.currentTarget.src = '/logo.png'; }}
               alt="Shazu One"
-              sx={{ width: 28, height: 28, borderRadius: '6px' }}
+              sx={{ width: 26, height: 26, borderRadius: '6px' }}
             />
-            <Typography sx={{ fontSize: '11px', fontWeight: 800, color: '#64748B', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-              Salem Doorstep Platform
+            <Typography sx={{ fontSize: '11px', fontWeight: 800, color: '#64748B', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+              Shazu One · Salem
             </Typography>
           </Box>
           <IconButton
             size="small"
             onClick={() => setShowRoleModal(false)}
-            sx={{ color: '#94A3B8', '&:hover': { color: '#0F172A', bgcolor: '#F1F5F9' } }}
+            sx={{ color: '#94A3B8', p: 0.5, '&:hover': { color: '#0F172A', bgcolor: '#F1F5F9' } }}
           >
             <X size={18} />
           </IconButton>
         </Box>
 
-        <Typography variant="h5" sx={{ fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em', mb: 0.8, fontSize: { xs: '1.35rem', sm: '1.5rem' } }}>
+        <Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em', mb: 0.4, fontSize: { xs: '1.2rem', sm: '1.35rem' } }}>
           Choose Your Portal
         </Typography>
-        <Typography variant="body2" sx={{ color: '#64748B', fontSize: '13px', lineHeight: 1.5, mb: 3 }}>
-          Please select how you would like to continue. Each portal provides a dedicated workspace and verification flow.
+        <Typography variant="body2" sx={{ color: '#64748B', fontSize: '12px', mb: 2 }}>
+          Select how you want to continue to sign in or create an account.
         </Typography>
 
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2 }}>
           {/* Card 1: Customer */}
           <Paper
             elevation={0}
@@ -1338,63 +1339,54 @@ export default function AuthPage({ initialMode = 'login' }) {
               setShowRoleModal(false);
             }}
             sx={{
-              p: 2.2,
-              borderRadius: '14px',
+              p: 1.5,
+              borderRadius: '12px',
               border: selectedRole === 'customer' ? '2px solid #0284C7' : '1px solid #E2E8F0',
               bgcolor: selectedRole === 'customer' ? '#F0F9FF' : '#FFFFFF',
               cursor: 'pointer',
-              transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+              transition: 'all 0.15s ease-out',
               display: 'flex',
-              alignItems: 'flex-start',
-              gap: 2,
-              position: 'relative',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 1.5,
               '&:hover': {
                 borderColor: '#0284C7',
-                bgcolor: '#F8FAFC',
-                transform: 'translateY(-1px)',
-                boxShadow: '0 8px 20px rgba(2, 132, 199, 0.08)'
+                bgcolor: '#F0F9FF',
+                transform: 'translateY(-1px)'
               }
             }}
           >
-            <Box
-              sx={{
-                width: 44,
-                height: 44,
-                borderRadius: '12px',
-                bgcolor: '#E0F2FE',
-                color: '#0284C7',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0
-              }}
-            >
-              <User size={22} />
-            </Box>
-            <Box sx={{ flex: 1 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.4 }}>
-                <Typography sx={{ fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>
-                  Customer · வாடிக்கையாளர்
-                </Typography>
-                <Chip
-                  label="Salem Resident"
-                  size="small"
-                  sx={{
-                    height: 20,
-                    fontSize: '10px',
-                    fontWeight: 700,
-                    bgcolor: '#E0F2FE',
-                    color: '#0369A1'
-                  }}
-                />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0, flex: 1 }}>
+              <Box
+                sx={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: '10px',
+                  bgcolor: '#E0F2FE',
+                  color: '#0284C7',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}
+              >
+                <User size={20} />
               </Box>
-              <Typography sx={{ fontSize: '12.5px', color: '#475569', lineHeight: 1.4, mb: 1 }}>
-                Book doorstep repairs (AC, Plumbing, Electrical), track technicians live in Salem, and view warranties.
-              </Typography>
-              <Typography sx={{ fontSize: '11px', fontWeight: 700, color: '#0284C7', display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                Continue as Customer <ChevronRight size={13} />
-              </Typography>
+              <Box sx={{ minWidth: 0, flex: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.6, flexWrap: 'wrap' }}>
+                  <Typography sx={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>
+                    Customer
+                  </Typography>
+                  <Typography sx={{ fontSize: '11px', fontWeight: 600, color: '#0284C7', lineHeight: 1.2 }}>
+                    வாடிக்கையாளர்
+                  </Typography>
+                </Box>
+                <Typography sx={{ fontSize: '11.5px', color: '#64748B', mt: 0.3, lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  Book doorstep services in Salem
+                </Typography>
+              </Box>
             </Box>
+            <ChevronRight size={18} color={selectedRole === 'customer' ? '#0284C7' : '#94A3B8'} style={{ flexShrink: 0 }} />
           </Paper>
 
           {/* Card 2: Service Partner */}
@@ -1407,63 +1399,54 @@ export default function AuthPage({ initialMode = 'login' }) {
               setShowRoleModal(false);
             }}
             sx={{
-              p: 2.2,
-              borderRadius: '14px',
+              p: 1.5,
+              borderRadius: '12px',
               border: selectedRole === 'technician' ? '2px solid #059669' : '1px solid #E2E8F0',
               bgcolor: selectedRole === 'technician' ? '#ECFDF5' : '#FFFFFF',
               cursor: 'pointer',
-              transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+              transition: 'all 0.15s ease-out',
               display: 'flex',
-              alignItems: 'flex-start',
-              gap: 2,
-              position: 'relative',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 1.5,
               '&:hover': {
                 borderColor: '#059669',
-                bgcolor: '#F8FAFC',
-                transform: 'translateY(-1px)',
-                boxShadow: '0 8px 20px rgba(5, 150, 105, 0.08)'
+                bgcolor: '#ECFDF5',
+                transform: 'translateY(-1px)'
               }
             }}
           >
-            <Box
-              sx={{
-                width: 44,
-                height: 44,
-                borderRadius: '12px',
-                bgcolor: '#D1FAE5',
-                color: '#059669',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0
-              }}
-            >
-              <Wrench size={22} />
-            </Box>
-            <Box sx={{ flex: 1 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.4 }}>
-                <Typography sx={{ fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>
-                  Service Partner · பணியாளர்
-                </Typography>
-                <Chip
-                  label="Technician / Pro"
-                  size="small"
-                  sx={{
-                    height: 20,
-                    fontSize: '10px',
-                    fontWeight: 700,
-                    bgcolor: '#D1FAE5',
-                    color: '#047857'
-                  }}
-                />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0, flex: 1 }}>
+              <Box
+                sx={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: '10px',
+                  bgcolor: '#D1FAE5',
+                  color: '#059669',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}
+              >
+                <Wrench size={20} />
               </Box>
-              <Typography sx={{ fontSize: '12.5px', color: '#475569', lineHeight: 1.4, mb: 1 }}>
-                Accept live doorstep dispatches, manage job queue, submit quotes, and earn verified daily payouts.
-              </Typography>
-              <Typography sx={{ fontSize: '11px', fontWeight: 700, color: '#059669', display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                Continue as Partner <ChevronRight size={13} />
-              </Typography>
+              <Box sx={{ minWidth: 0, flex: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.6, flexWrap: 'wrap' }}>
+                  <Typography sx={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>
+                    Service Partner
+                  </Typography>
+                  <Typography sx={{ fontSize: '11px', fontWeight: 600, color: '#059669', lineHeight: 1.2 }}>
+                    பணியாளர்
+                  </Typography>
+                </Box>
+                <Typography sx={{ fontSize: '11.5px', color: '#64748B', mt: 0.3, lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  Accept dispatches & earn 98%
+                </Typography>
+              </Box>
             </Box>
+            <ChevronRight size={18} color={selectedRole === 'technician' ? '#059669' : '#94A3B8'} style={{ flexShrink: 0 }} />
           </Paper>
         </Box>
       </Dialog>
