@@ -1768,7 +1768,7 @@ export default function TrackingPage() {
                     textTransform: 'none'
                   }}
                 >
-                  Technician En Route • Share OTP {trackData?.booking?.customer_otp || '4892'} at Doorstep
+                  Technician En Route • Share OTP {trackData?.booking?.customer_otp || trackData?.booking?.customerOtp || '----'} at Doorstep
                 </Button>
               ) : (
                 <Button

@@ -4487,7 +4487,7 @@ export default function PartnerDutyPage() {
 
                       {/* Prominent 4-Digit Display for Tech */}
                       <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, my: 1.5 }}>
-                        {String(activeJob?.customer_otp || '4892').split('').map((digit, idx) => (
+                        {String(activeJob?.customerOtp || activeJob?.customer_otp || '----').split('').map((digit, idx) => (
                           <Box
                             key={idx}
                             sx={{
