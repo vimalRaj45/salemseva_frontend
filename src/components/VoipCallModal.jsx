@@ -86,8 +86,38 @@ export default function VoipCallModal({
   calleeName = 'Assigned Partner',
   calleePhone = '',
   role = 'Customer',
-  isIncoming = false
+  isIncoming = false,
+  autoAnswer = false
 }) {
+  // Strict Privacy: Never display raw phone digits on caller or receiver screen
+  const isRawPhone = (val) => {
+    if (!val) return true;
+    const str = String(val).trim();
+    return /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/.test(str) || /^\d{7,14}$/.test(str.replace(/\D/g, ''));
+  };
+
+  const cleanDisplayName = (() => {
+    const raw = String(calleeName || '').trim();
+    if (!raw || isRawPhone(raw)) {
+      return (role === 'Customer' || role === 'customer') ? 'Assigned Technician' : 'Customer (Doorstep)';
+    }
+    if (raw.toLowerCase() === 'customer') {
+      return 'Customer (Doorstep)';
+    }
+    if (raw.toLowerCase() === 'technician') {
+      return 'Assigned Technician';
+    }
+    return raw;
+  })();
+
+  const avatarInitials = (() => {
+    const parts = cleanDisplayName.split(/[\s()]+/).filter(Boolean);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return cleanDisplayName.substring(0, 2).toUpperCase() || (role === 'Customer' ? 'TC' : 'CU');
+  })();
+
   const [callState, setCallState] = useState(isIncoming ? 'INCOMING' : 'RINGING');
   const [seconds, setSeconds] = useState(0);
   const [muted, setMuted] = useState(false);
@@ -454,7 +484,11 @@ export default function VoipCallModal({
     if (open) {
       if (isIncoming) {
         setCallState('INCOMING');
-        startRingtone();
+        if (autoAnswer) {
+          handleAcceptIncoming();
+        } else {
+          startRingtone();
+        }
       } else {
         startOutboundCall();
       }
@@ -464,7 +498,7 @@ export default function VoipCallModal({
     return () => {
       cleanupMedia();
     };
-  }, [open, isIncoming]);
+  }, [open, isIncoming, autoAnswer]);
 
   const formatTime = (totalSeconds) => {
     const mins = Math.floor(totalSeconds / 60);
@@ -512,11 +546,11 @@ export default function VoipCallModal({
             border: '3px solid #BFDBFE'
           }}
         >
-          {calleeName.substring(0, 2).toUpperCase()}
+          {avatarInitials}
         </Avatar>
 
         <Typography sx={{ fontWeight: 700, color: '#0F172A', fontSize: '16px', mb: 0.5 }}>
-          {calleeName}
+          {cleanDisplayName}
         </Typography>
         <Typography sx={{ color: '#64748B', fontSize: '12px', mb: 2 }}>
           {role === 'Customer' ? 'Technician • Fairlands & Salem Zone' : 'Customer • Fairlands, Salem'}

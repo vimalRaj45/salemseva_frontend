@@ -359,6 +359,10 @@ export default function TrackingPage() {
           requestHandover: true,
           reason: 'Customer requested another technician'
         };
+      } else if (actionType === 'decline_keep_original') {
+        bodyData = {
+          action: 'decline_keep_original'
+        };
       }
       const res = await fetch(`${API_V1_URL}/bookings/${bookingId}/resolve-tech-reschedule`, {
         method: 'POST',
@@ -488,6 +492,22 @@ export default function TrackingPage() {
                 }}
               >
                 Accept New Time
+              </Button>
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={() => handleResolveTechProposal('decline_keep_original')}
+                sx={{
+                  borderColor: '#64748B',
+                  color: '#334155',
+                  fontWeight: 800,
+                  fontSize: '12px',
+                  textTransform: 'none',
+                  borderRadius: '8px',
+                  '&:hover': { bgcolor: '#F1F5F9', borderColor: '#475569' }
+                }}
+              >
+                Keep Original Time
               </Button>
               <Button
                 variant="outlined"
@@ -839,7 +859,7 @@ export default function TrackingPage() {
                                     {tech.name}
                                   </Typography>
                                   <Typography sx={{ fontSize: '11px', color: '#64748B' }}>
-                                    Certified Expert • {tech.rating || 5.0} ★ ({tech.jobsCompleted || 0} jobs completed)
+                                    Certified Expert • Rating {tech.rating || 5.0} / 5 ({tech.jobsCompleted || 0} jobs completed)
                                   </Typography>
                                 </Box>
                               </Box>
@@ -1115,6 +1135,16 @@ export default function TrackingPage() {
                   sx={{ borderRadius: '8px', fontWeight: 600, bgcolor: '#F0F9FF', color: '#0369A1', border: '1px solid #BAE6FD', fontSize: '12.5px' }}
                 >
                   Technician {tech.name} has started journey and is on the way to your home (ETA: {tech.eta || '8 mins'} • {tech.distanceKm || '1.8 km'}).
+                </Alert>
+              </Box>
+            ) : bookingStatus === 'preparing' ? (
+              <Box sx={{ mb: 2 }}>
+                <Alert 
+                  severity="info" 
+                  icon={<BuildIcon sx={{ fontSize: 18 }} />}
+                  sx={{ borderRadius: '8px', fontWeight: 600, bgcolor: '#F0FDF4', color: '#166534', border: '1px solid #BBF7D0', fontSize: '12.5px' }}
+                >
+                  Technician {tech?.name || 'Specialist'} is gathering diagnostic tools and spare parts. Preparing to depart for your location.
                 </Alert>
               </Box>
             ) : (
@@ -1864,6 +1894,7 @@ export default function TrackingPage() {
         calleeName={tech?.name ? `${tech.name} (Technician)` : 'Assigned Technician'} 
         role="Customer" 
         isIncoming={isIncomingCall}
+        autoAnswer={new URLSearchParams(window.location.search).get('autoAnswer') === 'true'}
       />
 
       {/* Instant Incoming Message Notification Banner */}

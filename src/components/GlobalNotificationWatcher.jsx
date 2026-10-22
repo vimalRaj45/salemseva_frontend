@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { NativeNotifier } from '../services/nativeNotify';
 import { LocalNotifications } from '@capacitor/local-notifications';
@@ -9,11 +9,15 @@ import FocusCallOverlay from './FocusCallOverlay';
 
 export default function GlobalNotificationWatcher() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [incomingCall, setIncomingCall] = useState(null);
   const lastNotifiedJobRef = useRef(null);
   const lastNotifiedCallRef = useRef(null);
   const lastSeenMsgCountRef = useRef({});
+
+  // Check if current route already has its own dedicated in-page VoIP modal (TrackingPage or PartnerDutyPage)
+  const isCallHandledByPage = location.pathname.startsWith('/track') || location.pathname.startsWith('/partner');
 
   // 1. Listen for Notification Tap Events (Opens app to the exact screen)
   useEffect(() => {
@@ -72,40 +76,49 @@ export default function GlobalNotificationWatcher() {
 
         // B. Active Booking: Check for VoIP Calls & Chat Messages
         if (activeBookingId) {
-          // Check VoIP Calls
-          try {
-            const callRes = await fetch(`${API_BASE_URL}/api/v1/webrtc/call/status?bookingId=${activeBookingId}`);
-            const callData = await callRes.json();
+          // If the current route is TrackingPage or PartnerDutyPage, that screen handles VoIP calls
+          // directly via VoipCallModal. Suppress FocusCallOverlay to eliminate modal conflicts.
+          if (isCallHandledByPage) {
+            if (incomingCall) {
+              setIncomingCall(null);
+              NativeNotifier.stopCallRingtone();
+            }
+          } else {
+            // Check VoIP Calls (only for background/other pages)
+            try {
+              const callRes = await fetch(`${API_BASE_URL}/api/v1/webrtc/call/status?bookingId=${activeBookingId}`);
+              const callData = await callRes.json();
 
-            if (callData.success && callData.call && isMounted) {
-              const call = callData.call;
-              const isPartner = userRole === 'technician';
-              const isIncomingForMe = isPartner ? call.caller === 'customer' : call.caller === 'technician';
+              if (callData.success && callData.call && isMounted) {
+                const call = callData.call;
+                const isPartner = userRole === 'technician';
+                const isIncomingForMe = isPartner ? call.caller === 'customer' : call.caller === 'technician';
 
-              if (call.active && call.status === 'RINGING' && isIncomingForMe) {
-                const callKey = `${activeBookingId}-${call.startedAt}`;
-                if (lastNotifiedCallRef.current !== callKey) {
-                  lastNotifiedCallRef.current = callKey;
-                  NativeNotifier.notifyIncomingCall({
-                    callerName: call.callerName || (isPartner ? 'Customer' : 'Shazu One Specialist'),
+                if (call.active && call.status === 'RINGING' && isIncomingForMe) {
+                  const callKey = `${activeBookingId}-${call.startedAt}`;
+                  if (lastNotifiedCallRef.current !== callKey) {
+                    lastNotifiedCallRef.current = callKey;
+                    NativeNotifier.notifyIncomingCall({
+                      callerName: call.callerName || (isPartner ? 'Customer' : 'Shazu One Specialist'),
+                      bookingId: activeBookingId,
+                      role: isPartner ? 'Technician' : 'Customer'
+                    });
+                  }
+                  setIncomingCall({
                     bookingId: activeBookingId,
-                    role: isPartner ? 'Technician' : 'Customer'
+                    callerName: call.callerName || (isPartner ? 'Customer' : 'Shazu One Specialist'),
+                    role: isPartner ? 'Technician' : 'Customer',
+                    locality: 'Doorstep Service, Salem'
                   });
-                }
-                setIncomingCall({
-                  bookingId: activeBookingId,
-                  callerName: call.callerName || (isPartner ? 'Customer' : 'Shazu One Specialist'),
-                  role: isPartner ? 'Technician' : 'Customer',
-                  locality: 'Doorstep Service, Salem'
-                });
-              } else if (!call.active || call.status !== 'RINGING') {
-                if (incomingCall) {
-                  setIncomingCall(null);
-                  NativeNotifier.stopCallRingtone();
+                } else if (!call.active || call.status !== 'RINGING') {
+                  if (incomingCall) {
+                    setIncomingCall(null);
+                    NativeNotifier.stopCallRingtone();
+                  }
                 }
               }
-            }
-          } catch (e) {}
+            } catch (e) {}
+          }
 
           // Check Chat Messages
           try {
@@ -179,6 +192,11 @@ export default function GlobalNotificationWatcher() {
       });
     } catch (e) {}
   };
+
+  // If current screen is TrackingPage or PartnerDutyPage, VoipCallModal handles call directly
+  if (isCallHandledByPage) {
+    return null;
+  }
 
   return (
     <FocusCallOverlay

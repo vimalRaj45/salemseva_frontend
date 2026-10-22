@@ -18,6 +18,11 @@ export default function FocusCallOverlay({
 
   const { callerName, bookingId, locality, role } = incomingCall;
 
+  const isRaw = /^\+?[0-9\s-]{6,}$/.test(String(callerName || '').trim()) || /^\d{7,14}$/.test(String(callerName || '').replace(/\D/g, ''));
+  const safeCallerName = (!callerName || isRaw)
+    ? (role === 'Customer' ? 'Assigned Technician' : 'Customer')
+    : callerName;
+
   return (
     <Box
       sx={{
@@ -122,13 +127,13 @@ export default function FocusCallOverlay({
               boxShadow: '0 8px 24px rgba(37, 99, 235, 0.5)'
             }}
           >
-            {(callerName || 'C').slice(0, 2).toUpperCase()}
+            {safeCallerName.slice(0, 2).toUpperCase()}
           </Avatar>
         </Box>
 
         {/* Caller Info */}
         <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5, color: '#F8FAFC' }}>
-          {callerName || 'Doorstep Specialist'}
+          {safeCallerName}
         </Typography>
 
         <Typography variant="body2" sx={{ color: '#94A3B8', mb: 1, fontSize: '13px' }}>
