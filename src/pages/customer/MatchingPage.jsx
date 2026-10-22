@@ -129,6 +129,13 @@ export default function MatchingPage() {
         const data = await res.json();
         if (data.success && isMounted) {
           setTrackData(data);
+          if (data.booking?.status === 'cancelled' || data.isCancelled) {
+            localStorage.removeItem('shazuone_active_booking');
+            localStorage.removeItem('shazuone_booking_id');
+            navigate(`/track?bookingId=${bookingId}`, { replace: true });
+            return;
+          }
+
           const isScheduled = data.booking?.booking_type === 'scheduled' || (!data.booking?.is_urgent_dispatch && data.booking?.scheduled_slot && data.booking?.scheduled_slot !== 'instant_now');
           if (isScheduled || data.booking?.status === 'created') {
             navigate(`/track?bookingId=${bookingId}`, { replace: true });

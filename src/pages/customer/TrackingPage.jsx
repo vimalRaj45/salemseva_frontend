@@ -189,6 +189,15 @@ export default function TrackingPage() {
         const res = await fetch(`${API_V1_URL}/bookings/${bookingId}/track`);
         const data = await res.json();
         if (data.success && isMounted) {
+          if (data.booking?.status === 'cancelled' || data.isCancelled) {
+            localStorage.removeItem('shazuone_active_booking');
+            localStorage.removeItem('shazuone_booking_id');
+            localStorage.removeItem('shazuone_quote_status_' + bookingId);
+            setCallOpen(false);
+            setChatOpen(false);
+            setQuoteAlertModalOpen(false);
+          }
+
           // If local storage has quote_presented flag, ensure status reflects it immediately
           const localQuoteStatus = localStorage.getItem('shazuone_quote_status_' + bookingId);
           if (localQuoteStatus === 'quote_presented' && data.booking && data.booking.status !== 'quote_approved' && data.booking.status !== 'completed') {
@@ -439,6 +448,184 @@ export default function TrackingPage() {
 
   if (isLoading && !trackData) {
     return <SalemSeamlessLoader mode="dispatch" />;
+  }
+
+  // Admin or System Cancellation Screen & Customer Release
+  if (bookingStatus === 'cancelled') {
+    const cancelReason = trackData?.booking?.cancellation_reason || trackData?.booking?.cancellationReason || trackData?.cancellationReason || 'Cancelled by Shazu One Central Operations';
+    const cancelDetails = trackData?.booking?.cancellation_details || trackData?.booking?.cancellationDetails || trackData?.cancellationDetails || 'The service request has been closed. Any advance payment held in escrow has been automatically refunded to your Shazu One Wallet.';
+    const cancelledBy = trackData?.booking?.cancelled_by || trackData?.booking?.cancelledBy || 'admin';
+    const visitFee = trackData?.booking?.visit_fee || trackData?.booking?.visitFee || 49;
+
+    return (
+      <Box sx={{ bgcolor: '#0F172A', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: { xs: 2, sm: 3 } }}>
+        <Container maxWidth="xs" sx={{ p: 0 }}>
+          <Card
+            elevation={0}
+            sx={{
+              bgcolor: '#1E293B',
+              color: '#FFFFFF',
+              borderRadius: '20px',
+              p: { xs: 2.5, sm: 3.5 },
+              border: '1px solid #334155',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+              textAlign: 'center'
+            }}
+          >
+            {/* Warning Icon Badge */}
+            <Box
+              sx={{
+                width: 60,
+                height: 60,
+                borderRadius: '50%',
+                bgcolor: 'rgba(239, 68, 68, 0.15)',
+                border: '2px solid rgba(239, 68, 68, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mx: 'auto',
+                mb: 2,
+                color: '#F87171'
+              }}
+            >
+              <CancelOutlinedIcon sx={{ fontSize: 32 }} />
+            </Box>
+
+            <Chip
+              label={String(cancelledBy).includes('admin') ? 'DISPATCH OPERATIONS NOTICE' : 'BOOKING CANCELLED'}
+              size="small"
+              sx={{
+                bgcolor: 'rgba(239, 68, 68, 0.2)',
+                color: '#FCA5A5',
+                fontWeight: 800,
+                fontSize: '10.5px',
+                mb: 1.5,
+                border: '1px solid rgba(239, 68, 68, 0.4)'
+              }}
+            />
+
+            <Typography variant="h6" sx={{ fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.02em', mb: 0.8, fontSize: { xs: '1.25rem', sm: '1.4rem' } }}>
+              Booking #{bookingId} Cancelled
+            </Typography>
+
+            <Typography variant="body2" sx={{ color: '#94A3B8', fontSize: '12.5px', lineHeight: 1.5, mb: 2.2 }}>
+              This service order has been released and closed by {String(cancelledBy).includes('admin') ? 'Shazu One Central Operations' : 'the system'}.
+            </Typography>
+
+            {/* Cancellation Reason Box */}
+            <Paper
+              elevation={0}
+              sx={{
+                p: 2,
+                bgcolor: '#0F172A',
+                border: '1px solid #334155',
+                borderRadius: '12px',
+                textAlign: 'left',
+                mb: 2.2
+              }}
+            >
+              <Typography sx={{ fontSize: '10.5px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em', mb: 0.4 }}>
+                Reason for Cancellation:
+              </Typography>
+              <Typography sx={{ fontSize: '13px', fontWeight: 700, color: '#F1F5F9', mb: 0.6 }}>
+                {cancelReason}
+              </Typography>
+              {cancelDetails && (
+                <Typography sx={{ fontSize: '11.5px', color: '#94A3B8', lineHeight: 1.4 }}>
+                  {cancelDetails}
+                </Typography>
+              )}
+            </Paper>
+
+            {/* Escrow Refund Status Card */}
+            <Box
+              sx={{
+                p: 1.6,
+                bgcolor: 'rgba(16, 185, 129, 0.1)',
+                border: '1px solid rgba(16, 185, 129, 0.3)',
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1.4,
+                textAlign: 'left',
+                mb: 2.8
+              }}
+            >
+              <Box
+                sx={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: '10px',
+                  bgcolor: '#10B981',
+                  color: '#FFFFFF',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}
+              >
+                <ShieldIcon sx={{ fontSize: 20 }} />
+              </Box>
+              <Box>
+                <Typography sx={{ fontSize: '12.5px', fontWeight: 800, color: '#A7F3D0' }}>
+                  ₹{visitFee}.00 Escrow Refunded to Wallet
+                </Typography>
+                <Typography sx={{ fontSize: '11px', color: '#6EE7B7', lineHeight: 1.3 }}>
+                  Your advance visit payment has been released back to your account.
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* Actions */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Button
+                variant="contained"
+                fullWidth
+                onClick={() => {
+                  localStorage.removeItem('shazuone_active_booking');
+                  localStorage.removeItem('shazuone_booking_id');
+                  navigate('/', { replace: true });
+                }}
+                sx={{
+                  bgcolor: '#0284C7',
+                  color: '#FFFFFF',
+                  fontWeight: 800,
+                  fontSize: '13px',
+                  py: 1.1,
+                  borderRadius: '10px',
+                  textTransform: 'none',
+                  boxShadow: '0 4px 14px rgba(2, 132, 199, 0.3)',
+                  '&:hover': { bgcolor: '#0369A1' }
+                }}
+              >
+                Return to Home & Book Again
+              </Button>
+
+              <Button
+                variant="outlined"
+                fullWidth
+                onClick={() => {
+                  localStorage.removeItem('shazuone_active_booking');
+                  navigate('/wallet');
+                }}
+                sx={{
+                  borderColor: '#334155',
+                  color: '#CBD5E1',
+                  fontWeight: 700,
+                  fontSize: '12.5px',
+                  py: 0.9,
+                  borderRadius: '10px',
+                  textTransform: 'none',
+                  '&:hover': { borderColor: '#64748B', bgcolor: 'rgba(255, 255, 255, 0.05)' }
+                }}
+              >
+                View Shazu One Wallet
+              </Button>
+            </Box>
+          </Card>
+        </Container>
+      </Box>
+    );
   }
 
   return (
