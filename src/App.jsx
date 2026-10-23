@@ -44,6 +44,8 @@ import { CriticalWorkProvider } from './context/CriticalWorkContext';
 import AuthPage from './pages/auth/AuthPage';
 import { Toaster } from 'react-hot-toast';
 import GlobalNotificationWatcher from './components/GlobalNotificationWatcher';
+import HeadsUpNotificationBanner from './components/HeadsUpNotificationBanner';
+import NotificationPermissionBanner from './components/NotificationPermissionBanner';
 import SplashScreen from './components/SplashScreen';
 import PwaInstallPrompt from './components/PwaInstallPrompt';
 import { StatusBar, Style } from '@capacitor/status-bar';
@@ -248,6 +250,8 @@ function AppContent() {
       {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
 
       <BrowserRouter>
+        <NotificationPermissionBanner />
+        <HeadsUpNotificationBanner />
         <GlobalNotificationWatcher />
         <MainLayout
           walletBalance={walletBalance}

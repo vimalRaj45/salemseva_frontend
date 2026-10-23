@@ -15,6 +15,7 @@ export default function GlobalNotificationWatcher() {
   const lastNotifiedJobRef = useRef(null);
   const lastNotifiedCallRef = useRef(null);
   const lastSeenMsgCountRef = useRef({});
+  const lastSeenBookingStatusRef = useRef({});
 
   // Check if current route already has its own dedicated in-page VoIP modal (TrackingPage or PartnerDutyPage)
   const isCallHandledByPage = location.pathname.startsWith('/track') || location.pathname.startsWith('/partner');
@@ -142,6 +143,67 @@ export default function GlobalNotificationWatcher() {
                 }
               }
               lastSeenMsgCountRef.current[activeBookingId] = msgs.length;
+            }
+          } catch (e) {}
+
+          // C. Customer / Technician: Track Live Order Status transitions
+          try {
+            const trackRes = await fetch(`${API_BASE_URL}/api/v1/bookings/${activeBookingId}/track`);
+            const trackData = await trackRes.json();
+            if (trackData.success && trackData.booking && isMounted) {
+              const currentStatus = trackData.booking.status;
+              const prevStatus = lastSeenBookingStatusRef.current[activeBookingId];
+
+              // Only trigger notification banner & audio chime when status transitioned from an earlier state
+              if (prevStatus && prevStatus !== currentStatus) {
+                const techName = trackData.technician?.name || 'Service Specialist';
+                const eta = trackData.technician?.eta || '10 mins';
+
+                if (currentStatus === 'accepted') {
+                  NativeNotifier.notifyOrderStatusUpdate({
+                    title: 'Specialist Assigned',
+                    message: `${techName} has been assigned to your service request.`,
+                    bookingId: activeBookingId,
+                    status: currentStatus,
+                    technicianName: techName,
+                    eta
+                  });
+                } else if (currentStatus === 'en_route') {
+                  NativeNotifier.notifyOrderStatusUpdate({
+                    title: 'Order is on its way!',
+                    message: `Our delivery partner ${techName} has picked up your order and is heading your way.`,
+                    bookingId: activeBookingId,
+                    status: currentStatus,
+                    technicianName: techName,
+                    eta
+                  });
+                } else if (currentStatus === 'arrived') {
+                  NativeNotifier.notifyOrderStatusUpdate({
+                    title: 'Partner Arrived at Doorstep!',
+                    message: `${techName} has arrived at your address for doorstep inspection.`,
+                    bookingId: activeBookingId,
+                    status: currentStatus,
+                    technicianName: techName
+                  });
+                } else if (currentStatus === 'quote_presented') {
+                  NativeNotifier.notifyOrderStatusUpdate({
+                    title: 'Digital Estimate Ready',
+                    message: `${techName} has uploaded the digital diagnostic quote for your approval.`,
+                    bookingId: activeBookingId,
+                    status: currentStatus,
+                    technicianName: techName
+                  });
+                } else if (currentStatus === 'completed') {
+                  NativeNotifier.notifyOrderStatusUpdate({
+                    title: 'Service Completed Successfully',
+                    message: 'Your service job has been finished. Thank you for choosing Shazu One.',
+                    bookingId: activeBookingId,
+                    status: currentStatus,
+                    technicianName: techName
+                  });
+                }
+              }
+              lastSeenBookingStatusRef.current[activeBookingId] = currentStatus;
             }
           } catch (e) {}
         }

@@ -40,6 +40,18 @@ class NativeNotificationService {
           });
 
           await LocalNotifications.createChannel({
+            id: 'shazuone_order_updates',
+            name: 'Shazu One Order & Delivery Updates',
+            description: 'Real-time order progress and technician arrival status',
+            importance: 4,
+            visibility: 1,
+            sound: 'default',
+            vibration: true,
+            lights: true,
+            lightColor: '#0284C7'
+          });
+
+          await LocalNotifications.createChannel({
             id: 'shazuone_messages',
             name: 'Shazu One Chat Messages',
             description: 'In-app chat messages for doorstep services',
@@ -51,10 +63,10 @@ class NativeNotificationService {
             lightColor: '#10B981'
           });
         } catch (chanErr) {
-          console.warn('Channel creation error:', chanErr);
+          console.warn('Channel creation note:', chanErr);
         }
 
-        // 2. Request Notification Permissions
+        // 2. Request Notification Permissions in Capacitor
         const check = await LocalNotifications.checkPermissions();
         if (check.display === 'granted') {
           this.hasPermission = true;
@@ -75,66 +87,130 @@ class NativeNotificationService {
     }
   }
 
-  // Vibrate Phone (Haptics)
-  async vibrateCall() {
+  // Request user permissions explicitly (called via user action / button)
+  async requestPermission() {
     try {
       if (this.isNative) {
-        await Haptics.notification({ type: NotificationType.Warning });
-      } else if (typeof navigator !== 'undefined' && navigator.vibrate) {
-        navigator.vibrate([400, 200, 400, 200, 600]);
+        const req = await LocalNotifications.requestPermissions();
+        this.hasPermission = req.display === 'granted';
+        return this.hasPermission;
       }
-    } catch (e) {}
+      if (typeof window !== 'undefined' && 'Notification' in window) {
+        const perm = await Notification.requestPermission();
+        this.hasPermission = perm === 'granted';
+        return this.hasPermission;
+      }
+    } catch (e) {
+      console.warn('Permission request error:', e);
+    }
+    return false;
   }
 
-  // Trigger Incoming Call Alert (High Priority Heads-Up Banner, WhatsApp-Style Continuous Ringtone & Vibration)
-  async notifyIncomingCall({ callerName, bookingId, role }) {
-    // 1. Play continuous WhatsApp-style rhythmic chime ringtone
-    RingtoneService.startRinging();
+  // Show System Notification (via ServiceWorker in PWA or LocalNotifications in Capacitor)
+  async showSystemNotification({ title, body, tag, icon, badge, data, actions, requireInteraction, vibrate }) {
+    // 1. Always emit in-app Heads-Up Notification Banner event so user sees it in foreground
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('shazuone_heads_up_notification', {
+        detail: {
+          title,
+          body,
+          tag,
+          data,
+          timestamp: Date.now()
+        }
+      }));
+    }
 
+    // 2. Deliver System Notification
     try {
       if (this.isNative) {
         await LocalNotifications.schedule({
           notifications: [
             {
               id: Math.floor(Date.now() % 100000),
-              title: `Incoming Call: ${callerName}`,
-              body: `Incoming VoIP Call for Booking #${bookingId}. Tap to answer.`,
+              title,
+              body,
               schedule: { at: new Date(Date.now() + 50) },
               sound: 'default',
               smallIcon: 'ic_launcher',
-              iconColor: '#2563EB',
-              channelId: 'shazuone_urgent_calls',
-              actionTypeId: 'OPEN_CALL',
-              extra: { bookingId, role, type: 'call' }
+              iconColor: '#0284C7',
+              channelId: data?.type === 'call' ? 'shazuone_urgent_calls' : (data?.type === 'new_job' ? 'shazuone_work_assigned' : 'shazuone_order_updates'),
+              extra: data || {}
             }
           ]
         });
-      } else if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-        const notif = new Notification(`Incoming Call: ${callerName}`, {
-          body: `Incoming VoIP Call for Booking #${bookingId}. Click to answer.`,
-          icon: '/logo.png',
-          badge: '/logo.png',
-          tag: `call-${bookingId}`,
-          renotify: true,
-          requireInteraction: true,
-          data: { bookingId, role, type: 'call' }
+        return;
+      }
+
+      // PWA Browser: Prefer ServiceWorker Registration (Android/Desktop reliable)
+      if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({
+          type: 'SHOW_NOTIFICATION',
+          title,
+          options: {
+            body,
+            icon: icon || '/logo.png',
+            badge: badge || '/favicon.png',
+            tag: tag || `notif-${Date.now()}`,
+            renotify: true,
+            requireInteraction: Boolean(requireInteraction),
+            vibrate: vibrate || [200, 100, 200],
+            actions: actions || [],
+            data: data || {}
+          }
+        });
+        return;
+      }
+
+      // Standard Web Notification fallback
+      if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+        const notif = new Notification(title, {
+          body,
+          icon: icon || '/logo.png',
+          badge: badge || '/favicon.png',
+          tag: tag || `notif-${Date.now()}`,
+          requireInteraction: Boolean(requireInteraction),
+          data: data || {}
         });
 
         notif.onclick = () => {
           window.focus();
           notif.close();
-          RingtoneService.stopRinging();
-          const targetUrl = (role === 'customer' || role === 'Customer')
-            ? `/track?bookingId=${bookingId}&autoAnswer=true`
-            : `/partner?bookingId=${bookingId}&autoAnswer=true`;
-          if (window.location.pathname !== targetUrl.split('?')[0]) {
-            window.location.href = targetUrl;
+          if (data?.url) {
+            window.location.href = data.url;
           }
         };
       }
-    } catch (e) {
-      console.warn('Call notification error:', e);
+    } catch (err) {
+      console.warn('System notification delivery note:', err);
     }
+  }
+
+  // 1. Incoming VoIP Call (Continuous Ringing & Full Alerts)
+  async notifyIncomingCall({ callerName, bookingId, role }) {
+    RingtoneService.startRinging();
+
+    const targetUrl = (role === 'customer' || role === 'Customer')
+      ? `/track?bookingId=${bookingId}&autoAnswer=true`
+      : `/partner?bookingId=${bookingId}&autoAnswer=true`;
+
+    await this.showSystemNotification({
+      title: `Incoming Call: ${callerName || 'Salem Specialist'}`,
+      body: `Incoming audio call for Booking #${bookingId}. Tap to answer.`,
+      tag: `call-${bookingId}`,
+      requireInteraction: true,
+      vibrate: [400, 150, 400, 1800, 400, 150, 400],
+      actions: [
+        { action: 'answer', title: 'Answer Call' },
+        { action: 'decline', title: 'Decline' }
+      ],
+      data: {
+        bookingId,
+        role,
+        type: 'call',
+        url: targetUrl
+      }
+    });
   }
 
   // Stop Ringtone Audio
@@ -142,82 +218,64 @@ class NativeNotificationService {
     RingtoneService.stopRinging();
   }
 
-  // Trigger New Work / Job Assigned Notification
-  async notifyNewWorkAssigned({ serviceTitle, locality, bookingId, price }) {
-    // Play alert chime
-    RingtoneService.playNotificationChime();
+  // 2. Customer Order Status Update (e.g. "Order is on its way!", "Partner Arrived")
+  async notifyOrderStatusUpdate({ title, message, bookingId, status, technicianName, eta }) {
+    RingtoneService.playOrderStatusChime();
 
-    try {
-      if (this.isNative) {
-        await LocalNotifications.schedule({
-          notifications: [
-            {
-              id: Math.floor(Date.now() % 100000),
-              title: `New Service Assigned: ${serviceTitle || 'Home Service'}`,
-              body: `Customer waiting in ${locality || 'Salem'}. Estimated: ₹${price || '299'}. Tap to review & accept.`,
-              schedule: { at: new Date(Date.now() + 50) },
-              sound: 'default',
-              smallIcon: 'ic_launcher',
-              iconColor: '#D97706',
-              channelId: 'shazuone_work_assigned',
-              actionTypeId: 'OPEN_JOB',
-              extra: { bookingId, type: 'new_job' }
-            }
-          ]
-        });
-      } else if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-        const notif = new Notification(`New Service Assigned: ${serviceTitle || 'Home Service'}`, {
-          body: `Customer waiting in ${locality || 'Salem'}. Estimated: ₹${price || '299'}. Click to review & accept.`,
-          icon: '/logo.png',
-          badge: '/logo.png',
-          tag: `job-${bookingId}`,
-          requireInteraction: true
-        });
+    const headline = title || (status === 'en_route' ? 'Order is on its way!' : (status === 'arrived' ? 'Technician at Doorstep!' : 'Order Status Update'));
+    const techPrefix = technicianName ? `${technicianName} (Delivery Partner)` : 'Service Specialist';
+    const detailBody = message || (status === 'en_route' ? `${techPrefix} is traveling to your location. ETA: ${eta || '8 mins'}.` : `${techPrefix} has arrived for inspection.`);
 
-        notif.onclick = () => {
-          window.focus();
-          notif.close();
-          window.location.href = '/partner';
-        };
+    await this.showSystemNotification({
+      title: headline,
+      body: detailBody,
+      tag: `order-${bookingId}-${status || 'update'}`,
+      vibrate: [150, 80, 150],
+      data: {
+        bookingId,
+        type: 'order_status',
+        status,
+        url: `/track?bookingId=${bookingId}`
       }
-    } catch (e) {
-      console.warn('Job assigned notification error:', e);
-    }
+    });
   }
 
-  // Trigger Incoming Chat Message Alert
-  async notifyIncomingMessage({ senderName, messageText, bookingId }) {
-    RingtoneService.playNotificationChime();
+  // 3. New Work / Job Assigned Notification (for Technician)
+  async notifyNewWorkAssigned({ serviceTitle, locality, bookingId, price }) {
+    RingtoneService.playJobDispatchChime();
 
-    try {
-      if (this.isNative) {
-        await Haptics.notification({ type: NotificationType.Success });
-        await LocalNotifications.schedule({
-          notifications: [
-            {
-              id: Math.floor(Date.now() % 100000),
-              title: `Message from ${senderName}`,
-              body: messageText,
-              schedule: { at: new Date(Date.now() + 50) },
-              sound: 'default',
-              smallIcon: 'ic_launcher',
-              iconColor: '#10B981',
-              channelId: 'shazuone_messages',
-              extra: { bookingId, type: 'chat' }
-            }
-          ]
-        });
-      } else if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-        new Notification(`${senderName}`, {
-          body: messageText,
-          icon: '/logo.png',
-          badge: '/logo.png',
-          tag: `msg-${bookingId}`
-        });
+    await this.showSystemNotification({
+      title: `New Service Assigned: ${serviceTitle || 'Home Service'}`,
+      body: `Customer in ${locality || 'Salem'}. Inspection fee: Rs. ${price || '99'} Escrow paid. Tap to review.`,
+      tag: `job-${bookingId}`,
+      requireInteraction: true,
+      vibrate: [200, 100, 200],
+      actions: [
+        { action: 'view_job', title: 'View & Accept' }
+      ],
+      data: {
+        bookingId,
+        type: 'new_job',
+        url: '/partner'
       }
-    } catch (e) {
-      console.warn('Message notification error:', e);
-    }
+    });
+  }
+
+  // 4. Incoming Chat Message Alert
+  async notifyIncomingMessage({ senderName, messageText, bookingId }) {
+    RingtoneService.playMessageChime();
+
+    await this.showSystemNotification({
+      title: `${senderName || 'Salem Specialist'}`,
+      body: messageText || 'New message received',
+      tag: `msg-${bookingId}`,
+      vibrate: [80],
+      data: {
+        bookingId,
+        type: 'chat',
+        url: `/track?bookingId=${bookingId}&openChat=true`
+      }
+    });
   }
 }
 

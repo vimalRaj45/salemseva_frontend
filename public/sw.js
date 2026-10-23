@@ -108,6 +108,15 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
+// Direct client message listener to trigger system notifications reliably in PWA
+self.addEventListener('message', (event) => {
+  if (!event.data) return;
+  if (event.data.type === 'SHOW_NOTIFICATION') {
+    const { title, options } = event.data;
+    event.waitUntil(self.registration.showNotification(title || 'Shazu One', options || {}));
+  }
+});
+
 // Push notification listener (Background VoIP call & dispatch notifications)
 self.addEventListener('push', (event) => {
   if (!event.data) return;
