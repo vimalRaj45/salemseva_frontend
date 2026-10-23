@@ -29,7 +29,10 @@ import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import WorkHistoryIcon from '@mui/icons-material/WorkHistory';
 import SendIcon from '@mui/icons-material/Send';
 import BoltIcon from '@mui/icons-material/Bolt';
+import VolumeUpIcon from '@mui/icons-material/VolumeUp';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import SalemLottie from '../../components/SalemLottie';
+import LeadAudioPlayer from '../../components/LeadAudioPlayer';
 import { ILLUSTRATIONS } from '../../constants/visualAssets';
 import { API_V1_URL } from '../../config';
 
@@ -221,19 +224,59 @@ export default function AdminDispatchDrawer({
               />
             </Box>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: '#475569' }}>
-              <RoomIcon sx={{ fontSize: 15, color: '#0284C7' }} />
-              <Typography variant="caption" sx={{ fontWeight: 700, fontSize: '11px' }}>
-                {booking.customer_address || booking.locality || 'Salem City'}
-              </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 0.5, color: '#475569', mt: 0.5, flexWrap: 'wrap' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <RoomIcon sx={{ fontSize: 15, color: '#0284C7' }} />
+                <Typography variant="caption" sx={{ fontWeight: 700, fontSize: '11px' }}>
+                  {booking.customer_address || booking.service_address || booking.locality || 'Salem City'}
+                </Typography>
+              </Box>
+
+              <Button
+                size="small"
+                startIcon={<OpenInNewIcon sx={{ fontSize: 12 }} />}
+                onClick={() => {
+                  const lat = booking.customer_lat || booking.customerLat || 11.6643;
+                  const lng = booking.customer_lng || booking.customerLng || 78.1460;
+                  window.open(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`, '_blank');
+                }}
+                sx={{ textTransform: 'none', fontWeight: 800, fontSize: '10.5px', color: '#0284C7', p: 0, minWidth: 'auto' }}
+              >
+                Maps
+              </Button>
             </Box>
+
+            {/* Problem Description Callout */}
+            {(booking.custom_issue_description || booking.issueDescription || booking.customIssueDescription || booking.selected_issue_id) && (
+              <Box sx={{ mt: 1.2, p: 1, bgcolor: '#FFFFFF', borderRadius: '8px', border: '1px solid #BAE6FD' }}>
+                <Typography variant="caption" sx={{ color: '#0369A1', fontWeight: 800, fontSize: '10px', textTransform: 'uppercase', display: 'block', mb: 0.2 }}>
+                  Customer Issue:
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#0F172A', fontWeight: 600, fontSize: '11.5px', lineHeight: 1.4 }}>
+                  {booking.custom_issue_description || booking.customIssueDescription || booking.issueDescription || booking.selected_issue_id}
+                </Typography>
+              </Box>
+            )}
+
+            {/* Voice Note Audio Player */}
+            {(booking.voice_note_url || booking.voiceNoteUrl) && (
+              <Box sx={{ mt: 1.2, p: 1.2, bgcolor: '#0F172A', borderRadius: '8px', border: '1px solid #0284C7' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, mb: 0.8 }}>
+                  <VolumeUpIcon sx={{ color: '#38BDF8', fontSize: 16 }} />
+                  <Typography variant="caption" sx={{ color: '#F0F9FF', fontWeight: 800, fontSize: '11px' }}>
+                    Customer Audio Voice Note
+                  </Typography>
+                </Box>
+                <LeadAudioPlayer audioSrc={booking.voice_note_url || booking.voiceNoteUrl} />
+              </Box>
+            )}
           </Box>
 
           <Box
             component="img"
             src={ILLUSTRATIONS.delivery}
             alt="Doorstep delivery"
-            sx={{ width: 68, height: 58, objectFit: 'contain', display: { xs: 'none', sm: 'block' }, opacity: 0.9 }}
+            sx={{ width: 68, height: 58, objectFit: 'contain', display: { xs: 'none', sm: 'block' }, opacity: 0.9, alignSelf: 'flex-start' }}
           />
         </Paper>
       </Box>

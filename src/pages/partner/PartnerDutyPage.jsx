@@ -2818,11 +2818,21 @@ export default function PartnerDutyPage() {
                               {/* Customer Detailed Problem Request Box */}
                               <Paper elevation={0} sx={{ p: 1.5, bgcolor: '#0F172A', borderRadius: '8px', border: '1px solid #334155', my: 1.2 }}>
                                 <Typography variant="caption" sx={{ color: '#38BDF8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '10px', display: 'block', mb: 0.4 }}>
-                                  Customer Problem Description:
+                                  Customer Problem Description (விவரிக்கப்பட்ட பிரச்சனை):
                                 </Typography>
-                                <Typography variant="body1" sx={{ color: '#F8FAFC', fontWeight: 600, fontSize: 'clamp(0.875rem, 1.8vw, 0.95rem)', lineHeight: 1.5 }}>
+                                <Typography variant="body1" sx={{ color: '#F8FAFC', fontWeight: 700, fontSize: 'clamp(0.875rem, 1.8vw, 0.95rem)', lineHeight: 1.5 }}>
                                   {activeJob.issueDescription || 'Doorstep Service & Diagnostic Inspection'}
                                 </Typography>
+                                {(activeJob.customIssueDescription || activeJob.custom_issue_description) && (
+                                  <Box sx={{ mt: 0.8, p: 1, bgcolor: '#1E293B', borderRadius: '6px', border: '1px solid #334155' }}>
+                                    <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '10px', textTransform: 'uppercase', fontWeight: 700, display: 'block', mb: 0.2 }}>
+                                      Customer Stated Notes:
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ color: '#E2E8F0', fontStyle: 'italic', fontSize: '12.5px' }}>
+                                      "{activeJob.customIssueDescription || activeJob.custom_issue_description}"
+                                    </Typography>
+                                  </Box>
+                                )}
                               </Paper>
 
                               {/* Customer Voice Note Player (if customer recorded problem audio) */}
@@ -3242,6 +3252,11 @@ export default function PartnerDutyPage() {
                                   <Typography variant="body1" sx={{ color: '#F8FAFC', fontWeight: 600, fontSize: 'clamp(0.875rem, 1.8vw, 0.95rem)', lineHeight: 1.5 }}>
                                     {lead.issueDescription || 'Scheduled Service Inspection & Diagnostics'}
                                   </Typography>
+                                  {(lead.customIssueDescription || lead.custom_issue_description) && (
+                                    <Typography variant="caption" sx={{ color: '#94A3B8', fontStyle: 'italic', display: 'block', mt: 0.4, fontSize: '12px' }}>
+                                      "{lead.customIssueDescription || lead.custom_issue_description}"
+                                    </Typography>
+                                  )}
                                 </Paper>
 
                                 {/* Customer Voice Note Player */}
@@ -4450,26 +4465,57 @@ export default function PartnerDutyPage() {
                   sx={{
                     bgcolor: '#FFFFFF',
                     border: '1px solid #E2E8F0',
-                    borderLeft: '4px solid #16A34A',
-                    borderRadius: '8px',
+                    borderRadius: '12px',
                     p: 2,
                     mb: 2
                   }}
                 >
-                  <Typography variant="caption" sx={{ fontWeight: 600, color: '#16A34A', display: 'block', mb: 0.3 }}>
-                    Active trip • En route to customer
-                  </Typography>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '14px', mb: 0.3 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.5 }}>
+                    <DirectionsBikeIcon sx={{ color: '#0284C7', fontSize: 18 }} />
+                    <Typography variant="caption" sx={{ fontWeight: 800, color: '#0284C7', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                      Active trip • En route to customer (பயணத்தில் உள்ளது)
+                    </Typography>
+                  </Box>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '15px', mb: 0.3 }}>
                     Customer: {activeJob?.customerName || 'Customer'} (Booking #{activeJob?.id || activeBookingId || 'SLM'})
                   </Typography>
-                  <Chip
-                    label={`Issue: ${activeJob?.issueDescription || 'AC Doorstep Inspection'}`}
-                    size="small"
-                    sx={{ bgcolor: '#EFF6FF', color: '#2563EB', fontWeight: 500, fontSize: '11px', mb: 1, height: 20 }}
-                  />
                   <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 1.2 }}>
                     {activeJob?.address || activeJob?.locality || 'Fairlands, Salem - 636016'}
                   </Typography>
+
+                  {/* Customer Described Problem Card */}
+                  <Paper elevation={0} sx={{ p: 1.5, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px', mb: 1.5 }}>
+                    <Typography variant="caption" sx={{ color: '#0284C7', fontWeight: 800, fontSize: '10px', textTransform: 'uppercase', display: 'block', mb: 0.3 }}>
+                      Customer Problem Diagnosis (விவரிக்கப்பட்ட பழுது):
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: '#0F172A', fontWeight: 700, fontSize: '13px' }}>
+                      {activeJob?.issueDescription || 'AC Doorstep Diagnostic Inspection'}
+                    </Typography>
+                    {(activeJob?.customIssueDescription || activeJob?.custom_issue_description) && (
+                      <Typography variant="caption" sx={{ color: '#475569', fontStyle: 'italic', display: 'block', mt: 0.4, fontSize: '12px' }}>
+                        "{activeJob?.customIssueDescription || activeJob?.custom_issue_description}"
+                      </Typography>
+                    )}
+                  </Paper>
+
+                  {/* Customer Voice Note Player in En Route view */}
+                  {activeJob?.voiceNoteUrl && (
+                    <Box sx={{ mb: 1.5, p: 1.4, bgcolor: '#0F172A', borderRadius: '10px', border: '1.5px solid #0284C7' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.8 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                          <VolumeUpIcon sx={{ color: '#38BDF8', fontSize: 18 }} />
+                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#E0F2FE', fontSize: '12px' }}>
+                            Customer Audio Recording (வாடிக்கையாளர் குரல் விளக்கம்)
+                          </Typography>
+                        </Box>
+                        <Chip label="LISTEN NOW" size="small" sx={{ bgcolor: '#0284C7', color: '#FFFFFF', fontWeight: 900, fontSize: '9px', height: 18 }} />
+                      </Box>
+                      <LeadAudioPlayer audioSrc={activeJob.voiceNoteUrl} />
+                      <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '10.5px', display: 'block', mt: 0.6 }}>
+                        Listen while traveling to verify tools and spare parts needed for the job.
+                      </Typography>
+                    </Box>
+                  )}
 
                   <Alert severity="success" sx={{ mb: 1.5, bgcolor: '#ECFDF5', color: '#065F46', border: '1px solid #A7F3D0', borderRadius: '8px', fontSize: '11.5px', py: 0.5 }}>
                     <strong>₹{activeJob?.visit_fee || activeJob?.visitFee || 99}.00 Payment Confirmed via Razorpay Gateway:</strong> 100% credited to your wallet for Salem travel & fuel allowance. Call, Message, and GPS directions are now unlocked.
@@ -4593,6 +4639,36 @@ export default function PartnerDutyPage() {
                       }} 
                     />
                   </Box>
+
+                  {/* Customer Stated Problem & Voice Note Reference */}
+                  <Paper elevation={0} sx={{ p: 1.5, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', mb: 1.5 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+                      <Typography variant="caption" sx={{ color: '#0369A1', fontWeight: 800, fontSize: '10px', textTransform: 'uppercase' }}>
+                        Customer Stated Problem (வாடிக்கையாளர் புகார்):
+                      </Typography>
+                      {activeJob?.voiceNoteUrl && (
+                        <Chip
+                          icon={<VolumeUpIcon sx={{ fontSize: '12px !important', color: '#0369A1 !important' }} />}
+                          label="Audio Attached"
+                          size="small"
+                          sx={{ bgcolor: '#E0F2FE', color: '#0369A1', fontWeight: 800, fontSize: '9px', height: 18 }}
+                        />
+                      )}
+                    </Box>
+                    <Typography variant="body2" sx={{ color: '#0F172A', fontWeight: 700, fontSize: '12.5px' }}>
+                      {activeJob?.issueDescription || 'Standard Doorstep Diagnostic Visit'}
+                    </Typography>
+                    {(activeJob?.customIssueDescription || activeJob?.custom_issue_description) && (
+                      <Typography variant="caption" sx={{ color: '#475569', fontStyle: 'italic', display: 'block', mt: 0.3, fontSize: '11.5px' }}>
+                        "{activeJob?.customIssueDescription || activeJob?.custom_issue_description}"
+                      </Typography>
+                    )}
+                    {activeJob?.voiceNoteUrl && (
+                      <Box sx={{ mt: 1, p: 1.2, bgcolor: '#0F172A', borderRadius: '8px' }}>
+                        <LeadAudioPlayer audioSrc={activeJob.voiceNoteUrl} />
+                      </Box>
+                    )}
+                  </Paper>
 
                   {/* In-App Direct Communication during Diagnostic Inspection */}
                   <Box sx={{ display: 'flex', gap: 1, mb: 1.5 }}>

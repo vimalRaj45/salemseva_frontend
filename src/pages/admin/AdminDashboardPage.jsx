@@ -115,6 +115,9 @@ import NavigationIcon from '@mui/icons-material/Navigation';
 import PriceCheckIcon from '@mui/icons-material/PriceCheck';
 import GroupIcon from '@mui/icons-material/Group';
 import SecurityIcon from '@mui/icons-material/Security';
+import VolumeUpIcon from '@mui/icons-material/VolumeUp';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import TuneIcon from '@mui/icons-material/Tune';
 
 // Modular Sub-Components
 import AdminSidebar from './AdminSidebar';
@@ -124,6 +127,7 @@ import AdminDispatchDrawer from './AdminDispatchDrawer';
 import AdminTechnicianDossierDrawer from './AdminTechnicianDossierDrawer';
 import AdminCustomerDossierDrawer from './AdminCustomerDossierDrawer';
 import AdminTrackingModal from './AdminTrackingModal';
+import LeadAudioPlayer from '../../components/LeadAudioPlayer';
 import Modal, { ModalHeader, ModalBody, ModalFooter } from '../../components/Modal';
 import { useAuth } from '../../context/AuthContext';
 
@@ -161,6 +165,9 @@ export default function AdminDashboardPage() {
   const [selectedLocality, setSelectedLocality] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [quickFilter, setQuickFilter] = useState('all');
+  const [selectedAudioFilter, setSelectedAudioFilter] = useState('all'); // 'all', 'audio_only', 'text_only'
+  const [selectedDateFilter, setSelectedDateFilter] = useState('all'); // 'all', 'today', 'yesterday', 'week'
+  const [selectedDispatchMode, setSelectedDispatchMode] = useState('all'); // 'all', 'instant', 'scheduled', 'urgent'
 
   // Tech Fleet Filter State
   const [techTab, setTechTab] = useState('all');
@@ -798,34 +805,68 @@ export default function AdminDashboardPage() {
   const filteredBookings = useMemo(() => {
     return recentBookings.filter(job => {
       if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
+        const q = searchQuery.toLowerCase().trim();
         const matchId = job.id?.toLowerCase().includes(q);
         const matchCustomer = job.customer_name?.toLowerCase().includes(q);
+        const matchCustPhone = (job.customer_phone || '')?.toLowerCase().includes(q);
         const matchLocality = job.locality?.toLowerCase().includes(q);
+        const matchAddress = (job.service_address || '')?.toLowerCase().includes(q);
         const matchService = (job.service_id || job.service_name || '')?.toLowerCase().includes(q);
         const matchTech = (job.technician_name || '')?.toLowerCase().includes(q);
-        if (!matchId && !matchCustomer && !matchLocality && !matchService && !matchTech) {
+        const matchTechPhone = (job.technician_phone || '')?.toLowerCase().includes(q);
+        const matchDesc = (job.custom_issue_description || job.selected_issue_id || '')?.toLowerCase().includes(q);
+
+        if (!matchId && !matchCustomer && !matchCustPhone && !matchLocality && !matchAddress && !matchService && !matchTech && !matchTechPhone && !matchDesc) {
           return false;
         }
       }
+
       if (selectedTrade !== 'all') {
-        const sId = (job.service_id || '').toLowerCase();
+        const sId = (job.service_id || job.service_name || '').toLowerCase();
         if (!sId.includes(selectedTrade.toLowerCase())) return false;
       }
+
       if (selectedLocality !== 'all') {
-        const loc = (job.locality || '').toLowerCase();
+        const loc = (job.locality || job.service_address || '').toLowerCase();
         if (!loc.includes(selectedLocality.toLowerCase())) return false;
       }
+
       if (selectedStatus !== 'all' && job.status !== selectedStatus) return false;
+
+      // Audio Voice Note Filter
+      if (selectedAudioFilter === 'audio_only' && !job.voice_note_url) return false;
+      if (selectedAudioFilter === 'text_only' && Boolean(job.voice_note_url)) return false;
+
+      // Date Window Filter
+      if (selectedDateFilter !== 'all') {
+        const jobDate = new Date(job.created_at || Date.now());
+        const now = new Date();
+        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+        const startOfYesterday = startOfToday - 86400000;
+        const jobTime = jobDate.getTime();
+
+        if (selectedDateFilter === 'today' && jobTime < startOfToday) return false;
+        if (selectedDateFilter === 'yesterday' && (jobTime < startOfYesterday || jobTime >= startOfToday)) return false;
+        if (selectedDateFilter === 'week' && jobTime < (startOfToday - 7 * 86400000)) return false;
+      }
+
+      // Dispatch Mode Filter
+      if (selectedDispatchMode === 'instant' && (job.booking_type === 'scheduled' || (job.scheduled_slot && job.scheduled_slot !== 'instant_now' && job.scheduled_slot !== 'priority_12h'))) return false;
+      if (selectedDispatchMode === 'scheduled' && (job.booking_type !== 'scheduled' && (!job.scheduled_slot || job.scheduled_slot === 'instant_now' || job.scheduled_slot === 'priority_12h'))) return false;
+      if (selectedDispatchMode === 'urgent' && !job.is_urgent_dispatch) return false;
+
+      // Quick Filters
       if (quickFilter === 'urgent' && job.status !== 'matching') return false;
       if (quickFilter === 'scheduled' && (!job.scheduled_slot || job.scheduled_slot === 'instant_now' || job.scheduled_slot === 'priority_12h')) return false;
       if (quickFilter === 'en_route' && job.status !== 'en_route' && job.status !== 'arrived') return false;
       if (quickFilter === 'quote' && job.status !== 'quote_presented') return false;
       if (quickFilter === 'completed' && job.status !== 'completed') return false;
       if (quickFilter === 'cancelled' && job.status !== 'cancelled') return false;
+      if (quickFilter === 'has_audio' && !job.voice_note_url) return false;
+
       return true;
     });
-  }, [recentBookings, searchQuery, selectedTrade, selectedLocality, selectedStatus, quickFilter]);
+  }, [recentBookings, searchQuery, selectedTrade, selectedLocality, selectedStatus, quickFilter, selectedAudioFilter, selectedDateFilter, selectedDispatchMode]);
 
   // Filtered Customers List
   const filteredCustomers = useMemo(() => {
@@ -876,6 +917,9 @@ export default function AdminDashboardPage() {
     setSelectedLocality('all');
     setSelectedStatus('all');
     setQuickFilter('all');
+    setSelectedAudioFilter('all');
+    setSelectedDateFilter('all');
+    setSelectedDispatchMode('all');
   };
 
   const handleToggleOnline = async (techId, currentOnline) => {
@@ -1141,7 +1185,14 @@ export default function AdminDashboardPage() {
     return trade || 'Technician';
   };
 
-  const activeFiltersCount = (searchQuery ? 1 : 0) + (selectedTrade !== 'all' ? 1 : 0) + (selectedLocality !== 'all' ? 1 : 0) + (selectedStatus !== 'all' ? 1 : 0) + (quickFilter !== 'all' ? 1 : 0);
+  const activeFiltersCount = (searchQuery ? 1 : 0) + 
+    (selectedTrade !== 'all' ? 1 : 0) + 
+    (selectedLocality !== 'all' ? 1 : 0) + 
+    (selectedStatus !== 'all' ? 1 : 0) + 
+    (quickFilter !== 'all' ? 1 : 0) +
+    (selectedAudioFilter !== 'all' ? 1 : 0) +
+    (selectedDateFilter !== 'all' ? 1 : 0) +
+    (selectedDispatchMode !== 'all' ? 1 : 0);
 
   if (!user) {
     return (
@@ -1658,12 +1709,13 @@ export default function AdminDashboardPage() {
                 )}
               </Box>
 
+              {/* Row 1: Primary Search, Trade, Locality, Status */}
               <Grid container spacing={2} sx={{ mb: 2 }}>
                 <Grid item xs={12} md={4}>
                   <TextField
                     fullWidth
                     size="small"
-                    placeholder="Search Booking ID, Customer, Tech, Phone, Street..."
+                    placeholder="Search ID, Customer, Tech, Phone, Locality, Problem..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     InputProps={{
@@ -1672,6 +1724,13 @@ export default function AdminDashboardPage() {
                           <SearchIcon sx={{ color: '#94A3B8', fontSize: 20 }} />
                         </InputAdornment>
                       ),
+                      endAdornment: searchQuery ? (
+                        <InputAdornment position="end">
+                          <IconButton size="small" onClick={() => setSearchQuery('')}>
+                            <ClearIcon sx={{ fontSize: 16 }} />
+                          </IconButton>
+                        </InputAdornment>
+                      ) : null,
                       sx: { borderRadius: '12px', bgcolor: '#F8FAFC', fontSize: '13.5px' }
                     }}
                   />
@@ -1846,6 +1905,191 @@ export default function AdminDashboardPage() {
                 </Grid>
               </Grid>
 
+              {/* Row 2: Date Window, Dispatch Mode, Audio Voice Note Filter */}
+              <Grid container spacing={2} sx={{ mb: 2 }}>
+                <Grid item xs={12} sm={4} md={4}>
+                  <FormControl fullWidth size="small">
+                    {/* ds-allow-native-select */}
+                    <Select
+                      value={selectedDateFilter}
+                      onChange={(e) => setSelectedDateFilter(e.target.value)}
+                      sx={{ borderRadius: '12px', bgcolor: '#F8FAFC', fontSize: '13.5px', fontWeight: 700 }}
+                    >
+                      <MenuItem value="all">
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <CalendarMonthIcon sx={{ fontSize: 17, color: '#64748B' }} />
+                          <span>All Time Dates</span>
+                        </Box>
+                      </MenuItem>
+                      <MenuItem value="today">
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <AccessTimeIcon sx={{ fontSize: 17, color: '#0284C7' }} />
+                          <span>Today (Live)</span>
+                        </Box>
+                      </MenuItem>
+                      <MenuItem value="yesterday">
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <AccessTimeIcon sx={{ fontSize: 17, color: '#475569' }} />
+                          <span>Yesterday</span>
+                        </Box>
+                      </MenuItem>
+                      <MenuItem value="week">
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <CalendarTodayIcon sx={{ fontSize: 17, color: '#0D9488' }} />
+                          <span>Last 7 Days</span>
+                        </Box>
+                      </MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+
+                <Grid item xs={12} sm={4} md={4}>
+                  <FormControl fullWidth size="small">
+                    {/* ds-allow-native-select */}
+                    <Select
+                      value={selectedDispatchMode}
+                      onChange={(e) => setSelectedDispatchMode(e.target.value)}
+                      sx={{ borderRadius: '12px', bgcolor: '#F8FAFC', fontSize: '13.5px', fontWeight: 700 }}
+                    >
+                      <MenuItem value="all">
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <TuneIcon sx={{ fontSize: 17, color: '#64748B' }} />
+                          <span>All Dispatch Modes</span>
+                        </Box>
+                      </MenuItem>
+                      <MenuItem value="instant">
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <BoltIcon sx={{ fontSize: 17, color: '#B45309' }} />
+                          <span>Instant (15-25 min)</span>
+                        </Box>
+                      </MenuItem>
+                      <MenuItem value="scheduled">
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <EventIcon sx={{ fontSize: 17, color: '#1E40AF' }} />
+                          <span>Scheduled Slots</span>
+                        </Box>
+                      </MenuItem>
+                      <MenuItem value="urgent">
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <BoltIcon sx={{ fontSize: 17, color: '#DC2626' }} />
+                          <span>Urgent 25-Min Surge</span>
+                        </Box>
+                      </MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+
+                <Grid item xs={12} sm={4} md={4}>
+                  <FormControl fullWidth size="small">
+                    {/* ds-allow-native-select */}
+                    <Select
+                      value={selectedAudioFilter}
+                      onChange={(e) => setSelectedAudioFilter(e.target.value)}
+                      sx={{ borderRadius: '12px', bgcolor: '#F8FAFC', fontSize: '13.5px', fontWeight: 700 }}
+                    >
+                      <MenuItem value="all">
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <VolumeUpIcon sx={{ fontSize: 17, color: '#64748B' }} />
+                          <span>All Bookings (Audio & Text)</span>
+                        </Box>
+                      </MenuItem>
+                      <MenuItem value="audio_only">
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <VolumeUpIcon sx={{ fontSize: 17, color: '#0284C7' }} />
+                          <span>Has Voice Note Audio</span>
+                        </Box>
+                      </MenuItem>
+                      <MenuItem value="text_only">
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <ArticleIcon sx={{ fontSize: 17, color: '#475569' }} />
+                          <span>Text Description Only</span>
+                        </Box>
+                      </MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+              </Grid>
+
+              {/* Active Filter Chips & Dismissal Bar */}
+              {activeFiltersCount > 0 && (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center', p: 1.5, bgcolor: '#F0F9FF', borderRadius: '12px', border: '1px solid #BAE6FD', mb: 2 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 800, color: '#0369A1', mr: 0.5 }}>
+                    Active filters:
+                  </Typography>
+
+                  {searchQuery && (
+                    <Chip
+                      size="small"
+                      label={`Query: "${searchQuery}"`}
+                      onDelete={() => setSearchQuery('')}
+                      sx={{ bgcolor: '#FFFFFF', color: '#0369A1', fontWeight: 700, fontSize: '11px', border: '1px solid #BAE6FD' }}
+                    />
+                  )}
+
+                  {selectedTrade !== 'all' && (
+                    <Chip
+                      size="small"
+                      label={`Trade: ${selectedTrade.toUpperCase()}`}
+                      onDelete={() => setSelectedTrade('all')}
+                      sx={{ bgcolor: '#FFFFFF', color: '#0369A1', fontWeight: 700, fontSize: '11px', border: '1px solid #BAE6FD' }}
+                    />
+                  )}
+
+                  {selectedLocality !== 'all' && (
+                    <Chip
+                      size="small"
+                      label={`Locality: ${selectedLocality}`}
+                      onDelete={() => setSelectedLocality('all')}
+                      sx={{ bgcolor: '#FFFFFF', color: '#0369A1', fontWeight: 700, fontSize: '11px', border: '1px solid #BAE6FD' }}
+                    />
+                  )}
+
+                  {selectedStatus !== 'all' && (
+                    <Chip
+                      size="small"
+                      label={`Status: ${selectedStatus.toUpperCase()}`}
+                      onDelete={() => setSelectedStatus('all')}
+                      sx={{ bgcolor: '#FFFFFF', color: '#0369A1', fontWeight: 700, fontSize: '11px', border: '1px solid #BAE6FD' }}
+                    />
+                  )}
+
+                  {selectedDateFilter !== 'all' && (
+                    <Chip
+                      size="small"
+                      label={`Date: ${selectedDateFilter.toUpperCase()}`}
+                      onDelete={() => setSelectedDateFilter('all')}
+                      sx={{ bgcolor: '#FFFFFF', color: '#0369A1', fontWeight: 700, fontSize: '11px', border: '1px solid #BAE6FD' }}
+                    />
+                  )}
+
+                  {selectedDispatchMode !== 'all' && (
+                    <Chip
+                      size="small"
+                      label={`Mode: ${selectedDispatchMode.toUpperCase()}`}
+                      onDelete={() => setSelectedDispatchMode('all')}
+                      sx={{ bgcolor: '#FFFFFF', color: '#0369A1', fontWeight: 700, fontSize: '11px', border: '1px solid #BAE6FD' }}
+                    />
+                  )}
+
+                  {selectedAudioFilter !== 'all' && (
+                    <Chip
+                      size="small"
+                      icon={<VolumeUpIcon sx={{ fontSize: '12px !important' }} />}
+                      label={selectedAudioFilter === 'audio_only' ? 'Audio Only' : 'Text Only'}
+                      onDelete={() => setSelectedAudioFilter('all')}
+                      sx={{ bgcolor: '#FFFFFF', color: '#0369A1', fontWeight: 700, fontSize: '11px', border: '1px solid #BAE6FD' }}
+                    />
+                  )}
+
+                  <Chip
+                    size="small"
+                    label="Clear all"
+                    onClick={handleResetFilters}
+                    sx={{ bgcolor: '#DC2626', color: '#FFFFFF', fontWeight: 800, fontSize: '10.5px', cursor: 'pointer', ml: 'auto' }}
+                  />
+                </Box>
+              )}
+
               {/* Quick Filter Pills */}
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
                 <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 800, mr: 0.5 }}>
@@ -1853,6 +2097,7 @@ export default function AdminDashboardPage() {
                 </Typography>
                 {[
                   { key: 'all', label: 'All Records', icon: <FilterListIcon sx={{ fontSize: 15 }} /> },
+                  { key: 'has_audio', label: 'Audio Voice Note Attached', icon: <VolumeUpIcon sx={{ fontSize: 15 }} /> },
                   { key: 'urgent', label: 'Immediate Dispatch Needed', icon: <BoltIcon sx={{ fontSize: 15 }} /> },
                   { key: 'scheduled', label: 'Scheduled Appointments', icon: <EventIcon sx={{ fontSize: 15 }} /> },
                   { key: 'en_route', label: 'Techs En Route', icon: <DirectionsBikeIcon sx={{ fontSize: 15 }} /> },
@@ -2115,9 +2360,18 @@ export default function AdminDashboardPage() {
               {filteredBookings.length === 0 ? (
                 <Paper elevation={0} sx={{ p: 4, textAlign: 'center', bgcolor: '#F8FAFC', borderRadius: '16px', border: '1px dashed #CBD5E1' }}>
                   <SearchIcon sx={{ fontSize: 36, color: '#94A3B8', mb: 1 }} />
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#64748B' }}>
-                    No active bookings match your filter criteria
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#64748B', mb: 1.5 }}>
+                    No operations records match the selected search and filter criteria
                   </Typography>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={handleResetFilters}
+                    startIcon={<ClearIcon sx={{ fontSize: 14 }} />}
+                    sx={{ color: '#0284C7', borderColor: '#BAE6FD', textTransform: 'none', fontWeight: 800, borderRadius: '8px' }}
+                  >
+                    Reset All Filters
+                  </Button>
                 </Paper>
               ) : (
                 <Box sx={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: '12px', border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
@@ -2129,7 +2383,7 @@ export default function AdminDashboardPage() {
                     <TableRow sx={{ bgcolor: '#F8FAFC', '& th': { color: '#475569', fontWeight: 800, borderColor: '#E2E8F0', py: 1.4 } }}>
                       <TableCell>Booking ID</TableCell>
                       <TableCell>Customer & Locality</TableCell>
-                      <TableCell>Service</TableCell>
+                      <TableCell>Service & Problem</TableCell>
                       <TableCell>Scheduled Slot / Window</TableCell>
                       <TableCell>Assigned Technician</TableCell>
                       <TableCell align="center">Live Stage</TableCell>
@@ -2170,6 +2424,42 @@ export default function AdminDashboardPage() {
                               {job.service_id?.toUpperCase() || 'GENERAL'}
                             </Typography>
                           </Box>
+                          {job.voice_note_url && (
+                            <Chip
+                              icon={<VolumeUpIcon sx={{ fontSize: '11px !important', color: '#0369A1 !important' }} />}
+                              label="Voice Note"
+                              size="small"
+                              onClick={() => handleOpenBookingTrace(job)}
+                              sx={{
+                                mt: 0.5,
+                                bgcolor: '#E0F2FE',
+                                color: '#0369A1',
+                                fontWeight: 800,
+                                fontSize: '9.5px',
+                                height: 18,
+                                cursor: 'pointer',
+                                '&:hover': { bgcolor: '#BAE6FD' }
+                              }}
+                            />
+                          )}
+                          {job.custom_issue_description && (
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                display: 'block',
+                                color: '#64748B',
+                                fontSize: '10.5px',
+                                mt: 0.3,
+                                maxWidth: 180,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                              }}
+                              title={job.custom_issue_description}
+                            >
+                              {job.custom_issue_description}
+                            </Typography>
+                          )}
                         </TableCell>
                         <TableCell>
                           {job.scheduled_slot && job.scheduled_slot !== 'instant_now' && job.scheduled_slot !== 'priority_12h' ? (
@@ -4825,6 +5115,31 @@ export default function AdminDashboardPage() {
                       <Typography variant="caption" sx={{ color: '#475569', display: 'block', mt: 0.5 }}>
                         Address: {selectedBookingTrace.service_address || `${selectedBookingTrace.locality || 'Fairlands'}, Salem`}
                       </Typography>
+
+                      {/* Location Coordinates & Navigation Link */}
+                      <Box sx={{ mt: 1.5, p: 1, bgcolor: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
+                          <LocationOnIcon sx={{ fontSize: 16, color: '#0284C7' }} />
+                          <Typography variant="caption" sx={{ color: '#0F172A', fontWeight: 700, fontSize: '11px' }}>
+                            {selectedBookingTrace.customer_lat && selectedBookingTrace.customer_lng
+                              ? `GPS: ${Number(selectedBookingTrace.customer_lat).toFixed(4)}, ${Number(selectedBookingTrace.customer_lng).toFixed(4)}`
+                              : `Zone: ${selectedBookingTrace.locality || 'Salem Urban'}`}
+                          </Typography>
+                        </Box>
+
+                        <Button
+                          size="small"
+                          startIcon={<OpenInNewIcon sx={{ fontSize: 13 }} />}
+                          onClick={() => {
+                            const lat = selectedBookingTrace.customer_lat || 11.6643;
+                            const lng = selectedBookingTrace.customer_lng || 78.1460;
+                            window.open(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`, '_blank');
+                          }}
+                          sx={{ textTransform: 'none', fontWeight: 800, fontSize: '10.5px', color: '#0284C7', p: 0 }}
+                        >
+                          View in Maps
+                        </Button>
+                      </Box>
                     </Paper>
                   </Grid>
 
@@ -4898,6 +5213,53 @@ export default function AdminDashboardPage() {
                     </Paper>
                   </Grid>
                 </Grid>
+
+                {/* 2b. Customer Reported Problem & Spoken Voice Note Inspection */}
+                <Paper elevation={0} sx={{ p: 2, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px', mb: 2.5 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', display: 'block', mb: 1.2, letterSpacing: 0.5 }}>
+                    CUSTOMER REPORTED ISSUE & VOICE RECORDING
+                  </Typography>
+
+                  <Box sx={{ p: 1.8, bgcolor: '#F8FAFC', borderRadius: '10px', border: '1px solid #E2E8F0', mb: selectedBookingTrace.voice_note_url ? 1.5 : 0 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.6 }}>
+                      <Chip
+                        label={selectedBookingTrace.service_name || selectedBookingTrace.service_id?.toUpperCase() || 'SERVICE ISSUE'}
+                        size="small"
+                        sx={{ bgcolor: '#E0F2FE', color: '#0369A1', fontWeight: 800, fontSize: '10px', height: 20 }}
+                      />
+                      {selectedBookingTrace.selected_issue_id && (
+                        <Chip
+                          label={selectedBookingTrace.selected_issue_id}
+                          size="small"
+                          sx={{ bgcolor: '#F1F5F9', color: '#475569', fontWeight: 700, fontSize: '10px', height: 20 }}
+                        />
+                      )}
+                    </Box>
+
+                    <Typography variant="body2" sx={{ color: '#0F172A', fontWeight: 600, lineHeight: 1.5 }}>
+                      {selectedBookingTrace.custom_issue_description || 'Customer booked standard inspection and diagnostic visit.'}
+                    </Typography>
+                  </Box>
+
+                  {/* Embedded Voice Note Audio Player */}
+                  {selectedBookingTrace.voice_note_url && (
+                    <Box sx={{ p: 1.5, bgcolor: '#0F172A', borderRadius: '10px', border: '1.5px solid #0284C7' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                          <VolumeUpIcon sx={{ color: '#38BDF8', fontSize: 18 }} />
+                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#F0F9FF', fontSize: '12px' }}>
+                            Customer Audio Recording (வாடிக்கையாளர் குரல் பதிவு)
+                          </Typography>
+                        </Box>
+                        <Chip label="AUDIO ATTACHED" size="small" sx={{ bgcolor: '#0284C7', color: '#FFFFFF', fontWeight: 900, fontSize: '9px', height: 18 }} />
+                      </Box>
+                      <LeadAudioPlayer audioSrc={selectedBookingTrace.voice_note_url} />
+                      <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '11px', display: 'block', mt: 0.8 }}>
+                        Recorded voice explanation provided by the customer during initial service booking.
+                      </Typography>
+                    </Box>
+                  )}
+                </Paper>
 
                 {/* 3. Doorstep Verification PIN & Parts Bill Inspection */}
                 <Paper elevation={0} sx={{ p: 2, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px', mb: 2.5 }}>
