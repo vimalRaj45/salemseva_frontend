@@ -6060,7 +6060,11 @@ export default function PartnerDutyPage() {
                 fullWidth
                 size="medium"
                 startIcon={<LogoutIcon sx={{ fontSize: 18 }} />}
-                onClick={() => navigate('/')}
+                onClick={async () => {
+                  await logoutTech();
+                  toast.success('Signed out from Technician console. Please log in or register as a customer to book services.');
+                  navigate('/login', { replace: true });
+                }}
                 sx={{
                   borderColor: '#CBD5E1',
                   color: '#475569',
@@ -6072,7 +6076,7 @@ export default function PartnerDutyPage() {
                   '&:hover': { bgcolor: '#F8FAFC', borderColor: '#94A3B8' }
                 }}
               >
-                Switch to Customer Mode (வாடிக்கையாளர் பக்கம்)
+                Logout to Book as Customer (வாடிக்கையாளராக பதிவு செய்ய வெளியேறு)
               </Button>
             </Box>
           </Box>

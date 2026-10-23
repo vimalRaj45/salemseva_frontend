@@ -489,6 +489,8 @@ export function AuthProvider({ children }) {
     setTechUser(null);
     localStorage.removeItem('shazuone_tech_user');
     localStorage.removeItem('shazuone_tech_session_token');
+    localStorage.removeItem('shazuone_partner_phone');
+    localStorage.removeItem('shazuone_partner_token');
     localStorage.removeItem('shazuone_partner_is_online');
     localStorage.removeItem('shazuone_partner_step');
     localStorage.removeItem('shazuone_partner_active_job');
@@ -535,18 +537,27 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     try {
-      if (user && user.phone) {
+      const activePhone = user?.phone || techUser?.phone;
+      if (activePhone) {
         fetch(`${API_BASE_URL}/api/v1/auth/logout`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phone: user.phone })
+          body: JSON.stringify({ phone: activePhone })
         }).catch(() => {});
       }
     } catch (e) {}
 
     setUser(null);
+    setTechUser(null);
     localStorage.removeItem('shazuone_user');
+    localStorage.removeItem('shazuone_tech_user');
     localStorage.removeItem('shazuone_session_token');
+    localStorage.removeItem('shazuone_tech_session_token');
+    localStorage.removeItem('shazuone_partner_phone');
+    localStorage.removeItem('shazuone_partner_token');
+    localStorage.removeItem('shazuone_partner_is_online');
+    localStorage.removeItem('shazuone_partner_step');
+    localStorage.removeItem('shazuone_partner_active_job');
     localStorage.removeItem('shazuone_is_guest');
     setIsGuest(false);
     sessionTokenRef.current = '';

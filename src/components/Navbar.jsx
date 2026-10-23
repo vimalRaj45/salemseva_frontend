@@ -49,6 +49,8 @@ export default function Navbar({
   const currentPath = useLocation().pathname;
   const {
     user,
+    techUser,
+    logoutTech,
     openAuthModal,
     logout,
     loginAsCustomer,
@@ -61,17 +63,26 @@ export default function Navbar({
     updateUser
   } = useAuth();
 
+  const isTechLoggedIn = Boolean(
+    techUser ||
+    user?.role === 'technician' ||
+    user?.role === 'partner' ||
+    localStorage.getItem('shazuone_tech_user')
+  );
+
+  const isAdminLoggedIn = user?.role === 'admin' || currentPath.startsWith('/admin');
+
   // Portal route mode: Determines which platform portal is currently being viewed
-  const isPartnerPortal = currentPath.startsWith('/partner');
-  const isAdminPortal = currentPath.startsWith('/admin');
+  const isPartnerPortal = isTechLoggedIn || currentPath.startsWith('/partner');
+  const isAdminPortal = isAdminLoggedIn;
   const isCustomerPortal = !isPartnerPortal && !isAdminPortal;
 
   // Active portal role for header branding & UI context
   const portalRole = isPartnerPortal ? 'technician' : isAdminPortal ? 'admin' : 'customer';
-  const isCustomer = portalRole === 'customer';
-  const isTechnician = portalRole === 'technician';
-  const isAdmin = portalRole === 'admin';
-  const userRole = user?.role || portalRole;
+  const isCustomer = !isTechLoggedIn && !isAdminLoggedIn;
+  const isTechnician = isTechLoggedIn;
+  const isAdmin = isAdminLoggedIn;
+  const userRole = isTechnician ? 'technician' : isAdmin ? 'admin' : (user?.role || 'customer');
 
 
   // Dynamic user data
@@ -1320,13 +1331,34 @@ export default function Navbar({
 
                   <div style={{ height: '1px', backgroundColor: isDarkMode ? '#1E293B' : '#F1F5F9', margin: '6px 0' }} />
 
+                  {isTechnician && (
+                    <div
+                      style={{
+                        padding: '8px 10px',
+                        fontSize: '11px',
+                        color: isDarkMode ? '#94A3B8' : '#64748B',
+                        lineHeight: 1.4,
+                        backgroundColor: isDarkMode ? '#1E293B' : '#F1F5F9',
+                        borderRadius: '8px',
+                        marginBottom: '6px'
+                      }}
+                    >
+                      Logged in as Specialist. To book as a customer, please sign out first.
+                    </div>
+                  )}
+
                   {/* Auth Actions */}
-                  {user ? (
+                  {(user || techUser) ? (
                     <button
                       type="button"
-                      onClick={() => {
-                        logout();
+                      onClick={async () => {
+                        if (isTechnician) {
+                          await logoutTech();
+                        } else {
+                          await logout();
+                        }
                         setIsProfileOpen(false);
+                        navigate('/login', { replace: true });
                       }}
                       style={{
                         width: '100%',
@@ -1344,7 +1376,7 @@ export default function Navbar({
                       }}
                     >
                       <LogOut size={14} color="#E11D48" />
-                      <span>Sign Out</span>
+                      <span>{isTechnician ? 'Sign Out from Partner Console' : 'Sign Out'}</span>
                     </button>
                   ) : (
                     <button

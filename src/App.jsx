@@ -75,8 +75,19 @@ import { Capacitor } from '@capacitor/core';
 function CustomerActiveJobGuard({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, techUser } = useAuth();
+
+  const isTechLoggedIn = Boolean(
+    techUser ||
+    user?.role === 'technician' ||
+    user?.role === 'partner' ||
+    localStorage.getItem('shazuone_tech_user')
+  );
 
   useEffect(() => {
+    // Technicians should never run customer active job restoration
+    if (isTechLoggedIn) return;
+
     // Only guard customer browsing routes
     const isCustomerRoute = !location.pathname.startsWith('/partner') && !location.pathname.startsWith('/admin');
     const isWorkStep = ['/matching', '/track', '/quote', '/checkout', '/rate'].some(p => location.pathname.startsWith(p));
@@ -129,8 +140,39 @@ function CustomerActiveJobGuard({ children }) {
   return children;
 }
 
+// Strict Role Separation Guard: Technicians cannot view customer booking or browsing pages.
+// If a technician is logged in, automatically redirect them to /partner.
+// If they wish to book as a customer, they must log out from their technician account first.
+function CustomerRouteGuard({ children }) {
+  const { user, techUser } = useAuth();
+
+  const isTechLoggedIn = Boolean(
+    techUser ||
+    user?.role === 'technician' ||
+    user?.role === 'partner' ||
+    localStorage.getItem('shazuone_tech_user')
+  );
+
+  if (isTechLoggedIn) {
+    return <Navigate to="/partner" replace />;
+  }
+
+  return children;
+}
+
 function InitialHomeRoute() {
-  const { user, isGuest } = useAuth();
+  const { user, techUser, isGuest } = useAuth();
+  const isTechLoggedIn = Boolean(
+    techUser ||
+    user?.role === 'technician' ||
+    user?.role === 'partner' ||
+    localStorage.getItem('shazuone_tech_user')
+  );
+
+  if (isTechLoggedIn) {
+    return <Navigate to="/partner" replace />;
+  }
+
   const hasSeen = localStorage.getItem('shazuone_has_seen_onboarding');
   if (!hasSeen && !user) {
     return <Navigate to="/welcome" replace />;
@@ -159,18 +201,18 @@ function MainLayout({ walletBalance, currentBooking, setCurrentBooking }) {
           pb: isFullScreenPage ? 0 : { xs: '58px', md: 0 }
         }}>
           <Routes>
-            {/* Customer Routes */}
-            <Route path="/onboarding" element={<CustomerOnboardingPage onLoginSuccess={(u) => console.log('Logged in:', u)} />} />
-            <Route path="/" element={<InitialHomeRoute />} />
-            <Route path="/book/:serviceId" element={<ServiceDetailPage onStartBooking={(b) => setCurrentBooking(b)} />} />
-            <Route path="/matching" element={<MatchingPage />} />
-            <Route path="/track" element={<TrackingPage />} />
+            {/* Customer Routes - Blocked for authenticated technicians */}
+            <Route path="/onboarding" element={<CustomerRouteGuard><CustomerOnboardingPage onLoginSuccess={(u) => console.log('Logged in:', u)} /></CustomerRouteGuard>} />
+            <Route path="/" element={<CustomerRouteGuard><InitialHomeRoute /></CustomerRouteGuard>} />
+            <Route path="/book/:serviceId" element={<CustomerRouteGuard><ServiceDetailPage onStartBooking={(b) => setCurrentBooking(b)} /></CustomerRouteGuard>} />
+            <Route path="/matching" element={<CustomerRouteGuard><MatchingPage /></CustomerRouteGuard>} />
+            <Route path="/track" element={<CustomerRouteGuard><TrackingPage /></CustomerRouteGuard>} />
             <Route path="/tracking" element={<Navigate to="/track" replace />} />
-            <Route path="/quote" element={<QuoteReviewPage />} />
-            <Route path="/checkout" element={<CheckoutPage walletBalance={walletBalance} />} />
-            <Route path="/rate" element={<RatingEscalationPage />} />
-            <Route path="/wallet" element={<WalletHubPage walletBalance={walletBalance} />} />
-            <Route path="/history" element={<BookingHistoryPage />} />
+            <Route path="/quote" element={<CustomerRouteGuard><QuoteReviewPage /></CustomerRouteGuard>} />
+            <Route path="/checkout" element={<CustomerRouteGuard><CheckoutPage walletBalance={walletBalance} /></CustomerRouteGuard>} />
+            <Route path="/rate" element={<CustomerRouteGuard><RatingEscalationPage /></CustomerRouteGuard>} />
+            <Route path="/wallet" element={<CustomerRouteGuard><WalletHubPage walletBalance={walletBalance} /></CustomerRouteGuard>} />
+            <Route path="/history" element={<CustomerRouteGuard><BookingHistoryPage /></CustomerRouteGuard>} />
 
             {/* Partner Routes */}
             <Route path="/partner/login" element={<PartnerLoginPage />} />
