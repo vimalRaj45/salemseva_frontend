@@ -35,6 +35,8 @@ import SecurityIcon from '@mui/icons-material/Security';
 import { useAuth } from '../../context/AuthContext';
 import { useCriticalWork } from '../../context/CriticalWorkContext';
 import ProcessingBackdrop from '../../components/ProcessingBackdrop';
+import { App as CapApp } from '@capacitor/app';
+import { openRazorpay } from '../../services/razorpayService';
 
 const loadRazorpayScript = () => {
   return new Promise((resolve) => {
@@ -96,7 +98,7 @@ export default function CheckoutPage() {
 
     // Auto-reconcile payment if customer returns after completing payment in UPI / external bank app
     const handleVisibilityCheck = async () => {
-      if (document.visibilityState === 'visible' && bookingId) {
+      if (bookingId) {
         try {
           const res = await fetch(`${API_V1_URL}/payments/status/${bookingId}`);
           const data = await res.json();
@@ -112,8 +114,34 @@ export default function CheckoutPage() {
       }
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityCheck);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityCheck);
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        handleVisibilityCheck();
+      }
+    };
+
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    // Native Capacitor app lifecycle resume handler (external UPI app switch return)
+    let nativeListener = null;
+    try {
+      CapApp.addListener('appStateChange', (state) => {
+        if (state && state.isActive) {
+          handleVisibilityCheck();
+        }
+      }).then((handle) => {
+        nativeListener = handle;
+      }).catch(() => {});
+    } catch (e) {
+      // Browser fallback
+    }
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      if (nativeListener && typeof nativeListener.remove === 'function') {
+        nativeListener.remove();
+      }
+    };
   }, [bookingId, navigate]);
 
   const grossTotal = partsAndLabor;
@@ -165,16 +193,27 @@ export default function CheckoutPage() {
         console.warn('Razorpay order backend creation note:', err);
       }
 
-      // 3. Setup Razorpay Checkout options
-      const options = {
-        key: keyId,
-        amount: rzpAmountPaise,
-        currency: 'INR',
-        name: 'Shazu One Cashless Escrow',
-        description: `Service Escrow Authorization (${bookingId})`,
-        image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=120&q=80',
-        order_id: orderId,
-        handler: async function (response) {
+      // 3. Open Razorpay Checkout (Native Android SDK BottomSheet on Mobile, Web SDK on Browser)
+      try {
+        const rzpResult = await openRazorpay({
+          key: keyId,
+          amount: rzpAmountPaise,
+          currency: 'INR',
+          name: 'Shazu One Cashless Escrow',
+          description: `Service Escrow Authorization (${bookingId})`,
+          image: 'https://salemseva-backend.onrender.com/favicon.png',
+          order_id: orderId,
+          prefill: {
+            name: user?.name || 'Customer',
+            email: user?.email || 'customer@shazuone.in',
+            contact: (user?.phone || '+919842711234').replace(/\s+/g, '')
+          },
+          theme: {
+            color: '#0284C7'
+          }
+        });
+
+        if (rzpResult && rzpResult.success) {
           try {
             // Verify payment on backend
             await fetch(`${API_V1_URL}/payments/verify`, {
@@ -183,9 +222,9 @@ export default function CheckoutPage() {
               body: JSON.stringify({
                 bookingId: bookingId,
                 amount: netPayable,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_order_id: response.razorpay_order_id || orderId,
-                razorpay_signature: response.razorpay_signature
+                razorpay_payment_id: rzpResult.razorpay_payment_id,
+                razorpay_order_id: rzpResult.razorpay_order_id || orderId,
+                razorpay_signature: rzpResult.razorpay_signature
               })
             });
 
@@ -206,43 +245,13 @@ export default function CheckoutPage() {
 
           setIsProcessing(false);
           navigate(`/track?bookingId=${bookingId}`, { replace: true });
-        },
-        prefill: {
-          name: user?.name || 'Vimal Raj',
-          email: user?.email || 'customer@Shazu One.in',
-          contact: (user?.phone || '+919842711234').replace(/\s+/g, '')
-        },
-        theme: {
-          color: '#0284C7'
-        },
-        modal: {
-          ondismiss: function () {
-            setIsProcessing(false);
-          }
+          return;
         }
-      };
-
-      if (window.Razorpay) {
+      } catch (payErr) {
+        console.warn('Razorpay checkout error / cancelled:', payErr);
         setIsProcessing(false);
-        const rzp = new window.Razorpay(options);
-        rzp.on('payment.failed', function (response) {
-          console.error('Razorpay payment failed:', response.error);
-          setIsProcessing(false);
-          alert(response.error?.description || 'Payment did not complete. Please retry or choose another payment method.');
-        });
-        rzp.open();
-      } else {
-        // Fallback for demo mode
-        await fetch(`${API_V1_URL}/bookings/${bookingId}/status`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: 'quote_approved' })
-        });
-        localStorage.setItem('shazuone_quote_status_' + bookingId, 'quote_approved');
-        localStorage.setItem('shazuone_active_booking', bookingId);
-        window.dispatchEvent(new CustomEvent('shazuone_quote_updated', { detail: { bookingId, status: 'quote_approved' } }));
-        setIsProcessing(false);
-        navigate(`/track?bookingId=${bookingId}`, { replace: true });
+        alert(payErr.message || 'Payment did not complete. Please retry or choose another payment method.');
+        return;
       }
     } catch (e) {
       console.error('Payment checkout error:', e);

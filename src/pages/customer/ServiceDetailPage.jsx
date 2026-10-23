@@ -1,5 +1,6 @@
 import { API_V1_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
+import { openRazorpay } from '../../services/razorpayService';
 import {
   Container,
   Box,
@@ -529,68 +530,54 @@ export default function ServiceDetailPage({ onStartBooking }) {
         console.warn('Razorpay order backend creation note:', err);
       }
 
-      // 3. Setup Razorpay Checkout options
-      const options = {
-        key: keyId,
-        amount: Math.round(payableNow * 100),
-        currency: 'INR',
-        name: 'Shazu One Scheduled Booking',
-        description: `Advance Visit Fee Reservation (${currentServiceName})`,
-        image: '/logo.png',
-        order_id: orderId,
-        handler: async function (response) {
+      // 3. Open Razorpay Checkout (Native Android SDK BottomSheet on Mobile, Web SDK on Browser)
+      try {
+        const rzpResult = await openRazorpay({
+          key: keyId,
+          amount: Math.round(payableNow * 100),
+          currency: 'INR',
+          name: 'Shazu One Scheduled Booking',
+          description: `Advance Visit Fee Reservation (${currentServiceName})`,
+          image: 'https://salemseva-backend.onrender.com/favicon.png',
+          order_id: orderId,
+          prefill: {
+            name: user?.name || 'Customer',
+            email: user?.email || 'customer@shazuone.in',
+            contact: (user?.phone || '+919842711234').replace(/\s+/g, '')
+          },
+          theme: {
+            color: '#0066CC'
+          }
+        });
+
+        if (rzpResult && rzpResult.success) {
           try {
-            // Verify payment signature on backend
             await fetch(`${API_V1_URL}/payments/verify`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 amount: payableNow,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_order_id: response.razorpay_order_id || orderId,
-                razorpay_signature: response.razorpay_signature,
+                razorpay_payment_id: rzpResult.razorpay_payment_id,
+                razorpay_order_id: rzpResult.razorpay_order_id || orderId,
+                razorpay_signature: rzpResult.razorpay_signature,
                 bookingId: `SCHED-${Date.now()}`
               })
             });
-
-            await completeScheduledBookingCreation({
-              paymentMethod: 'razorpay_gateway',
-              razorpayPaymentId: response.razorpay_payment_id
-            });
           } catch (verErr) {
             console.warn('Payment verify note:', verErr);
-            await completeScheduledBookingCreation({
-              paymentMethod: 'razorpay_gateway',
-              razorpayPaymentId: response.razorpay_payment_id
-            });
           }
-        },
-        prefill: {
-          name: user?.name || 'Vimal Raj',
-          email: user?.email || 'customer@Shazu One.in',
-          contact: (user?.phone || '+919842711234').replace(/\s+/g, '')
-        },
-        theme: {
-          color: '#0066CC'
-        },
-        modal: {
-          ondismiss: function () {
-            setIsPayingScheduled(false);
-          }
-        }
-      };
 
-      if (window.Razorpay) {
-        const rzp = new window.Razorpay(options);
-        rzp.on('payment.failed', function (resp) {
-          console.error('Razorpay payment failed:', resp.error);
-          setIsPayingScheduled(false);
-          toast.error('Payment Failed: ' + (resp.error?.description || 'Your payment could not be processed. Please try again.'));
-        });
-        rzp.open();
-      } else {
-        console.warn('Razorpay window not available, completing verified sandbox booking');
-        await completeScheduledBookingCreation({ paymentMethod: 'razorpay_simulated' });
+          await completeScheduledBookingCreation({
+            paymentMethod: 'razorpay_gateway',
+            razorpayPaymentId: rzpResult.razorpay_payment_id
+          });
+          return;
+        }
+      } catch (payErr) {
+        console.warn('Razorpay payment cancelled or failed:', payErr);
+        setIsPayingScheduled(false);
+        toast.error(payErr.message || 'Payment was cancelled or could not be processed.');
+        return;
       }
     } catch (err) {
       console.error('Payment gateway error:', err);

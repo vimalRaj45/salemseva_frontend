@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "vite --port 3000 --host",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "cap:sync": "vite build && cap sync android",
+    "cap:copy": "vite build && cap copy android",
+    "cap:open": "cap open android"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.3",
@@ -21,6 +24,7 @@
     "@emotion/styled": "^11.11.5",
     "@mui/icons-material": "^5.15.15",
     "@mui/material": "^5.15.15",
+    "capacitor-razorpay": "github:razorpay/razorpay-capacitor",
     "leaflet": "^1.9.4",
     "lottie-react": "^3.1.2",
     "lucide-react": "^1.53.0",

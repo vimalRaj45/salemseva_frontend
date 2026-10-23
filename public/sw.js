@@ -145,7 +145,11 @@ self.addEventListener('push', (event) => {
       tag: isCall ? `call-${payload.bookingId || Date.now()}` : `notif-${Date.now()}`,
       renotify: true,
       requireInteraction: isCall || isNewJob,
-      vibrate: isCall ? [400, 150, 400, 1800, 400, 150, 400] : [200, 100, 200],
+      silent: false,
+      timestamp: Date.now(),
+      vibrate: isCall 
+        ? [500, 200, 500, 200, 500, 1000, 500, 200, 500, 200, 500, 1000, 500, 200, 500] 
+        : [200, 100, 200],
       actions: actions,
       data: {
         url: payload.url || (payload.role === 'customer' ? `/track?bookingId=${payload.bookingId}` : '/partner'),

@@ -6,9 +6,11 @@ import CloseIcon from '@mui/icons-material/Close';
 import { NativeNotifier } from '../services/nativeNotify';
 import { RingtoneService } from '../services/RingtoneService';
 import { subscribeUserToPush } from '../services/pushSubscription';
+import { useAuth } from '../context/AuthContext';
 
 export default function NotificationPermissionBanner() {
   const [showBanner, setShowBanner] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     // Check if permission already granted and audio unlocked
@@ -35,7 +37,13 @@ export default function NotificationPermissionBanner() {
 
     // 4. Register Web Push subscription for background/cleared app wake-up
     if (granted) {
-      subscribeUserToPush({}).catch(() => {});
+      const partnerPhone = localStorage.getItem('shazuone_partner_phone') || '';
+      const userPhone = user?.phone || localStorage.getItem('shazuone_user_phone') || '';
+      const activePhone = partnerPhone || userPhone;
+      const activeRole = partnerPhone ? 'technician' : (user?.role || 'customer');
+      const activeBooking = localStorage.getItem('shazuone_active_booking') || localStorage.getItem('shazuone_partner_active_job') || null;
+
+      subscribeUserToPush({ phone: activePhone, role: activeRole, bookingId: activeBooking }).catch(() => {});
     }
 
     setShowBanner(false);

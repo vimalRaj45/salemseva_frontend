@@ -1,5 +1,6 @@
 import { API_V1_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
+import { openRazorpay } from '../../services/razorpayService';
 import {
   Container,
   Box,
@@ -244,47 +245,38 @@ export default function MatchingPage() {
         console.warn('Order create direct note:', e);
       }
 
-      // 2. Open Official Razorpay Checkout if window.Razorpay exists and user selected non-wallet mode
-      if (window.Razorpay && selectedPayMethod !== 'wallet') {
-        const options = {
-          key: keyId,
-          amount: 9900,
-          currency: 'INR',
-          name: 'Shazu One (சேலம் சேவை)',
-          description: 'Part 1: Doorstep Inspection & Travel Advance (₹99)',
-          order_id: (orderId.startsWith('order_') && orderId.length > 20) ? orderId : undefined,
-          handler: async function (response) {
-            await finalizePayment(
-              response.razorpay_payment_id || `pay_${Date.now()}`,
-              response.razorpay_order_id || orderId,
-              response.razorpay_signature || ''
-            );
-          },
-          prefill: {
-            name: 'Vimal Raj',
-            email: 'customer@Shazu One.in',
-            contact: '+919842711234'
-          },
-          theme: {
-            color: '#2563EB'
-          },
-          modal: {
-            ondismiss: function () {
-              setIsPayingFee(false);
-            }
-          }
-        };
-
+      // 2. Open Razorpay Checkout (Native Android SDK on Mobile, Web SDK on Browser)
+      if (selectedPayMethod !== 'wallet') {
         try {
-          const rzp = new window.Razorpay(options);
-          rzp.on('payment.failed', function (response) {
-            console.error('Razorpay payment failed:', response.error);
-            setIsPayingFee(false);
+          const rzpResult = await openRazorpay({
+            key: keyId,
+            amount: 9900,
+            currency: 'INR',
+            name: 'Shazu One (சேலம் சேவை)',
+            description: 'Part 1: Doorstep Inspection & Travel Advance (₹99)',
+            order_id: (orderId && orderId.startsWith('order_') && orderId.length > 20) ? orderId : undefined,
+            prefill: {
+              name: 'Vimal Raj',
+              email: 'customer@shazuone.in',
+              contact: '+919842711234'
+            },
+            theme: {
+              color: '#2563EB'
+            }
           });
-          rzp.open();
-          return; // Modal takes over
+
+          if (rzpResult && rzpResult.success) {
+            await finalizePayment(
+              rzpResult.razorpay_payment_id || `pay_${Date.now()}`,
+              rzpResult.razorpay_order_id || orderId,
+              rzpResult.razorpay_signature || ''
+            );
+            return;
+          }
         } catch (rzpErr) {
-          console.warn('Razorpay modal open fallback:', rzpErr);
+          console.warn('Razorpay checkout cancelled or failed:', rzpErr);
+          setIsPayingFee(false);
+          return;
         }
       }
 

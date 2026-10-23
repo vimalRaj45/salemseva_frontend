@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { subscribeUserToPush } from '../../services/pushSubscription';
 import {
   Container,
   Box,
@@ -1418,6 +1419,10 @@ export default function PartnerDutyPage() {
         updateUser({ isOnline: true });
       }
       requestLocationPermission();
+
+      // Register high-priority background Web Push subscription for incoming jobs/calls
+      const techPhone = user?.phone || localStorage.getItem('shazuone_partner_phone') || '';
+      subscribeUserToPush({ phone: techPhone, role: 'technician' }).catch(() => {});
     } else {
       // 2. Going offline -> Stop location broadcasting immediately
       setIsOnline(false);
