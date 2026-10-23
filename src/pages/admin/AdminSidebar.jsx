@@ -31,6 +31,7 @@ import SecurityIcon from '@mui/icons-material/Security';
 import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import PaymentsIcon from '@mui/icons-material/Payments';
+import QrCode2Icon from '@mui/icons-material/QrCode2';
 
 const navSections = [
   {
@@ -125,6 +126,14 @@ const navSections = [
   {
     category: 'Governance & Security',
     items: [
+      {
+        id: 'whatsapp_gateway',
+        label: 'WhatsApp OTP Gateway',
+        icon: QrCode2Icon,
+        badgeText: 'Baileys',
+        badgeColor: '#059669',
+        badgeBg: '#ECFDF5'
+      },
       {
         id: 'team',
         label: 'Internal Team & RBAC',

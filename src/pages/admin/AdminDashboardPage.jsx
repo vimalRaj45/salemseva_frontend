@@ -124,6 +124,7 @@ import TuneIcon from '@mui/icons-material/Tune';
 import AdminSidebar from './AdminSidebar';
 import AdminServicesModule from './AdminServicesModule';
 import AdminTeamModule from './AdminTeamModule';
+import AdminWhatsAppModule from './AdminWhatsAppModule';
 import AdminDispatchDrawer from './AdminDispatchDrawer';
 import AdminTechnicianDossierDrawer from './AdminTechnicianDossierDrawer';
 import AdminCustomerDossierDrawer from './AdminCustomerDossierDrawer';
@@ -4538,6 +4539,13 @@ export default function AdminDashboardPage() {
             currentRole={currentRole}
             onToast={(msg, sev) => setToast({ open: true, message: msg, severity: sev })}
           />
+        )}
+
+        {/* ========================================================================= */}
+        {/* TAB: WHATSAPP BUSINESS GATEWAY & PAIRING MODULE */}
+        {/* ========================================================================= */}
+        {activeMainTab === 'whatsapp_gateway' && (
+          <AdminWhatsAppModule />
         )}
 
         {/* ========================================================================= */}
