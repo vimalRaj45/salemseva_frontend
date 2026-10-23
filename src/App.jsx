@@ -24,6 +24,10 @@ import PrivacyPolicyPage from './pages/legal/PrivacyPolicyPage';
 import RefundPolicyPage from './pages/legal/RefundPolicyPage';
 import HowItWorksPage from './pages/customer/HowItWorksPage';
 import FirstTimeOnboardingPage from './pages/customer/FirstTimeOnboardingPage';
+import BookingChatPage from './pages/customer/BookingChatPage';
+import VoipCallingPage from './pages/customer/VoipCallingPage';
+import BookingCancelPage from './pages/customer/BookingCancelPage';
+import BookingReschedulePage from './pages/customer/BookingReschedulePage';
 
 // Partner Pages
 import PartnerOnboardingPage from './pages/partner/PartnerOnboardingPage';
@@ -186,7 +190,13 @@ function InitialHomeRoute() {
 function MainLayout({ walletBalance, currentBooking, setCurrentBooking }) {
   const location = useLocation();
   const isAuthPage = location.pathname === '/login' || location.pathname === '/register' || location.pathname === '/partner/login' || location.pathname === '/technician/login';
-  const isFullScreenPage = isAuthPage || location.pathname === '/how-it-works' || location.pathname === '/welcome';
+  const isFullScreenPage =
+    isAuthPage ||
+    location.pathname === '/how-it-works' ||
+    location.pathname === '/welcome' ||
+    location.pathname.startsWith('/call/') ||
+    location.pathname.startsWith('/chat/') ||
+    location.pathname.startsWith('/booking/');
 
   return (
     <CustomerActiveJobGuard>
@@ -201,6 +211,12 @@ function MainLayout({ walletBalance, currentBooking, setCurrentBooking }) {
           pb: isFullScreenPage ? 0 : { xs: '58px', md: 0 }
         }}>
           <Routes>
+            {/* Dedicated Action Pages (Migrated from Modals) */}
+            <Route path="/chat/:bookingId" element={<BookingChatPage />} />
+            <Route path="/call/:bookingId" element={<VoipCallingPage />} />
+            <Route path="/booking/:bookingId/cancel" element={<BookingCancelPage />} />
+            <Route path="/booking/:bookingId/reschedule" element={<BookingReschedulePage />} />
+
             {/* Customer Routes - Blocked for authenticated technicians */}
             <Route path="/onboarding" element={<CustomerRouteGuard><CustomerOnboardingPage onLoginSuccess={(u) => console.log('Logged in:', u)} /></CustomerRouteGuard>} />
             <Route path="/" element={<CustomerRouteGuard><InitialHomeRoute /></CustomerRouteGuard>} />

@@ -86,12 +86,10 @@ export default function TrackingPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('autoAnswer') === 'true') {
-      setIsIncomingCall(true);
-      setCallOpen(true);
+      navigate(`/call/${bookingId}?incoming=true&autoAnswer=true`);
     }
     const handleOpenActiveCall = () => {
-      setIsIncomingCall(true);
-      setCallOpen(true);
+      navigate(`/call/${bookingId}?incoming=true`);
     };
     window.addEventListener('shazuone_open_active_call', handleOpenActiveCall);
     return () => window.removeEventListener('shazuone_open_active_call', handleOpenActiveCall);
@@ -258,8 +256,7 @@ export default function TrackingPage() {
                 role: 'Customer'
               });
             }
-            setIsIncomingCall(true);
-            setCallOpen(true);
+            navigate(`/call/${bookingId}?incoming=true`);
           }
         }
 
@@ -715,7 +712,7 @@ export default function TrackingPage() {
               <Button
                 variant="text"
                 size="small"
-                onClick={() => setRescheduleOpen(true)}
+                onClick={() => navigate(`/booking/${bookingId}/reschedule`)}
                 sx={{
                   color: '#0284C7',
                   fontWeight: 800,
@@ -818,7 +815,7 @@ export default function TrackingPage() {
                     variant="outlined"
                     fullWidth
                     startIcon={<ChatBubbleOutlineIcon sx={{ fontSize: 16 }} />}
-                    onClick={() => setChatOpen(true)}
+                    onClick={() => navigate(`/chat/${bookingId}`)}
                     sx={{
                       borderColor: '#CBD5E1',
                       color: '#334155',
@@ -837,7 +834,7 @@ export default function TrackingPage() {
                     variant="contained"
                     fullWidth
                     startIcon={<PhoneIcon sx={{ fontSize: 16 }} />}
-                    onClick={() => setCallOpen(true)}
+                    onClick={() => navigate(`/call/${bookingId}`)}
                     sx={{
                       bgcolor: '#2563EB',
                       borderRadius: '8px',
@@ -1069,7 +1066,7 @@ export default function TrackingPage() {
                                 variant="outlined"
                                 fullWidth
                                 startIcon={<ChatBubbleOutlineIcon sx={{ fontSize: 15 }} />}
-                                onClick={() => setChatOpen(true)}
+                                onClick={() => navigate(`/chat/${bookingId}`)}
                                 sx={{
                                   borderColor: '#CBD5E1',
                                   color: '#334155',
@@ -1088,7 +1085,7 @@ export default function TrackingPage() {
                                 variant="contained"
                                 fullWidth
                                 startIcon={<PhoneIcon sx={{ fontSize: 15 }} />}
-                                onClick={() => setCallOpen(true)}
+                                onClick={() => navigate(`/call/${bookingId}`)}
                                 sx={{
                                   bgcolor: '#2563EB',
                                   borderRadius: '6px',
@@ -1166,7 +1163,7 @@ export default function TrackingPage() {
                   size="small"
                   variant="outlined"
                   startIcon={<EditCalendarIcon sx={{ fontSize: 14 }} />}
-                  onClick={() => setRescheduleOpen(true)}
+                  onClick={() => navigate(`/booking/${bookingId}/reschedule`)}
                   sx={{
                     borderRadius: '10px',
                     borderColor: '#0284C7',
@@ -1218,7 +1215,7 @@ export default function TrackingPage() {
                       size="small"
                       variant="outlined"
                       startIcon={<ChatBubbleOutlineIcon sx={{ fontSize: 13 }} />}
-                      onClick={() => setChatOpen(true)}
+                      onClick={() => navigate(`/chat/${bookingId}`)}
                       sx={{
                         borderColor: '#CBD5E1',
                         color: '#334155',
@@ -1236,7 +1233,7 @@ export default function TrackingPage() {
                     size="small"
                     variant="contained"
                     startIcon={<PhoneIcon sx={{ fontSize: 13 }} />}
-                    onClick={() => setCallOpen(true)}
+                    onClick={() => navigate(`/call/${bookingId}`)}
                     sx={{
                       bgcolor: tech ? '#2563EB' : '#0F172A',
                       color: '#FFF',
@@ -1258,7 +1255,7 @@ export default function TrackingPage() {
                   fullWidth
                   variant="text"
                   startIcon={<CancelOutlinedIcon sx={{ fontSize: 16 }} />}
-                  onClick={() => setCancelModalOpen(true)}
+                  onClick={() => navigate(`/booking/${bookingId}/cancel`)}
                   sx={{
                     color: '#DC2626',
                     bgcolor: '#FEF2F2',
@@ -1726,7 +1723,7 @@ export default function TrackingPage() {
                   variant="outlined"
                   fullWidth
                   startIcon={<ChatBubbleOutlineIcon sx={{ fontSize: 16 }} />}
-                  onClick={() => setChatOpen(true)}
+                  onClick={() => navigate(`/chat/${bookingId}`)}
                   sx={{
                     borderColor: '#CBD5E1',
                     color: '#334155',
@@ -1745,7 +1742,7 @@ export default function TrackingPage() {
                   variant="contained"
                   fullWidth
                   startIcon={<PhoneIcon sx={{ fontSize: 16 }} />}
-                  onClick={() => setCallOpen(true)}
+                  onClick={() => navigate(`/call/${bookingId}`)}
                   sx={{
                     bgcolor: '#2563EB',
                     borderRadius: '6px',
@@ -2005,7 +2002,7 @@ export default function TrackingPage() {
                     size="small"
                     variant="outlined"
                     startIcon={<PhoneIcon sx={{ fontSize: 13 }} />}
-                    onClick={() => setCallOpen(true)}
+                    onClick={() => navigate(`/call/${bookingId}`)}
                     sx={{
                       borderColor: '#D97706',
                       color: '#92400E',
@@ -2026,7 +2023,7 @@ export default function TrackingPage() {
                   variant="outlined"
                   fullWidth
                   startIcon={<CancelOutlinedIcon sx={{ fontSize: 16 }} />}
-                  onClick={() => setCancelModalOpen(true)}
+                  onClick={() => navigate(`/booking/${bookingId}/cancel`)}
                   sx={{
                     borderColor: '#FECACA',
                     color: '#DC2626',
@@ -2100,7 +2097,7 @@ export default function TrackingPage() {
               variant="contained"
               onClick={() => {
                 setIncomingMessageToast(null);
-                setChatOpen(true);
+                navigate(`/chat/${bookingId}`);
               }}
               sx={{ bgcolor: '#2563EB', color: '#FFF', fontSize: '11px', textTransform: 'none', py: 0.2 }}
             >

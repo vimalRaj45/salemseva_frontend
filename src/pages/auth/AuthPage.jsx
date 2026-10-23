@@ -1311,7 +1311,7 @@ export default function AuthPage({ initialMode = 'login' }) {
                           />
                         </Box>
 
-                        {isTech ? (
+                        {isTech && (
                           <Box sx={{ mb: 1.1 }}>
                             <Typography variant="caption" sx={{ fontWeight: 700, color: '#1E293B', display: 'block', mb: 0.3, fontSize: '11px' }}>
                               Primary Trade Skill
@@ -1335,36 +1335,6 @@ export default function AuthPage({ initialMode = 'login' }) {
                               <MenuItem value="electrician">Certified Electrician & Wiring</MenuItem>
                               <MenuItem value="plumber">Plumber & Sanitary Specialist</MenuItem>
                               <MenuItem value="cleaning">Deep Sanitization & Cleaning</MenuItem>
-                            </TextField>
-                          </Box>
-                        ) : (
-                          <Box sx={{ mb: 1.1 }}>
-                            <Typography variant="caption" sx={{ fontWeight: 700, color: '#1E293B', display: 'block', mb: 0.3, fontSize: '11px' }}>
-                              Salem Locality
-                            </Typography>
-                            <TextField
-                              select
-                              fullWidth
-                              value={locality}
-                              onChange={(e) => setLocality(e.target.value)}
-                              InputProps={{
-                                startAdornment: (
-                                  <InputAdornment position="start">
-                                    <MapPin size={15} color="#64748B" />
-                                  </InputAdornment>
-                                ),
-                                sx: {
-                                  borderRadius: '9px',
-                                  bgcolor: '#FFFFFF',
-                                  fontSize: '12.5px',
-                                  height: '38px',
-                                  '& fieldset': { borderColor: '#E2E8F0' }
-                                }
-                              }}
-                            >
-                              {SALEM_LOCALITIES.map((loc) => (
-                                <MenuItem key={loc} value={loc}>{loc}</MenuItem>
-                              ))}
                             </TextField>
                           </Box>
                         )}

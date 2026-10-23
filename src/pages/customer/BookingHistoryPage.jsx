@@ -683,8 +683,7 @@ export default function BookingHistoryPage() {
                         variant="outlined"
                         startIcon={<CancelOutlinedIcon sx={{ fontSize: 14 }} />}
                         onClick={() => {
-                          setSelectedBookingForCancel(item);
-                          setCancelModalOpen(true);
+                          navigate(`/booking/${item.id}/cancel`);
                         }}
                         sx={{ borderColor: '#FECACA', color: '#DC2626', borderRadius: '8px', fontWeight: 700, fontSize: '11px', py: 0.6, textTransform: 'none', '&:hover': { bgcolor: '#FEF2F2', borderColor: '#F87171' } }}
                       >

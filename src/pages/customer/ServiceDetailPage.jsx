@@ -65,7 +65,7 @@ import LockIcon from '@mui/icons-material/Lock';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
 import { ApiService } from '../../services/api';
-import LocationPickerModal from '../../components/LocationPickerModal';
+import BookingAddressModal from '../../components/BookingAddressModal';
 import ProcessingBackdrop from '../../components/ProcessingBackdrop';
 import VoiceNoteRecorder from '../../components/VoiceNoteRecorder';
 import SalemLottie from '../../components/SalemLottie';
@@ -1913,6 +1913,17 @@ export default function ServiceDetailPage({ onStartBooking }) {
           </Button>
         </ModalFooter>
       </Modal>
+
+      {/* SERVICE ADDRESS SELECTION MODAL (LIVE GPS & MANUAL HOUSE NO) */}
+      <BookingAddressModal
+        open={locationPickerOpen}
+        onClose={() => setLocationPickerOpen(false)}
+        currentAddress={userLocation}
+        onAddressSelected={(newLoc) => {
+          setUserLocation(newLoc);
+          toast.success(`Service address updated: ${newLoc.locality}`);
+        }}
+      />
     </Box>
   );
 }
