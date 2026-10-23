@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -82,6 +82,7 @@ export default function AuthPage({ initialMode = 'login' }) {
       const isRegisteringPartner = (initialRoleParam === 'partner' || initialRoleParam === 'technician') && (user.role === 'customer' || !user.role);
       if (isRegisteringPartner) {
         setSelectedRole('technician');
+        setViewMode('auth');
         setAuthMode('register');
         if (user.name && !fullName) setFullName(user.name);
         if (user.phone && !phone) setPhone(user.phone.replace(/[^0-9]/g, '').slice(-10));
@@ -101,10 +102,12 @@ export default function AuthPage({ initialMode = 'login' }) {
   const isRegisterRoute = location.pathname === '/register' || initialMode === 'register';
   const [authMode, setAuthMode] = useState(isRegisterRoute ? 'register' : 'login');
 
+  // View Mode: 'select_role' (in-page full selection) | 'auth' (login / register forms)
+  const [viewMode, setViewMode] = useState(initialRoleParam ? 'auth' : 'select_role');
+
   const [selectedRole, setSelectedRole] = useState(
     initialRoleParam === 'partner' || initialRoleParam === 'technician' ? 'technician' : 'customer'
   );
-  const [showRoleModal, setShowRoleModal] = useState(!initialRoleParam);
 
   // Form Fields - Sign In
   const [identifier, setIdentifier] = useState('98427 11234');
@@ -133,7 +136,6 @@ export default function AuthPage({ initialMode = 'login' }) {
   const [forgotOtp, setForgotOtp] = useState('');
   const [forgotNewPassword, setForgotNewPassword] = useState('');
   const [forgotConfirmPassword, setForgotConfirmPassword] = useState('');
-  const [forgotToken, setForgotToken] = useState('');
   const [showForgotNewPassword, setShowForgotNewPassword] = useState(false);
 
   // OTP State
@@ -185,10 +187,10 @@ export default function AuthPage({ initialMode = 'login' }) {
   useEffect(() => {
     if (initialRoleParam === 'partner' || initialRoleParam === 'technician') {
       setSelectedRole('technician');
-      setShowRoleModal(false);
+      setViewMode('auth');
     } else if (initialRoleParam === 'customer') {
       setSelectedRole('customer');
-      setShowRoleModal(false);
+      setViewMode('auth');
     }
   }, [initialRoleParam]);
 
@@ -344,7 +346,7 @@ export default function AuthPage({ initialMode = 'login' }) {
 
     setIsLoading(true);
     try {
-      const newUser = await registerAccount({
+      await registerAccount({
         name: fullName.trim(),
         phone: cleanPhone,
         password: registerPassword.trim(),
@@ -434,13 +436,11 @@ export default function AuthPage({ initialMode = 'login' }) {
 
     setIsLoading(true);
     try {
-      // 1. Verify OTP
       const verifyRes = await verifyWhatsAppOtp(cleanPhone, forgotOtp.trim(), 'forgot_password');
       if (!verifyRes.verificationToken) {
         throw new Error('Verification session expired');
       }
 
-      // 2. Set new password
       await setPasswordWithToken({
         phone: cleanPhone,
         verificationToken: verifyRes.verificationToken,
@@ -513,7 +513,7 @@ export default function AuthPage({ initialMode = 'login' }) {
           bgcolor: '#FFFFFF'
         }}
       >
-        {/* ===================== LEFT PANE: AUTH INTERACTION ===================== */}
+        {/* ===================== LEFT PANE: AUTH & ROLE INTERACTION ===================== */}
         <Box
           sx={{
             p: { xs: 2.2, sm: 3, md: 3 },
@@ -548,45 +548,36 @@ export default function AuthPage({ initialMode = 'login' }) {
                 </Box>
               </Box>
 
-              {/* Portal Pill */}
-              <Button
-                size="small"
-                variant="outlined"
-                onClick={() => setShowRoleModal(true)}
-                endIcon={<ChevronRight size={13} />}
-                sx={{
-                  borderRadius: '16px',
-                  borderColor: '#E2E8F0',
-                  color: isTech ? '#059669' : '#0284C7',
-                  bgcolor: brandSoftBg,
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  textTransform: 'none',
-                  py: 0.3,
-                  px: 1.1,
-                  height: '26px',
-                  '&:hover': {
-                    bgcolor: '#FFFFFF',
-                    borderColor: brandPrimary
-                  }
-                }}
-              >
-                {isTech ? 'Partner Portal' : 'Customer Portal'}
-              </Button>
-            </Box>
-
-            {/* Title & Subtitle */}
-            <Box sx={{ mb: 1.5 }}>
-              <Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A', letterSpacing: '-0.025em', mb: 0.2, fontSize: { xs: '1.25rem', sm: '1.35rem' } }}>
-                {authMode === 'login' && (isTech ? 'Service Partner Sign In' : 'Sign in to Shazu One')}
-                {authMode === 'register' && (isTech ? 'Partner Registration' : 'Create Customer Account')}
-                {authMode === 'forgot_password' && 'Reset Your Password'}
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#475569', fontSize: '12px', lineHeight: 1.4 }}>
-                {authMode === 'login' && (isTech ? 'Access duty radar, leads, and daily earnings.' : 'Sign in using your password or 1-tap Fingerprint / FaceID.')}
-                {authMode === 'register' && 'Verify your mobile via free WhatsApp OTP to set up your account.'}
-                {authMode === 'forgot_password' && 'Enter your mobile number to receive a secure WhatsApp reset code.'}
-              </Typography>
+              {/* Portal Pill (when inside auth mode) */}
+              {viewMode === 'auth' && (
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={() => {
+                    setViewMode('select_role');
+                    setErrorMessage('');
+                  }}
+                  endIcon={<ChevronRight size={13} />}
+                  sx={{
+                    borderRadius: '16px',
+                    borderColor: '#E2E8F0',
+                    color: isTech ? '#059669' : '#0284C7',
+                    bgcolor: brandSoftBg,
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    textTransform: 'none',
+                    py: 0.3,
+                    px: 1.1,
+                    height: '26px',
+                    '&:hover': {
+                      bgcolor: '#FFFFFF',
+                      borderColor: brandPrimary
+                    }
+                  }}
+                >
+                  {isTech ? 'Partner Portal' : 'Customer Portal'}
+                </Button>
+              )}
             </Box>
 
             {/* Error Message Alert */}
@@ -596,760 +587,1040 @@ export default function AuthPage({ initialMode = 'login' }) {
               </Alert>
             )}
 
-            {/* ================= CASE 1: SIGN IN FORM ================= */}
-            {authMode === 'login' && (
-              <Box component="form" onSubmit={handleLoginSubmit}>
-                {/* 1-Tap Biometric Passkey Login Banner */}
-                {passkeySupported && (
+            {/* ========================================================================= */}
+            {/* VIEW MODE 1: IN-PAGE FULL ROLE SELECTION (NO POPUP MODALS) */}
+            {/* ========================================================================= */}
+            {viewMode === 'select_role' ? (
+              <Box sx={{ py: 1 }}>
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="h5" sx={{ fontWeight: 800, color: '#0F172A', letterSpacing: '-0.025em', mb: 0.4, fontSize: { xs: '1.35rem', sm: '1.5rem' } }}>
+                    Choose Your Portal
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#64748B', fontSize: '12.5px', lineHeight: 1.4 }}>
+                    Select your account type to proceed with sign-in or registration.
+                  </Typography>
+                </Box>
+
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, my: 2 }}>
+                  {/* Option 1: Customer Card */}
                   <Paper
                     elevation={0}
-                    onClick={handlePasskeyLogin}
+                    onClick={() => {
+                      setSelectedRole('customer');
+                      if (identifier === '94432 88901') setIdentifier('98427 11234');
+                      setViewMode('auth');
+                      setErrorMessage('');
+                    }}
                     sx={{
-                      p: 1.2,
-                      mb: 1.6,
-                      borderRadius: '12px',
-                      border: '1.5px solid',
-                      borderColor: brandBorder,
-                      bgcolor: brandSoftBg,
+                      p: 2,
+                      borderRadius: '14px',
+                      border: '2px solid #E2E8F0',
+                      bgcolor: '#FFFFFF',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      transition: 'all 0.15s ease-out',
+                      transition: 'all 0.18s ease-out',
                       '&:hover': {
-                        bgcolor: '#FFFFFF',
-                        borderColor: brandPrimary,
-                        transform: 'translateY(-1px)',
-                        boxShadow: '0 4px 12px rgba(2, 132, 199, 0.12)'
+                        borderColor: '#0284C7',
+                        bgcolor: '#F0F9FF',
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 8px 20px rgba(2, 132, 199, 0.12)'
                       }
                     }}
                   >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.6 }}>
                       <Box
                         sx={{
-                          width: 36,
-                          height: 36,
-                          borderRadius: '9px',
-                          bgcolor: brandPrimary,
-                          color: '#FFFFFF',
+                          width: 46,
+                          height: 46,
+                          borderRadius: '12px',
+                          bgcolor: '#E0F2FE',
+                          color: '#0284C7',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
                           flexShrink: 0
                         }}
                       >
-                        <Fingerprint size={20} />
+                        <User size={24} />
                       </Box>
                       <Box>
-                        <Typography sx={{ fontSize: '12.5px', fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>
-                          1-Tap Biometric Sign In
-                        </Typography>
-                        <Typography sx={{ fontSize: '11px', color: '#64748B', lineHeight: 1.2 }}>
-                          Instant FaceID / Fingerprint (Passkey)
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                          <Typography sx={{ fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>
+                            Customer Portal
+                          </Typography>
+                          <Typography sx={{ fontSize: '11px', fontWeight: 700, color: '#0284C7' }}>
+                            வாடிக்கையாளர்
+                          </Typography>
+                        </Box>
+                        <Typography sx={{ fontSize: '12px', color: '#64748B', mt: 0.2 }}>
+                          Book certified doorstep home services in Salem
                         </Typography>
                       </Box>
                     </Box>
-                    <ArrowRight size={16} color={brandPrimary} />
+                    <ChevronRight size={20} color="#0284C7" />
                   </Paper>
-                )}
 
-                {/* Identifier Field */}
-                <Box sx={{ mb: 1.2 }}>
-                  <Typography variant="caption" sx={{ fontWeight: 700, color: '#1E293B', display: 'block', mb: 0.3, fontSize: '11px' }}>
-                    {isTech ? 'Registered Mobile Number' : 'Mobile Number, Username, or Email'}
-                  </Typography>
-                  <TextField
-                    fullWidth
-                    placeholder={isTech ? '94432 88901' : '98427 11234 or your email'}
-                    variant="outlined"
-                    value={identifier}
-                    onChange={(e) => setIdentifier(e.target.value)}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          {isTech ? <Phone size={15} color="#64748B" /> : <Mail size={15} color="#64748B" />}
-                        </InputAdornment>
-                      ),
-                      sx: {
-                        borderRadius: '9px',
-                        bgcolor: '#FFFFFF',
-                        fontSize: '12.5px',
-                        height: '38px',
-                        '& fieldset': { borderColor: '#E2E8F0' },
-                        '&:hover fieldset': { borderColor: '#94A3B8' },
-                        '&.Mui-focused fieldset': { borderColor: brandPrimary, borderWidth: '1.5px' }
-                      }
-                    }}
-                  />
-                </Box>
-
-                {/* Password Field */}
-                <Box sx={{ mb: 1 }}>
-                  <Typography variant="caption" sx={{ fontWeight: 700, color: '#1E293B', display: 'block', mb: 0.3, fontSize: '11px' }}>
-                    Password
-                  </Typography>
-                  <TextField
-                    fullWidth
-                    placeholder="Enter your account password"
-                    type={showPassword ? 'text' : 'password'}
-                    variant="outlined"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Lock size={15} color="#64748B" />
-                        </InputAdornment>
-                      ),
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <IconButton
-                            size="small"
-                            onClick={() => setShowPassword(!showPassword)}
-                            edge="end"
-                            sx={{ color: '#64748B' }}
-                          >
-                            {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
-                          </IconButton>
-                        </InputAdornment>
-                      ),
-                      sx: {
-                        borderRadius: '9px',
-                        bgcolor: '#FFFFFF',
-                        fontSize: '12.5px',
-                        height: '38px',
-                        '& fieldset': { borderColor: '#E2E8F0' },
-                        '&:hover fieldset': { borderColor: '#94A3B8' },
-                        '&.Mui-focused fieldset': { borderColor: brandPrimary, borderWidth: '1.5px' }
-                      }
-                    }}
-                  />
-                </Box>
-
-                {/* Remember Me & Forgot Password */}
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.4 }}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        size="small"
-                        checked={rememberMe}
-                        onChange={(e) => setRememberMe(e.target.checked)}
-                        sx={{
-                          color: '#CBD5E1',
-                          '&.Mui-checked': { color: brandPrimary },
-                          p: 0.3
-                        }}
-                      />
-                    }
-                    label={
-                      <Typography variant="caption" sx={{ color: '#475569', fontWeight: 600, fontSize: '11.5px' }}>
-                        Remember for 30 Days
-                      </Typography>
-                    }
-                  />
-
-                  <Button
-                    type="button"
+                  {/* Option 2: Service Partner Card */}
+                  <Paper
+                    elevation={0}
                     onClick={() => {
-                      setForgotPhone(identifier.replace(/[^0-9]/g, '').slice(-10));
-                      setAuthMode('forgot_password');
-                      setForgotStep(1);
+                      setSelectedRole('technician');
+                      if (identifier === '98427 11234') setIdentifier('94432 88901');
+                      setViewMode('auth');
                       setErrorMessage('');
                     }}
                     sx={{
-                      p: 0,
-                      minWidth: 'auto',
-                      color: brandPrimary,
-                      fontWeight: 700,
-                      fontSize: '11.5px',
-                      textTransform: 'none',
-                      '&:hover': { textDecoration: 'underline', bgcolor: 'transparent' }
+                      p: 2,
+                      borderRadius: '14px',
+                      border: '2px solid #E2E8F0',
+                      bgcolor: '#FFFFFF',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      transition: 'all 0.18s ease-out',
+                      '&:hover': {
+                        borderColor: '#059669',
+                        bgcolor: '#ECFDF5',
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 8px 20px rgba(5, 150, 105, 0.12)'
+                      }
                     }}
                   >
-                    Forgot password?
-                  </Button>
-                </Box>
-
-                {/* Primary Sign In Button */}
-                <Button
-                  type="submit"
-                  fullWidth
-                  variant="contained"
-                  disabled={isLoading}
-                  sx={{
-                    bgcolor: brandPrimary,
-                    color: '#FFFFFF',
-                    height: '38px',
-                    borderRadius: '9px',
-                    fontWeight: 800,
-                    fontSize: '13px',
-                    textTransform: 'none',
-                    boxShadow: isTech ? '0 4px 14px rgba(5, 150, 105, 0.25)' : '0 4px 14px rgba(2, 132, 199, 0.25)',
-                    transition: 'all 0.15s ease',
-                    '&:hover': {
-                      bgcolor: brandHover,
-                      boxShadow: isTech ? '0 6px 18px rgba(5, 150, 105, 0.35)' : '0 6px 18px rgba(2, 132, 199, 0.35)'
-                    }
-                  }}
-                >
-                  {isLoading ? (
-                    <CircularProgress size={18} color="inherit" />
-                  ) : (
-                    isTech ? 'Sign in to Partner Radar' : 'Sign In with Password'
-                  )}
-                </Button>
-
-                {/* OR Divider */}
-                <Box sx={{ display: 'flex', alignItems: 'center', my: 1.2 }}>
-                  <Box sx={{ flex: 1, height: '1px', bgcolor: '#E2E8F0' }} />
-                  <Typography variant="caption" sx={{ px: 1.2, color: '#94A3B8', fontWeight: 700, fontSize: '10px', letterSpacing: '0.5px' }}>
-                    OR
-                  </Typography>
-                  <Box sx={{ flex: 1, height: '1px', bgcolor: '#E2E8F0' }} />
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.6 }}>
+                      <Box
+                        sx={{
+                          width: 46,
+                          height: 46,
+                          borderRadius: '12px',
+                          bgcolor: '#D1FAE5',
+                          color: '#059669',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0
+                        }}
+                      >
+                        <Wrench size={24} />
+                      </Box>
+                      <Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                          <Typography sx={{ fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>
+                            Service Partner
+                          </Typography>
+                          <Typography sx={{ fontSize: '11px', fontWeight: 700, color: '#059669' }}>
+                            பணியாளர்
+                          </Typography>
+                        </Box>
+                        <Typography sx={{ fontSize: '12px', color: '#64748B', mt: 0.2 }}>
+                          Accept customer dispatches & earn 98% daily
+                        </Typography>
+                      </Box>
+                    </Box>
+                    <ChevronRight size={20} color="#059669" />
+                  </Paper>
                 </Box>
 
                 {/* Continue as Guest Button */}
-                <Button
-                  type="button"
-                  fullWidth
-                  variant="outlined"
-                  onClick={handleContinueAsGuest}
-                  startIcon={<Compass size={15} color="#0284C7" />}
-                  endIcon={<ArrowRight size={14} color="#64748B" />}
-                  sx={{
-                    height: '36px',
-                    borderRadius: '9px',
-                    borderColor: '#E2E8F0',
-                    bgcolor: '#F8FAFC',
-                    color: '#334155',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    textTransform: 'none',
-                    justifyContent: 'space-between',
-                    px: 1.5,
-                    '&:hover': {
-                      bgcolor: '#F1F5F9',
-                      borderColor: '#CBD5E1'
-                    }
-                  }}
-                >
-                  Explore Salem Services as Guest
-                </Button>
+                <Box sx={{ mt: 3 }}>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    onClick={handleContinueAsGuest}
+                    startIcon={<Compass size={16} color="#0284C7" />}
+                    endIcon={<ArrowRight size={15} color="#64748B" />}
+                    sx={{
+                      height: '42px',
+                      borderRadius: '10px',
+                      borderColor: '#E2E8F0',
+                      bgcolor: '#F8FAFC',
+                      color: '#334155',
+                      fontSize: '12.5px',
+                      fontWeight: 700,
+                      textTransform: 'none',
+                      justifyContent: 'space-between',
+                      px: 2,
+                      '&:hover': {
+                        bgcolor: '#F1F5F9',
+                        borderColor: '#CBD5E1'
+                      }
+                    }}
+                  >
+                    Explore Salem Services as Guest
+                  </Button>
+                </Box>
               </Box>
-            )}
-
-            {/* ================= CASE 2: REGISTRATION FLOW ================= */}
-            {authMode === 'register' && (
+            ) : (
+              /* ========================================================================= */
+              /* VIEW MODE 2: AUTH FORMS (LOGIN / REGISTER / FORGOT PASSWORD) */
+              /* ========================================================================= */
               <Box>
-                {/* Step indicator */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
-                    <Box
-                      sx={{
-                        width: 22,
-                        height: 22,
-                        borderRadius: '50%',
-                        bgcolor: registerStep >= 1 ? brandPrimary : '#E2E8F0',
-                        color: '#FFFFFF',
-                        fontSize: '11px',
-                        fontWeight: 800,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                    >
-                      1
-                    </Box>
-                    <Typography sx={{ fontSize: '11.5px', fontWeight: 700, color: registerStep === 1 ? '#0F172A' : '#64748B' }}>
-                      WhatsApp OTP
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ flex: 1, height: '2px', bgcolor: registerStep >= 2 ? brandPrimary : '#E2E8F0' }} />
-
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
-                    <Box
-                      sx={{
-                        width: 22,
-                        height: 22,
-                        borderRadius: '50%',
-                        bgcolor: registerStep >= 2 ? brandPrimary : '#E2E8F0',
-                        color: '#FFFFFF',
-                        fontSize: '11px',
-                        fontWeight: 800,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                    >
-                      2
-                    </Box>
-                    <Typography sx={{ fontSize: '11.5px', fontWeight: 700, color: registerStep === 2 ? '#0F172A' : '#64748B' }}>
-                      Set Password
-                    </Typography>
-                  </Box>
+                {/* Title & Subtitle */}
+                <Box sx={{ mb: 1.5 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A', letterSpacing: '-0.025em', mb: 0.2, fontSize: { xs: '1.25rem', sm: '1.35rem' } }}>
+                    {authMode === 'login' && (isTech ? 'Service Partner Sign In' : 'Sign in to Shazu One')}
+                    {authMode === 'register' && (isTech ? 'Partner Registration' : 'Create Customer Account')}
+                    {authMode === 'forgot_password' && 'Reset Your Password'}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#475569', fontSize: '12px', lineHeight: 1.4 }}>
+                    {authMode === 'login' && (isTech ? 'Access duty radar, leads, and daily earnings.' : 'Sign in using your password or 1-tap Fingerprint / FaceID.')}
+                    {authMode === 'register' && 'Verify your mobile via free WhatsApp OTP to set up your account.'}
+                    {authMode === 'forgot_password' && 'Enter your mobile number to receive a secure WhatsApp reset code.'}
+                  </Typography>
                 </Box>
 
-                {/* Step 1: Mobile & WhatsApp OTP Verification */}
-                {registerStep === 1 && (
-                  <Box>
+                {/* ================= CASE 1: SIGN IN FORM ================= */}
+                {authMode === 'login' && (
+                  <Box component="form" onSubmit={handleLoginSubmit}>
+                    {/* 1-Tap Biometric Passkey Login Banner */}
+                    {passkeySupported && (
+                      <Paper
+                        elevation={0}
+                        onClick={handlePasskeyLogin}
+                        sx={{
+                          p: 1.2,
+                          mb: 1.6,
+                          borderRadius: '12px',
+                          border: '1.5px solid',
+                          borderColor: brandBorder,
+                          bgcolor: brandSoftBg,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          transition: 'all 0.15s ease-out',
+                          '&:hover': {
+                            bgcolor: '#FFFFFF',
+                            borderColor: brandPrimary,
+                            transform: 'translateY(-1px)',
+                            boxShadow: '0 4px 12px rgba(2, 132, 199, 0.12)'
+                          }
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                          <Box
+                            sx={{
+                              width: 36,
+                              height: 36,
+                              borderRadius: '9px',
+                              bgcolor: brandPrimary,
+                              color: '#FFFFFF',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0
+                            }}
+                          >
+                            <Fingerprint size={20} />
+                          </Box>
+                          <Box>
+                            <Typography sx={{ fontSize: '12.5px', fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>
+                              1-Tap Biometric Sign In
+                            </Typography>
+                            <Typography sx={{ fontSize: '11px', color: '#64748B', lineHeight: 1.2 }}>
+                              Instant FaceID / Fingerprint (Passkey)
+                            </Typography>
+                          </Box>
+                        </Box>
+                        <ArrowRight size={16} color={brandPrimary} />
+                      </Paper>
+                    )}
+
+                    {/* Identifier Field */}
                     <Box sx={{ mb: 1.2 }}>
                       <Typography variant="caption" sx={{ fontWeight: 700, color: '#1E293B', display: 'block', mb: 0.3, fontSize: '11px' }}>
-                        Mobile Number (WhatsApp Gateway)
+                        {isTech ? 'Registered Mobile Number' : 'Mobile Number, Username, or Email'}
                       </Typography>
-                      <Box sx={{ display: 'flex', gap: 1 }}>
-                        <TextField
-                          fullWidth
-                          placeholder="98427 11234"
-                          value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
-                          disabled={isOtpSent && cooldownRemaining > 0}
-                          InputProps={{
-                            startAdornment: (
-                              <InputAdornment position="start">
-                                <span style={{ fontSize: '12px', fontWeight: 800, color: '#64748B' }}>+91</span>
-                              </InputAdornment>
-                            ),
-                            sx: {
-                              borderRadius: '9px',
-                              bgcolor: '#FFFFFF',
-                              fontSize: '12.5px',
-                              height: '38px',
-                              '& fieldset': { borderColor: '#E2E8F0' }
-                            }
-                          }}
-                        />
-                        <Button
-                          variant="contained"
-                          onClick={handleSendRegisterOtp}
-                          disabled={isLoading || cooldownRemaining > 0}
-                          sx={{
-                            bgcolor: brandPrimary,
-                            color: '#FFFFFF',
+                      <TextField
+                        fullWidth
+                        placeholder={isTech ? '94432 88901' : '98427 11234 or your email'}
+                        variant="outlined"
+                        value={identifier}
+                        onChange={(e) => setIdentifier(e.target.value)}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              {isTech ? <Phone size={15} color="#64748B" /> : <Mail size={15} color="#64748B" />}
+                            </InputAdornment>
+                          ),
+                          sx: {
                             borderRadius: '9px',
-                            fontWeight: 700,
-                            fontSize: '11.5px',
-                            minWidth: '100px',
-                            textTransform: 'none',
-                            whiteSpace: 'nowrap',
+                            bgcolor: '#FFFFFF',
+                            fontSize: '12.5px',
                             height: '38px',
-                            '&:hover': { bgcolor: brandHover }
-                          }}
-                        >
-                          {cooldownRemaining > 0 ? (
-                            `${cooldownRemaining}s`
-                          ) : isOtpSent ? (
-                            'Resend'
-                          ) : (
-                            'Send OTP'
-                          )}
-                        </Button>
-                      </Box>
+                            '& fieldset': { borderColor: '#E2E8F0' },
+                            '&:hover fieldset': { borderColor: '#94A3B8' },
+                            '&.Mui-focused fieldset': { borderColor: brandPrimary, borderWidth: '1.5px' }
+                          }
+                        }}
+                      />
                     </Box>
 
-                    {/* WhatsApp OTP Input Area */}
-                    {isOtpSent && (
-                      <Box sx={{ mb: 1.5, p: 1.5, bgcolor: brandSoftBg, borderRadius: '12px', border: `1px solid ${brandBorder}` }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.8 }}>
-                          <Typography variant="caption" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '11.5px' }}>
-                            Enter 6-digit WhatsApp OTP
+                    {/* Password Field */}
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 700, color: '#1E293B', display: 'block', mb: 0.3, fontSize: '11px' }}>
+                        Password
+                      </Typography>
+                      <TextField
+                        fullWidth
+                        placeholder="Enter your account password"
+                        type={showPassword ? 'text' : 'password'}
+                        variant="outlined"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <Lock size={15} color="#64748B" />
+                            </InputAdornment>
+                          ),
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <IconButton
+                                size="small"
+                                onClick={() => setShowPassword(!showPassword)}
+                                edge="end"
+                                sx={{ color: '#64748B' }}
+                              >
+                                {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                              </IconButton>
+                            </InputAdornment>
+                          ),
+                          sx: {
+                            borderRadius: '9px',
+                            bgcolor: '#FFFFFF',
+                            fontSize: '12.5px',
+                            height: '38px',
+                            '& fieldset': { borderColor: '#E2E8F0' },
+                            '&:hover fieldset': { borderColor: '#94A3B8' },
+                            '&.Mui-focused fieldset': { borderColor: brandPrimary, borderWidth: '1.5px' }
+                          }
+                        }}
+                      />
+                    </Box>
+
+                    {/* Remember Me & Forgot Password */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.4 }}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            size="small"
+                            checked={rememberMe}
+                            onChange={(e) => setRememberMe(e.target.checked)}
+                            sx={{
+                              color: '#CBD5E1',
+                              '&.Mui-checked': { color: brandPrimary },
+                              p: 0.3
+                            }}
+                          />
+                        }
+                        label={
+                          <Typography variant="caption" sx={{ color: '#475569', fontWeight: 600, fontSize: '11.5px' }}>
+                            Remember for 30 Days
                           </Typography>
-                          {expiryRemaining > 0 && (
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: '#64748B' }}>
-                              <Clock size={12} />
-                              <Typography sx={{ fontSize: '10.5px', fontWeight: 600 }}>
-                                Expires in {Math.floor(expiryRemaining / 60)}:{(expiryRemaining % 60).toString().padStart(2, '0')}
-                              </Typography>
-                            </Box>
-                          )}
+                        }
+                      />
+
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          setForgotPhone(identifier.replace(/[^0-9]/g, '').slice(-10));
+                          setAuthMode('forgot_password');
+                          setForgotStep(1);
+                          setErrorMessage('');
+                        }}
+                        sx={{
+                          p: 0,
+                          minWidth: 'auto',
+                          color: brandPrimary,
+                          fontWeight: 700,
+                          fontSize: '11.5px',
+                          textTransform: 'none',
+                          '&:hover': { textDecoration: 'underline', bgcolor: 'transparent' }
+                        }}
+                      >
+                        Forgot password?
+                      </Button>
+                    </Box>
+
+                    {/* Primary Sign In Button */}
+                    <Button
+                      type="submit"
+                      fullWidth
+                      variant="contained"
+                      disabled={isLoading}
+                      sx={{
+                        bgcolor: brandPrimary,
+                        color: '#FFFFFF',
+                        height: '38px',
+                        borderRadius: '9px',
+                        fontWeight: 800,
+                        fontSize: '13px',
+                        textTransform: 'none',
+                        boxShadow: isTech ? '0 4px 14px rgba(5, 150, 105, 0.25)' : '0 4px 14px rgba(2, 132, 199, 0.25)',
+                        transition: 'all 0.15s ease',
+                        '&:hover': {
+                          bgcolor: brandHover,
+                          boxShadow: isTech ? '0 6px 18px rgba(5, 150, 105, 0.35)' : '0 6px 18px rgba(2, 132, 199, 0.35)'
+                        }
+                      }}
+                    >
+                      {isLoading ? (
+                        <CircularProgress size={18} color="inherit" />
+                      ) : (
+                        isTech ? 'Sign in to Partner Radar' : 'Sign In with Password'
+                      )}
+                    </Button>
+
+                    {/* OR Divider */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', my: 1.2 }}>
+                      <Box sx={{ flex: 1, height: '1px', bgcolor: '#E2E8F0' }} />
+                      <Typography variant="caption" sx={{ px: 1.2, color: '#94A3B8', fontWeight: 700, fontSize: '10px', letterSpacing: '0.5px' }}>
+                        OR
+                      </Typography>
+                      <Box sx={{ flex: 1, height: '1px', bgcolor: '#E2E8F0' }} />
+                    </Box>
+
+                    {/* Continue as Guest Button */}
+                    <Button
+                      type="button"
+                      fullWidth
+                      variant="outlined"
+                      onClick={handleContinueAsGuest}
+                      startIcon={<Compass size={15} color="#0284C7" />}
+                      endIcon={<ArrowRight size={14} color="#64748B" />}
+                      sx={{
+                        height: '36px',
+                        borderRadius: '9px',
+                        borderColor: '#E2E8F0',
+                        bgcolor: '#F8FAFC',
+                        color: '#334155',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        textTransform: 'none',
+                        justifyContent: 'space-between',
+                        px: 1.5,
+                        '&:hover': {
+                          bgcolor: '#F1F5F9',
+                          borderColor: '#CBD5E1'
+                        }
+                      }}
+                    >
+                      Explore Salem Services as Guest
+                    </Button>
+                  </Box>
+                )}
+
+                {/* ================= CASE 2: REGISTRATION FLOW WITH STEPPER & BACK BUTTON ================= */}
+                {authMode === 'register' && (
+                  <Box>
+                    {/* Stepper Navigation Header with Back Button */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                      {/* Step Indicator */}
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
+                          <Box
+                            sx={{
+                              width: 22,
+                              height: 22,
+                              borderRadius: '50%',
+                              bgcolor: registerStep >= 1 ? brandPrimary : '#E2E8F0',
+                              color: '#FFFFFF',
+                              fontSize: '11px',
+                              fontWeight: 800,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            1
+                          </Box>
+                          <Typography sx={{ fontSize: '11.5px', fontWeight: 700, color: registerStep === 1 ? '#0F172A' : '#64748B' }}>
+                            WhatsApp OTP
+                          </Typography>
                         </Box>
 
-                        <TextField
-                          fullWidth
-                          placeholder="000000"
-                          value={otpCode}
-                          onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
-                          InputProps={{
-                            sx: {
-                              borderRadius: '8px',
-                              bgcolor: '#FFFFFF',
-                              fontSize: '16px',
+                        <Box sx={{ width: 24, height: '2px', bgcolor: registerStep >= 2 ? brandPrimary : '#E2E8F0' }} />
+
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
+                          <Box
+                            sx={{
+                              width: 22,
+                              height: 22,
+                              borderRadius: '50%',
+                              bgcolor: registerStep >= 2 ? brandPrimary : '#E2E8F0',
+                              color: '#FFFFFF',
+                              fontSize: '11px',
                               fontWeight: 800,
-                              letterSpacing: '4px',
-                              textAlign: 'center',
-                              height: '40px',
-                              '& input': { textAlign: 'center' }
-                            }
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            2
+                          </Box>
+                          <Typography sx={{ fontSize: '11.5px', fontWeight: 700, color: registerStep === 2 ? '#0F172A' : '#64748B' }}>
+                            Set Password
+                          </Typography>
+                        </Box>
+                      </Box>
+
+                      {/* Stepper Back Button */}
+                      {registerStep === 2 ? (
+                        <Button
+                          size="small"
+                          variant="text"
+                          onClick={() => {
+                            setRegisterStep(1);
+                            setErrorMessage('');
                           }}
-                        />
+                          startIcon={<ArrowLeft size={13} />}
+                          sx={{
+                            color: brandPrimary,
+                            fontWeight: 700,
+                            fontSize: '11px',
+                            textTransform: 'none',
+                            p: 0,
+                            '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' }
+                          }}
+                        >
+                          Back to Step 1
+                        </Button>
+                      ) : (
+                        <Button
+                          size="small"
+                          variant="text"
+                          onClick={() => {
+                            setViewMode('select_role');
+                            setErrorMessage('');
+                          }}
+                          startIcon={<ArrowLeft size={13} />}
+                          sx={{
+                            color: '#64748B',
+                            fontWeight: 700,
+                            fontSize: '11px',
+                            textTransform: 'none',
+                            p: 0,
+                            '&:hover': { color: brandPrimary, bgcolor: 'transparent' }
+                          }}
+                        >
+                          Change Role
+                        </Button>
+                      )}
+                    </Box>
+
+                    {/* Step 1: Mobile & WhatsApp OTP Verification */}
+                    {registerStep === 1 && (
+                      <Box>
+                        <Box sx={{ mb: 1.2 }}>
+                          <Typography variant="caption" sx={{ fontWeight: 700, color: '#1E293B', display: 'block', mb: 0.3, fontSize: '11px' }}>
+                            Mobile Number (WhatsApp Gateway)
+                          </Typography>
+                          <Box sx={{ display: 'flex', gap: 1 }}>
+                            <TextField
+                              fullWidth
+                              placeholder="98427 11234"
+                              value={phone}
+                              onChange={(e) => setPhone(e.target.value)}
+                              disabled={isOtpSent && cooldownRemaining > 0}
+                              InputProps={{
+                                startAdornment: (
+                                  <InputAdornment position="start">
+                                    <span style={{ fontSize: '12px', fontWeight: 800, color: '#64748B' }}>+91</span>
+                                  </InputAdornment>
+                                ),
+                                sx: {
+                                  borderRadius: '9px',
+                                  bgcolor: '#FFFFFF',
+                                  fontSize: '12.5px',
+                                  height: '38px',
+                                  '& fieldset': { borderColor: '#E2E8F0' }
+                                }
+                              }}
+                            />
+                            <Button
+                              variant="contained"
+                              onClick={handleSendRegisterOtp}
+                              disabled={isLoading || cooldownRemaining > 0}
+                              sx={{
+                                bgcolor: brandPrimary,
+                                color: '#FFFFFF',
+                                borderRadius: '9px',
+                                fontWeight: 700,
+                                fontSize: '11.5px',
+                                minWidth: '100px',
+                                textTransform: 'none',
+                                whiteSpace: 'nowrap',
+                                height: '38px',
+                                '&:hover': { bgcolor: brandHover }
+                              }}
+                            >
+                              {cooldownRemaining > 0 ? (
+                                `${cooldownRemaining}s`
+                              ) : isOtpSent ? (
+                                'Resend'
+                              ) : (
+                                'Send OTP'
+                              )}
+                            </Button>
+                          </Box>
+                        </Box>
+
+                        {/* WhatsApp OTP Input Area */}
+                        {isOtpSent && (
+                          <Box sx={{ mb: 1.5, p: 1.5, bgcolor: brandSoftBg, borderRadius: '12px', border: `1px solid ${brandBorder}` }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.8 }}>
+                              <Typography variant="caption" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '11.5px' }}>
+                                Enter 6-digit WhatsApp OTP
+                              </Typography>
+                              {expiryRemaining > 0 && (
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: '#64748B' }}>
+                                  <Clock size={12} />
+                                  <Typography sx={{ fontSize: '10.5px', fontWeight: 600 }}>
+                                    Expires in {Math.floor(expiryRemaining / 60)}:{(expiryRemaining % 60).toString().padStart(2, '0')}
+                                  </Typography>
+                                </Box>
+                              )}
+                            </Box>
+
+                            <TextField
+                              fullWidth
+                              placeholder="000000"
+                              value={otpCode}
+                              onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
+                              InputProps={{
+                                sx: {
+                                  borderRadius: '8px',
+                                  bgcolor: '#FFFFFF',
+                                  fontSize: '16px',
+                                  fontWeight: 800,
+                                  letterSpacing: '4px',
+                                  textAlign: 'center',
+                                  height: '40px',
+                                  '& input': { textAlign: 'center' }
+                                }
+                              }}
+                            />
+
+                            <Button
+                              fullWidth
+                              variant="contained"
+                              onClick={handleVerifyRegisterOtp}
+                              disabled={isLoading || otpCode.length !== 6}
+                              sx={{
+                                mt: 1.2,
+                                bgcolor: brandPrimary,
+                                color: '#FFFFFF',
+                                borderRadius: '9px',
+                                fontWeight: 800,
+                                fontSize: '12.5px',
+                                height: '38px',
+                                textTransform: 'none',
+                                '&:hover': { bgcolor: brandHover }
+                              }}
+                            >
+                              {isLoading ? <CircularProgress size={16} color="inherit" /> : 'Verify Code & Proceed to Step 2'}
+                            </Button>
+                          </Box>
+                        )}
+                      </Box>
+                    )}
+
+                    {/* Step 2: Set Password & Profile Details with Back Navigation */}
+                    {registerStep === 2 && (
+                      <Box component="form" onSubmit={handleCompleteRegistration}>
+                        <Box sx={{ mb: 1.1 }}>
+                          <Typography variant="caption" sx={{ fontWeight: 700, color: '#1E293B', display: 'block', mb: 0.3, fontSize: '11px' }}>
+                            Full Name
+                          </Typography>
+                          <TextField
+                            fullWidth
+                            placeholder="e.g. Ramesh Kumar"
+                            value={fullName}
+                            onChange={(e) => setFullName(e.target.value)}
+                            InputProps={{
+                              startAdornment: (
+                                <InputAdornment position="start">
+                                  <User size={15} color="#64748B" />
+                                </InputAdornment>
+                              ),
+                              sx: {
+                                borderRadius: '9px',
+                                bgcolor: '#FFFFFF',
+                                fontSize: '12.5px',
+                                height: '38px',
+                                '& fieldset': { borderColor: '#E2E8F0' }
+                              }
+                            }}
+                          />
+                        </Box>
+
+                        {isTech ? (
+                          <Box sx={{ mb: 1.1 }}>
+                            <Typography variant="caption" sx={{ fontWeight: 700, color: '#1E293B', display: 'block', mb: 0.3, fontSize: '11px' }}>
+                              Primary Trade Skill
+                            </Typography>
+                            <TextField
+                              select
+                              fullWidth
+                              value={trade}
+                              onChange={(e) => setTrade(e.target.value)}
+                              InputProps={{
+                                sx: {
+                                  borderRadius: '9px',
+                                  bgcolor: '#FFFFFF',
+                                  fontSize: '12.5px',
+                                  height: '38px',
+                                  '& fieldset': { borderColor: '#E2E8F0' }
+                                }
+                              }}
+                            >
+                              <MenuItem value="ac">AC Repair & Cooling Specialist</MenuItem>
+                              <MenuItem value="electrician">Certified Electrician & Wiring</MenuItem>
+                              <MenuItem value="plumber">Plumber & Sanitary Specialist</MenuItem>
+                              <MenuItem value="cleaning">Deep Sanitization & Cleaning</MenuItem>
+                            </TextField>
+                          </Box>
+                        ) : (
+                          <Box sx={{ mb: 1.1 }}>
+                            <Typography variant="caption" sx={{ fontWeight: 700, color: '#1E293B', display: 'block', mb: 0.3, fontSize: '11px' }}>
+                              Salem Locality
+                            </Typography>
+                            <TextField
+                              select
+                              fullWidth
+                              value={locality}
+                              onChange={(e) => setLocality(e.target.value)}
+                              InputProps={{
+                                startAdornment: (
+                                  <InputAdornment position="start">
+                                    <MapPin size={15} color="#64748B" />
+                                  </InputAdornment>
+                                ),
+                                sx: {
+                                  borderRadius: '9px',
+                                  bgcolor: '#FFFFFF',
+                                  fontSize: '12.5px',
+                                  height: '38px',
+                                  '& fieldset': { borderColor: '#E2E8F0' }
+                                }
+                              }}
+                            >
+                              {SALEM_LOCALITIES.map((loc) => (
+                                <MenuItem key={loc} value={loc}>{loc}</MenuItem>
+                              ))}
+                            </TextField>
+                          </Box>
+                        )}
+
+                        <Box sx={{ mb: 1.1 }}>
+                          <Typography variant="caption" sx={{ fontWeight: 700, color: '#1E293B', display: 'block', mb: 0.3, fontSize: '11px' }}>
+                            Create Password (min 6 characters)
+                          </Typography>
+                          <TextField
+                            fullWidth
+                            placeholder="Choose password"
+                            type={showRegisterPassword ? 'text' : 'password'}
+                            value={registerPassword}
+                            onChange={(e) => setRegisterPassword(e.target.value)}
+                            InputProps={{
+                              startAdornment: (
+                                <InputAdornment position="start">
+                                  <Lock size={15} color="#64748B" />
+                                </InputAdornment>
+                              ),
+                              endAdornment: (
+                                <InputAdornment position="end">
+                                  <IconButton size="small" onClick={() => setShowRegisterPassword(!showRegisterPassword)}>
+                                    {showRegisterPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                                  </IconButton>
+                                </InputAdornment>
+                              ),
+                              sx: {
+                                borderRadius: '9px',
+                                bgcolor: '#FFFFFF',
+                                fontSize: '12.5px',
+                                height: '38px',
+                                '& fieldset': { borderColor: '#E2E8F0' }
+                              }
+                            }}
+                          />
+                        </Box>
+
+                        <Box sx={{ mb: 1.4 }}>
+                          <Typography variant="caption" sx={{ fontWeight: 700, color: '#1E293B', display: 'block', mb: 0.3, fontSize: '11px' }}>
+                            Confirm Password
+                          </Typography>
+                          <TextField
+                            fullWidth
+                            placeholder="Re-enter password"
+                            type={showConfirmPassword ? 'text' : 'password'}
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            InputProps={{
+                              startAdornment: (
+                                <InputAdornment position="start">
+                                  <Lock size={15} color="#64748B" />
+                                </InputAdornment>
+                              ),
+                              endAdornment: (
+                                <InputAdornment position="end">
+                                  <IconButton size="small" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                                    {showConfirmPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                                  </IconButton>
+                                </InputAdornment>
+                              ),
+                              sx: {
+                                borderRadius: '9px',
+                                bgcolor: '#FFFFFF',
+                                fontSize: '12.5px',
+                                height: '38px',
+                                '& fieldset': { borderColor: '#E2E8F0' }
+                              }
+                            }}
+                          />
+                        </Box>
+
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <Button
+                            type="button"
+                            variant="outlined"
+                            onClick={() => setRegisterStep(1)}
+                            startIcon={<ArrowLeft size={15} />}
+                            sx={{
+                              borderColor: '#CBD5E1',
+                              color: '#475569',
+                              height: '38px',
+                              borderRadius: '9px',
+                              fontWeight: 700,
+                              fontSize: '12px',
+                              textTransform: 'none',
+                              px: 1.5,
+                              '&:hover': { bgcolor: '#F8FAFC', borderColor: '#94A3B8' }
+                            }}
+                          >
+                            Back
+                          </Button>
+
+                          <Button
+                            type="submit"
+                            fullWidth
+                            variant="contained"
+                            disabled={isLoading}
+                            sx={{
+                              bgcolor: brandPrimary,
+                              color: '#FFFFFF',
+                              height: '38px',
+                              borderRadius: '9px',
+                              fontWeight: 800,
+                              fontSize: '13px',
+                              textTransform: 'none',
+                              '&:hover': { bgcolor: brandHover }
+                            }}
+                          >
+                            {isLoading ? <CircularProgress size={18} color="inherit" /> : 'Complete Registration'}
+                          </Button>
+                        </Box>
+                      </Box>
+                    )}
+                  </Box>
+                )}
+
+                {/* ================= CASE 3: FORGOT PASSWORD FLOW ================= */}
+                {authMode === 'forgot_password' && (
+                  <Box>
+                    <Button
+                      size="small"
+                      variant="text"
+                      onClick={() => {
+                        if (forgotStep === 2) {
+                          setForgotStep(1);
+                        } else {
+                          setAuthMode('login');
+                        }
+                        setErrorMessage('');
+                      }}
+                      startIcon={<ArrowLeft size={13} />}
+                      sx={{ color: '#64748B', fontSize: '11px', textTransform: 'none', mb: 1, p: 0 }}
+                    >
+                      {forgotStep === 2 ? 'Back to Mobile Number' : 'Back to Sign In'}
+                    </Button>
+
+                    {forgotStep === 1 && (
+                      <Box>
+                        <Box sx={{ mb: 1.4 }}>
+                          <Typography variant="caption" sx={{ fontWeight: 700, color: '#1E293B', display: 'block', mb: 0.3, fontSize: '11px' }}>
+                            Registered Mobile Number
+                          </Typography>
+                          <TextField
+                            fullWidth
+                            placeholder="98427 11234"
+                            value={forgotPhone}
+                            onChange={(e) => setForgotPhone(e.target.value)}
+                            InputProps={{
+                              startAdornment: (
+                                <InputAdornment position="start">
+                                  <span style={{ fontSize: '12px', fontWeight: 800, color: '#64748B' }}>+91</span>
+                                </InputAdornment>
+                              ),
+                              sx: {
+                                borderRadius: '9px',
+                                bgcolor: '#FFFFFF',
+                                fontSize: '12.5px',
+                                height: '38px',
+                                '& fieldset': { borderColor: '#E2E8F0' }
+                              }
+                            }}
+                          />
+                        </Box>
 
                         <Button
                           fullWidth
                           variant="contained"
-                          onClick={handleVerifyRegisterOtp}
-                          disabled={isLoading || otpCode.length !== 6}
+                          onClick={handleSendForgotOtp}
+                          disabled={isLoading}
                           sx={{
-                            mt: 1.2,
                             bgcolor: brandPrimary,
                             color: '#FFFFFF',
+                            height: '38px',
                             borderRadius: '9px',
                             fontWeight: 800,
-                            fontSize: '12.5px',
-                            height: '38px',
+                            fontSize: '13px',
                             textTransform: 'none',
                             '&:hover': { bgcolor: brandHover }
                           }}
                         >
-                          {isLoading ? <CircularProgress size={16} color="inherit" /> : 'Verify Code & Proceed'}
+                          {isLoading ? <CircularProgress size={18} color="inherit" /> : 'Send WhatsApp Reset Code'}
                         </Button>
                       </Box>
                     )}
-                  </Box>
-                )}
 
-                {/* Step 2: Set Password & Profile Details */}
-                {registerStep === 2 && (
-                  <Box component="form" onSubmit={handleCompleteRegistration}>
-                    <Box sx={{ mb: 1.1 }}>
-                      <Typography variant="caption" sx={{ fontWeight: 700, color: '#1E293B', display: 'block', mb: 0.3, fontSize: '11px' }}>
-                        Full Name
-                      </Typography>
-                      <TextField
-                        fullWidth
-                        placeholder="e.g. Ramesh Kumar"
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <User size={15} color="#64748B" />
-                            </InputAdornment>
-                          ),
-                          sx: {
-                            borderRadius: '9px',
-                            bgcolor: '#FFFFFF',
-                            fontSize: '12.5px',
-                            height: '38px',
-                            '& fieldset': { borderColor: '#E2E8F0' }
-                          }
-                        }}
-                      />
-                    </Box>
+                    {forgotStep === 2 && (
+                      <Box component="form" onSubmit={handleResetPassword}>
+                        <Box sx={{ mb: 1.1 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.3 }}>
+                            <Typography variant="caption" sx={{ fontWeight: 700, color: '#1E293B', fontSize: '11px' }}>
+                              6-digit WhatsApp OTP
+                            </Typography>
+                            {expiryRemaining > 0 && (
+                              <Typography sx={{ fontSize: '10.5px', color: '#64748B' }}>
+                                Expires in {Math.floor(expiryRemaining / 60)}:{(expiryRemaining % 60).toString().padStart(2, '0')}
+                              </Typography>
+                            )}
+                          </Box>
+                          <TextField
+                            fullWidth
+                            placeholder="000000"
+                            value={forgotOtp}
+                            onChange={(e) => setForgotOtp(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
+                            InputProps={{
+                              sx: {
+                                borderRadius: '9px',
+                                bgcolor: '#FFFFFF',
+                                fontSize: '14px',
+                                fontWeight: 800,
+                                letterSpacing: '3px',
+                                height: '38px'
+                              }
+                            }}
+                          />
+                        </Box>
 
-                    {isTech ? (
-                      <Box sx={{ mb: 1.1 }}>
-                        <Typography variant="caption" sx={{ fontWeight: 700, color: '#1E293B', display: 'block', mb: 0.3, fontSize: '11px' }}>
-                          Primary Trade Skill
-                        </Typography>
-                        <TextField
-                          select
-                          fullWidth
-                          value={trade}
-                          onChange={(e) => setTrade(e.target.value)}
-                          InputProps={{
-                            sx: {
-                              borderRadius: '9px',
-                              bgcolor: '#FFFFFF',
-                              fontSize: '12.5px',
+                        <Box sx={{ mb: 1.1 }}>
+                          <Typography variant="caption" sx={{ fontWeight: 700, color: '#1E293B', display: 'block', mb: 0.3, fontSize: '11px' }}>
+                            New Password (min 6 characters)
+                          </Typography>
+                          <TextField
+                            fullWidth
+                            placeholder="Enter new password"
+                            type={showForgotNewPassword ? 'text' : 'password'}
+                            value={forgotNewPassword}
+                            onChange={(e) => setForgotNewPassword(e.target.value)}
+                            InputProps={{
+                              endAdornment: (
+                                <InputAdornment position="end">
+                                  <IconButton size="small" onClick={() => setShowForgotNewPassword(!showForgotNewPassword)}>
+                                    {showForgotNewPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                                  </IconButton>
+                                </InputAdornment>
+                              ),
+                              sx: {
+                                borderRadius: '9px',
+                                bgcolor: '#FFFFFF',
+                                fontSize: '12.5px',
+                                height: '38px',
+                                '& fieldset': { borderColor: '#E2E8F0' }
+                              }
+                            }}
+                          />
+                        </Box>
+
+                        <Box sx={{ mb: 1.4 }}>
+                          <Typography variant="caption" sx={{ fontWeight: 700, color: '#1E293B', display: 'block', mb: 0.3, fontSize: '11px' }}>
+                            Confirm New Password
+                          </Typography>
+                          <TextField
+                            fullWidth
+                            placeholder="Re-enter new password"
+                            type="password"
+                            value={forgotConfirmPassword}
+                            onChange={(e) => setForgotConfirmPassword(e.target.value)}
+                            InputProps={{
+                              sx: {
+                                borderRadius: '9px',
+                                bgcolor: '#FFFFFF',
+                                fontSize: '12.5px',
+                                height: '38px',
+                                '& fieldset': { borderColor: '#E2E8F0' }
+                              }
+                            }}
+                          />
+                        </Box>
+
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <Button
+                            type="button"
+                            variant="outlined"
+                            onClick={() => setForgotStep(1)}
+                            startIcon={<ArrowLeft size={15} />}
+                            sx={{
+                              borderColor: '#CBD5E1',
+                              color: '#475569',
                               height: '38px',
-                              '& fieldset': { borderColor: '#E2E8F0' }
-                            }
-                          }}
-                        >
-                          <MenuItem value="ac">AC Repair & Cooling Specialist</MenuItem>
-                          <MenuItem value="electrician">Certified Electrician & Wiring</MenuItem>
-                          <MenuItem value="plumber">Plumber & Sanitary Specialist</MenuItem>
-                          <MenuItem value="cleaning">Deep Sanitization & Cleaning</MenuItem>
-                        </TextField>
-                      </Box>
-                    ) : (
-                      <Box sx={{ mb: 1.1 }}>
-                        <Typography variant="caption" sx={{ fontWeight: 700, color: '#1E293B', display: 'block', mb: 0.3, fontSize: '11px' }}>
-                          Salem Locality
-                        </Typography>
-                        <TextField
-                          select
-                          fullWidth
-                          value={locality}
-                          onChange={(e) => setLocality(e.target.value)}
-                          InputProps={{
-                            startAdornment: (
-                              <InputAdornment position="start">
-                                <MapPin size={15} color="#64748B" />
-                              </InputAdornment>
-                            ),
-                            sx: {
                               borderRadius: '9px',
-                              bgcolor: '#FFFFFF',
-                              fontSize: '12.5px',
+                              fontWeight: 700,
+                              fontSize: '12px',
+                              textTransform: 'none',
+                              px: 1.5,
+                              '&:hover': { bgcolor: '#F8FAFC', borderColor: '#94A3B8' }
+                            }}
+                          >
+                            Back
+                          </Button>
+
+                          <Button
+                            type="submit"
+                            fullWidth
+                            variant="contained"
+                            disabled={isLoading}
+                            sx={{
+                              bgcolor: brandPrimary,
+                              color: '#FFFFFF',
                               height: '38px',
-                              '& fieldset': { borderColor: '#E2E8F0' }
-                            }
-                          }}
-                        >
-                          {SALEM_LOCALITIES.map((loc) => (
-                            <MenuItem key={loc} value={loc}>{loc}</MenuItem>
-                          ))}
-                        </TextField>
+                              borderRadius: '9px',
+                              fontWeight: 800,
+                              fontSize: '13px',
+                              textTransform: 'none',
+                              '&:hover': { bgcolor: brandHover }
+                            }}
+                          >
+                            {isLoading ? <CircularProgress size={18} color="inherit" /> : 'Set New Password & Sign In'}
+                          </Button>
+                        </Box>
                       </Box>
                     )}
-
-                    <Box sx={{ mb: 1.1 }}>
-                      <Typography variant="caption" sx={{ fontWeight: 700, color: '#1E293B', display: 'block', mb: 0.3, fontSize: '11px' }}>
-                        Create Password (min 6 characters)
-                      </Typography>
-                      <TextField
-                        fullWidth
-                        placeholder="Choose password"
-                        type={showRegisterPassword ? 'text' : 'password'}
-                        value={registerPassword}
-                        onChange={(e) => setRegisterPassword(e.target.value)}
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <Lock size={15} color="#64748B" />
-                            </InputAdornment>
-                          ),
-                          endAdornment: (
-                            <InputAdornment position="end">
-                              <IconButton size="small" onClick={() => setShowRegisterPassword(!showRegisterPassword)}>
-                                {showRegisterPassword ? <EyeOff size={14} /> : <Eye size={14} />}
-                              </IconButton>
-                            </InputAdornment>
-                          ),
-                          sx: {
-                            borderRadius: '9px',
-                            bgcolor: '#FFFFFF',
-                            fontSize: '12.5px',
-                            height: '38px',
-                            '& fieldset': { borderColor: '#E2E8F0' }
-                          }
-                        }}
-                      />
-                    </Box>
-
-                    <Box sx={{ mb: 1.4 }}>
-                      <Typography variant="caption" sx={{ fontWeight: 700, color: '#1E293B', display: 'block', mb: 0.3, fontSize: '11px' }}>
-                        Confirm Password
-                      </Typography>
-                      <TextField
-                        fullWidth
-                        placeholder="Re-enter password"
-                        type={showConfirmPassword ? 'text' : 'password'}
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <Lock size={15} color="#64748B" />
-                            </InputAdornment>
-                          ),
-                          endAdornment: (
-                            <InputAdornment position="end">
-                              <IconButton size="small" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-                                {showConfirmPassword ? <EyeOff size={14} /> : <Eye size={14} />}
-                              </IconButton>
-                            </InputAdornment>
-                          ),
-                          sx: {
-                            borderRadius: '9px',
-                            bgcolor: '#FFFFFF',
-                            fontSize: '12.5px',
-                            height: '38px',
-                            '& fieldset': { borderColor: '#E2E8F0' }
-                          }
-                        }}
-                      />
-                    </Box>
-
-                    <Button
-                      type="submit"
-                      fullWidth
-                      variant="contained"
-                      disabled={isLoading}
-                      sx={{
-                        bgcolor: brandPrimary,
-                        color: '#FFFFFF',
-                        height: '38px',
-                        borderRadius: '9px',
-                        fontWeight: 800,
-                        fontSize: '13px',
-                        textTransform: 'none',
-                        '&:hover': { bgcolor: brandHover }
-                      }}
-                    >
-                      {isLoading ? <CircularProgress size={18} color="inherit" /> : 'Complete Registration'}
-                    </Button>
-                  </Box>
-                )}
-              </Box>
-            )}
-
-            {/* ================= CASE 3: FORGOT PASSWORD FLOW ================= */}
-            {authMode === 'forgot_password' && (
-              <Box>
-                <Button
-                  size="small"
-                  variant="text"
-                  onClick={() => {
-                    setAuthMode('login');
-                    setErrorMessage('');
-                  }}
-                  startIcon={<ArrowLeft size={13} />}
-                  sx={{ color: '#64748B', fontSize: '11px', textTransform: 'none', mb: 1, p: 0 }}
-                >
-                  Back to Sign In
-                </Button>
-
-                {forgotStep === 1 && (
-                  <Box>
-                    <Box sx={{ mb: 1.4 }}>
-                      <Typography variant="caption" sx={{ fontWeight: 700, color: '#1E293B', display: 'block', mb: 0.3, fontSize: '11px' }}>
-                        Registered Mobile Number
-                      </Typography>
-                      <TextField
-                        fullWidth
-                        placeholder="98427 11234"
-                        value={forgotPhone}
-                        onChange={(e) => setForgotPhone(e.target.value)}
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <span style={{ fontSize: '12px', fontWeight: 800, color: '#64748B' }}>+91</span>
-                            </InputAdornment>
-                          ),
-                          sx: {
-                            borderRadius: '9px',
-                            bgcolor: '#FFFFFF',
-                            fontSize: '12.5px',
-                            height: '38px',
-                            '& fieldset': { borderColor: '#E2E8F0' }
-                          }
-                        }}
-                      />
-                    </Box>
-
-                    <Button
-                      fullWidth
-                      variant="contained"
-                      onClick={handleSendForgotOtp}
-                      disabled={isLoading}
-                      sx={{
-                        bgcolor: brandPrimary,
-                        color: '#FFFFFF',
-                        height: '38px',
-                        borderRadius: '9px',
-                        fontWeight: 800,
-                        fontSize: '13px',
-                        textTransform: 'none',
-                        '&:hover': { bgcolor: brandHover }
-                      }}
-                    >
-                      {isLoading ? <CircularProgress size={18} color="inherit" /> : 'Send WhatsApp Reset Code'}
-                    </Button>
-                  </Box>
-                )}
-
-                {forgotStep === 2 && (
-                  <Box component="form" onSubmit={handleResetPassword}>
-                    <Box sx={{ mb: 1.1 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.3 }}>
-                        <Typography variant="caption" sx={{ fontWeight: 700, color: '#1E293B', fontSize: '11px' }}>
-                          6-digit WhatsApp OTP
-                        </Typography>
-                        {expiryRemaining > 0 && (
-                          <Typography sx={{ fontSize: '10.5px', color: '#64748B' }}>
-                            Expires in {Math.floor(expiryRemaining / 60)}:{(expiryRemaining % 60).toString().padStart(2, '0')}
-                          </Typography>
-                        )}
-                      </Box>
-                      <TextField
-                        fullWidth
-                        placeholder="000000"
-                        value={forgotOtp}
-                        onChange={(e) => setForgotOtp(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
-                        InputProps={{
-                          sx: {
-                            borderRadius: '9px',
-                            bgcolor: '#FFFFFF',
-                            fontSize: '14px',
-                            fontWeight: 800,
-                            letterSpacing: '3px',
-                            height: '38px'
-                          }
-                        }}
-                      />
-                    </Box>
-
-                    <Box sx={{ mb: 1.1 }}>
-                      <Typography variant="caption" sx={{ fontWeight: 700, color: '#1E293B', display: 'block', mb: 0.3, fontSize: '11px' }}>
-                        New Password (min 6 characters)
-                      </Typography>
-                      <TextField
-                        fullWidth
-                        placeholder="Enter new password"
-                        type={showForgotNewPassword ? 'text' : 'password'}
-                        value={forgotNewPassword}
-                        onChange={(e) => setForgotNewPassword(e.target.value)}
-                        InputProps={{
-                          endAdornment: (
-                            <InputAdornment position="end">
-                              <IconButton size="small" onClick={() => setShowForgotNewPassword(!showForgotNewPassword)}>
-                                {showForgotNewPassword ? <EyeOff size={14} /> : <Eye size={14} />}
-                              </IconButton>
-                            </InputAdornment>
-                          ),
-                          sx: {
-                            borderRadius: '9px',
-                            bgcolor: '#FFFFFF',
-                            fontSize: '12.5px',
-                            height: '38px',
-                            '& fieldset': { borderColor: '#E2E8F0' }
-                          }
-                        }}
-                      />
-                    </Box>
-
-                    <Box sx={{ mb: 1.4 }}>
-                      <Typography variant="caption" sx={{ fontWeight: 700, color: '#1E293B', display: 'block', mb: 0.3, fontSize: '11px' }}>
-                        Confirm New Password
-                      </Typography>
-                      <TextField
-                        fullWidth
-                        placeholder="Re-enter new password"
-                        type="password"
-                        value={forgotConfirmPassword}
-                        onChange={(e) => setForgotConfirmPassword(e.target.value)}
-                        InputProps={{
-                          sx: {
-                            borderRadius: '9px',
-                            bgcolor: '#FFFFFF',
-                            fontSize: '12.5px',
-                            height: '38px',
-                            '& fieldset': { borderColor: '#E2E8F0' }
-                          }
-                        }}
-                      />
-                    </Box>
-
-                    <Button
-                      type="submit"
-                      fullWidth
-                      variant="contained"
-                      disabled={isLoading}
-                      sx={{
-                        bgcolor: brandPrimary,
-                        color: '#FFFFFF',
-                        height: '38px',
-                        borderRadius: '9px',
-                        fontWeight: 800,
-                        fontSize: '13px',
-                        textTransform: 'none',
-                        '&:hover': { bgcolor: brandHover }
-                      }}
-                    >
-                      {isLoading ? <CircularProgress size={18} color="inherit" /> : 'Set New Password & Sign In'}
-                    </Button>
                   </Box>
                 )}
               </Box>
@@ -1357,71 +1628,73 @@ export default function AuthPage({ initialMode = 'login' }) {
           </Box>
 
           {/* Footer Navigation & Help Button */}
-          <Box sx={{ mt: 1.5, pt: 1, borderTop: '1px solid #F1F5F9', textAlign: 'center' }}>
-            {authMode === 'login' ? (
-              <Typography variant="body2" sx={{ color: '#64748B', fontSize: '12px' }}>
-                Don't have an account?{' '}
-                <Button
-                  onClick={() => {
-                    setAuthMode('register');
-                    setRegisterStep(1);
-                    setErrorMessage('');
-                  }}
-                  sx={{
-                    p: 0,
-                    minWidth: 'auto',
-                    color: brandPrimary,
-                    fontWeight: 800,
-                    fontSize: '12px',
-                    textTransform: 'none',
-                    '&:hover': { textDecoration: 'underline', bgcolor: 'transparent' }
-                  }}
-                >
-                  Create account
-                </Button>
-              </Typography>
-            ) : (
-              <Typography variant="body2" sx={{ color: '#64748B', fontSize: '12px' }}>
-                Already have an account?{' '}
-                <Button
-                  onClick={() => {
-                    setAuthMode('login');
-                    setErrorMessage('');
-                  }}
-                  sx={{
-                    p: 0,
-                    minWidth: 'auto',
-                    color: brandPrimary,
-                    fontWeight: 800,
-                    fontSize: '12px',
-                    textTransform: 'none',
-                    '&:hover': { textDecoration: 'underline', bgcolor: 'transparent' }
-                  }}
-                >
-                  Sign in
-                </Button>
-              </Typography>
-            )}
+          {viewMode === 'auth' && (
+            <Box sx={{ mt: 1.5, pt: 1, borderTop: '1px solid #F1F5F9', textAlign: 'center' }}>
+              {authMode === 'login' ? (
+                <Typography variant="body2" sx={{ color: '#64748B', fontSize: '12px' }}>
+                  Don't have an account?{' '}
+                  <Button
+                    onClick={() => {
+                      setAuthMode('register');
+                      setRegisterStep(1);
+                      setErrorMessage('');
+                    }}
+                    sx={{
+                      p: 0,
+                      minWidth: 'auto',
+                      color: brandPrimary,
+                      fontWeight: 800,
+                      fontSize: '12px',
+                      textTransform: 'none',
+                      '&:hover': { textDecoration: 'underline', bgcolor: 'transparent' }
+                    }}
+                  >
+                    Create account
+                  </Button>
+                </Typography>
+              ) : (
+                <Typography variant="body2" sx={{ color: '#64748B', fontSize: '12px' }}>
+                  Already have an account?{' '}
+                  <Button
+                    onClick={() => {
+                      setAuthMode('login');
+                      setErrorMessage('');
+                    }}
+                    sx={{
+                      p: 0,
+                      minWidth: 'auto',
+                      color: brandPrimary,
+                      fontWeight: 800,
+                      fontSize: '12px',
+                      textTransform: 'none',
+                      '&:hover': { textDecoration: 'underline', bgcolor: 'transparent' }
+                    }}
+                  >
+                    Sign in
+                  </Button>
+                </Typography>
+              )}
 
-            <Box sx={{ mt: 0.4 }}>
-              <Button
-                size="small"
-                variant="text"
-                onClick={() => setHelpModalOpen(true)}
-                startIcon={<HelpCircle size={13} color="#64748B" />}
-                sx={{
-                  color: '#64748B',
-                  fontSize: '11px',
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  py: 0.2,
-                  '&:hover': { color: brandPrimary }
-                }}
-              >
-                Need help with your login or WhatsApp OTP?
-              </Button>
+              <Box sx={{ mt: 0.4 }}>
+                <Button
+                  size="small"
+                  variant="text"
+                  onClick={() => setHelpModalOpen(true)}
+                  startIcon={<HelpCircle size={13} color="#64748B" />}
+                  sx={{
+                    color: '#64748B',
+                    fontSize: '11px',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    py: 0.2,
+                    '&:hover': { color: brandPrimary }
+                  }}
+                >
+                  Need help with your login or WhatsApp OTP?
+                </Button>
+              </Box>
             </Box>
-          </Box>
+          )}
         </Box>
 
         {/* ===================== RIGHT PANE: 3D ILLUSTRATION SHOWCASE ===================== */}
@@ -1598,177 +1871,6 @@ export default function AuthPage({ initialMode = 'login' }) {
           >
             Maybe Later
           </Button>
-        </Box>
-      </Dialog>
-
-      {/* Minimalist Professional Portal Selection Dialog */}
-      <Dialog
-        open={showRoleModal}
-        onClose={() => setShowRoleModal(false)}
-        maxWidth="xs"
-        fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: '20px',
-            p: { xs: 2, sm: 2.5 },
-            bgcolor: '#FFFFFF',
-            boxShadow: '0 25px 60px -15px rgba(15, 23, 42, 0.25)',
-            border: '1px solid #E2E8F0',
-            maxWidth: { xs: '340px', sm: '420px' },
-            mx: 'auto',
-            my: 'auto'
-          }
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box
-              component="img"
-              src="/logo-mark.svg"
-              onError={(e) => { e.currentTarget.src = '/logo.png'; }}
-              alt="Shazu One"
-              sx={{ width: 26, height: 26, borderRadius: '6px' }}
-            />
-            <Typography sx={{ fontSize: '11px', fontWeight: 800, color: '#64748B', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-              Shazu One · Salem
-            </Typography>
-          </Box>
-          <IconButton
-            size="small"
-            onClick={() => setShowRoleModal(false)}
-            sx={{ color: '#94A3B8', p: 0.5, '&:hover': { color: '#0F172A', bgcolor: '#F1F5F9' } }}
-          >
-            <X size={18} />
-          </IconButton>
-        </Box>
-
-        <Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em', mb: 0.4, fontSize: { xs: '1.2rem', sm: '1.35rem' } }}>
-          Choose Your Portal
-        </Typography>
-        <Typography variant="body2" sx={{ color: '#64748B', fontSize: '12px', mb: 2 }}>
-          Select how you want to continue to sign in or create an account.
-        </Typography>
-
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2 }}>
-          {/* Card 1: Customer */}
-          <Paper
-            elevation={0}
-            onClick={() => {
-              setSelectedRole('customer');
-              if (identifier === '94432 88901') setIdentifier('98427 11234');
-              setErrorMessage('');
-              setShowRoleModal(false);
-            }}
-            sx={{
-              p: 1.5,
-              borderRadius: '12px',
-              border: selectedRole === 'customer' ? '2px solid #0284C7' : '1px solid #E2E8F0',
-              bgcolor: selectedRole === 'customer' ? '#F0F9FF' : '#FFFFFF',
-              cursor: 'pointer',
-              transition: 'all 0.15s ease-out',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 1.5,
-              '&:hover': {
-                borderColor: '#0284C7',
-                bgcolor: '#F0F9FF',
-                transform: 'translateY(-1px)'
-              }
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0, flex: 1 }}>
-              <Box
-                sx={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: '10px',
-                  bgcolor: '#E0F2FE',
-                  color: '#0284C7',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0
-                }}
-              >
-                <User size={20} />
-              </Box>
-              <Box sx={{ minWidth: 0, flex: 1 }}>
-                <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.6, flexWrap: 'wrap' }}>
-                  <Typography sx={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>
-                    Customer
-                  </Typography>
-                  <Typography sx={{ fontSize: '11px', fontWeight: 600, color: '#0284C7', lineHeight: 1.2 }}>
-                    வாடிக்கையாளர்
-                  </Typography>
-                </Box>
-                <Typography sx={{ fontSize: '11.5px', color: '#64748B', mt: 0.3, lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  Book doorstep services in Salem
-                </Typography>
-              </Box>
-            </Box>
-            <ChevronRight size={18} color={selectedRole === 'customer' ? '#0284C7' : '#94A3B8'} style={{ flexShrink: 0 }} />
-          </Paper>
-
-          {/* Card 2: Service Partner */}
-          <Paper
-            elevation={0}
-            onClick={() => {
-              setSelectedRole('technician');
-              if (identifier === '98427 11234') setIdentifier('94432 88901');
-              setErrorMessage('');
-              setShowRoleModal(false);
-            }}
-            sx={{
-              p: 1.5,
-              borderRadius: '12px',
-              border: selectedRole === 'technician' ? '2px solid #059669' : '1px solid #E2E8F0',
-              bgcolor: selectedRole === 'technician' ? '#ECFDF5' : '#FFFFFF',
-              cursor: 'pointer',
-              transition: 'all 0.15s ease-out',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 1.5,
-              '&:hover': {
-                borderColor: '#059669',
-                bgcolor: '#ECFDF5',
-                transform: 'translateY(-1px)'
-              }
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0, flex: 1 }}>
-              <Box
-                sx={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: '10px',
-                  bgcolor: '#D1FAE5',
-                  color: '#059669',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0
-                }}
-              >
-                <Wrench size={20} />
-              </Box>
-              <Box sx={{ minWidth: 0, flex: 1 }}>
-                <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.6, flexWrap: 'wrap' }}>
-                  <Typography sx={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>
-                    Service Partner
-                  </Typography>
-                  <Typography sx={{ fontSize: '11px', fontWeight: 600, color: '#059669', lineHeight: 1.2 }}>
-                    பணியாளர்
-                  </Typography>
-                </Box>
-                <Typography sx={{ fontSize: '11.5px', color: '#64748B', mt: 0.3, lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  Accept dispatches & earn 98%
-                </Typography>
-              </Box>
-            </Box>
-            <ChevronRight size={18} color={selectedRole === 'technician' ? '#059669' : '#94A3B8'} style={{ flexShrink: 0 }} />
-          </Paper>
         </Box>
       </Dialog>
     </Box>
