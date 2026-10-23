@@ -6,6 +6,7 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import { Capacitor } from '@capacitor/core';
 import { API_BASE_URL } from '../config';
 import FocusCallOverlay from './FocusCallOverlay';
+import { subscribeUserToPush } from '../services/pushSubscription';
 
 export default function GlobalNotificationWatcher() {
   const navigate = useNavigate();
@@ -19,6 +20,17 @@ export default function GlobalNotificationWatcher() {
 
   // Check if current route already has its own dedicated in-page VoIP modal (TrackingPage or PartnerDutyPage)
   const isCallHandledByPage = location.pathname.startsWith('/track') || location.pathname.startsWith('/partner');
+
+  // Auto-subscribe to Web Push for background/cleared app wake-up if permissions are granted
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      const phone = user?.phone || localStorage.getItem('shazuone_partner_phone') || localStorage.getItem('shazuone_user_phone') || '';
+      const role = user?.role === 'technician' ? 'technician' : 'customer';
+      const bookingId = localStorage.getItem('shazuone_active_booking') || localStorage.getItem('shazuone_partner_active_job') || null;
+
+      subscribeUserToPush({ phone, role, bookingId }).catch(() => {});
+    }
+  }, [user]);
 
   // 1. Listen for Notification Tap Events (Opens app to the exact screen)
   useEffect(() => {

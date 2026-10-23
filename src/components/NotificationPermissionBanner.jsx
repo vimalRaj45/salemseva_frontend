@@ -5,6 +5,7 @@ import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import CloseIcon from '@mui/icons-material/Close';
 import { NativeNotifier } from '../services/nativeNotify';
 import { RingtoneService } from '../services/RingtoneService';
+import { subscribeUserToPush } from '../services/pushSubscription';
 
 export default function NotificationPermissionBanner() {
   const [showBanner, setShowBanner] = useState(false);
@@ -26,11 +27,16 @@ export default function NotificationPermissionBanner() {
 
   const handleEnable = async () => {
     // 1. Request notifications
-    await NativeNotifier.requestPermission();
+    const granted = await NativeNotifier.requestPermission();
     // 2. Unlock AudioContext with user gesture
     await RingtoneService.unlockAudio();
     // 3. Play sound confirmation so user knows audio works
     RingtoneService.playOrderStatusChime();
+
+    // 4. Register Web Push subscription for background/cleared app wake-up
+    if (granted) {
+      subscribeUserToPush({}).catch(() => {});
+    }
 
     setShowBanner(false);
     localStorage.setItem('shazuone_notif_banner_dismissed', 'true');
