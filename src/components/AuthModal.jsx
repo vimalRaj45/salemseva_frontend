@@ -33,6 +33,7 @@ import PlumbingIcon from '@mui/icons-material/Plumbing';
 import CleaningServicesIcon from '@mui/icons-material/CleaningServices';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import StarIcon from '@mui/icons-material/Star';
+import { Fingerprint } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../context/AuthContext';
@@ -51,13 +52,26 @@ export default function AuthModal() {
     loginAsCustomer,
     loginAsTechnician,
     dbTechnicians,
-    dbCustomers
+    dbCustomers,
+    loginWithPasskey,
+    checkPasskeySupport
   } = useAuth();
   const SEEDED_CUSTOMERS = dbCustomers || [];
   const VERIFIED_TECHNICIANS = dbTechnicians || [];
 
   const [activeTab, setActiveTab] = useState(authInitialTab || 'customer');
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'signup'
+  const [passkeySupported, setPasskeySupported] = useState(false);
+  
+  useEffect(() => {
+    async function testPasskey() {
+      if (checkPasskeySupport) {
+        const supported = await checkPasskeySupport();
+        setPasskeySupported(supported);
+      }
+    }
+    testPasskey();
+  }, [checkPasskeySupport]);
   
   // Form State
   const [phone, setPhone] = useState('');
@@ -294,6 +308,43 @@ export default function AuthModal() {
         {/* Form */}
         <Box component="form" onSubmit={handleAuthSubmit}>
           
+          {/* 1-Tap Biometric Passkey Login Banner */}
+          {authMode === 'login' && passkeySupported && (
+            <Button
+              fullWidth
+              variant="outlined"
+              onClick={async () => {
+                try {
+                  setLoading(true);
+                  await loginWithPasskey(phone);
+                  closeAuthModal();
+                } catch (err) {
+                  setStatusMessage({ type: 'error', text: err.message || 'Passkey authentication failed' });
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              startIcon={<Fingerprint size={16} />}
+              sx={{
+                mb: 1.5,
+                borderColor: '#0284C7',
+                bgcolor: 'rgba(2, 132, 199, 0.12)',
+                color: '#38BDF8',
+                borderRadius: '8px',
+                fontWeight: 700,
+                fontSize: '12.5px',
+                textTransform: 'none',
+                py: 0.8,
+                '&:hover': {
+                  bgcolor: 'rgba(2, 132, 199, 0.2)',
+                  borderColor: '#38BDF8'
+                }
+              }}
+            >
+              1-Tap Biometric Sign In (Passkey)
+            </Button>
+          )}
+
           {/* Phone Field */}
           <Typography variant="caption" sx={{ fontWeight: 600, color: '#94A3B8', display: 'block', mb: 0.5 }}>
             Phone number
@@ -654,6 +705,24 @@ export default function AuthModal() {
             )}
           </Button>
 
+          <Box sx={{ mt: 1.5, textAlign: 'center' }}>
+            <Button
+              size="small"
+              variant="text"
+              onClick={() => {
+                closeAuthModal();
+                navigate('/login');
+              }}
+              sx={{
+                color: '#94A3B8',
+                fontSize: '11.5px',
+                textTransform: 'none',
+                '&:hover': { color: '#38BDF8', textDecoration: 'underline' }
+              }}
+            >
+              Prefer WhatsApp OTP or Passkey? Open Dedicated Sign In
+            </Button>
+          </Box>
         </Box>
 
       </ModalBody>

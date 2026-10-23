@@ -10,6 +10,12 @@ import Modal, { ModalHeader, ModalBody, ModalFooter } from '../components/Modal'
 import DevicesIcon from '@mui/icons-material/Devices';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import {
+  startRegistration,
+  startAuthentication,
+  browserSupportsWebAuthn,
+  platformAuthenticatorIsAvailable
+} from '@simplewebauthn/browser';
 
 import { API_BASE_URL } from '../config';
 
@@ -351,6 +357,165 @@ export function AuthProvider({ children }) {
   };
 
   // Production Registration
+  // Request 6-digit WhatsApp OTP
+  const requestWhatsAppOtp = async (phone, purpose = 'register') => {
+    try {
+      const cleanPhone = (phone || '').replace(/[^0-9]/g, '').slice(-10);
+      const res = await fetch(`${API_BASE_URL}/api/v1/auth/otp/request`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: cleanPhone, purpose })
+      });
+      const data = await res.json();
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to send WhatsApp OTP code');
+      }
+      return data;
+    } catch (err) {
+      console.error('WhatsApp OTP request error:', err.message);
+      throw err;
+    }
+  };
+
+  // Verify 6-digit WhatsApp OTP
+  const verifyWhatsAppOtp = async (phone, otp, purpose = 'register') => {
+    try {
+      const cleanPhone = (phone || '').replace(/[^0-9]/g, '').slice(-10);
+      const res = await fetch(`${API_BASE_URL}/api/v1/auth/otp/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: cleanPhone, otp: (otp || '').trim(), purpose })
+      });
+      const data = await res.json();
+      if (!data.success) {
+        throw new Error(data.error || 'OTP verification failed');
+      }
+      if (data.user && purpose === 'login') {
+        setUser(data.user);
+        localStorage.setItem('shazuone_user', JSON.stringify(data.user));
+        if (data.user.role === 'technician') {
+          setTechUser(data.user);
+          localStorage.setItem('shazuone_tech_user', JSON.stringify(data.user));
+        }
+        if (data.sessionToken) {
+          sessionTokenRef.current = data.sessionToken;
+          localStorage.setItem('shazuone_session_token', data.sessionToken);
+        }
+        setAuthModalOpen(false);
+      }
+      return data;
+    } catch (err) {
+      console.error('WhatsApp OTP verify error:', err.message);
+      throw err;
+    }
+  };
+
+  // Set / Reset Password using Verification Token
+  const setPasswordWithToken = async ({ phone, verificationToken, newPassword, role = 'customer' }) => {
+    try {
+      const cleanPhone = (phone || '').replace(/[^0-9]/g, '').slice(-10);
+      const res = await fetch(`${API_BASE_URL}/api/v1/auth/password/set`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: cleanPhone, verificationToken, newPassword, role })
+      });
+      const data = await res.json();
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to update password');
+      }
+      return data;
+    } catch (err) {
+      console.error('Password set error:', err.message);
+      throw err;
+    }
+  };
+
+  // Check WebAuthn / Passkey capability on current device
+  const checkPasskeySupport = async () => {
+    try {
+      if (!browserSupportsWebAuthn()) return false;
+      return await platformAuthenticatorIsAvailable();
+    } catch (e) {
+      return false;
+    }
+  };
+
+  // Register Passkey (Fingerprint / FaceID)
+  const registerPasskey = async (phone) => {
+    try {
+      const cleanPhone = (phone || '').replace(/[^0-9]/g, '').slice(-10);
+      const res = await fetch(`${API_BASE_URL}/api/v1/auth/passkey/register-options`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: cleanPhone })
+      });
+      const data = await res.json();
+      if (!data.success || !data.options) {
+        throw new Error(data.error || 'Failed to initialize biometric registration');
+      }
+
+      const regResponse = await startRegistration({ optionsJSON: data.options });
+
+      const verifyRes = await fetch(`${API_BASE_URL}/api/v1/auth/passkey/register-verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: cleanPhone, response: regResponse })
+      });
+      const verifyData = await verifyRes.json();
+      if (!verifyData.success) {
+        throw new Error(verifyData.error || 'Failed to register Passkey');
+      }
+      return verifyData;
+    } catch (err) {
+      console.error('Passkey registration error:', err.message);
+      throw err;
+    }
+  };
+
+  // Sign in using Passkey (1-tap Biometric)
+  const loginWithPasskey = async (phone = '') => {
+    try {
+      const cleanPhone = (phone || '').replace(/[^0-9]/g, '').slice(-10);
+      const res = await fetch(`${API_BASE_URL}/api/v1/auth/passkey/login-options`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: cleanPhone })
+      });
+      const data = await res.json();
+      if (!data.success || !data.options) {
+        throw new Error(data.error || 'Failed to initialize biometric authentication');
+      }
+
+      const authResponse = await startAuthentication({ optionsJSON: data.options });
+
+      const verifyRes = await fetch(`${API_BASE_URL}/api/v1/auth/passkey/login-verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: cleanPhone, response: authResponse })
+      });
+      const verifyData = await verifyRes.json();
+      if (!verifyData.success || !verifyData.user) {
+        throw new Error(verifyData.error || 'Biometric authentication was not recognized');
+      }
+
+      setUser(verifyData.user);
+      localStorage.setItem('shazuone_user', JSON.stringify(verifyData.user));
+      if (verifyData.user.role === 'technician') {
+        setTechUser(verifyData.user);
+        localStorage.setItem('shazuone_tech_user', JSON.stringify(verifyData.user));
+      }
+      if (verifyData.sessionToken) {
+        sessionTokenRef.current = verifyData.sessionToken;
+        localStorage.setItem('shazuone_session_token', verifyData.sessionToken);
+      }
+      setAuthModalOpen(false);
+      return verifyData.user;
+    } catch (err) {
+      console.error('Passkey login error:', err.message);
+      throw err;
+    }
+  };
+
   const registerAccount = async (payload) => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/v1/auth/register`, {
@@ -719,6 +884,12 @@ export function AuthProvider({ children }) {
         setAuthInitialTab,
         loginWithPhonePassword,
         loginWithCredentials,
+        requestWhatsAppOtp,
+        verifyWhatsAppOtp,
+        setPasswordWithToken,
+        checkPasskeySupport,
+        registerPasskey,
+        loginWithPasskey,
         registerAccount,
         signupCustomer,
         signupTechnician,

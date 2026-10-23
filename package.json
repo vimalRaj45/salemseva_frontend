@@ -24,6 +24,7 @@
     "@emotion/styled": "^11.11.5",
     "@mui/icons-material": "^5.15.15",
     "@mui/material": "^5.15.15",
+    "@simplewebauthn/browser": "^14.0.0",
     "capacitor-razorpay": "github:razorpay/razorpay-capacitor",
     "leaflet": "^1.9.4",
     "lottie-react": "^3.1.2",
