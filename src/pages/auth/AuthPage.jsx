@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Typography,
@@ -12,8 +12,7 @@ import {
   CircularProgress,
   Alert,
   Checkbox,
-  FormControlLabel,
-  Dialog
+  FormControlLabel
 } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -76,27 +75,8 @@ export default function AuthPage({ initialMode = 'login' }) {
   const initialRoleParam = queryParams.get('role');
   const redirectTarget = queryParams.get('redirect') || '/';
 
-  // If already logged in, redirect appropriately unless customer wants to register as partner
-  useEffect(() => {
-    if (user) {
-      const isRegisteringPartner = (initialRoleParam === 'partner' || initialRoleParam === 'technician') && (user.role === 'customer' || !user.role);
-      if (isRegisteringPartner) {
-        setSelectedRole('technician');
-        setViewMode('auth');
-        setAuthMode('register');
-        if (user.name && !fullName) setFullName(user.name);
-        if (user.phone && !phone) setPhone(user.phone.replace(/[^0-9]/g, '').slice(-10));
-        return;
-      }
-      if (user.role === 'technician' || user.role === 'partner') {
-        navigate('/partner', { replace: true });
-      } else if (user.role === 'admin') {
-        navigate('/admin', { replace: true });
-      } else {
-        navigate(redirectTarget, { replace: true });
-      }
-    }
-  }, [user, navigate, redirectTarget, initialRoleParam]);
+  // Flag to prevent immediate redirect while completing Step 3 (Passkey setup)
+  const isNewRegistrationRef = useRef(false);
 
   // Mode: 'login' | 'register' | 'forgot_password'
   const isRegisterRoute = location.pathname === '/register' || initialMode === 'register';
@@ -126,7 +106,7 @@ export default function AuthPage({ initialMode = 'login' }) {
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Multi-step Registration: Step 1 (WhatsApp OTP) -> Step 2 (Set Password) -> Step 3 (Passkey Prompt)
+  // Multi-step Registration: Step 1 (WhatsApp OTP) -> Step 2 (Set Password) -> Step 3 (Passkey Setup)
   const [registerStep, setRegisterStep] = useState(1);
   const [registrationToken, setRegistrationToken] = useState('');
 
@@ -144,9 +124,8 @@ export default function AuthPage({ initialMode = 'login' }) {
   const [expiryRemaining, setExpiryRemaining] = useState(0);
   const [isOtpSent, setIsOtpSent] = useState(false);
 
-  // Passkey availability & dialog
+  // Passkey availability
   const [passkeySupported, setPasskeySupported] = useState(false);
-  const [passkeyPromptOpen, setPasskeyPromptOpen] = useState(false);
   const [registeredUserPhone, setRegisteredUserPhone] = useState('');
 
   // Status
@@ -183,6 +162,32 @@ export default function AuthPage({ initialMode = 'login' }) {
     }
     checkSupport();
   }, [checkPasskeySupport]);
+
+  // If already logged in, redirect appropriately unless customer wants to register as partner or is completing Passkey step
+  useEffect(() => {
+    if (user) {
+      // Pause automatic redirect if user is in the middle of registration step 3 (Passkey setup)
+      if (isNewRegistrationRef.current || registerStep === 3) {
+        return;
+      }
+      const isRegisteringPartner = (initialRoleParam === 'partner' || initialRoleParam === 'technician') && (user.role === 'customer' || !user.role);
+      if (isRegisteringPartner) {
+        setSelectedRole('technician');
+        setViewMode('auth');
+        setAuthMode('register');
+        if (user.name && !fullName) setFullName(user.name);
+        if (user.phone && !phone) setPhone(user.phone.replace(/[^0-9]/g, '').slice(-10));
+        return;
+      }
+      if (user.role === 'technician' || user.role === 'partner') {
+        navigate('/partner', { replace: true });
+      } else if (user.role === 'admin') {
+        navigate('/admin', { replace: true });
+      } else {
+        navigate(redirectTarget, { replace: true });
+      }
+    }
+  }, [user, navigate, redirectTarget, initialRoleParam, registerStep]);
 
   useEffect(() => {
     if (initialRoleParam === 'partner' || initialRoleParam === 'technician') {
@@ -344,7 +349,10 @@ export default function AuthPage({ initialMode = 'login' }) {
       return;
     }
 
+    // Set flag so useEffect does NOT auto-redirect before user sees Passkey setup
+    isNewRegistrationRef.current = true;
     setIsLoading(true);
+
     try {
       await registerAccount({
         name: fullName.trim(),
@@ -355,15 +363,13 @@ export default function AuthPage({ initialMode = 'login' }) {
         referralCode: referralCode.trim()
       });
       setIsLoading(false);
+      setRegisteredUserPhone(cleanPhone);
       toast.success('Account created successfully! Welcome credits added.');
 
-      // If device supports Passkeys, offer 1-tap passkey registration
-      if (passkeySupported) {
-        setPasskeyPromptOpen(true);
-      } else {
-        navigate(redirectTarget);
-      }
+      // Move directly to Step 3 (Passkey setup) in-page
+      setRegisterStep(3);
     } catch (err) {
+      isNewRegistrationRef.current = false;
       setIsLoading(false);
       const msg = err.message || 'Registration failed. Please try again.';
       setErrorMessage(msg);
@@ -371,19 +377,39 @@ export default function AuthPage({ initialMode = 'login' }) {
     }
   };
 
-  // Register Passkey on newly created account
+  // Step 3: Register Passkey on newly created account
   const handleEnablePasskey = async () => {
     try {
       setIsLoading(true);
-      await registerPasskey(registeredUserPhone || phone);
+      const cleanPhone = (registeredUserPhone || phone || user?.phone || '').replace(/[^0-9]/g, '').slice(-10);
+      await registerPasskey(cleanPhone);
       setIsLoading(false);
-      setPasskeyPromptOpen(false);
+      isNewRegistrationRef.current = false;
       toast.success('Passkey linked! You can now use Fingerprint / FaceID for 1-tap sign-in.');
-      navigate(redirectTarget);
+      if (selectedRole === 'technician' || user?.role === 'technician' || user?.role === 'partner') {
+        navigate('/partner', { replace: true });
+      } else {
+        navigate(redirectTarget, { replace: true });
+      }
     } catch (err) {
       setIsLoading(false);
+      isNewRegistrationRef.current = false;
       toast.error(err.message || 'Passkey setup cancelled.');
-      navigate(redirectTarget);
+      if (selectedRole === 'technician' || user?.role === 'technician' || user?.role === 'partner') {
+        navigate('/partner', { replace: true });
+      } else {
+        navigate(redirectTarget, { replace: true });
+      }
+    }
+  };
+
+  // Step 3: Skip Passkey and continue to destination
+  const handleSkipPasskey = () => {
+    isNewRegistrationRef.current = false;
+    if (selectedRole === 'technician' || user?.role === 'technician' || user?.role === 'partner') {
+      navigate('/partner', { replace: true });
+    } else {
+      navigate(redirectTarget, { replace: true });
     }
   };
 
@@ -766,7 +792,7 @@ export default function AuthPage({ initialMode = 'login' }) {
                   </Typography>
                   <Typography variant="body2" sx={{ color: '#475569', fontSize: '12px', lineHeight: 1.4 }}>
                     {authMode === 'login' && (isTech ? 'Access duty radar, leads, and daily earnings.' : 'Sign in using your password or 1-tap Fingerprint / FaceID.')}
-                    {authMode === 'register' && 'Verify your mobile via free WhatsApp OTP to set up your account.'}
+                    {authMode === 'register' && (registerStep === 3 ? 'Set up 1-tap Fingerprint / FaceID sign-in on this device.' : 'Verify your mobile via free WhatsApp OTP to set up your account.')}
                     {authMode === 'forgot_password' && 'Enter your mobile number to receive a secure WhatsApp reset code.'}
                   </Typography>
                 </Box>
@@ -1018,13 +1044,14 @@ export default function AuthPage({ initialMode = 'login' }) {
                   <Box>
                     {/* Stepper Navigation Header with Back Button */}
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
-                      {/* Step Indicator */}
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
+                      {/* Step Indicator (1: OTP -> 2: Password -> 3: Passkey) */}
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                        {/* Step 1 */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                           <Box
                             sx={{
-                              width: 22,
-                              height: 22,
+                              width: 20,
+                              height: 20,
                               borderRadius: '50%',
                               bgcolor: registerStep >= 1 ? brandPrimary : '#E2E8F0',
                               color: '#FFFFFF',
@@ -1037,18 +1064,19 @@ export default function AuthPage({ initialMode = 'login' }) {
                           >
                             1
                           </Box>
-                          <Typography sx={{ fontSize: '11.5px', fontWeight: 700, color: registerStep === 1 ? '#0F172A' : '#64748B' }}>
-                            WhatsApp OTP
+                          <Typography sx={{ fontSize: '11px', fontWeight: 700, color: registerStep === 1 ? '#0F172A' : '#64748B' }}>
+                            OTP
                           </Typography>
                         </Box>
 
-                        <Box sx={{ width: 24, height: '2px', bgcolor: registerStep >= 2 ? brandPrimary : '#E2E8F0' }} />
+                        <Box sx={{ width: 14, height: '2px', bgcolor: registerStep >= 2 ? brandPrimary : '#E2E8F0' }} />
 
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
+                        {/* Step 2 */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                           <Box
                             sx={{
-                              width: 22,
-                              height: 22,
+                              width: 20,
+                              height: 20,
                               borderRadius: '50%',
                               bgcolor: registerStep >= 2 ? brandPrimary : '#E2E8F0',
                               color: '#FFFFFF',
@@ -1061,14 +1089,39 @@ export default function AuthPage({ initialMode = 'login' }) {
                           >
                             2
                           </Box>
-                          <Typography sx={{ fontSize: '11.5px', fontWeight: 700, color: registerStep === 2 ? '#0F172A' : '#64748B' }}>
-                            Set Password
+                          <Typography sx={{ fontSize: '11px', fontWeight: 700, color: registerStep === 2 ? '#0F172A' : '#64748B' }}>
+                            Password
+                          </Typography>
+                        </Box>
+
+                        <Box sx={{ width: 14, height: '2px', bgcolor: registerStep >= 3 ? brandPrimary : '#E2E8F0' }} />
+
+                        {/* Step 3 */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <Box
+                            sx={{
+                              width: 20,
+                              height: 20,
+                              borderRadius: '50%',
+                              bgcolor: registerStep >= 3 ? brandPrimary : '#E2E8F0',
+                              color: '#FFFFFF',
+                              fontSize: '11px',
+                              fontWeight: 800,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            3
+                          </Box>
+                          <Typography sx={{ fontSize: '11px', fontWeight: 700, color: registerStep === 3 ? '#0F172A' : '#64748B' }}>
+                            Passkey
                           </Typography>
                         </Box>
                       </Box>
 
-                      {/* Stepper Back Button */}
-                      {registerStep === 2 ? (
+                      {/* Stepper Back Navigation Buttons */}
+                      {registerStep === 2 && (
                         <Button
                           size="small"
                           variant="text"
@@ -1088,7 +1141,8 @@ export default function AuthPage({ initialMode = 'login' }) {
                         >
                           Back to Step 1
                         </Button>
-                      ) : (
+                      )}
+                      {registerStep === 1 && (
                         <Button
                           size="small"
                           variant="text"
@@ -1421,6 +1475,75 @@ export default function AuthPage({ initialMode = 'login' }) {
                             }}
                           >
                             {isLoading ? <CircularProgress size={18} color="inherit" /> : 'Complete Registration'}
+                          </Button>
+                        </Box>
+                      </Box>
+                    )}
+
+                    {/* Step 3: Enable 1-Tap Biometric (Passkey) Setup Directly In-Page */}
+                    {registerStep === 3 && (
+                      <Box sx={{ textAlign: 'center', py: 2 }}>
+                        <Box
+                          sx={{
+                            width: 62,
+                            height: 62,
+                            borderRadius: '18px',
+                            bgcolor: brandSoftBg,
+                            color: brandPrimary,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            mx: 'auto',
+                            mb: 2,
+                            border: `2px solid ${brandBorder}`
+                          }}
+                        >
+                          <Fingerprint size={36} />
+                        </Box>
+
+                        <Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A', mb: 0.5, fontSize: '1.25rem' }}>
+                          Enable 1-Tap Biometric Sign In
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: '#64748B', fontSize: '12.5px', lineHeight: 1.4, mb: 3, maxWidth: '340px', mx: 'auto' }}>
+                          Account created successfully! Link your Fingerprint or FaceID (Passkey) now so you can sign in with 1 tap on this device.
+                        </Typography>
+
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2, maxWidth: '320px', mx: 'auto' }}>
+                          <Button
+                            fullWidth
+                            variant="contained"
+                            onClick={handleEnablePasskey}
+                            disabled={isLoading}
+                            startIcon={<Fingerprint size={18} />}
+                            sx={{
+                              bgcolor: brandPrimary,
+                              color: '#FFFFFF',
+                              height: '42px',
+                              borderRadius: '10px',
+                              fontWeight: 800,
+                              fontSize: '13px',
+                              textTransform: 'none',
+                              boxShadow: '0 4px 14px rgba(2, 132, 199, 0.25)',
+                              '&:hover': { bgcolor: brandHover }
+                            }}
+                          >
+                            {isLoading ? <CircularProgress size={18} color="inherit" /> : 'Enable Fingerprint / FaceID'}
+                          </Button>
+
+                          <Button
+                            fullWidth
+                            variant="text"
+                            onClick={handleSkipPasskey}
+                            disabled={isLoading}
+                            sx={{
+                              color: '#64748B',
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              textTransform: 'none',
+                              '&:hover': { color: '#0F172A', bgcolor: 'transparent' }
+                            }}
+                          >
+                            Skip and Go to Dashboard
                           </Button>
                         </Box>
                       </Box>
@@ -1789,90 +1912,6 @@ export default function AuthPage({ initialMode = 'login' }) {
 
       {/* Account Trouble / Help Modal */}
       <AuthHelpModal open={helpModalOpen} onClose={() => setHelpModalOpen(false)} />
-
-      {/* Post-Registration 1-Tap Passkey Enable Dialog */}
-      <Dialog
-        open={passkeyPromptOpen}
-        onClose={() => {
-          setPasskeyPromptOpen(false);
-          navigate(redirectTarget);
-        }}
-        maxWidth="xs"
-        fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: '20px',
-            p: 2.5,
-            bgcolor: '#FFFFFF',
-            border: '1px solid #E2E8F0',
-            maxWidth: '380px'
-          }
-        }}
-      >
-        <Box sx={{ textAlign: 'center', mb: 2 }}>
-          <Box
-            sx={{
-              width: 54,
-              height: 54,
-              borderRadius: '16px',
-              bgcolor: '#F0F9FF',
-              color: '#0284C7',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              mx: 'auto',
-              mb: 1.5
-            }}
-          >
-            <Fingerprint size={32} />
-          </Box>
-          <Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A', mb: 0.5, fontSize: '1.2rem' }}>
-            Enable 1-Tap Biometric Sign In?
-          </Typography>
-          <Typography variant="body2" sx={{ color: '#64748B', fontSize: '12.5px', lineHeight: 1.4 }}>
-            Skip typing passwords on this device. Sign in with Fingerprint or FaceID whenever you return.
-          </Typography>
-        </Box>
-
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-          <Button
-            fullWidth
-            variant="contained"
-            onClick={handleEnablePasskey}
-            disabled={isLoading}
-            startIcon={<Fingerprint size={18} />}
-            sx={{
-              bgcolor: '#0284C7',
-              color: '#FFFFFF',
-              height: '42px',
-              borderRadius: '10px',
-              fontWeight: 800,
-              fontSize: '13px',
-              textTransform: 'none',
-              '&:hover': { bgcolor: '#0369A1' }
-            }}
-          >
-            {isLoading ? <CircularProgress size={18} color="inherit" /> : 'Enable Fingerprint / FaceID'}
-          </Button>
-
-          <Button
-            fullWidth
-            variant="text"
-            onClick={() => {
-              setPasskeyPromptOpen(false);
-              navigate(redirectTarget);
-            }}
-            sx={{
-              color: '#64748B',
-              fontSize: '12px',
-              fontWeight: 700,
-              textTransform: 'none'
-            }}
-          >
-            Maybe Later
-          </Button>
-        </Box>
-      </Dialog>
     </Box>
   );
 }
