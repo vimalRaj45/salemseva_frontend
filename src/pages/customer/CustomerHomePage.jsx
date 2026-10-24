@@ -42,6 +42,7 @@ import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 
 import { ApiService } from '../../services/api';
 import LocationPickerModal from '../../components/LocationPickerModal';
+import DynamicTrustTicker from '../../components/DynamicTrustTicker';
 import { useAuth } from '../../context/AuthContext';
 
 export default function CustomerHomePage() {
@@ -448,43 +449,8 @@ export default function CustomerHomePage() {
           </Box>
         </Paper>
 
-        {/* Central Ops Scheduled Service Guarantee Ribbon */}
-        <Box
-          sx={{
-            p: 1.2,
-            mb: 2,
-            borderRadius: '10px',
-            bgcolor: '#F0FDF4',
-            border: '1px solid #BBF7D0',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1.2
-          }}
-        >
-          <Box sx={{ width: 28, height: 28, borderRadius: '6px', bgcolor: '#16A34A', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <CalendarMonthIcon sx={{ fontSize: 16 }} />
-          </Box>
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography variant="caption" sx={{ fontWeight: 800, color: '#166534', fontSize: '11.5px', display: 'block' }}>
-              Scheduled Home Services • Central Ops Dispatched
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#15803D', fontSize: '11px', display: 'block' }}>
-              Select a service below to reserve your slot. Shazu One Central Ops assigns verified technicians.
-            </Typography>
-          </Box>
-          <Chip
-            label="Verified Dispatch"
-            size="small"
-            sx={{
-              display: { xs: 'none', sm: 'inline-flex' },
-              bgcolor: '#DCFCE7',
-              color: '#166534',
-              fontWeight: 700,
-              fontSize: '10px',
-              height: 20
-            }}
-          />
-        </Box>
+        {/* Dynamic & Animated Salem Live Trust Strip */}
+        <DynamicTrustTicker locality={user?.locality || 'Fairlands, Salem'} />
 
         {/* Active Connected Service Banner (Persistent Real-Time Sync) */}
         {user && activeBooking && activeBooking.booking?.id && (() => {

@@ -10,6 +10,9 @@ import Modal, { ModalHeader, ModalBody, ModalFooter } from '../components/Modal'
 import DevicesIcon from '@mui/icons-material/Devices';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import FingerprintIcon from '@mui/icons-material/Fingerprint';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import toast from 'react-hot-toast';
 import {
   startRegistration,
   startAuthentication,
@@ -500,6 +503,7 @@ export function AuthProvider({ children }) {
 
       setUser(verifyData.user);
       localStorage.setItem('shazuone_user', JSON.stringify(verifyData.user));
+      sessionStorage.setItem('shazuone_logged_in_with_passkey', 'true');
       if (verifyData.user.role === 'technician') {
         setTechUser(verifyData.user);
         localStorage.setItem('shazuone_tech_user', JSON.stringify(verifyData.user));
@@ -547,6 +551,62 @@ export function AuthProvider({ children }) {
       console.error('Passkey deletion error:', err);
       throw err;
     }
+  };
+
+  // Passkey Easy-Login Automatic Popup Prompt State
+  const [passkeyPromptOpen, setPasskeyPromptOpen] = useState(false);
+  const [passkeyEnrolling, setPasskeyEnrolling] = useState(false);
+
+  const triggerPasskeyPromptIfEligible = async (targetUser) => {
+    try {
+      const activeUser = targetUser || user || techUser;
+      if (!activeUser || !activeUser.phone) return;
+      if (sessionStorage.getItem('shazuone_passkey_prompt_dismissed') === 'true') return;
+      if (sessionStorage.getItem('shazuone_logged_in_with_passkey') === 'true') return;
+
+      const isSupported = await checkPasskeySupport();
+      if (!isSupported) return;
+
+      const status = await getPasskeyStatus(activeUser.phone);
+      if (status && !status.hasPasskey) {
+        setTimeout(() => {
+          setPasskeyPromptOpen(true);
+        }, 900);
+      }
+    } catch (e) {
+      console.warn('Passkey prompt auto-check note:', e);
+    }
+  };
+
+  useEffect(() => {
+    const active = user || techUser;
+    if (active?.phone) {
+      triggerPasskeyPromptIfEligible(active);
+    }
+  }, [user?.phone, techUser?.phone]);
+
+  const handleEnablePasskeyFromPrompt = async () => {
+    const activeUser = user || techUser;
+    const phone = activeUser?.phone;
+    if (!phone) return;
+    setPasskeyEnrolling(true);
+    try {
+      const result = await registerPasskey(phone);
+      if (result && result.success) {
+        toast.success('கைரேகை லாகின் வெற்றிகரமாக இணைக்கப்பட்டது! (1-Tap Login enabled)');
+        setPasskeyPromptOpen(false);
+        sessionStorage.setItem('shazuone_passkey_prompt_dismissed', 'true');
+      }
+    } catch (err) {
+      toast.error(err.message || 'Passkey enrollment was cancelled or failed');
+    } finally {
+      setPasskeyEnrolling(false);
+    }
+  };
+
+  const handleDismissPasskeyPrompt = () => {
+    setPasskeyPromptOpen(false);
+    sessionStorage.setItem('shazuone_passkey_prompt_dismissed', 'true');
   };
 
   const registerAccount = async (payload) => {
@@ -925,6 +985,9 @@ export function AuthProvider({ children }) {
         loginWithPasskey,
         getPasskeyStatus,
         deletePasskey,
+        passkeyPromptOpen,
+        openPasskeyPrompt: () => setPasskeyPromptOpen(true),
+        closePasskeyPrompt: handleDismissPasskeyPrompt,
         registerAccount,
         signupCustomer,
         signupTechnician,
@@ -1004,6 +1067,132 @@ export function AuthProvider({ children }) {
           >
             Log in again
           </Button>
+        </ModalFooter>
+      </Modal>
+
+      {/* 1-TAP FINGERPRINT / PASSKEY ENROLLMENT PROMPT MODAL */}
+      <Modal
+        open={passkeyPromptOpen}
+        onClose={handleDismissPasskeyPrompt}
+        maxWidth="xs"
+      >
+        <ModalHeader
+          title="Enable 1-Tap Login (கைரேகை லாகின்)"
+          subtitle="Fast, password-free login next time"
+          onClose={handleDismissPasskeyPrompt}
+        />
+
+        <ModalBody>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              textAlign: 'center',
+              pt: 0.5,
+              pb: 1.5
+            }}
+          >
+            <Box
+              sx={{
+                width: 60,
+                height: 60,
+                borderRadius: '50%',
+                bgcolor: '#EFF6FF',
+                border: '1.5px solid #BFDBFE',
+                color: '#0066CC',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mb: 1.8,
+                boxShadow: '0 4px 14px rgba(0, 102, 204, 0.15)'
+              }}
+            >
+              <FingerprintIcon sx={{ fontSize: 34 }} />
+            </Box>
+
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '15.5px', mb: 0.5 }}>
+              Use Fingerprint / Face ID for Easy Login?
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#475569', fontSize: '12.5px', lineHeight: 1.5, mb: 2, px: 0.5 }}>
+              அடுத்த முறை கடவுச்சொல் தட்டச்சு செய்யாமல், உங்கள் போன் கைரேகை மூலம் 1 நொடியில் எளிதாக உள்நுழையலாம்.
+            </Typography>
+
+            <Box
+              sx={{
+                width: '100%',
+                bgcolor: '#F8FAFC',
+                border: '1px solid #E2E8F0',
+                borderRadius: '12px',
+                p: 1.5,
+                textAlign: 'left',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 1
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CheckCircleIcon sx={{ fontSize: 16, color: '#16A34A', flexShrink: 0 }} />
+                <Typography variant="caption" sx={{ color: '#334155', fontWeight: 600, fontSize: '12px' }}>
+                  1-Tap Sign-in • No passwords to memorize
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CheckCircleIcon sx={{ fontSize: 16, color: '#16A34A', flexShrink: 0 }} />
+                <Typography variant="caption" sx={{ color: '#334155', fontWeight: 600, fontSize: '12px' }}>
+                  Stored safely in your phone hardware
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CheckCircleIcon sx={{ fontSize: 16, color: '#16A34A', flexShrink: 0 }} />
+                <Typography variant="caption" sx={{ color: '#334155', fontWeight: 600, fontSize: '12px' }}>
+                  Works for both Customers and Specialists
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+        </ModalBody>
+
+        <ModalFooter>
+          <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Button
+              fullWidth
+              variant="contained"
+              onClick={handleEnablePasskeyFromPrompt}
+              disabled={passkeyEnrolling}
+              startIcon={<FingerprintIcon sx={{ fontSize: 18 }} />}
+              sx={{
+                bgcolor: '#0066CC',
+                color: '#FFF',
+                borderRadius: '12px',
+                height: 46,
+                fontWeight: 700,
+                fontSize: '13.5px',
+                textTransform: 'none',
+                boxShadow: '0 2px 8px rgba(0, 102, 204, 0.25)',
+                '&:hover': { bgcolor: '#0052A3' }
+              }}
+            >
+              {passkeyEnrolling ? 'Verifying on device...' : 'Enable 1-Tap Login (இப்போது இணைக்கவும்)'}
+            </Button>
+            <Button
+              fullWidth
+              variant="text"
+              onClick={handleDismissPasskeyPrompt}
+              disabled={passkeyEnrolling}
+              sx={{
+                color: '#64748B',
+                borderRadius: '12px',
+                height: 38,
+                fontWeight: 600,
+                fontSize: '12.5px',
+                textTransform: 'none',
+                '&:hover': { bgcolor: '#F1F5F9' }
+              }}
+            >
+              Maybe Later (பிறகு செய்கிறேன்)
+            </Button>
+          </Box>
         </ModalFooter>
       </Modal>
     </AuthContext.Provider>
