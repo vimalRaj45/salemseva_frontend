@@ -37,13 +37,25 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import ShieldIcon from '@mui/icons-material/Shield';
+import FingerprintIcon from '@mui/icons-material/Fingerprint';
+import VpnKeyIcon from '@mui/icons-material/VpnKey';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import SecurityIcon from '@mui/icons-material/Security';
 
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 
 export default function WalletHubPage() {
   const navigate = useNavigate();
-  const { walletBalance, user, rewardSettings } = useAuth();
+  const {
+    walletBalance,
+    user,
+    rewardSettings,
+    registerPasskey,
+    checkPasskeySupport,
+    getPasskeyStatus,
+    deletePasskey
+  } = useAuth();
 
   const rewardCredits = parseFloat(rewardSettings?.customer_referral_credits || 50);
   const refereeDiscount = parseFloat(rewardSettings?.referee_discount_amount || 50);
@@ -57,7 +69,59 @@ export default function WalletHubPage() {
     creditsEarned: 0
   });
 
+  const [passkeyStatus, setPasskeyStatus] = useState({ hasPasskey: false, count: 0, lastLinked: null });
+  const [passkeyLoading, setPasskeyLoading] = useState(false);
+  const [passkeySupported, setPasskeySupported] = useState(true);
+
   const myReferralCode = user?.referralCodeUsed || 'SHAZU100';
+
+  const loadPasskeyStatus = async () => {
+    if (!user?.phone) return;
+    try {
+      const isSupp = await checkPasskeySupport();
+      setPasskeySupported(isSupp);
+      const res = await getPasskeyStatus(user.phone);
+      if (res && res.success) {
+        setPasskeyStatus(res);
+      }
+    } catch (e) {
+      console.warn('Failed to load passkey status:', e);
+    }
+  };
+
+  useEffect(() => {
+    loadPasskeyStatus();
+  }, [user?.phone]);
+
+  const handleEnablePasskey = async () => {
+    if (!user?.phone) return;
+    setPasskeyLoading(true);
+    try {
+      const result = await registerPasskey(user.phone);
+      if (result && result.success) {
+        toast.success('Passkey linked successfully. You can now use Fingerprint or Face ID to sign in.');
+        await loadPasskeyStatus();
+      }
+    } catch (err) {
+      toast.error(err.message || 'Passkey registration cancelled or failed');
+    } finally {
+      setPasskeyLoading(false);
+    }
+  };
+
+  const handleUnlinkPasskey = async () => {
+    if (!window.confirm('Are you sure you want to remove your biometric passkey from this device?')) return;
+    setPasskeyLoading(true);
+    try {
+      await deletePasskey(user.phone);
+      toast.success('Biometric passkey unlinked successfully');
+      await loadPasskeyStatus();
+    } catch (err) {
+      toast.error(err.message || 'Failed to remove passkey');
+    } finally {
+      setPasskeyLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetch(`${API_V1_URL}/wallet/customer`)
@@ -469,6 +533,106 @@ export default function WalletHubPage() {
                   </Typography>
                 </Box>
               </Paper>
+            </Card>
+
+            {/* 3b. Biometric Passkey & 1-Tap Login Security Card */}
+            <Card
+              elevation={0}
+              sx={{
+                bgcolor: '#FFFFFF',
+                border: '1.5px solid #E2E8F0',
+                borderRadius: '20px',
+                p: { xs: 2.2, sm: 2.8 },
+                mb: 2.5,
+                boxShadow: '0 4px 16px rgba(15, 23, 42, 0.05)'
+              }}
+            >
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <FingerprintIcon sx={{ color: '#0066CC', fontSize: 24 }} />
+                  <Box>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0F172A', fontSize: '15px', lineHeight: 1.2 }}>
+                      Biometric Passkey (கைரேகை / Face ID)
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11.5px', fontWeight: 500 }}>
+                      Fast, passwordless 1-tap authentication using your device hardware
+                    </Typography>
+                  </Box>
+                </Box>
+                <Chip
+                  icon={passkeyStatus.hasPasskey ? <CheckCircleIcon sx={{ fontSize: '14px !important', color: '#047857 !important' }} /> : <SecurityIcon sx={{ fontSize: '14px !important', color: '#64748B !important' }} />}
+                  label={passkeyStatus.hasPasskey ? 'Passkey Active' : 'Not Linked'}
+                  size="small"
+                  sx={{
+                    bgcolor: passkeyStatus.hasPasskey ? '#ECFDF5' : '#F1F5F9',
+                    color: passkeyStatus.hasPasskey ? '#047857' : '#475569',
+                    border: `1px solid ${passkeyStatus.hasPasskey ? '#A7F3D0' : '#CBD5E1'}`,
+                    fontWeight: 800,
+                    fontSize: '11px',
+                    height: 24
+                  }}
+                />
+              </Box>
+
+              <Typography variant="body2" sx={{ color: '#334155', fontSize: '12.5px', lineHeight: 1.5, mb: 2 }}>
+                {passkeyStatus.hasPasskey
+                  ? 'Your device biometric key is linked. You can log in instantly without typing passwords or waiting for WhatsApp OTP.'
+                  : 'Link your fingerprint scanner, Face ID, or Windows Hello to your account. Enjoy secure 1-tap sign-ins across all your visits.'}
+              </Typography>
+
+              {passkeyStatus.hasPasskey && passkeyStatus.lastLinked && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: '#F8FAFC', p: 1.2, borderRadius: '8px', border: '1px solid #E2E8F0', mb: 2 }}>
+                  <VpnKeyIcon sx={{ fontSize: 16, color: '#0284C7' }} />
+                  <Typography variant="caption" sx={{ color: '#475569', fontSize: '11.5px' }}>
+                    Active Credentials: <strong>{passkeyStatus.count} Key{passkeyStatus.count > 1 ? 's' : ''}</strong> • Last Registered: <strong>{formatTxDate(passkeyStatus.lastLinked)}</strong>
+                  </Typography>
+                </Box>
+              )}
+
+              <Box sx={{ display: 'flex', gap: 1.2, flexWrap: 'wrap' }}>
+                <Button
+                  variant="contained"
+                  onClick={handleEnablePasskey}
+                  disabled={passkeyLoading || !passkeySupported}
+                  startIcon={<FingerprintIcon sx={{ fontSize: 18 }} />}
+                  sx={{
+                    bgcolor: '#0066CC',
+                    color: '#FFFFFF',
+                    fontWeight: 700,
+                    fontSize: '12.5px',
+                    borderRadius: '8px',
+                    textTransform: 'none',
+                    px: 2.2,
+                    py: 1,
+                    boxShadow: 'none',
+                    '&:hover': { bgcolor: '#0052A3', boxShadow: 'none' }
+                  }}
+                >
+                  {passkeyLoading ? 'Authenticating...' : (passkeyStatus.hasPasskey ? 'Add / Re-link Biometric Key' : 'Enable 1-Tap Biometric Passkey')}
+                </Button>
+
+                {passkeyStatus.hasPasskey && (
+                  <Button
+                    variant="outlined"
+                    onClick={handleUnlinkPasskey}
+                    disabled={passkeyLoading}
+                    startIcon={<DeleteOutlineIcon sx={{ fontSize: 18 }} />}
+                    sx={{
+                      borderColor: '#E2E8F0',
+                      color: '#DC2626',
+                      fontWeight: 700,
+                      fontSize: '12.5px',
+                      borderRadius: '8px',
+                      textTransform: 'none',
+                      px: 2,
+                      py: 1,
+                      '&:hover': { borderColor: '#FECACA', bgcolor: '#FEF2F2' }
+                    }}
+                  >
+                    Unlink Passkey
+                  </Button>
+                )}
+              </Box>
             </Card>
 
             {/* 4. Credits Activity History Card */}

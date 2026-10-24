@@ -27,7 +27,8 @@ import {
   Languages,
   Menu,
   MessageSquarePlus,
-  LifeBuoy
+  LifeBuoy,
+  Fingerprint
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import LanguageSelectorModal from './LanguageSelectorModal';
@@ -1153,6 +1154,32 @@ export default function Navbar({
                           <span>My Bookings & Invoices</span>
                         </div>
 
+                        <div
+                          onClick={() => {
+                            navigate('/wallet');
+                            setIsProfileOpen(false);
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '8px 10px',
+                            borderRadius: '10px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            color: isDarkMode ? '#E2E8F0' : '#334155',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <Fingerprint size={15} color="#0284C7" />
+                            <span>Biometric Passkey (பாஸ்கீ)</span>
+                          </div>
+                          <span style={{ fontSize: '10px', fontWeight: 700, color: '#0284C7', backgroundColor: '#F0F9FF', padding: '2px 6px', borderRadius: '4px' }}>
+                            1-TAP
+                          </span>
+                        </div>
+
                         {/* Customer Direct Links */}
                       </>
                     ) : isTechnician ? (
@@ -1206,6 +1233,32 @@ export default function Navbar({
                           </div>
                           <span style={{ fontSize: '11px', fontWeight: 800, color: '#059669' }}>
                             ₹{partnerIncentives?.availablePayout || 500} Available
+                          </span>
+                        </div>
+
+                        <div
+                          onClick={() => {
+                            navigate('/partner');
+                            setIsProfileOpen(false);
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '8px 10px',
+                            borderRadius: '10px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            color: isDarkMode ? '#E2E8F0' : '#334155',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <Fingerprint size={15} color="#0284C7" />
+                            <span>Biometric Passkey (பாஸ்கீ)</span>
+                          </div>
+                          <span style={{ fontSize: '10px', fontWeight: 700, color: '#0284C7', backgroundColor: '#F0F9FF', padding: '2px 6px', borderRadius: '4px' }}>
+                            1-TAP
                           </span>
                         </div>
                       </>

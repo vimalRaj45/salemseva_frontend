@@ -516,6 +516,39 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // Get active Passkey status for customer or technician phone
+  const getPasskeyStatus = async (phone) => {
+    try {
+      const cleanPhone = (phone || '').replace(/[^0-9]/g, '').slice(-10);
+      if (!cleanPhone || cleanPhone.length !== 10) return { hasPasskey: false, count: 0 };
+      const res = await fetch(`${API_BASE_URL}/api/v1/auth/passkey/status/${cleanPhone}`);
+      const data = await res.json();
+      return data;
+    } catch (e) {
+      console.warn('Passkey status check note:', e);
+      return { hasPasskey: false, count: 0 };
+    }
+  };
+
+  // Unlink / Delete Passkey
+  const deletePasskey = async (phone) => {
+    try {
+      const cleanPhone = (phone || '').replace(/[^0-9]/g, '').slice(-10);
+      if (!cleanPhone || cleanPhone.length !== 10) throw new Error('Valid phone required');
+      const res = await fetch(`${API_BASE_URL}/api/v1/auth/passkey/delete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: cleanPhone })
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Failed to unlink passkey');
+      return data;
+    } catch (err) {
+      console.error('Passkey deletion error:', err);
+      throw err;
+    }
+  };
+
   const registerAccount = async (payload) => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/v1/auth/register`, {
@@ -890,6 +923,8 @@ export function AuthProvider({ children }) {
         checkPasskeySupport,
         registerPasskey,
         loginWithPasskey,
+        getPasskeyStatus,
+        deletePasskey,
         registerAccount,
         signupCustomer,
         signupTechnician,

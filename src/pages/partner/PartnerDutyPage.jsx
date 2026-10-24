@@ -95,6 +95,9 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import EventIcon from '@mui/icons-material/Event';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import FingerprintIcon from '@mui/icons-material/Fingerprint';
+import VpnKeyIcon from '@mui/icons-material/VpnKey';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 
 import MaskedChatModal from '../../components/MaskedChatModal';
 import VoipCallModal from '../../components/VoipCallModal';
@@ -138,7 +141,23 @@ const isLeadInTechnicianLocalities = (lead, localities) => {
 
 export default function PartnerDutyPage() {
   const navigate = useNavigate();
-  const { user, techUser, updateUser, loginTech, logoutTech, loginAsTechnician, partnerIncentives, referTechnician, claimPartnerPayout, dbTechnicians, rewardSettings } = useAuth();
+  const {
+    user,
+    techUser,
+    updateUser,
+    loginTech,
+    logoutTech,
+    loginAsTechnician,
+    partnerIncentives,
+    referTechnician,
+    claimPartnerPayout,
+    dbTechnicians,
+    rewardSettings,
+    registerPasskey,
+    checkPasskeySupport,
+    getPasskeyStatus,
+    deletePasskey
+  } = useAuth();
 
   // Strict Persistent Technician Identity Resolution (Independent localStorage key)
   const activeTech = techUser || (() => {
@@ -201,6 +220,66 @@ export default function PartnerDutyPage() {
     await claimPartnerPayout(derivedPayout);
     setReferredTechsList(prev => prev.map(t => ({ ...t, payoutStatus: 'SETTLED_TO_PHONE', phoneRef: `PHONE-${Math.floor(1000000 + Math.random() * 9000000)}-SALEM` })));
     setTechToast(`₹${amt}.00 successfully sent to your payout phone +91${payPhone}!`);
+  };
+
+  // Technician Biometric Passkey Management
+  const [techPasskeyStatus, setTechPasskeyStatus] = useState({ hasPasskey: false, count: 0, lastLinked: null });
+  const [techPasskeyLoading, setTechPasskeyLoading] = useState(false);
+  const [techPasskeySupported, setTechPasskeySupported] = useState(true);
+
+  const loadTechPasskeyStatus = async () => {
+    const techPhone = activeTech?.phone || user?.phone;
+    if (!techPhone) return;
+    try {
+      const isSupp = await checkPasskeySupport();
+      setTechPasskeySupported(isSupp);
+      const res = await getPasskeyStatus(techPhone);
+      if (res && res.success) {
+        setTechPasskeyStatus(res);
+      }
+    } catch (e) {
+      console.warn('Failed to load technician passkey status:', e);
+    }
+  };
+
+  useEffect(() => {
+    loadTechPasskeyStatus();
+  }, [activeTech?.phone, user?.phone]);
+
+  const handleEnableTechPasskey = async () => {
+    const techPhone = activeTech?.phone || user?.phone;
+    if (!techPhone) {
+      setTechToast('Technician phone number not found');
+      return;
+    }
+    setTechPasskeyLoading(true);
+    try {
+      const result = await registerPasskey(techPhone);
+      if (result && result.success) {
+        setTechToast('கைரேகை பாஸ்கீ வெற்றிகரமாக இணைக்கப்பட்டது! (Biometric passkey linked for 1-tap login)');
+        await loadTechPasskeyStatus();
+      }
+    } catch (err) {
+      setTechToast(err.message || 'Passkey setup cancelled or failed');
+    } finally {
+      setTechPasskeyLoading(false);
+    }
+  };
+
+  const handleUnlinkTechPasskey = async () => {
+    const techPhone = activeTech?.phone || user?.phone;
+    if (!techPhone) return;
+    if (!window.confirm('இந்த சாதனத்திலிருந்து பயோமெட்ரிக் பாஸ்கீயை நீக்க விரும்புகிறீர்களா? (Remove biometric passkey?)')) return;
+    setTechPasskeyLoading(true);
+    try {
+      await deletePasskey(techPhone);
+      setTechToast('பயோமெட்ரிக் பாஸ்கீ நீக்கப்பட்டது (Passkey unlinked successfully)');
+      await loadTechPasskeyStatus();
+    } catch (err) {
+      setTechToast(err.message || 'Failed to remove passkey');
+    } finally {
+      setTechPasskeyLoading(false);
+    }
   };
 
   // Active verification determination: Checks database status flags across all sources
@@ -6028,6 +6107,93 @@ export default function PartnerDutyPage() {
                     ));
                   })()}
                 </Box>
+              </Box>
+            </Paper>
+
+            {/* 2c. பயோமெட்ரிக் பாஸ்கீ & 1-டேப் உள்நுழைவு (Biometric Passkey & 1-Tap Login) */}
+            <Paper elevation={0} sx={{ p: 2, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '10px', mb: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                  <FingerprintIcon sx={{ color: '#0284C7', fontSize: 20 }} />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '13.5px' }}>
+                    பயோமெட்ரிக் பாஸ்கீ & பாதுகாப்பு (Biometric Passkey & 1-Tap Login)
+                  </Typography>
+                </Box>
+                <Chip
+                  icon={techPasskeyStatus.hasPasskey ? <CheckCircleIcon sx={{ fontSize: '13px !important', color: '#16A34A !important' }} /> : <SecurityIcon sx={{ fontSize: '13px !important', color: '#64748B !important' }} />}
+                  label={techPasskeyStatus.hasPasskey ? 'Passkey இணைக்கப்பட்டுள்ளது' : 'இணைக்கப்படவில்லை'}
+                  size="small"
+                  sx={{
+                    bgcolor: techPasskeyStatus.hasPasskey ? '#F0FDF4' : '#F1F5F9',
+                    color: techPasskeyStatus.hasPasskey ? '#166534' : '#475569',
+                    border: `1px solid ${techPasskeyStatus.hasPasskey ? '#BBF7D0' : '#CBD5E1'}`,
+                    fontWeight: 700,
+                    fontSize: '10.5px',
+                    height: 22
+                  }}
+                />
+              </Box>
+
+              <Typography variant="body2" sx={{ color: '#475569', fontSize: '12px', lineHeight: 1.5, mb: 1.5 }}>
+                {techPasskeyStatus.hasPasskey
+                  ? 'உங்கள் போன் கைரேகை அல்லது முக அங்கீகாரம் (Face ID) இணைக்கப்பட்டுள்ளது. OTP அல்லது கடவுச்சொல் இன்றி ஒரு நொடியில் 1-Tap Login செய்யலாம்.'
+                  : 'உங்கள் போனின் கைரேகை (Fingerprint) அல்லது Face ID ஐ இணைப்பதன் மூலம் ஒவ்வொரு முறையும் கடவுச்சொல் தட்டச்சு செய்யாமல் உடனடியாக டூட்டிக்குள் நுழையலாம்.'}
+              </Typography>
+
+              {techPasskeyStatus.hasPasskey && techPasskeyStatus.lastLinked && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, bgcolor: '#F8FAFC', p: 1, borderRadius: '6px', border: '1px solid #E2E8F0', mb: 1.5, fontSize: '11px', color: '#64748B' }}>
+                  <VpnKeyIcon sx={{ fontSize: 14, color: '#0284C7' }} />
+                  <span>
+                    பதிவு செய்யப்பட்ட விசைகள்: <strong>{techPasskeyStatus.count}</strong> • கடைசியாக இணைக்கப்பட்டது: <strong>{new Date(techPasskeyStatus.lastLinked).toLocaleDateString('ta-IN')}</strong>
+                  </span>
+                </Box>
+              )}
+
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                <Button
+                  size="small"
+                  variant="contained"
+                  onClick={handleEnableTechPasskey}
+                  disabled={techPasskeyLoading || !techPasskeySupported}
+                  startIcon={<FingerprintIcon sx={{ fontSize: 16 }} />}
+                  sx={{
+                    bgcolor: '#0284C7',
+                    color: '#FFFFFF',
+                    fontSize: '11.5px',
+                    fontWeight: 700,
+                    textTransform: 'none',
+                    py: 0.8,
+                    px: 1.8,
+                    borderRadius: '6px',
+                    boxShadow: 'none',
+                    '&:hover': { bgcolor: '#0369A1', boxShadow: 'none' }
+                  }}
+                >
+                  {techPasskeyLoading ? 'சரிபார்க்கிறது...' : (techPasskeyStatus.hasPasskey ? 'மீண்டும் இணைக்கவும் (Re-link Key)' : 'கைரேகை பாஸ்கீயை இணைக்கவும் (Enable Passkey)')}
+                </Button>
+
+                {techPasskeyStatus.hasPasskey && (
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={handleUnlinkTechPasskey}
+                    disabled={techPasskeyLoading}
+                    startIcon={<DeleteOutlineIcon sx={{ fontSize: 15 }} />}
+                    sx={{
+                      borderColor: '#E2E8F0',
+                      color: '#DC2626',
+                      fontSize: '11.5px',
+                      fontWeight: 700,
+                      textTransform: 'none',
+                      py: 0.8,
+                      px: 1.5,
+                      borderRadius: '6px',
+                      '&:hover': { borderColor: '#FECACA', bgcolor: '#FEF2F2' }
+                    }}
+                  >
+                    நீக்கு (Unlink)
+                  </Button>
+                )}
               </Box>
             </Paper>
 
