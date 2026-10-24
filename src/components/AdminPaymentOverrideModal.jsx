@@ -170,7 +170,7 @@ export default function AdminPaymentOverrideModal({
           </Box>
           <Box>
             <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#FFFFFF', fontSize: '15px', lineHeight: 1.2 }}>
-              Manual Payment Override (கட்டண மேலெழுதல்)
+              Direct Payment Confirmation (நேரடி கட்டணப் பதிவு)
             </Typography>
             <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '11px' }}>
               Booking #{booking.id} • {booking.customer_name || 'Customer'}
@@ -183,7 +183,7 @@ export default function AdminPaymentOverrideModal({
       </DialogTitle>
 
       <DialogContent sx={{ p: 2.5, bgcolor: '#F8FAFC' }}>
-        {/* Warning Callout for Razorpay Edge Case */}
+        {/* Warning Callout for Direct Payment Confirmation */}
         <Paper
           elevation={0}
           sx={{
@@ -200,10 +200,10 @@ export default function AdminPaymentOverrideModal({
           <WarningAmberIcon sx={{ color: '#D97706', fontSize: 20, mt: 0.2 }} />
           <Box>
             <Typography sx={{ fontWeight: 700, color: '#92400E', fontSize: '12px' }}>
-              Razorpay Gateway Edge Case & Offline Payment Override
+              Direct Offline Payment Confirmation (Cash / Direct Company QR)
             </Typography>
             <Typography sx={{ color: '#B45309', fontSize: '11px', mt: 0.3, lineHeight: 1.4 }}>
-              Use this when Razorpay experiences an outage or the customer pays via direct UPI/Cash. Marking as paid unlocks the technician and customer apps immediately.
+              Use this when online payment is unavailable or the customer pays via direct cash/UPI. Marking as paid immediately updates both customer and partner screens.
             </Typography>
           </Box>
         </Paper>

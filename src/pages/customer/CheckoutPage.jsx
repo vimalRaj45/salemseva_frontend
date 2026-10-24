@@ -66,7 +66,7 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (isProcessing) {
-      setCriticalWork(true, 'Digital escrow payment in progress. Please do not refresh or leave this page.');
+      setCriticalWork(true, 'Digital payment in progress. Please do not refresh or leave this page.');
     } else {
       setCriticalWork(false);
     }
@@ -295,10 +295,10 @@ export default function CheckoutPage() {
             <LockIcon sx={{ fontSize: 24 }} />
           </Box>
           <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0F172A', fontSize: '15px', mb: 0.3 }}>
-            Authorize Cashless Escrow Payment
+            Safe Digital Advance Payment
           </Typography>
           <Typography variant="body2" sx={{ color: '#64748B', fontSize: '12px' }}>
-            Funds are securely held in Shazu One Escrow until you inspect & confirm work completion.
+            Your money is protected safely with Shazu One until you inspect & confirm work completion.
           </Typography>
         </Card>
 
@@ -317,7 +317,7 @@ export default function CheckoutPage() {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
             <ReceiptIcon sx={{ color: '#0284C7', fontSize: 18 }} />
             <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0F172A', fontSize: '13.5px' }}>
-              Escrow Authorization Breakdown (#{bookingId})
+              Payment Summary & Protection Details (#{bookingId})
             </Typography>
           </Box>
 
@@ -384,7 +384,7 @@ export default function CheckoutPage() {
 
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A' }}>
-              Total Escrow Hold via Razorpay
+              Total Protected Amount via Razorpay
             </Typography>
             <Typography variant="h6" sx={{ fontWeight: 900, color: '#0284C7' }}>
               ₹{netPayable.toFixed(2)}
@@ -420,7 +420,7 @@ export default function CheckoutPage() {
           <Box sx={{ mb: 1.5, p: 1, bgcolor: '#FEF3C7', border: '1px solid #FCD34D', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: 1 }}>
             <SecurityIcon sx={{ color: '#D97706', fontSize: 16 }} />
             <Typography variant="caption" sx={{ color: '#92400E', fontWeight: 700, fontSize: '11px' }}>
-              Digital Payments Only: No cash accepted at doorstep. 100% escrow protected.
+              Digital Payments Only: No cash accepted at doorstep. 100% money protection guaranteed.
             </Typography>
           </Box>
 
@@ -535,8 +535,28 @@ export default function CheckoutPage() {
             '&:hover': { bgcolor: '#0369A1' }
           }}
         >
-          {isProcessing ? <CircularProgress size={24} sx={{ color: '#FFF' }} /> : `Authorize & Pay ₹${netPayable.toFixed(2)} into Escrow →`}
+          {isProcessing ? <CircularProgress size={24} sx={{ color: '#FFF' }} /> : `Pay ₹${netPayable.toFixed(2)} Securely (Protected Advance) →`}
         </Button>
+
+        {isOverrideActive && (
+          <Button
+            fullWidth
+            variant="outlined"
+            onClick={() => setOverrideModalOpen(true)}
+            sx={{
+              mt: 2,
+              borderColor: '#D97706',
+              color: '#B45309',
+              fontWeight: 800,
+              borderRadius: '12px',
+              py: 1,
+              textTransform: 'none',
+              '&:hover': { bgcolor: '#FEF3C7', borderColor: '#B45309' }
+            }}
+          >
+            Direct Cash / Offline Payment Confirmation
+          </Button>
+        )}
 
       </Container>
 
@@ -553,8 +573,8 @@ export default function CheckoutPage() {
       <ProcessingBackdrop
         open={isProcessing}
         title="Connecting to Razorpay..."
-        subtitle="Opening official Razorpay Cashless Escrow checkout modal."
-        badge="ICICI Bank Escrow Backed"
+        subtitle="Opening official Razorpay secure payment window."
+        badge="100% Safe Payment Guarantee"
       />
 
     </Box>

@@ -256,11 +256,11 @@ export default function PartnerDutyPage() {
     try {
       const result = await registerPasskey(techPhone);
       if (result && result.success) {
-        setTechToast('கைரேகை பாஸ்கீ வெற்றிகரமாக இணைக்கப்பட்டது! (Biometric passkey linked for 1-tap login)');
+        setTechToast('கைரேகை லாகின் வெற்றிகரமாக இணைக்கப்பட்டது! (Fingerprint sign-in enabled)');
         await loadTechPasskeyStatus();
       }
     } catch (err) {
-      setTechToast(err.message || 'Passkey setup cancelled or failed');
+      setTechToast(err.message || 'Fingerprint setup cancelled or failed');
     } finally {
       setTechPasskeyLoading(false);
     }
@@ -269,14 +269,14 @@ export default function PartnerDutyPage() {
   const handleUnlinkTechPasskey = async () => {
     const techPhone = activeTech?.phone || user?.phone;
     if (!techPhone) return;
-    if (!window.confirm('இந்த சாதனத்திலிருந்து பயோமெட்ரிக் பாஸ்கீயை நீக்க விரும்புகிறீர்களா? (Remove biometric passkey?)')) return;
+    if (!window.confirm('இந்த சாதனத்திலிருந்து கைரேகை லாகினை நீக்க விரும்புகிறீர்களா? (Remove fingerprint login?)')) return;
     setTechPasskeyLoading(true);
     try {
       await deletePasskey(techPhone);
-      setTechToast('பயோமெட்ரிக் பாஸ்கீ நீக்கப்பட்டது (Passkey unlinked successfully)');
+      setTechToast('கைரேகை லாகின் நீக்கப்பட்டது (Fingerprint login removed)');
       await loadTechPasskeyStatus();
     } catch (err) {
-      setTechToast(err.message || 'Failed to remove passkey');
+      setTechToast(err.message || 'Failed to remove fingerprint login');
     } finally {
       setTechPasskeyLoading(false);
     }
@@ -1745,7 +1745,7 @@ export default function PartnerDutyPage() {
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
                     <ShieldIcon sx={{ color: '#D97706', fontSize: 20 }} />
                     <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#92400E', fontSize: '13.5px' }}>
-                      ஆதார் KYC சரிபார்ப்பு நிலுவையில் உள்ளது (Aadhaar KYC Under Review)
+                      ஆதார் சரிபார்ப்பு நிலுவையில் உள்ளது (Aadhaar Verification Under Review)
                     </Typography>
                   </Box>
                   <Chip
@@ -1756,7 +1756,7 @@ export default function PartnerDutyPage() {
                   />
                 </Box>
                 <Typography variant="body2" sx={{ color: '#78350F', fontSize: '12px', mb: 1.2, lineHeight: 1.5 }}>
-                  உங்கள் ஆதார் அட்டை மற்றும் தொழில் விவரங்கள் சேலம் தலைமை நிர்வாக அலுவலகத்திற்கு (Shazu One Central Operations Desk) சரிபார்ப்புக்கு அனுப்பப்பட்டுள்ளது. 12 மணி நேரத்திற்குள் சரிபார்த்து உங்களுக்குத் தெரிவிக்கப்படும். நிர்வாகி ஒப்புதல் அளித்தவுடன் உங்களது Duty Radar தானாகவே இயங்கும்.
+                  உங்கள் ஆதார் அட்டை மற்றும் தொழில் விவரங்கள் சேலம் தலைமை அலுவலகத்திற்கு (Shazu One Central Operations Desk) சரிபார்ப்புக்கு அனுப்பப்பட்டுள்ளது. 12 மணி நேரத்திற்குள் சரிபார்த்து உங்களுக்குத் தெரிவிக்கப்படும். நிர்வாகி ஒப்புதல் அளித்தவுடன் உங்களது புதிய வேலைகள் (Duty) தானாகவே இயங்கும்.
                 </Typography>
                 <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.6, bgcolor: '#FEF3C7', border: '1px solid #FCD34D', borderRadius: '6px', px: 1.2, py: 0.4, mb: 1.2 }}>
                   <AccessTimeIcon sx={{ fontSize: 13, color: '#B45309' }} />
@@ -1890,17 +1890,17 @@ export default function PartnerDutyPage() {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.8 }}>
                 <ShieldIcon sx={{ color: '#0284C7', fontSize: 18 }} />
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '12px', textTransform: 'uppercase', letterSpacing: 0.3 }}>
-                  Shazu One Instant Settlement Protocol (3-Stage Escrow)
+                  Shazu One 100% Guaranteed Payout System (3-Stage Safety)
                 </Typography>
               </Box>
 
               <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 0.8, mb: 1 }}>
                 <Paper elevation={0} sx={{ p: 0.8, bgcolor: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: '6px', textAlign: 'center' }}>
                   <Typography variant="caption" sx={{ color: '#1E40AF', fontWeight: 800, fontSize: '10px', display: 'block' }}>
-                    1. Payment Held
+                    1. Payment Protected
                   </Typography>
                   <Typography variant="caption" sx={{ color: '#3B82F6', fontSize: '9.5px', lineHeight: 1.1, display: 'block' }}>
-                    Customer pays ₹99 + Quote to Escrow
+                    Customer payment is protected & held safely
                   </Typography>
                 </Paper>
                 <Paper elevation={0} sx={{ p: 0.8, bgcolor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '6px', textAlign: 'center' }}>
@@ -1913,16 +1913,16 @@ export default function PartnerDutyPage() {
                 </Paper>
                 <Paper elevation={0} sx={{ p: 0.8, bgcolor: '#ECFDF5', border: '1px solid #A7F3D0', borderRadius: '6px', textAlign: 'center' }}>
                   <Typography variant="caption" sx={{ color: '#065F46', fontWeight: 800, fontSize: '10px', display: 'block' }}>
-                    3. Instant Settlement
+                    3. Instant Transfer
                   </Typography>
                   <Typography variant="caption" sx={{ color: '#10B981', fontSize: '9.5px', lineHeight: 1.1, display: 'block' }}>
-                    100% Visit + 85% to your UPI instantly
+                    100% Visit + 85% to your Bank/UPI
                   </Typography>
                 </Paper>
               </Box>
 
               <Typography variant="caption" sx={{ color: '#64748B', fontSize: '10.5px', display: 'block', lineHeight: 1.3 }}>
-                <strong>டெக்னீசியன் கவனத்திற்கு:</strong> வாடிக்கையாளர் OTP உறுதி செய்த பிறகே உங்கள் வங்கிக் கணக்கிற்கு உடனடி பணம் செலுத்தப்படும் (No delayed settlements).
+                <strong>டெக்னீசியன் கவனத்திற்கு:</strong> வாடிக்கையாளர் OTP உறுதி செய்தவுடன் உங்கள் வங்கிக் கணக்கிற்கு நேரடியாக பணம் செலுத்தப்படும் (Direct Bank / UPI Transfer).
               </Typography>
             </Paper>
 
@@ -2660,7 +2660,7 @@ export default function PartnerDutyPage() {
                               </Typography>
                               
                               <Typography variant="caption" sx={{ color: '#CBD5E1', display: 'block', mb: 1.5, fontSize: '11.5px' }}>
-                                <strong>Issue:</strong> {nextJob.issueDescription || 'Diagnostic Inspection'} • <strong style={{ color: '#FDE047' }}>₹{nextJob.visitFee || 99} Escrow Paid</strong>
+                                <strong>Issue:</strong> {nextJob.issueDescription || 'Diagnostic Inspection'} • <strong style={{ color: '#FDE047' }}>₹{nextJob.visitFee || 99} Guaranteed & Paid</strong>
                               </Typography>
 
                               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
@@ -4759,7 +4759,7 @@ export default function PartnerDutyPage() {
                       </Typography>
                     </Box>
                     <Chip 
-                      label={activeJob?.status === 'quote_approved' ? 'Escrow Funded' : (quoteSent || activeJob?.status === 'quote_presented' ? 'Awaiting Customer' : 'Live Inspection')} 
+                      label={activeJob?.status === 'quote_approved' ? 'Payment Approved' : (quoteSent || activeJob?.status === 'quote_presented' ? 'Awaiting Customer' : 'Live Inspection')} 
                       size="small" 
                       sx={{ 
                         bgcolor: activeJob?.status === 'quote_approved' ? '#DCFCE7' : (quoteSent || activeJob?.status === 'quote_presented' ? '#FEF3C7' : '#EFF6FF'), 
@@ -4933,7 +4933,7 @@ export default function PartnerDutyPage() {
                         severity="info" 
                         sx={{ borderRadius: '8px', fontSize: '12px', mb: 1.5, bgcolor: '#F0F9FF', color: '#0369A1', border: '1px solid #BAE6FD' }}
                       >
-                        Digital quote (₹{step3Quote?.subtotal ? parseFloat(step3Quote.subtotal).toFixed(2) : '0.00'}) sent to customer. Waiting for customer approval and escrow authorization.
+                        Digital quote (₹{step3Quote?.subtotal ? parseFloat(step3Quote.subtotal).toFixed(2) : '0.00'}) sent to customer. Waiting for customer approval and payment confirmation.
                       </Alert>
                       <Button
                         variant="outlined"
@@ -4946,7 +4946,7 @@ export default function PartnerDutyPage() {
                             if (data.success && data.booking) {
                               if (data.booking.status === 'quote_approved' || data.booking.status === 'in_progress') {
                                 setActiveJob(prev => ({ ...prev, status: data.booking.status }));
-                                setTechToast('Customer approved & escrow funded! Starting repair work.');
+                                setTechToast('Customer approved and payment guaranteed! Starting repair work.');
                               } else {
                                 setTechToast('Awaiting customer review. Status will update once approved.');
                               }
@@ -4969,7 +4969,7 @@ export default function PartnerDutyPage() {
                         severity="success" 
                         sx={{ borderRadius: '8px', fontSize: '12px', mb: 1.5, bgcolor: '#F0FDF4', color: '#166534', border: '1px solid #BBF7D0' }}
                       >
-                        வாடிக்கையாளர் ஒப்புதல் அளித்தார்! (Customer Approved Work Charge & Escrow Secured). உதிரிபாகங்கள் ஏதும் தேவைப்பட்டால் வாடிக்கையாளருடன் நேரடியாக முடிக்கவும். பழுதுபார்க்கும் வேலை முடிந்ததும் கீழே முடிக்கவும்.
+                        வாடிக்கையாளர் ஒப்புதல் அளித்தார்! (Customer Approved & Payment Protected). உதிரிபாகங்கள் ஏதும் தேவைப்பட்டால் வாடிக்கையாளருடன் நேரடியாக முடிக்கவும். பழுதுபார்க்கும் வேலை முடிந்ததும் கீழே முடிக்கவும்.
                       </Alert>
 
                       {/* Labor Summary Box */}
@@ -5427,10 +5427,10 @@ export default function PartnerDutyPage() {
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
               <Box>
                 <Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '18px', lineHeight: 1.2 }}>
-                  வருமானம் & தீர்வு வரலாறு (Settlement Ledger)
+                  வருமானம் & வங்கி வரவு வரலாறு (Earnings & Bank Transfers)
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11px' }}>
-                  Direct Razorpay Route bank payouts & escrow ledger
+                  Direct bank transfer history & protected earnings
                 </Typography>
               </Box>
               <Chip label="85% Tech Share" size="small" sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 700, fontSize: '10.5px', borderRadius: '4px' }} />
@@ -5486,7 +5486,7 @@ export default function PartnerDutyPage() {
 
                 <Paper elevation={0} sx={{ flex: 1, p: 1, bgcolor: '#1E293B', borderRadius: '8px', border: '1px solid #334155' }}>
                   <Typography variant="caption" sx={{ color: '#94A3B8', display: 'block', fontSize: '10.5px' }}>
-                    வெள்ளிக்கிழமை வரவு (Escrow)
+                    பாதுகாப்பில் உள்ள தொகை (Safe in Transit)
                   </Typography>
                   <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#FBBF24', fontSize: '13.5px' }}>
                     ₹{partnerJobs.filter(j => j.settlementStatus === 'ESCROW_HELD').reduce((sum, j) => sum + (j.techPayout || 0), 0).toFixed(2)}
@@ -5527,7 +5527,7 @@ export default function PartnerDutyPage() {
               {[
                 { id: 'all', label: `All Jobs (${partnerJobs.length})` },
                 { id: 'settled', label: 'Settled to Bank (நேரடி வரவு)' },
-                { id: 'escrow', label: 'Pending Escrow' }
+                { id: 'escrow', label: 'Protected in Transit' }
               ].map(f => (
                 <Chip
                   key={f.id}
@@ -6110,18 +6110,18 @@ export default function PartnerDutyPage() {
               </Box>
             </Paper>
 
-            {/* 2c. பயோமெட்ரிக் பாஸ்கீ & 1-டேப் உள்நுழைவு (Biometric Passkey & 1-Tap Login) */}
+            {/* 2c. கைரேகை & முக அடையாளம் (Fingerprint & Face Lock Sign-in) */}
             <Paper elevation={0} sx={{ p: 2, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '10px', mb: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
                   <FingerprintIcon sx={{ color: '#0284C7', fontSize: 20 }} />
                   <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '13.5px' }}>
-                    பயோமெட்ரிக் பாஸ்கீ & பாதுகாப்பு (Biometric Passkey & 1-Tap Login)
+                    கைரேகை & முக அடையாளம் மூலம் நேரடி லாகின் (Fingerprint & Face Lock)
                   </Typography>
                 </Box>
                 <Chip
                   icon={techPasskeyStatus.hasPasskey ? <CheckCircleIcon sx={{ fontSize: '13px !important', color: '#16A34A !important' }} /> : <SecurityIcon sx={{ fontSize: '13px !important', color: '#64748B !important' }} />}
-                  label={techPasskeyStatus.hasPasskey ? 'Passkey இணைக்கப்பட்டுள்ளது' : 'இணைக்கப்படவில்லை'}
+                  label={techPasskeyStatus.hasPasskey ? 'கைரேகை லாகின் இணைக்கப்பட்டுள்ளது' : 'இணைக்கப்படவில்லை'}
                   size="small"
                   sx={{
                     bgcolor: techPasskeyStatus.hasPasskey ? '#F0FDF4' : '#F1F5F9',
@@ -6136,15 +6136,15 @@ export default function PartnerDutyPage() {
 
               <Typography variant="body2" sx={{ color: '#475569', fontSize: '12px', lineHeight: 1.5, mb: 1.5 }}>
                 {techPasskeyStatus.hasPasskey
-                  ? 'உங்கள் போன் கைரேகை அல்லது முக அங்கீகாரம் (Face ID) இணைக்கப்பட்டுள்ளது. OTP அல்லது கடவுச்சொல் இன்றி ஒரு நொடியில் 1-Tap Login செய்யலாம்.'
-                  : 'உங்கள் போனின் கைரேகை (Fingerprint) அல்லது Face ID ஐ இணைப்பதன் மூலம் ஒவ்வொரு முறையும் கடவுச்சொல் தட்டச்சு செய்யாமல் உடனடியாக டூட்டிக்குள் நுழையலாம்.'}
+                  ? 'உங்கள் போன் கைரேகை அல்லது முக அங்கீகாரம் (Face ID) இணைக்கப்பட்டுள்ளது. கடவுச்சொல் இன்றி ஒரு நொடியில் 1-Tap Login செய்யலாம்.'
+                  : 'உங்கள் போனின் கைரேகை (Fingerprint) அல்லது Face ID ஐ இணைப்பதன் மூலம் கடவுச்சொல் தட்டச்சு செய்யாமல் உடனடியாக டூட்டிக்குள் நுழையலாம்.'}
               </Typography>
 
               {techPasskeyStatus.hasPasskey && techPasskeyStatus.lastLinked && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, bgcolor: '#F8FAFC', p: 1, borderRadius: '6px', border: '1px solid #E2E8F0', mb: 1.5, fontSize: '11px', color: '#64748B' }}>
                   <VpnKeyIcon sx={{ fontSize: 14, color: '#0284C7' }} />
                   <span>
-                    பதிவு செய்யப்பட்ட விசைகள்: <strong>{techPasskeyStatus.count}</strong> • கடைசியாக இணைக்கப்பட்டது: <strong>{new Date(techPasskeyStatus.lastLinked).toLocaleDateString('ta-IN')}</strong>
+                    இணைக்கப்பட்ட சாதனங்கள்: <strong>{techPasskeyStatus.count}</strong> • கடைசியாக இணைக்கப்பட்டது: <strong>{new Date(techPasskeyStatus.lastLinked).toLocaleDateString('ta-IN')}</strong>
                   </span>
                 </Box>
               )}
@@ -6169,7 +6169,7 @@ export default function PartnerDutyPage() {
                     '&:hover': { bgcolor: '#0369A1', boxShadow: 'none' }
                   }}
                 >
-                  {techPasskeyLoading ? 'சரிபார்க்கிறது...' : (techPasskeyStatus.hasPasskey ? 'மீண்டும் இணைக்கவும் (Re-link Key)' : 'கைரேகை பாஸ்கீயை இணைக்கவும் (Enable Passkey)')}
+                  {techPasskeyLoading ? 'சரிபார்க்கிறது...' : (techPasskeyStatus.hasPasskey ? 'மீண்டும் இணைக்கவும் (Re-link Fingerprint)' : 'கைரேகை லாகினை இணைக்கவும் (Enable Fingerprint Login)')}
                 </Button>
 
                 {techPasskeyStatus.hasPasskey && (
@@ -6191,7 +6191,7 @@ export default function PartnerDutyPage() {
                       '&:hover': { borderColor: '#FECACA', bgcolor: '#FEF2F2' }
                     }}
                   >
-                    நீக்கு (Unlink)
+                    நீக்கு (Remove)
                   </Button>
                 )}
               </Box>
@@ -6246,10 +6246,10 @@ export default function PartnerDutyPage() {
                 <Paper elevation={0} sx={{ p: 1, bgcolor: user?.aadhaarCardUrl || user?.isKycVerified ? '#F0FDF4' : '#FEF3C7', border: `1px solid ${user?.aadhaarCardUrl || user?.isKycVerified ? '#BBF7D0' : '#FDE68A'}`, borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Box>
                     <Typography variant="subtitle2" sx={{ fontWeight: 700, color: user?.aadhaarCardUrl || user?.isKycVerified ? '#166534' : '#92400E', fontSize: '12px' }}>
-                      Aadhaar Identity Verification (UIDAI e-KYC)
+                      Aadhaar Identity Verification (அரசு ஆதார் சரிபார்ப்பு)
                     </Typography>
                     <Typography variant="caption" sx={{ color: user?.aadhaarCardUrl || user?.isKycVerified ? '#15803D' : '#B45309', fontSize: '10.5px' }}>
-                      {user?.aadhaarCardUrl ? 'Document Uploaded & Stored in Cloud' : 'Pending Document Upload'} • {user?.aadhaarNumber ? `XXXX-XXXX-${user.aadhaarNumber.slice(-4)}` : 'UIDAI Verified'}
+                      {user?.aadhaarCardUrl ? 'Document Uploaded & Verified' : 'Pending Document Upload'} • {user?.aadhaarNumber ? `XXXX-XXXX-${user.aadhaarNumber.slice(-4)}` : 'Aadhaar Verified'}
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>

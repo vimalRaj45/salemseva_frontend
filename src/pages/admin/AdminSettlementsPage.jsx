@@ -732,7 +732,7 @@ export default function AdminSettlementsPage() {
                             />
                             {tx.paymentMethod && (tx.paymentMethod.includes('Manual') || tx.paymentMethod.includes('Direct UPI') || tx.paymentMethod.includes('Cash')) ? (
                               <Chip
-                                label="MANUAL OVERRIDE"
+                                label="OFFLINE PAYMENT"
                                 size="small"
                                 sx={{ bgcolor: '#FAF5FF', color: '#7E22CE', border: '1px solid #E9D5FF', fontWeight: 900, fontSize: '8px', height: 16 }}
                               />
@@ -772,7 +772,7 @@ export default function AdminSettlementsPage() {
                                 '&:hover': { bgcolor: '#FEF3C7', borderColor: '#D97706' }
                               }}
                             >
-                              Override
+                              Direct Pay
                             </Button>
                           ) : (
                             <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '10px' }}>

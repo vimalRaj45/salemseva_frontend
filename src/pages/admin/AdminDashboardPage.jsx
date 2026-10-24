@@ -2615,7 +2615,7 @@ export default function AdminDashboardPage() {
                                   setTargetBookingForPayment(job);
                                   setPaymentOverrideModalOpen(true);
                                 }}
-                                title="Emergency payment override — mark as paid via Cash/Direct UPI"
+                                title="Record offline payment — mark as paid via Cash/Direct UPI"
                                 sx={{
                                   borderRadius: '8px',
                                   fontSize: '11px',
@@ -5403,7 +5403,7 @@ export default function AdminDashboardPage() {
                   '&:hover': { bgcolor: '#FFFBEB', borderColor: '#B45309' }
                 }}
               >
-                Mark as Paid (Payment Override)
+                Mark as Paid (Direct Offline Payment)
               </Button>
             ) : <Box />}
             <Button

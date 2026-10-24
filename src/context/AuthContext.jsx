@@ -463,16 +463,16 @@ export function AuthProvider({ children }) {
       });
       const verifyData = await verifyRes.json();
       if (!verifyData.success) {
-        throw new Error(verifyData.error || 'Failed to register Passkey');
+        throw new Error(verifyData.error || 'Failed to link fingerprint or face lock');
       }
       return verifyData;
     } catch (err) {
-      console.error('Passkey registration error:', err.message);
+      console.error('Fingerprint registration error:', err.message);
       throw err;
     }
   };
 
-  // Sign in using Passkey (1-tap Biometric)
+  // Sign in using Fingerprint / Face ID (1-tap Biometric)
   const loginWithPasskey = async (phone = '') => {
     try {
       const cleanPhone = (phone || '').replace(/[^0-9]/g, '').slice(-10);
@@ -483,7 +483,7 @@ export function AuthProvider({ children }) {
       });
       const data = await res.json();
       if (!data.success || !data.options) {
-        throw new Error(data.error || 'Failed to initialize biometric authentication');
+        throw new Error(data.error || 'Could not connect to fingerprint sensor on this phone');
       }
 
       const authResponse = await startAuthentication({ optionsJSON: data.options });
@@ -495,7 +495,7 @@ export function AuthProvider({ children }) {
       });
       const verifyData = await verifyRes.json();
       if (!verifyData.success || !verifyData.user) {
-        throw new Error(verifyData.error || 'Biometric authentication was not recognized');
+        throw new Error(verifyData.error || "Fingerprint or Face verification didn't match. Please try again.");
       }
 
       setUser(verifyData.user);
@@ -541,7 +541,7 @@ export function AuthProvider({ children }) {
         body: JSON.stringify({ phone: cleanPhone })
       });
       const data = await res.json();
-      if (!data.success) throw new Error(data.error || 'Failed to unlink passkey');
+      if (!data.success) throw new Error(data.error || 'Failed to remove fingerprint login');
       return data;
     } catch (err) {
       console.error('Passkey deletion error:', err);

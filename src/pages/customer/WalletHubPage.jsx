@@ -206,7 +206,7 @@ export default function WalletHubPage() {
           <Paper elevation={0} sx={{ p: 4, textAlign: 'center', bgcolor: '#FFFFFF', borderRadius: '16px', border: '1.5px solid #E2E8F0', mb: 3 }}>
             <AccountCircleIcon sx={{ fontSize: 48, color: '#94A3B8', mb: 1.5 }} />
             <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '16px', mb: 0.5 }}>
-              Sign In to View Seva Escrow Wallet
+              Sign In to View Seva Savings & Credits
             </Typography>
             <Typography variant="body2" sx={{ color: '#475569', fontSize: '13px', mb: 2 }}>
               Access your referral credits, welcome bonus, and digital cashback balance.
@@ -335,7 +335,7 @@ export default function WalletHubPage() {
                       }}
                     />
                     <Chip
-                      label="20% Max Burn Cap / Booking"
+                      label="Save Up to 20% / Booking with Credits"
                       size="small"
                       sx={{
                         bgcolor: 'rgba(255, 255, 255, 0.18)',
@@ -371,7 +371,7 @@ export default function WalletHubPage() {
               </Box>
             </Card>
 
-            {/* 2. 100% Escrow Protection & Safety Card */}
+            {/* 2. 100% Safe Payment Guarantee Card */}
             <Paper
               elevation={0}
               sx={{
@@ -404,10 +404,10 @@ export default function WalletHubPage() {
               </Box>
               <Box sx={{ flex: 1 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '13.5px', mb: 0.3 }}>
-                  100% Cashless Escrow Protection & Safety
+                  100% Safe Payment Guarantee (பணப் பாதுகாப்பு உத்தரவாதம்)
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#475569', fontSize: '11.5px', display: 'block', lineHeight: 1.45 }}>
-                  Payment is held safely in Shazu One escrow. Funds are released to verified technicians only after your OTP service completion verification.
+                  Your money is protected safely with Shazu One. Funds are released to your verified specialist only after you provide your OTP upon completed service.
                 </Typography>
               </Box>
             </Paper>
@@ -535,7 +535,7 @@ export default function WalletHubPage() {
               </Paper>
             </Card>
 
-            {/* 3b. Biometric Passkey & 1-Tap Login Security Card */}
+            {/* 3b. Fingerprint & Face Lock Sign-in Security Card */}
             <Card
               elevation={0}
               sx={{
@@ -552,16 +552,16 @@ export default function WalletHubPage() {
                   <FingerprintIcon sx={{ color: '#0066CC', fontSize: 24 }} />
                   <Box>
                     <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0F172A', fontSize: '15px', lineHeight: 1.2 }}>
-                      Biometric Passkey (கைரேகை / Face ID)
+                      Fingerprint & Face Lock (கைரேகை & முக அடையாளம்)
                     </Typography>
                     <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11.5px', fontWeight: 500 }}>
-                      Fast, passwordless 1-tap authentication using your device hardware
+                      Fast, password-free 1-tap sign-in using your phone biometric sensor
                     </Typography>
                   </Box>
                 </Box>
                 <Chip
                   icon={passkeyStatus.hasPasskey ? <CheckCircleIcon sx={{ fontSize: '14px !important', color: '#047857 !important' }} /> : <SecurityIcon sx={{ fontSize: '14px !important', color: '#64748B !important' }} />}
-                  label={passkeyStatus.hasPasskey ? 'Passkey Active' : 'Not Linked'}
+                  label={passkeyStatus.hasPasskey ? 'Lock Enabled' : 'Not Linked'}
                   size="small"
                   sx={{
                     bgcolor: passkeyStatus.hasPasskey ? '#ECFDF5' : '#F1F5F9',
@@ -576,15 +576,15 @@ export default function WalletHubPage() {
 
               <Typography variant="body2" sx={{ color: '#334155', fontSize: '12.5px', lineHeight: 1.5, mb: 2 }}>
                 {passkeyStatus.hasPasskey
-                  ? 'Your device biometric key is linked. You can log in instantly without typing passwords or waiting for WhatsApp OTP.'
-                  : 'Link your fingerprint scanner, Face ID, or Windows Hello to your account. Enjoy secure 1-tap sign-ins across all your visits.'}
+                  ? 'Your phone fingerprint / Face ID is linked. You can log in instantly with 1 tap without typing passwords or waiting for SMS codes.'
+                  : 'Link your phone fingerprint scanner or Face ID to your account for safe, instantaneous 1-tap login whenever you book services.'}
               </Typography>
 
               {passkeyStatus.hasPasskey && passkeyStatus.lastLinked && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: '#F8FAFC', p: 1.2, borderRadius: '8px', border: '1px solid #E2E8F0', mb: 2 }}>
                   <VpnKeyIcon sx={{ fontSize: 16, color: '#0284C7' }} />
                   <Typography variant="caption" sx={{ color: '#475569', fontSize: '11.5px' }}>
-                    Active Credentials: <strong>{passkeyStatus.count} Key{passkeyStatus.count > 1 ? 's' : ''}</strong> • Last Registered: <strong>{formatTxDate(passkeyStatus.lastLinked)}</strong>
+                    Connected Devices: <strong>{passkeyStatus.count} Phone(s)</strong> • Last Connected: <strong>{formatTxDate(passkeyStatus.lastLinked)}</strong>
                   </Typography>
                 </Box>
               )}
@@ -608,7 +608,7 @@ export default function WalletHubPage() {
                     '&:hover': { bgcolor: '#0052A3', boxShadow: 'none' }
                   }}
                 >
-                  {passkeyLoading ? 'Authenticating...' : (passkeyStatus.hasPasskey ? 'Add / Re-link Biometric Key' : 'Enable 1-Tap Biometric Passkey')}
+                  {passkeyLoading ? 'Verifying...' : (passkeyStatus.hasPasskey ? 'Add / Re-link Fingerprint' : 'Enable 1-Tap Fingerprint Sign-in')}
                 </Button>
 
                 {passkeyStatus.hasPasskey && (
@@ -629,7 +629,7 @@ export default function WalletHubPage() {
                       '&:hover': { borderColor: '#FECACA', bgcolor: '#FEF2F2' }
                     }}
                   >
-                    Unlink Passkey
+                    Remove from this device
                   </Button>
                 )}
               </Box>
@@ -685,7 +685,7 @@ export default function WalletHubPage() {
                                 {tx.title}
                               </Typography>
                               <Typography variant="caption" sx={{ color: '#475569', fontSize: '11px' }}>
-                                {formatTxDate(tx.timestamp)} • {tx.description || (isCredit ? 'Credited to wallet' : 'Burned at checkout')}
+                                {formatTxDate(tx.timestamp)} • {tx.description || (isCredit ? 'Credited to wallet' : 'Redeemed for service discount')}
                               </Typography>
                             </Box>
                           </Box>

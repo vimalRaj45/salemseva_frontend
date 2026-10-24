@@ -1173,7 +1173,7 @@ export default function Navbar({
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <Fingerprint size={15} color="#0284C7" />
-                            <span>Biometric Passkey (பாஸ்கீ)</span>
+                            <span>Fingerprint Sign-in (கைரேகை லாகின்)</span>
                           </div>
                           <span style={{ fontSize: '10px', fontWeight: 700, color: '#0284C7', backgroundColor: '#F0F9FF', padding: '2px 6px', borderRadius: '4px' }}>
                             1-TAP
@@ -1203,7 +1203,7 @@ export default function Navbar({
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <Zap size={15} color="#10B981" />
-                            <span>Partner Duty Radar</span>
+                            <span>Nearby Jobs & Duty (பணிகள்)</span>
                           </div>
                           <span style={{ fontSize: '10px', fontWeight: 800, color: '#10B981', backgroundColor: '#ECFDF5', padding: '2px 6px', borderRadius: '4px' }}>
                             LIVE
@@ -1229,7 +1229,7 @@ export default function Navbar({
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <Award size={15} color="#D97706" />
-                            <span>Incentives & Payouts</span>
+                            <span>Earnings & Bank Transfer</span>
                           </div>
                           <span style={{ fontSize: '11px', fontWeight: 800, color: '#059669' }}>
                             ₹{partnerIncentives?.availablePayout || 500} Available
@@ -1255,7 +1255,7 @@ export default function Navbar({
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <Fingerprint size={15} color="#0284C7" />
-                            <span>Biometric Passkey (பாஸ்கீ)</span>
+                            <span>Fingerprint Sign-in (கைரேகை லாகின்)</span>
                           </div>
                           <span style={{ fontSize: '10px', fontWeight: 700, color: '#0284C7', backgroundColor: '#F0F9FF', padding: '2px 6px', borderRadius: '4px' }}>
                             1-TAP

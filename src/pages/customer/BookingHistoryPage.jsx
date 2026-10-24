@@ -257,7 +257,7 @@ export default function BookingHistoryPage() {
           >
             <ShieldIcon sx={{ color: '#16A34A', fontSize: 18 }} />
             <Typography variant="caption" sx={{ fontWeight: 800, fontSize: '12px', color: '#166534' }}>
-              100% Escrow Protected
+              100% Payment Guarantee
             </Typography>
           </Box>
 
@@ -515,7 +515,7 @@ export default function BookingHistoryPage() {
                       </Typography>
                     </Box>
                     <Typography variant="caption" sx={{ fontWeight: 800, color: item.status === 'completed' ? '#15803D' : (item.status === 'quote_approved' ? '#0066CC' : '#475569'), fontSize: '12px' }}>
-                      {item.status === 'completed' ? `₹${part2Amt} • PAID (Escrow Released)` : (item.status === 'quote_approved' ? `₹${part2Amt} • Approved` : 'Quoted on Inspection')}
+                      {item.status === 'completed' ? `₹${part2Amt} • PAID (Released on Completion)` : (item.status === 'quote_approved' ? `₹${part2Amt} • Approved` : 'Quoted on Inspection')}
                     </Typography>
                   </Box>
 
@@ -561,7 +561,7 @@ export default function BookingHistoryPage() {
                     
                     {/* Itemized Payments */}
                     <Typography variant="caption" sx={{ fontWeight: 800, color: '#0F172A', display: 'block', mb: 0.8, fontSize: '11px' }}>
-                       Official Payment Transactions & Escrow Logs:
+                       Official Payment Transactions & Receipts:
                     </Typography>
 
                     {item.payments && item.payments.length > 0 ? (
@@ -576,7 +576,7 @@ export default function BookingHistoryPage() {
                             </Typography>
                           </Box>
                           <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontSize: '10px' }}>
-                            Mode: {p.payment_method || 'UPI (Instant Escrow)'} • {formatDateTime(p.created_at)}
+                            Mode: {p.payment_method || 'UPI (Protected Payment)'} • {formatDateTime(p.created_at)}
                           </Typography>
                         </Box>
                       ))
@@ -590,7 +590,7 @@ export default function BookingHistoryPage() {
                         {item.status === 'completed' && (
                           <Box sx={{ bgcolor: '#FFFFFF', p: 1, borderRadius: '6px', border: '1px solid #E2E8F0', mb: 0.6 }}>
                             <Typography variant="caption" sx={{ color: '#16A34A', fontSize: '11px', fontWeight: 700 }}>
-                              Part 2 Spares & Labour: ₹{part2Amt} • Settled via Instant UPI to {item.technician_name || 'technician'}
+                              Part 2 Spares & Labour: ₹{part2Amt} • Transferred via Instant UPI to {item.technician_name || 'technician'}
                             </Typography>
                           </Box>
                         )}
