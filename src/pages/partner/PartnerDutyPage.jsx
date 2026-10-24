@@ -48,6 +48,7 @@ import StorefrontIcon from '@mui/icons-material/Storefront';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
+import DirectionsBikeIcon from '@mui/icons-material/DirectionsBike';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import AcUnitIcon from '@mui/icons-material/AcUnit';
