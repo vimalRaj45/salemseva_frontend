@@ -1596,14 +1596,6 @@ export default function ServiceDetailPage({ onStartBooking }) {
         </Box>
       </Paper>
 
-      {/* Location Picker Modal */}
-      <LocationPickerModal
-        open={locationPickerOpen}
-        onClose={() => setLocationPickerOpen(false)}
-        currentLocation={userLocation}
-        onSelectLocation={(newLoc) => setUserLocation(newLoc)}
-      />
-
       {/* Processing Loader */}
       <ProcessingBackdrop
         open={isProcessing}
