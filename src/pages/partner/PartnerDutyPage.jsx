@@ -618,6 +618,11 @@ export default function PartnerDutyPage() {
     return raw;
   });
   const [profileTrade, setProfileTrade] = useState(() => activeTech?.trade || 'ac');
+  const [profileSecondaryTrades, setProfileSecondaryTrades] = useState(() => {
+    return Array.isArray(activeTech?.secondaryTrades)
+      ? activeTech.secondaryTrades
+      : (Array.isArray(activeTech?.secondary_trades) ? activeTech.secondary_trades : []);
+  });
   const [profileAadhaarUrl, setProfileAadhaarUrl] = useState(() => activeTech?.aadhaarCardUrl || null);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
 
@@ -629,15 +634,34 @@ export default function PartnerDutyPage() {
         setProfilePayoutPhone(raw);
       }
       if (activeTech.trade) setProfileTrade(activeTech.trade);
+      if (activeTech.secondaryTrades || activeTech.secondary_trades) {
+        setProfileSecondaryTrades(activeTech.secondaryTrades || activeTech.secondary_trades || []);
+      }
       if (activeTech.aadhaarCardUrl) setProfileAadhaarUrl(activeTech.aadhaarCardUrl);
     }
   }, [activeTech]);
+
+  const toggleProfileSecondaryTrade = (tradeId) => {
+    setProfileSecondaryTrades((prev) =>
+      prev.includes(tradeId) ? prev.filter((t) => t !== tradeId) : [...prev, tradeId]
+    );
+  };
+
+  const handleProfilePrimaryTradeChange = (newTrade) => {
+    setProfileTrade(newTrade);
+    setProfileSecondaryTrades((prev) => prev.filter((t) => t !== newTrade));
+  };
 
   const handleOpenEditProfile = () => {
     setProfileName(activeTech?.name || '');
     const raw2 = activeTech?.payoutPhone || activeTech?.upi_vpa?.replace(/@.*$/, '') || '';
     setProfilePayoutPhone(raw2);
     setProfileTrade(activeTech?.trade || 'ac');
+    setProfileSecondaryTrades(
+      Array.isArray(activeTech?.secondaryTrades)
+        ? activeTech.secondaryTrades
+        : (Array.isArray(activeTech?.secondary_trades) ? activeTech.secondary_trades : [])
+    );
     setProfileAadhaarUrl(activeTech?.aadhaarCardUrl || null);
     setEditProfileOpen(true);
   };
@@ -649,6 +673,7 @@ export default function PartnerDutyPage() {
       return;
     }
     const derivedUpi = `${cleanPayout}@ybl`;
+    const cleanSecondary = profileSecondaryTrades.filter((t) => t && t !== profileTrade);
     setIsSavingProfile(true);
     try {
       const res = await fetch(`${API_V1_URL}/partner/profile/update`, {
@@ -661,6 +686,7 @@ export default function PartnerDutyPage() {
           upiId: derivedUpi,
           payoutPhone: cleanPayout,
           trade: profileTrade,
+          secondaryTrades: cleanSecondary,
           aadhaarCardUrl: profileAadhaarUrl
         })
       });
@@ -669,7 +695,7 @@ export default function PartnerDutyPage() {
       if (data.success && data.user) {
         updateUser(data.user);
         await loginTech(data.user);
-        setTechToast('Profile & KYC documents updated successfully!');
+        setTechToast('Profile, skills & KYC documents updated successfully!');
         setEditProfileOpen(false);
       } else {
         const updated = {
@@ -678,11 +704,13 @@ export default function PartnerDutyPage() {
           payoutPhone: cleanPayout,
           upi_vpa: derivedUpi,
           trade: profileTrade,
+          secondaryTrades: cleanSecondary,
+          secondary_trades: cleanSecondary,
           aadhaarCardUrl: profileAadhaarUrl
         };
         updateUser(updated);
         await loginTech(updated);
-        setTechToast('Profile updated!');
+        setTechToast('Profile & skills updated!');
         setEditProfileOpen(false);
       }
     } catch (err) {
@@ -693,11 +721,13 @@ export default function PartnerDutyPage() {
         payoutPhone: cleanPayout,
         upi_vpa: derivedUpi,
         trade: profileTrade,
+        secondaryTrades: cleanSecondary,
+        secondary_trades: cleanSecondary,
         aadhaarCardUrl: profileAadhaarUrl
       };
-      updateUser(updated);
-      await loginTech(updated);
-      setTechToast('Profile updated locally!');
+      updateUser(updated2);
+      await loginTech(updated2);
+      setTechToast('Profile & skills updated locally!');
       setEditProfileOpen(false);
     }
   };
@@ -2797,6 +2827,21 @@ export default function PartnerDutyPage() {
                                         size="small"
                                         sx={{ bgcolor: 'rgba(56, 189, 248, 0.15)', color: '#7DD3FC', border: '1px solid #0284C7', fontWeight: 700, fontSize: '10.5px', height: 20 }}
                                       />
+                                    )}
+                                    {activeJob.serviceId && (
+                                      activeJob.serviceId === (activeTech?.trade || user?.trade) ? (
+                                        <Chip
+                                          label="Primary Specialty"
+                                          size="small"
+                                          sx={{ bgcolor: 'rgba(234, 179, 8, 0.2)', color: '#FDE047', border: '1px solid #CA8A04', fontWeight: 800, fontSize: '10px', height: 20 }}
+                                        />
+                                      ) : (
+                                        <Chip
+                                          label={`Additional Skill • ${activeJob.serviceId.toUpperCase()}`}
+                                          size="small"
+                                          sx={{ bgcolor: 'rgba(168, 85, 247, 0.2)', color: '#D8B4FE', border: '1px solid #9333EA', fontWeight: 800, fontSize: '10px', height: 20 }}
+                                        />
+                                      )
                                     )}
                                   </Box>
 
@@ -5919,6 +5964,73 @@ export default function PartnerDutyPage() {
               </Box>
             </Paper>
 
+            {/* 2b. My Active Services & Skills */}
+            <Paper elevation={0} sx={{ p: 2, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '10px', mb: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                  <BuildIcon sx={{ color: '#7E22CE', fontSize: 18 }} />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '13.5px' }}>
+                    எனது சேவைகள் & திறன்கள் (My Active Services & Trades)
+                  </Typography>
+                </Box>
+                <Button
+                  size="small"
+                  onClick={handleOpenEditProfile}
+                  startIcon={<EditIcon sx={{ fontSize: 14 }} />}
+                  sx={{ fontSize: '11px', textTransform: 'none', py: 0, color: '#7E22CE', fontWeight: 700 }}
+                >
+                  சேர் / மாற்று (Edit)
+                </Button>
+              </Box>
+
+              <Box sx={{ mb: 1.5 }}>
+                <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 0.6, fontSize: '11px', fontWeight: 700 }}>
+                  முதன்மைத் தொழில் (PRIMARY SPECIALTY):
+                </Typography>
+                <Chip
+                  icon={<StarIcon sx={{ fontSize: '14px !important', color: '#B45309 !important' }} />}
+                  label={user?.tradeName || (user?.trade ? `${user.trade.toUpperCase()} Specialist` : 'AC Specialist')}
+                  size="small"
+                  sx={{ bgcolor: '#FEF3C7', color: '#92400E', fontWeight: 800, fontSize: '11.5px', height: 26, border: '1px solid #FCD34D' }}
+                />
+              </Box>
+
+              <Box>
+                <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 0.6, fontSize: '11px', fontWeight: 700 }}>
+                  கூடுதல் சேவைகள் (ADDITIONAL ACTIVE SERVICES):
+                </Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.8 }}>
+                  {(() => {
+                    const sec = Array.isArray(user?.secondaryTrades) && user.secondaryTrades.length > 0
+                      ? user.secondaryTrades
+                      : (Array.isArray(user?.secondary_trades) && user.secondary_trades.length > 0 ? user.secondary_trades : []);
+                    const tradeLabels = {
+                      ac: 'AC Repair & Cooling Expert',
+                      electrician: 'Electrician & Wiring Specialist',
+                      plumber: 'Plumbing & Drainage Specialist',
+                      cleaning: 'Home & Bathroom Cleaning Pro'
+                    };
+                    if (sec.length === 0) {
+                      return (
+                        <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '11.5px', fontStyle: 'italic' }}>
+                          கூடுதல் சேவைகள் சேர்க்கப்படவில்லை. நீங்கள் பிற பணிகளையும் செய்ய விரும்பினால் 'சேர் / மாற்று' பொத்தானை அழுத்தவும்.
+                        </Typography>
+                      );
+                    }
+                    return sec.map((tradeKey, idx) => (
+                      <Chip
+                        key={idx}
+                        icon={<CheckCircleIcon sx={{ fontSize: '13px !important', color: '#7E22CE !important' }} />}
+                        label={tradeLabels[tradeKey] || tradeKey.toUpperCase()}
+                        size="small"
+                        sx={{ bgcolor: '#FAF5FF', color: '#6B21A8', border: '1px solid #E9D5FF', fontWeight: 700, fontSize: '11px', height: 24 }}
+                      />
+                    ));
+                  })()}
+                </Box>
+              </Box>
+            </Paper>
+
             {/* 3. Operational Hub & Localities */}
             <Paper elevation={0} sx={{ p: 2, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '10px', mb: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 1.2 }}>
@@ -6325,7 +6437,7 @@ export default function PartnerDutyPage() {
             {/* Trade Category Selection */}
             <Box>
               <Typography variant="caption" sx={{ fontWeight: 600, color: '#64748B', display: 'block', mb: 0.8, fontSize: '13px' }}>
-                Primary trade
+                முதன்மைத் தொழில் (Primary Trade)
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                 {[
@@ -6338,7 +6450,7 @@ export default function PartnerDutyPage() {
                     key={t.id}
                     label={t.label}
                     clickable
-                    onClick={() => setProfileTrade(t.id)}
+                    onClick={() => handleProfilePrimaryTradeChange(t.id)}
                     variant={profileTrade === t.id ? 'filled' : 'outlined'}
                     sx={{
                       fontWeight: 600,
@@ -6354,6 +6466,65 @@ export default function PartnerDutyPage() {
                   />
                 ))}
               </Box>
+            </Box>
+
+            {/* Additional Services Multi-Select */}
+            <Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
+                <Typography variant="caption" sx={{ fontWeight: 600, color: '#64748B', display: 'block', fontSize: '13px' }}>
+                  கூடுதல் சேவைகள் (Additional Services You Can Perform)
+                </Typography>
+                <Chip
+                  size="small"
+                  label={`${profileSecondaryTrades.filter(t => t !== profileTrade).length} selected`}
+                  sx={{
+                    bgcolor: profileSecondaryTrades.filter(t => t !== profileTrade).length > 0 ? '#F3E8FF' : '#F1F5F9',
+                    color: profileSecondaryTrades.filter(t => t !== profileTrade).length > 0 ? '#7E22CE' : '#64748B',
+                    fontWeight: 700,
+                    fontSize: '11px',
+                    height: 20
+                  }}
+                />
+              </Box>
+              <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11.5px', display: 'block', mb: 1 }}>
+                சேலத்தில் நீங்கள் செய்ய விரும்பும் பிற தொழில் பிரிவுகளைத் தேர்ந்தெடுக்கவும் (Tap to toggle):
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {[
+                  { id: 'ac', label: 'AC Repair & HVAC' },
+                  { id: 'electrician', label: 'Electrician & Wiring' },
+                  { id: 'plumber', label: 'Plumbing & Drainage' },
+                  { id: 'cleaning', label: 'Cleaning & Sanitation' }
+                ]
+                  .filter((t) => t.id !== profileTrade)
+                  .map((t) => {
+                    const isSelected = profileSecondaryTrades.includes(t.id);
+                    return (
+                      <Chip
+                        key={t.id}
+                        label={t.label}
+                        clickable
+                        onClick={() => toggleProfileSecondaryTrade(t.id)}
+                        variant={isSelected ? 'filled' : 'outlined'}
+                        icon={isSelected ? <CheckCircleIcon sx={{ fontSize: '15px !important', color: '#FFFFFF !important' }} /> : undefined}
+                        sx={{
+                          fontWeight: 600,
+                          fontSize: '12.5px',
+                          borderRadius: '999px',
+                          minHeight: 36,
+                          px: 1,
+                          bgcolor: isSelected ? '#7E22CE' : 'transparent',
+                          color: isSelected ? '#FFFFFF' : '#0F172A',
+                          borderColor: isSelected ? '#7E22CE' : '#CBD5E1',
+                          '&:hover': { bgcolor: isSelected ? '#6B21A8' : '#FAF5FF', borderColor: '#7E22CE' }
+                        }}
+                      />
+                    );
+                  })}
+              </Box>
+              <Typography variant="caption" sx={{ color: '#0284C7', fontSize: '11px', display: 'block', mt: 0.8, fontWeight: 600 }}>
+                * முதன்மைத் தொழில் மற்றும் கூடுதல் சேவைகள் இரண்டிற்கும் உரிய வேலை அறிவிப்புகள் உங்கள் Duty ஆப்பிற்கு அனுப்பப்படும்.
+              </Typography>
             </Box>
 
             {/* Payout Phone */}

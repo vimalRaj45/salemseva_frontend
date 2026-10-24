@@ -31,6 +31,8 @@ import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import MicIcon from '@mui/icons-material/Mic';
 import SecurityIcon from '@mui/icons-material/Security';
+import PhoneIcon from '@mui/icons-material/Phone';
+import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 
 import { useAuth } from '../../context/AuthContext';
 import { useCriticalWork } from '../../context/CriticalWorkContext';
@@ -470,6 +472,49 @@ export default function CheckoutPage() {
             </Typography>
           </Paper>
         </Card>
+
+        {/* Razorpay Gateway Outage / Offline Emergency Support Card */}
+        <Paper
+          elevation={0}
+          sx={{
+            p: 1.8,
+            mb: 2,
+            bgcolor: '#FFFBEB',
+            border: '1.5px solid #FDE68A',
+            borderRadius: '14px'
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.8 }}>
+            <SupportAgentIcon sx={{ color: '#D97706', fontSize: 20 }} />
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#92400E', fontSize: '12.5px' }}>
+              Razorpay சிக்கல் அல்லது அவசர உதவி தேவைப்படுகிறதா? (Gateway Helpline)
+            </Typography>
+          </Box>
+          <Typography variant="body2" sx={{ color: '#78350F', fontSize: '11.5px', lineHeight: 1.5, mb: 1.2 }}>
+            Razorpay கட்டண முறை செயல்படவில்லை என்றாலோ அல்லது ரொக்கமாக / நேரடி UPI மூலம் செலுத்த விரும்பினாலோ எங்கள் மத்திய கட்டுப்பாட்டு அறையை அழைக்கவும். ஆபரேட்டர் உடனே சரிபார்த்து உறுதி செய்வார்.
+          </Typography>
+          <Button
+            variant="outlined"
+            fullWidth
+            size="small"
+            startIcon={<PhoneIcon sx={{ fontSize: 15 }} />}
+            component="a"
+            href="tel:+919842012345"
+            sx={{
+              borderColor: '#D97706',
+              color: '#92400E',
+              bgcolor: '#FEF3C7',
+              fontWeight: 800,
+              fontSize: '11.5px',
+              textTransform: 'none',
+              borderRadius: '8px',
+              py: 0.6,
+              '&:hover': { bgcolor: '#FDE68A', borderColor: '#B45309' }
+            }}
+          >
+            Call Salem Central Ops (+91 98420 12345)
+          </Button>
+        </Paper>
 
         {/* 4. Action Button */}
         <Button

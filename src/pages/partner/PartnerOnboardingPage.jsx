@@ -59,6 +59,13 @@ const SALEM_LOCALITIES = [
   { id: 'Steel Plant Area', name: 'Steel Plant Area', tamil: 'ஸ்டீல் பிளாண்ட்' }
 ];
 
+const ALL_TRADES = [
+  { id: 'ac', name: 'AC Repair & HVAC Specialist', tamil: 'ஏசி மெக்கானிக் / ஏசி சர்வீஸ்' },
+  { id: 'electrician', name: 'Master Electrician & Wiring', tamil: 'எலக்ட்ரீஷியன் & வயரிங்' },
+  { id: 'plumber', name: 'Plumbing & Drainage Expert', tamil: 'பிளம்பிங் & குழாய் வேலை' },
+  { id: 'cleaning', name: 'Deep Cleaning & Sanitization', tamil: 'முழு வீடு & கழிவறை சுத்தம்' }
+];
+
 export default function PartnerOnboardingPage() {
   const navigate = useNavigate();
   const { rewardSettings, loginAsTechnician, user } = useAuth();
@@ -70,6 +77,22 @@ export default function PartnerOnboardingPage() {
   const [mobile, setMobile] = useState(() => searchParams.get('phone') || user?.phone || '');
   const [name, setName] = useState(() => searchParams.get('name') || user?.name || '');
   const [trade, setTrade] = useState(() => searchParams.get('trade') || user?.trade || 'ac');
+  const [secondaryTrades, setSecondaryTrades] = useState(() => {
+    if (user?.secondaryTrades && Array.isArray(user.secondaryTrades)) return user.secondaryTrades;
+    if (user?.secondary_trades && Array.isArray(user.secondary_trades)) return user.secondary_trades;
+    return [];
+  });
+
+  const handlePrimaryTradeChange = (newTrade) => {
+    setTrade(newTrade);
+    setSecondaryTrades((prev) => prev.filter((t) => t !== newTrade));
+  };
+
+  const toggleSecondaryTrade = (tradeId) => {
+    setSecondaryTrades((prev) =>
+      prev.includes(tradeId) ? prev.filter((t) => t !== tradeId) : [...prev, tradeId]
+    );
+  };
   const [yearsExperience, setYearsExperience] = useState(() => searchParams.get('exp') || user?.years_experience || user?.experienceYears || '');
   const [selectedLocalities, setSelectedLocalities] = useState(() => {
     if (user?.assignedLocalities && Array.isArray(user.assignedLocalities) && user.assignedLocalities.length > 0) {
@@ -156,6 +179,7 @@ export default function PartnerOnboardingPage() {
         phone: mobile,
         password,
         trade,
+        secondaryTrades: secondaryTrades.filter(t => t !== trade),
         yearsExperience: parseInt(yearsExperience, 10) || 0,
         serviceArea: selectedLocalities.join(', '),
         assignedLocalities: selectedLocalities,
@@ -186,6 +210,8 @@ export default function PartnerOnboardingPage() {
           email: data.technician?.email || `${(name || 'tech').toLowerCase().replace(/[^a-z]/g, '')}@shazuone.in`,
           trade: data.technician?.primary_trade || trade,
           tradeName: tradeNames[trade] || 'Home Services Specialist',
+          secondary_trades: data.user?.secondary_trades || data.technician?.secondary_trades || secondaryTrades.filter(t => t !== trade),
+          secondaryTrades: data.user?.secondaryTrades || data.technician?.secondary_trades || secondaryTrades.filter(t => t !== trade),
           years_experience: parseInt(yearsExperience, 10) || 0,
           experienceYears: parseInt(yearsExperience, 10) || 0,
           isKycVerified: Boolean(data.technician?.is_kyc_verified),
@@ -222,6 +248,8 @@ export default function PartnerOnboardingPage() {
           email: `${name.toLowerCase().replace(/[^a-z]/g, '')}@shazuone.in`,
           trade,
           tradeName: tradeNames[trade] || 'Home Services Specialist',
+          secondary_trades: secondaryTrades.filter(t => t !== trade),
+          secondaryTrades: secondaryTrades.filter(t => t !== trade),
           isKycVerified: false,
           isOnline: false,
           payoutPhone: cleanPayout3,
@@ -380,13 +408,13 @@ export default function PartnerOnboardingPage() {
               {/* Primary Trade */}
               <Box>
                 <Typography variant="caption" sx={{ fontWeight: 800, color: '#64748B', display: 'block', mb: 0.6 }}>
-                  தொழில் பிரிவு (PRIMARY TRADE) *
+                  முதன்மைத் தொழில் பிரிவு (PRIMARY TRADE) *
                 </Typography>
                 <FormControl fullWidth size="small">
                   {/* ds-allow-native-select */}
                   <Select
                     value={trade}
-                    onChange={(e) => setTrade(e.target.value)}
+                    onChange={(e) => handlePrimaryTradeChange(e.target.value)}
                     sx={{ borderRadius: '12px', fontWeight: 700 }}
                   >
                     <MenuItem value="ac">AC Repair & HVAC Specialist (7+ Yrs)</MenuItem>
@@ -395,6 +423,74 @@ export default function PartnerOnboardingPage() {
                     <MenuItem value="cleaning">Deep Cleaning & Sanitization</MenuItem>
                   </Select>
                 </FormControl>
+              </Box>
+
+              {/* Additional Services Multi-Select */}
+              <Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.6 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 800, color: '#64748B', display: 'block' }}>
+                    கூடுதல் சேவைகள் (ADDITIONAL SERVICES YOU CAN PROVIDE)
+                  </Typography>
+                  <Chip
+                    size="small"
+                    label={`${secondaryTrades.filter(t => t !== trade).length} Selected`}
+                    sx={{
+                      bgcolor: secondaryTrades.filter(t => t !== trade).length > 0 ? '#F3E8FF' : '#F1F5F9',
+                      color: secondaryTrades.filter(t => t !== trade).length > 0 ? '#7E22CE' : '#64748B',
+                      fontWeight: 800,
+                      fontSize: '10.5px',
+                      height: 20
+                    }}
+                  />
+                </Box>
+                <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11px', display: 'block', mb: 1 }}>
+                  உங்கள் முதன்மைத் தொழில் தவிர பிற பணிகளையும் உங்களால் செய்ய முடியுமா? நீங்கள் செய்யும் சேவைகளைத் தேர்ந்தெடுக்கவும்:
+                </Typography>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1 }}>
+                  {ALL_TRADES.filter((t) => t.id !== trade).map((t) => {
+                    const isSelected = secondaryTrades.includes(t.id);
+                    return (
+                      <Paper
+                        key={t.id}
+                        elevation={0}
+                        onClick={() => toggleSecondaryTrade(t.id)}
+                        sx={{
+                          p: 1.2,
+                          borderRadius: '10px',
+                          border: isSelected ? '1.5px solid #7E22CE' : '1px solid #E2E8F0',
+                          bgcolor: isSelected ? '#FAF5FF' : '#FFFFFF',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          transition: 'all 0.15s ease',
+                          '&:hover': { borderColor: '#A855F7', bgcolor: isSelected ? '#FAF5FF' : '#F8FAFC' }
+                        }}
+                      >
+                        <Box sx={{ pr: 1 }}>
+                          <Typography sx={{ fontSize: '12.5px', fontWeight: 700, color: isSelected ? '#6B21A8' : '#0F172A' }}>
+                            {t.name}
+                          </Typography>
+                          <Typography sx={{ fontSize: '10.5px', color: isSelected ? '#7E22CE' : '#64748B' }}>
+                            {t.tamil}
+                          </Typography>
+                        </Box>
+                        <Checkbox
+                          size="small"
+                          checked={isSelected}
+                          sx={{
+                            p: 0,
+                            color: '#CBD5E1',
+                            '&.Mui-checked': { color: '#7E22CE' }
+                          }}
+                        />
+                      </Paper>
+                    );
+                  })}
+                </Box>
+                <Typography variant="caption" sx={{ color: '#0284C7', fontSize: '11px', display: 'block', mt: 0.8, fontWeight: 600 }}>
+                  * நீங்கள் தேர்ந்தெடுக்கும் கூடுதல் சேவைகளுக்கும் வேலை அறிவிப்புகள் (Job Alerts) உங்கள் Duty ஆப்பில் நேரடியாக வரும்.
+                </Typography>
               </Box>
 
               {/* Work Experience */}

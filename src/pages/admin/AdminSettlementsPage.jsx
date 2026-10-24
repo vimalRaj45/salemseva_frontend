@@ -1,4 +1,4 @@
-﻿import { API_V1_URL } from '../../config';
+import { API_V1_URL } from '../../config';
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Container,
@@ -40,6 +40,8 @@ import ShieldIcon from '@mui/icons-material/Shield';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import ReplayIcon from '@mui/icons-material/Replay';
 import HandshakeIcon from '@mui/icons-material/Handshake';
+import PaymentsIcon from '@mui/icons-material/Payments';
+import AdminPaymentOverrideModal from '../../components/AdminPaymentOverrideModal';
 
 const SALEM_LOCALITIES = [
   'All Salem Regions',
@@ -71,6 +73,10 @@ export default function AdminSettlementsPage() {
   // Data States
   const [financialData, setFinancialData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Manual Payment Override State
+  const [overrideModalOpen, setOverrideModalOpen] = useState(false);
+  const [targetBookingForOverride, setTargetBookingForOverride] = useState(null);
 
   // Fetch End-to-End Financial Ledger
   const fetchLedger = () => {
@@ -606,6 +612,7 @@ export default function AdminSettlementsPage() {
                   <TableCell align="right">PLATFORM CUT</TableCell>
                   <TableCell align="right">REFUND</TableCell>
                   <TableCell align="center">PAYMENT & STATUS</TableCell>
+                  <TableCell align="center">ACTIONS</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -723,10 +730,55 @@ export default function AdminSettlementsPage() {
                                     : '#B45309'
                               }}
                             />
-                            <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '9.5px' }}>
-                              {tx.paymentMethod.split(' ')[0]}
-                            </Typography>
+                            {tx.paymentMethod && (tx.paymentMethod.includes('Manual') || tx.paymentMethod.includes('Direct UPI') || tx.paymentMethod.includes('Cash')) ? (
+                              <Chip
+                                label="MANUAL OVERRIDE"
+                                size="small"
+                                sx={{ bgcolor: '#FAF5FF', color: '#7E22CE', border: '1px solid #E9D5FF', fontWeight: 900, fontSize: '8px', height: 16 }}
+                              />
+                            ) : (
+                              <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '9.5px' }}>
+                                {tx.paymentMethod.split(' ')[0]}
+                              </Typography>
+                            )}
                           </Box>
+                        </TableCell>
+                        <TableCell align="center">
+                          {tx.status !== 'SETTLED' && tx.status !== 'REFUNDED' ? (
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              startIcon={<PaymentsIcon sx={{ fontSize: 12 }} />}
+                              onClick={() => {
+                                setTargetBookingForOverride({
+                                  id: tx.bookingId,
+                                  customer_name: tx.customerName,
+                                  visit_fee: 99,
+                                  quote_subtotal: Math.max(0, tx.grossAmount - 99),
+                                  status: 'quote_presented'
+                                });
+                                setOverrideModalOpen(true);
+                              }}
+                              sx={{
+                                borderRadius: '8px',
+                                fontSize: '10.5px',
+                                fontWeight: 800,
+                                textTransform: 'none',
+                                py: 0.3,
+                                px: 1,
+                                color: '#D97706',
+                                borderColor: '#FDE68A',
+                                bgcolor: '#FFFBEB',
+                                '&:hover': { bgcolor: '#FEF3C7', borderColor: '#D97706' }
+                              }}
+                            >
+                              Override
+                            </Button>
+                          ) : (
+                            <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '10px' }}>
+                              Settled
+                            </Typography>
+                          )}
                         </TableCell>
                       </TableRow>
                     );
@@ -736,6 +788,19 @@ export default function AdminSettlementsPage() {
             </Table>
           </Box>
         </Card>
+
+        {/* Emergency Admin Payment Override Modal */}
+        <AdminPaymentOverrideModal
+          open={overrideModalOpen}
+          onClose={() => {
+            setOverrideModalOpen(false);
+            setTargetBookingForOverride(null);
+          }}
+          booking={targetBookingForOverride}
+          onSuccess={() => {
+            fetchLedger();
+          }}
+        />
       </Container>
     </Box>
   );

@@ -129,6 +129,7 @@ import AdminDispatchDrawer from './AdminDispatchDrawer';
 import AdminTechnicianDossierDrawer from './AdminTechnicianDossierDrawer';
 import AdminCustomerDossierDrawer from './AdminCustomerDossierDrawer';
 import AdminTrackingModal from './AdminTrackingModal';
+import AdminPaymentOverrideModal from '../../components/AdminPaymentOverrideModal';
 import LeadAudioPlayer from '../../components/LeadAudioPlayer';
 import Modal, { ModalHeader, ModalBody, ModalFooter } from '../../components/Modal';
 import { useAuth } from '../../context/AuthContext';
@@ -244,6 +245,10 @@ export default function AdminDashboardPage() {
   const [cancelOrderDetails, setCancelOrderDetails] = useState('');
   const [cancelOrderCompensate, setCancelOrderCompensate] = useState(false);
   const [cancelOrderLoading, setCancelOrderLoading] = useState(false);
+
+  // Admin Payment Override ("Mark as Paid") State
+  const [paymentOverrideModalOpen, setPaymentOverrideModalOpen] = useState(false);
+  const [targetBookingForPayment, setTargetBookingForPayment] = useState(null);
 
   // Rewards & Incentive Settings State (Customizable by Admin)
   const [rewardConfig, setRewardConfig] = useState({
@@ -2600,6 +2605,32 @@ export default function AdminDashboardPage() {
                             >
                               Trace
                             </Button>
+                            {/* Admin Payment Override — Mark as Paid (Razorpay edge case fallback) */}
+                            {!['completed', 'cancelled'].includes(job.status) && (
+                              <Button
+                                variant="outlined"
+                                size="small"
+                                startIcon={<PaymentsIcon sx={{ fontSize: 13 }} />}
+                                onClick={() => {
+                                  setTargetBookingForPayment(job);
+                                  setPaymentOverrideModalOpen(true);
+                                }}
+                                title="Emergency payment override — mark as paid via Cash/Direct UPI"
+                                sx={{
+                                  borderRadius: '8px',
+                                  fontSize: '11px',
+                                  fontWeight: 800,
+                                  textTransform: 'none',
+                                  py: 0.4,
+                                  color: '#D97706',
+                                  borderColor: '#FDE68A',
+                                  bgcolor: '#FFFBEB',
+                                  '&:hover': { bgcolor: '#FEF3C7', borderColor: '#D97706' }
+                                }}
+                              >
+                                Mark Paid
+                              </Button>
+                            )}
                             {/* Admin Cancel Order & Release Tech — available for all active bookings */}
                             {!['completed', 'cancelled'].includes(job.status) && (
                               <Button
@@ -5351,7 +5382,30 @@ export default function AdminDashboardPage() {
               </Box>
             )}
           </ModalBody>
-          <ModalFooter>
+          <ModalFooter sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+            {selectedBookingTrace?.status !== 'completed' && selectedBookingTrace?.status !== 'cancelled' ? (
+              <Button
+                variant="outlined"
+                color="warning"
+                startIcon={<PaymentsIcon sx={{ fontSize: 16 }} />}
+                onClick={() => {
+                  setTargetBookingForPayment(selectedBookingTrace);
+                  setPaymentOverrideModalOpen(true);
+                }}
+                sx={{
+                  borderColor: '#D97706',
+                  color: '#D97706',
+                  fontWeight: 800,
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  fontSize: '13px',
+                  px: 2,
+                  '&:hover': { bgcolor: '#FFFBEB', borderColor: '#B45309' }
+                }}
+              >
+                Mark as Paid (Payment Override)
+              </Button>
+            ) : <Box />}
             <Button
               variant="contained"
               onClick={() => setBookingTraceModalOpen(false)}
@@ -5402,6 +5456,22 @@ export default function AdminDashboardPage() {
             });
             setSelectedTrackingBooking(prev => prev ? { ...prev, status: newStatus } : null);
             fetchOverview(true);
+          }}
+        />
+
+        {/* Emergency Admin Payment Override Modal */}
+        <AdminPaymentOverrideModal
+          open={paymentOverrideModalOpen}
+          onClose={() => {
+            setPaymentOverrideModalOpen(false);
+            setTargetBookingForPayment(null);
+          }}
+          booking={targetBookingForPayment}
+          onSuccess={(res) => {
+            fetchOverview(true);
+            if (bookingTraceModalOpen && selectedBookingTrace?.id === targetBookingForPayment?.id) {
+              setSelectedBookingTrace(prev => prev ? ({ ...prev, status: res.status }) : null);
+            }
           }}
         />
 

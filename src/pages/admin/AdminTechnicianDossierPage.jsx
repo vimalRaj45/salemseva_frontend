@@ -198,6 +198,21 @@ export default function AdminTechnicianDossierPage() {
                 <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '12px' }}>
                   Primary Trade: <strong style={{ color: '#38BDF8' }}>{getTradeLabel(tech.primary_trade)}</strong> • Phone: <strong>{tech.phone}</strong> • Experience: <strong>{tech.years_experience != null ? `${tech.years_experience} Years` : '0 Years'}</strong> • Locality: <strong>{Array.isArray(tech.assigned_localities) && tech.assigned_localities.length > 0 ? tech.assigned_localities.join(', ') : tech.service_area || tech.locality || 'Fairlands, Salem'}</strong>
                 </Typography>
+                {Array.isArray(tech.secondary_trades) && tech.secondary_trades.length > 0 && (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, mt: 0.8, flexWrap: 'wrap' }}>
+                    <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '11px', fontWeight: 700 }}>
+                      Additional Qualified Trades:
+                    </Typography>
+                    {tech.secondary_trades.map((secTrade, idx) => (
+                      <Chip
+                        key={idx}
+                        label={getTradeLabel(secTrade)}
+                        size="small"
+                        sx={{ bgcolor: 'rgba(168, 85, 247, 0.15)', color: '#D8B4FE', border: '1px solid #7E22CE', fontWeight: 700, fontSize: '10.5px', height: 20 }}
+                      />
+                    ))}
+                  </Box>
+                )}
               </Box>
             </Box>
 

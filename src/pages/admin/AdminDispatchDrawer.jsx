@@ -72,17 +72,23 @@ export default function AdminDispatchDrawer({
       .filter((t) => {
         const name = (t.full_name || '').toLowerCase();
         const trade = (t.primary_trade || '').toLowerCase();
+        const secTrades = Array.isArray(t.secondary_trades) ? t.secondary_trades.map(s => String(s).toLowerCase()).join(' ') : '';
         const phone = (t.phone || '').toLowerCase();
-        const matchesQuery = !q || name.includes(q) || trade.includes(q) || phone.includes(q);
+        const matchesQuery = !q || name.includes(q) || trade.includes(q) || secTrades.includes(q) || phone.includes(q);
         return matchesQuery;
       })
       .map((t) => {
         let score = 0;
         const trade = (t.primary_trade || '').toLowerCase();
+        const secTrades = Array.isArray(t.secondary_trades) ? t.secondary_trades.map(s => String(s).toLowerCase()) : [];
 
         // Trade Match Bonus
         if (bookingTrade !== 'all') {
-          if (trade.includes(bookingTrade) || bookingTrade.includes(trade)) score += 50;
+          if (trade.includes(bookingTrade) || bookingTrade.includes(trade)) {
+            score += 50;
+          } else if (secTrades.some(st => st.includes(bookingTrade) || bookingTrade.includes(st))) {
+            score += 45;
+          }
         }
 
         // Online Bonus
@@ -357,12 +363,20 @@ export default function AdminDispatchDrawer({
                         <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0F172A', lineHeight: 1.2 }}>
                           {tech.full_name}
                         </Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mt: 0.2 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, mt: 0.2, flexWrap: 'wrap' }}>
                           <Chip
                             label={(tech.primary_trade || 'general').toUpperCase()}
                             size="small"
                             sx={{ height: 18, fontSize: '9px', fontWeight: 900, bgcolor: '#F1F5F9', color: '#475569' }}
                           />
+                          {Array.isArray(tech.secondary_trades) && tech.secondary_trades.map((st, i) => (
+                            <Chip
+                              key={i}
+                              label={String(st).toUpperCase()}
+                              size="small"
+                              sx={{ height: 18, fontSize: '8.5px', fontWeight: 800, bgcolor: '#FAF5FF', color: '#7E22CE', border: '1px solid #E9D5FF' }}
+                            />
+                          ))}
                           <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11px' }}>
                             {tech.years_experience || 4}y exp
                           </Typography>
