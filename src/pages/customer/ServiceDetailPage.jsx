@@ -368,6 +368,33 @@ export default function ServiceDetailPage({ onStartBooking }) {
     return true;
   };
 
+  // Razorpay-style audio confirmation chime on success modal trigger
+  useEffect(() => {
+    if (scheduledSuccessModalOpen) {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) {
+          const ctx = new AudioCtx();
+          if (ctx.state === 'suspended') ctx.resume();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.type = 'sine';
+          const now = ctx.currentTime;
+          osc.frequency.setValueAtTime(587.33, now);
+          osc.frequency.exponentialRampToValueAtTime(880, now + 0.12);
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          osc.start(now);
+          osc.stop(now + 0.35);
+        }
+      } catch (e) {
+        // Silent audio fallback
+      }
+    }
+  }, [scheduledSuccessModalOpen]);
+
   const handleProceed = async (overrideUser = null) => {
     if (isDomainTemporarilyClosed) {
       toast.error('Service is temporarily closed in Salem. No technicians currently available.');
@@ -1793,94 +1820,300 @@ export default function ServiceDetailPage({ onStartBooking }) {
         </ModalFooter>
       </Modal>
 
-      {/* SCHEDULED BOOKING SUCCESS CONFIRMATION MODAL */}
+      {/* SCHEDULED BOOKING SUCCESS CONFIRMATION MODAL (RAZORPAY SUCCESS ANIMATED) */}
       <Modal
         open={scheduledSuccessModalOpen}
         onClose={() => setScheduledSuccessModalOpen(false)}
         maxWidth="sm"
         ariaLabelledBy="scheduled-success-title"
       >
-        <ModalHeader
-          id="scheduled-success-title"
-          title="Scheduled booking confirmed"
-          subtitle={`Booking #${confirmedBooking?.id || 'SLM-84920'}`}
-          onClose={() => setScheduledSuccessModalOpen(false)}
-        />
+        <ModalBody sx={{ p: { xs: 2.5, sm: 3 }, overflow: 'hidden' }}>
+          {/* Keyframes for Razorpay Success Animation */}
+          <style>{`
+            @keyframes rzpRipple {
+              0% { transform: scale(0.85); opacity: 0.9; }
+              100% { transform: scale(1.65); opacity: 0; }
+            }
+            @keyframes rzpPopIn {
+              0% { transform: scale(0); opacity: 0; }
+              55% { transform: scale(1.15); opacity: 1; }
+              75% { transform: scale(0.95); opacity: 1; }
+              100% { transform: scale(1); opacity: 1; }
+            }
+            @keyframes rzpCheckStroke {
+              0% { stroke-dashoffset: 40; }
+              100% { stroke-dashoffset: 0; }
+            }
+            @keyframes rzpFadeSlideUp {
+              0% { transform: translateY(16px); opacity: 0; }
+              100% { transform: translateY(0); opacity: 1; }
+            }
+            @keyframes rzpBadgeGlow {
+              0%, 100% { box-shadow: 0 8px 24px rgba(22, 163, 74, 0.28); }
+              50% { box-shadow: 0 12px 32px rgba(22, 163, 74, 0.45); }
+            }
+          `}</style>
 
-        <ModalBody>
-          <Box sx={{ textAlign: 'center', py: 1 }}>
-            <SalemLottie
-              name="success"
-              width={80}
-              height={80}
-              loop={false}
-              ariaLabel="Scheduled booking payment verified and confirmed"
-              style={{ mb: 1 }}
-            />
-            <Typography sx={{ fontWeight: 700, color: '#0F172A', fontSize: '16px' }}>
-              Booking confirmed & paid
-            </Typography>
-            <Typography sx={{ color: '#64748B', fontSize: '12px', mt: 0.5 }}>
-              Booking #{confirmedBooking?.id || 'SLM-84920'}
-            </Typography>
+          {/* 1. Animated Hero Razorpay Circle Badge */}
+          <Box sx={{ textAlign: 'center', pt: 1, pb: 1 }}>
+            <Box
+              sx={{
+                position: 'relative',
+                width: 96,
+                height: 96,
+                mx: 'auto',
+                mb: 2,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              {/* Outer Pulse Ripple 1 */}
+              <Box
+                sx={{
+                  position: 'absolute',
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: '50%',
+                  bgcolor: 'rgba(22, 163, 74, 0.18)',
+                  animation: 'rzpRipple 2.2s cubic-bezier(0, 0.2, 0.8, 1) infinite'
+                }}
+              />
+              {/* Outer Pulse Ripple 2 */}
+              <Box
+                sx={{
+                  position: 'absolute',
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: '50%',
+                  bgcolor: 'rgba(22, 163, 74, 0.25)',
+                  animation: 'rzpRipple 2.2s cubic-bezier(0, 0.2, 0.8, 1) infinite',
+                  animationDelay: '0.65s'
+                }}
+              />
+              {/* Center Emerald Circle with Pop-in */}
+              <Box
+                sx={{
+                  width: 76,
+                  height: 76,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #16A34A 0%, #15803D 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  animation: 'rzpPopIn 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, rzpBadgeGlow 3s ease-in-out infinite 0.6s',
+                  zIndex: 2
+                }}
+              >
+                <svg
+                  width="44"
+                  height="44"
+                  viewBox="0 0 44 44"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  style={{ display: 'block' }}
+                >
+                  <path
+                    d="M12 22.5L19 29.5L32 14.5"
+                    stroke="#FFFFFF"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{
+                      strokeDasharray: 40,
+                      strokeDashoffset: 40,
+                      animation: 'rzpCheckStroke 0.45s cubic-bezier(0.65, 0, 0.45, 1) 0.32s forwards'
+                    }}
+                  />
+                </svg>
+              </Box>
+            </Box>
+
+            {/* Payment Success Badge & Heading */}
+            <Box sx={{ animation: 'rzpFadeSlideUp 0.45s ease-out 0.2s both' }}>
+              <Chip
+                icon={<LockIcon sx={{ fontSize: '13px !important', color: '#15803D !important' }} />}
+                label="Razorpay Escrow Protected"
+                size="small"
+                sx={{
+                  bgcolor: '#DCFCE7',
+                  color: '#15803D',
+                  fontWeight: 800,
+                  fontSize: '11px',
+                  height: 24,
+                  mb: 1,
+                  border: '1px solid #BBF7D0'
+                }}
+              />
+              <Typography
+                variant="h6"
+                id="scheduled-success-title"
+                sx={{
+                  fontWeight: 900,
+                  color: '#0F172A',
+                  fontSize: { xs: '20px', sm: '22px' },
+                  letterSpacing: '-0.3px',
+                  mb: 0.5
+                }}
+              >
+                Payment Successful
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: '#16A34A',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 0.6
+                }}
+              >
+                <CheckCircleIcon sx={{ fontSize: 16 }} />
+                Scheduled Appointment Confirmed & Locked
+              </Typography>
+            </Box>
+
+            {/* Large Paid Amount Card */}
+            <Box
+              sx={{
+                animation: 'rzpFadeSlideUp 0.45s ease-out 0.3s both',
+                my: 2,
+                py: 1.5,
+                px: 2,
+                borderRadius: '14px',
+                bgcolor: '#F8FAFC',
+                border: '1px solid #E2E8F0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
+              }}
+            >
+              <Box sx={{ textAlign: 'left' }}>
+                <Typography sx={{ color: '#64748B', fontSize: '11.5px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                  Doorstep Inspection Fee Paid
+                </Typography>
+                <Typography sx={{ color: '#0F172A', fontSize: '12px', fontWeight: 500, mt: 0.2 }}>
+                  Booking ID: #{confirmedBooking?.id || 'SLM-84920'}
+                </Typography>
+              </Box>
+              <Typography
+                sx={{
+                  fontWeight: 900,
+                  color: '#0F172A',
+                  fontSize: '22px',
+                  fontVariantNumeric: 'tabular-nums'
+                }}
+              >
+                ₹{(confirmedBooking?.visit_fee_paid ?? Math.max(0, inspectionFeeNumber - (couponApplied ? couponDiscount : 0))).toFixed(2)}
+              </Typography>
+            </Box>
           </Box>
 
-          <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
-            <Box sx={{ mb: 1.5 }}>
-              <Typography sx={{ color: '#64748B', fontWeight: 600, fontSize: '12px' }}>
-                Scheduled appointment slot
-              </Typography>
-              <Typography sx={{ fontWeight: 700, color: '#0A66C2', fontSize: '14px' }}>
-                {confirmedBooking?.scheduled_slot || `${getFormattedDateString()} • ${selectedSlot}`}
-              </Typography>
+          {/* Appointment & Dispatch Details Paper */}
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2,
+              bgcolor: '#FFFFFF',
+              borderRadius: '14px',
+              border: '1px solid #E2E8F0',
+              animation: 'rzpFadeSlideUp 0.45s ease-out 0.4s both',
+              boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)'
+            }}
+          >
+            {/* Slot Row */}
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, mb: 1.8 }}>
+              <Box
+                sx={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: '10px',
+                  bgcolor: '#EFF6FF',
+                  color: '#0284C7',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}
+              >
+                <CalendarMonthIcon sx={{ fontSize: 20 }} />
+              </Box>
+              <Box>
+                <Typography sx={{ color: '#64748B', fontWeight: 600, fontSize: '11.5px', textTransform: 'uppercase', letterSpacing: '0.3px' }}>
+                  Confirmed Service Window
+                </Typography>
+                <Typography sx={{ fontWeight: 800, color: '#0F172A', fontSize: '14px', mt: 0.2 }}>
+                  {confirmedBooking?.scheduled_slot || `${getFormattedDateString()} • ${selectedSlot}`}
+                </Typography>
+              </Box>
             </Box>
 
-            <Box sx={{ mb: 1.5 }}>
-              <Typography sx={{ color: '#64748B', fontWeight: 600, fontSize: '12px' }}>
-                Service & location
-              </Typography>
-              <Typography sx={{ fontWeight: 600, color: '#0F172A', fontSize: '13px' }}>
-                {currentServiceName}
-              </Typography>
-              <Typography sx={{ color: '#64748B', fontSize: '12px' }}>
-                {userLocation.address}
-              </Typography>
+            {/* Service & Location Row */}
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, mb: 1.8 }}>
+              <Box
+                sx={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: '10px',
+                  bgcolor: '#F1F5F9',
+                  color: '#475569',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}
+              >
+                <LocationOnIcon sx={{ fontSize: 20 }} />
+              </Box>
+              <Box sx={{ overflow: 'hidden' }}>
+                <Typography sx={{ color: '#64748B', fontWeight: 600, fontSize: '11.5px', textTransform: 'uppercase', letterSpacing: '0.3px' }}>
+                  Service & Doorstep Address
+                </Typography>
+                <Typography sx={{ fontWeight: 700, color: '#0F172A', fontSize: '13px', mt: 0.2 }}>
+                  {currentServiceName}
+                </Typography>
+                <Typography sx={{ color: '#64748B', fontSize: '12px', noWrap: true, textOverflow: 'ellipsis' }}>
+                  {userLocation.address}
+                </Typography>
+              </Box>
             </Box>
 
-            <Divider sx={{ my: 1.5, borderColor: '#E2E8F0' }} />
+            <Divider sx={{ my: 1.5, borderColor: '#F1F5F9' }} />
 
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <AdminPanelSettingsIcon sx={{ color: '#0A66C2', fontSize: 18 }} />
-              <Typography sx={{ color: '#0F172A', fontWeight: 600, fontSize: '12px' }}>
-                Sent to Shazu One Central Operations Desk
+            {/* Central Ops Staging Notice */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: '#F8FAFC', p: 1.2, borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+              <AdminPanelSettingsIcon sx={{ color: '#0284C7', fontSize: 18, flexShrink: 0 }} />
+              <Typography sx={{ color: '#475569', fontSize: '11.5px', lineHeight: 1.4, fontWeight: 500 }}>
+                Routed to <strong>Salem Central Operations Desk</strong>. A certified specialist is assigned. Live GPS tracking unlocks before departure.
               </Typography>
             </Box>
-            <Typography sx={{ color: '#64748B', fontSize: '12px', mt: 0.5, lineHeight: 1.4 }}>
-              Our operations desk is allocating a verified technician for your slot. You will receive an instant notification with live GPS tracking prior to arrival.
-            </Typography>
           </Paper>
         </ModalBody>
 
-        <ModalFooter sx={{ flexDirection: 'column !important', gap: 1 }}>
+        <ModalFooter sx={{ flexDirection: 'column !important', gap: 1, p: { xs: 2, sm: 2.5 }, pt: 0, borderTop: 'none' }}>
           <Button
             fullWidth
             variant="contained"
+            endIcon={<ArrowForwardIcon sx={{ fontSize: 18 }} />}
             onClick={() => {
               setScheduledSuccessModalOpen(false);
               navigate(`/track?bookingId=${confirmedBooking?.id || 'SLM-84920'}`);
             }}
             sx={{
-              bgcolor: '#0A66C2',
+              bgcolor: '#0F172A',
               color: '#FFFFFF',
-              fontWeight: 700,
-              borderRadius: '14px',
+              fontWeight: 800,
+              borderRadius: '12px',
               minHeight: 48,
               fontSize: '14px',
               textTransform: 'none',
-              '&:hover': { bgcolor: '#084E96' }
+              boxShadow: '0 4px 14px rgba(15, 23, 42, 0.15)',
+              '&:hover': { bgcolor: '#1E293B' }
             }}
           >
-            Track status now
+            Track Dispatch & Arrival Status
           </Button>
 
           <Button
@@ -1893,7 +2126,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
             sx={{
               borderColor: '#E2E8F0',
               color: '#475569',
-              fontWeight: 600,
+              fontWeight: 700,
               borderRadius: '12px',
               minHeight: 44,
               fontSize: '13px',
@@ -1901,7 +2134,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
               '&:hover': { bgcolor: '#F8FAFC', borderColor: '#CBD5E1' }
             }}
           >
-            View in my bookings
+            View in My Bookings
           </Button>
         </ModalFooter>
       </Modal>
