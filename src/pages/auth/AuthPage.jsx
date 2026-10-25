@@ -524,30 +524,6 @@ export default function AuthPage({ initialMode = 'login' }) {
     }
   };
 
-    try {
-      await registerAccount({
-        name: fullName.trim(),
-        phone: cleanPhone,
-        password: registerPassword.trim(),
-        role: 'customer',
-        locality,
-        referralCode: referralCode.trim()
-      });
-      setIsLoading(false);
-      setRegisteredUserPhone(cleanPhone);
-      toast.success('Account created successfully! Welcome credits added.');
-
-      // Move directly to Step 3 (Passkey setup) in-page
-      setRegisterStep(3);
-    } catch (err) {
-      isNewRegistrationRef.current = false;
-      setIsLoading(false);
-      const msg = err.message || 'Registration failed. Please try again.';
-      setErrorMessage(msg);
-      toast.error(msg);
-    }
-  };
-
   // Step 3: Register Passkey on newly created account
   const handleEnablePasskey = async () => {
     try {

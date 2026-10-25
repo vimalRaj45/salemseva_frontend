@@ -976,31 +976,6 @@ export default function Navbar({
               </button>
             )}
 
-            {/* Dark / Light Theme Mode Toggle Button */}
-            <button
-              type="button"
-              onClick={toggleColorMode}
-              title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-              aria-label={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: isMobile ? '34px' : '38px',
-                height: isMobile ? '34px' : '38px',
-                borderRadius: '10px',
-                boxSizing: 'border-box',
-                backgroundColor: isDarkMode ? '#1E293B' : '#F8FAFC',
-                border: isDarkMode ? '1px solid #334155' : '1px solid #E2E8F0',
-                color: isDarkMode ? '#F59E0B' : '#475569',
-                cursor: 'pointer',
-                flexShrink: 0,
-                transition: 'all 0.15s ease'
-              }}
-            >
-              {isDarkMode ? <Sun size={isMobile ? 15 : 16} /> : <Moon size={isMobile ? 15 : 16} />}
-            </button>
-
             {/* 3.5 User Avatar & Adaptive Role Dropdown (If Logged In) OR Clean Sign In Button */}
             {user ? (
               <div style={{ position: 'relative' }} ref={profileRef}>

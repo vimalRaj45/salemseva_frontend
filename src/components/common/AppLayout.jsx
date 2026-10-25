@@ -271,23 +271,6 @@ export default function AppLayout({
 
             {headerExtra && <Box sx={{ mr: 1.5 }}>{headerExtra}</Box>}
 
-            {/* Dark Mode Toggle */}
-            <IconButton
-              onClick={toggleColorMode}
-              color="inherit"
-              size="small"
-              sx={{
-                mr: 1.5,
-                border: '1px solid',
-                borderColor: 'divider',
-                borderRadius: 1.5,
-                p: 0.75
-              }}
-              aria-label={mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-            >
-              {mode === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
-            </IconButton>
-
             {/* User Profile Avatar */}
             {user && (
               <>
