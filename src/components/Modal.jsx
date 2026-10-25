@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import {
   Dialog,
   Box,
@@ -10,14 +10,13 @@ import {
 import { X } from 'lucide-react';
 
 /**
- * Standard Shazu One Reusable Modal System
- * Mobile: Bottom sheet with drag handle, 24px top radius, max-height 90vh
- * Desktop: Centered modal dialog, standard max-width, fixed header, scrollable body, sticky footer
+ * Shared Modal Component
+ * Strictly enforces 8px padding, tight gaps, compact controls, and no horizontal scroll.
  */
 export function Modal({
   open,
   onClose,
-  maxWidth = 'sm', // 'xs' (400px), 'sm' (480px), 'md' (640px), 'lg' (800px)
+  maxWidth = 'sm', // 'xs' (360px), 'sm' (440px), 'md' (560px), 'lg' (720px)
   children,
   ariaLabelledBy,
   disableBackdropClick = false,
@@ -29,11 +28,11 @@ export function Modal({
 
   const getMaxWidthPx = () => {
     switch (maxWidth) {
-      case 'xs': return 400;
-      case 'sm': return 480;
-      case 'md': return 640;
-      case 'lg': return 800;
-      default: return typeof maxWidth === 'number' ? maxWidth : 480;
+      case 'xs': return 360;
+      case 'sm': return 440;
+      case 'md': return 560;
+      case 'lg': return 720;
+      default: return typeof maxWidth === 'number' ? maxWidth : 440;
     }
   };
 
@@ -52,35 +51,32 @@ export function Modal({
       fullWidth={fullWidth}
       BackdropProps={{
         sx: {
-          backgroundColor: 'rgba(15, 23, 42, 0.5)',
-          backdropFilter: 'blur(4px)',
-          transition: 'all 200ms cubic-bezier(0, 0, 0.2, 1) !important'
+          backgroundColor: 'rgba(15, 23, 42, 0.45)',
+          backdropFilter: 'blur(2px)'
         }
       }}
       PaperProps={{
         elevation: 0,
         sx: {
-          m: isMobile ? 0 : 'auto',
+          m: { xs: 1, sm: 'auto' },
+          p: '8px', // Strict 8px padding on all sides
           position: isMobile ? 'fixed' : 'relative',
-          bottom: isMobile ? 0 : 'unset',
-          left: isMobile ? 0 : 'unset',
-          right: isMobile ? 0 : 'unset',
-          width: '100%',
-          maxWidth: isMobile ? '100% !important' : `${getMaxWidthPx()}px !important`,
-          maxHeight: isMobile ? '90vh' : '85vh',
-          borderRadius: isMobile ? '12px 12px 0 0' : '8px',
-          bgcolor: '#FFFFFF',
-          border: '1px solid #E2E8F0',
-          boxShadow: isMobile
-            ? '0 -10px 40px rgba(15, 23, 42, 0.15)'
-            : '0 20px 48px rgba(15, 23, 42, 0.12)',
+          bottom: isMobile ? 8 : 'unset',
+          left: isMobile ? 8 : 'unset',
+          right: isMobile ? 8 : 'unset',
+          width: isMobile ? 'calc(100% - 16px) !important' : '100%',
+          maxWidth: isMobile ? 'calc(100% - 16px) !important' : `${getMaxWidthPx()}px !important`,
+          maxHeight: 'calc(100vh - 24px)',
+          borderRadius: '8px',
+          bgcolor: 'background.paper',
+          color: 'text.primary',
+          border: '1px solid',
+          borderColor: 'divider',
+          boxShadow: '0 4px 16px rgba(15, 23, 42, 0.1)',
           display: 'flex',
           flexDirection: 'column',
-          overflow: 'hidden',
-          transition: 'transform 200ms ease-out, opacity 200ms ease-out',
-          '@media (prefers-reduced-motion: reduce)': {
-            transition: 'none !important'
-          }
+          overflowX: 'hidden',
+          boxSizing: 'border-box'
         }
       }}
     >
@@ -91,18 +87,17 @@ export function Modal({
             width: '100%',
             display: 'flex',
             justifyContent: 'center',
-            pt: 1.5,
             pb: 0.5,
-            bgcolor: '#FFFFFF',
+            bgcolor: 'transparent',
             flexShrink: 0
           }}
         >
           <Box
             sx={{
-              width: 36,
-              height: 4,
+              width: 28,
+              height: 3,
               borderRadius: '2px',
-              bgcolor: '#CBD5E1'
+              bgcolor: 'divider'
             }}
           />
         </Box>
@@ -123,33 +118,36 @@ export function ModalHeader({
   return (
     <Box
       sx={{
-        px: 2.5, // 20px side padding
-        py: 2,
-        borderBottom: '1px solid #E2E8F0',
+        p: '8px', // Strict 8px padding
+        borderBottom: '1px solid',
+        borderColor: 'divider',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        gap: 1.5,
-        bgcolor: '#FFFFFF',
+        gap: 1,
+        bgcolor: 'background.paper',
+        color: 'text.primary',
         position: 'sticky',
         top: 0,
         zIndex: 2,
-        flexShrink: 0
+        flexShrink: 0,
+        overflowX: 'hidden',
+        boxSizing: 'border-box'
       }}
     >
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0, flex: 1 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0, flex: 1 }}>
         {icon && (
           <Box
             sx={{
-              width: 36,
-              height: 36,
-              borderRadius: '10px',
-              bgcolor: '#EFF6FF',
-              color: '#0A66C2',
+              width: 22,
+              height: 22,
+              borderRadius: '6px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              flexShrink: 0
+              flexShrink: 0,
+              color: 'primary.main',
+              '& svg': { width: 16, height: 16 }
             }}
           >
             {icon}
@@ -161,10 +159,10 @@ export function ModalHeader({
               id={id}
               component="h2"
               sx={{
-                fontSize: '16px',
+                fontSize: '0.9375rem', // Normal font size, non-oversized
                 fontWeight: 700,
-                color: '#0F172A',
-                lineHeight: 1.3,
+                color: 'text.primary',
+                lineHeight: 1.25,
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis'
@@ -176,10 +174,10 @@ export function ModalHeader({
           {subtitle && (
             <Typography
               sx={{
-                fontSize: '12px',
-                color: '#64748B',
-                fontWeight: 400,
-                lineHeight: 1.4,
+                fontSize: '0.75rem',
+                color: 'text.secondary',
+                fontWeight: 500,
+                lineHeight: 1.2,
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis'
@@ -198,22 +196,19 @@ export function ModalHeader({
           aria-label="Close dialog"
           size="small"
           sx={{
-            width: 44, // 44px min tap target
-            height: 44,
-            color: '#64748B',
-            borderRadius: '10px',
+            width: 28,
+            height: 28,
+            p: 0.5,
+            color: 'text.secondary',
+            borderRadius: '6px',
             flexShrink: 0,
             '&:hover': {
-              bgcolor: '#F1F5F9',
-              color: '#0F172A'
-            },
-            '&:focus-visible': {
-              outline: '2px solid #0A66C2',
-              outlineOffset: 2
+              bgcolor: 'action.hover',
+              color: 'text.primary'
             }
           }}
         >
-          <X size={20} />
+          <X size={16} />
         </IconButton>
       )}
     </Box>
@@ -221,19 +216,34 @@ export function ModalHeader({
 }
 
 export function ModalBody({ children, sx = {}, ...props }) {
+  // Strip any oversized per-modal padding overrides to guarantee strict 8px
+  const cleanSx = { ...sx };
+  delete cleanSx.p;
+  delete cleanSx.padding;
+  delete cleanSx.px;
+  delete cleanSx.py;
+  delete cleanSx.paddingLeft;
+  delete cleanSx.paddingRight;
+  delete cleanSx.paddingTop;
+  delete cleanSx.paddingBottom;
+
   return (
     <Box
       sx={{
-        p: 2.5, // 20px standard side and vertical padding
+        p: '8px !important', // Strict 8px padding on all sides, nothing larger
         overflowY: 'auto',
+        overflowX: 'hidden',
         overscrollBehavior: 'contain',
         WebkitOverflowScrolling: 'touch',
         flex: 1,
         minHeight: 0,
         display: 'flex',
         flexDirection: 'column',
-        gap: 2,
-        ...sx
+        gap: '8px', // Tight, consistent 8px gap
+        color: 'text.primary',
+        boxSizing: 'border-box',
+        maxWidth: '100%',
+        ...cleanSx
       }}
       {...props}
     >
@@ -243,23 +253,32 @@ export function ModalBody({ children, sx = {}, ...props }) {
 }
 
 export function ModalFooter({ children, sx = {}, ...props }) {
+  // Strip oversized padding to maintain strict 8px
+  const cleanSx = { ...sx };
+  delete cleanSx.p;
+  delete cleanSx.padding;
+  delete cleanSx.px;
+  delete cleanSx.py;
+
   return (
     <Box
       sx={{
-        px: 2.5, // 20px
-        py: 2,
-        borderTop: '1px solid #E2E8F0',
-        bgcolor: '#FFFFFF',
+        p: '8px !important', // Strict 8px padding
+        borderTop: '1px solid',
+        borderColor: 'divider',
+        bgcolor: 'background.paper',
         display: 'flex',
         flexDirection: { xs: 'column-reverse', sm: 'row' },
         justifyContent: 'flex-end',
         alignItems: 'stretch',
-        gap: 1.5,
+        gap: '8px',
         position: 'sticky',
         bottom: 0,
         zIndex: 2,
         flexShrink: 0,
-        ...sx
+        boxSizing: 'border-box',
+        overflowX: 'hidden',
+        ...cleanSx
       }}
       {...props}
     >

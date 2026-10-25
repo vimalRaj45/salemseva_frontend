@@ -362,13 +362,64 @@ const getComponentOverrides = (isDark = false) => {
       }
     },
     MuiDialog: {
+      defaultProps: {
+        elevation: 0
+      },
       styleOverrides: {
         paper: {
-          borderRadius: 16,
+          borderRadius: 8,
+          padding: '8px',
           border: `1px solid ${surfaceBorder}`,
+          backgroundColor: surfaceBg,
           boxShadow: isDark
-            ? '0 20px 35px rgba(0, 0, 0, 0.6)'
-            : '0 20px 35px -5px rgba(15, 23, 42, 0.12), 0 10px 15px -5px rgba(15, 23, 42, 0.04)'
+            ? '0 8px 24px rgba(0, 0, 0, 0.5)'
+            : '0 8px 24px rgba(15, 23, 42, 0.08)',
+          maxWidth: 'calc(100vw - 16px)',
+          overflowX: 'hidden',
+          boxSizing: 'border-box'
+        }
+      }
+    },
+    MuiDialogTitle: {
+      styleOverrides: {
+        root: {
+          padding: '8px',
+          fontSize: '0.9375rem',
+          fontWeight: 700,
+          color: isDark ? '#FFFFFF' : brandColors.slate[900],
+          boxSizing: 'border-box'
+        }
+      }
+    },
+    MuiDialogContent: {
+      styleOverrides: {
+        root: {
+          padding: '8px',
+          overflowX: 'hidden',
+          boxSizing: 'border-box'
+        }
+      }
+    },
+    MuiDialogActions: {
+      styleOverrides: {
+        root: {
+          padding: '8px',
+          gap: '8px',
+          boxSizing: 'border-box'
+        }
+      }
+    },
+    MuiPopover: {
+      styleOverrides: {
+        paper: {
+          padding: '8px',
+          borderRadius: 8,
+          border: `1px solid ${surfaceBorder}`,
+          backgroundColor: surfaceBg,
+          boxShadow: isDark
+            ? '0 4px 16px rgba(0, 0, 0, 0.4)'
+            : '0 4px 16px rgba(15, 23, 42, 0.08)',
+          boxSizing: 'border-box'
         }
       }
     },
@@ -427,7 +478,15 @@ const getComponentOverrides = (isDark = false) => {
       styleOverrides: {
         paper: {
           backgroundColor: surfaceBg,
-          borderRight: `1px solid ${surfaceBorder}`
+          borderRight: `1px solid ${surfaceBorder}`,
+          boxSizing: 'border-box',
+          '&.MuiDrawer-paperAnchorBottom': {
+            padding: '8px',
+            borderTop: `1px solid ${surfaceBorder}`,
+            borderRadius: '8px 8px 0 0',
+            maxWidth: '100vw',
+            overflowX: 'hidden'
+          }
         }
       }
     }

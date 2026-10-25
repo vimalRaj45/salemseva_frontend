@@ -104,21 +104,22 @@ export default function CancelBookingModal({
       <ModalBody>
         {cancelResult ? (
           /* Cancellation Success View */
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
             {cancelResult.isPreMatching ? (
               <Paper
                 elevation={0}
                 sx={{
-                  bgcolor: '#F8FAFC',
-                  border: '1px solid #E2E8F0',
-                  borderRadius: '12px',
-                  p: 2.5
+                  bgcolor: 'background.default',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: '6px',
+                  p: 1
                 }}
               >
-                <Typography sx={{ fontWeight: 600, color: '#0F172A', fontSize: '14px', mb: 0.5 }}>
+                <Typography sx={{ fontWeight: 600, color: 'text.primary', fontSize: '13px', mb: 0.5 }}>
                   Search request stopped
                 </Typography>
-                <Typography sx={{ color: '#64748B', fontSize: '13px', lineHeight: 1.5 }}>
+                <Typography sx={{ color: 'text.secondary', fontSize: '12px', lineHeight: 1.4 }}>
                   Your search has been stopped. No technician was assigned, and no charges have been deducted.
                 </Typography>
               </Paper>
@@ -126,13 +127,14 @@ export default function CancelBookingModal({
               <Paper
                 elevation={0}
                 sx={{
-                  bgcolor: '#F8FAFC',
-                  border: '1px solid #E2E8F0',
-                  borderRadius: '12px',
-                  p: 2.5
+                  bgcolor: 'background.default',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: '6px',
+                  p: 1
                 }}
               >
-                <Typography sx={{ color: '#64748B', fontWeight: 600, fontSize: '12px', mb: 1.5 }}>
+                <Typography sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '11px', mb: 1 }}>
                   Cancellation and refund summary
                 </Typography>
                 
@@ -176,31 +178,31 @@ export default function CancelBookingModal({
           </Box>
         ) : (
           /* Confirmation & Reason Selection */
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
             {errorMessage && (
-              <Alert severity="error" sx={{ borderRadius: '10px', fontSize: '13px' }}>
+              <Alert severity="error" sx={{ borderRadius: '6px', fontSize: '12px', p: 0.5 }}>
                 {errorMessage}
               </Alert>
             )}
 
             {/* Policy Notice Card */}
-            <Box sx={{ bgcolor: '#F8FAFC', p: 2, borderRadius: '12px', border: '1px solid #E2E8F0' }}>
-              <Typography sx={{ fontWeight: 600, color: isMatchingStage ? '#16A34A' : '#0F172A', fontSize: '13px', mb: 0.5 }}>
+            <Box sx={{ bgcolor: 'background.default', p: 1, borderRadius: '6px', border: '1px solid', borderColor: 'divider' }}>
+              <Typography sx={{ fontWeight: 600, color: isMatchingStage ? '#16A34A' : 'text.primary', fontSize: '12px', mb: 0.25 }}>
                 {isMatchingStage ? 'Zero charges apply' : 'Cancellation policy'}
               </Typography>
-              <Typography sx={{ color: '#64748B', fontSize: '12px', lineHeight: 1.5 }}>
+              <Typography sx={{ color: 'text.secondary', fontSize: '11px', lineHeight: 1.4 }}>
                 {isMatchingStage
                   ? 'Technician has not been assigned yet. You can cancel your search anytime with zero fees.'
                   : 'A 2% platform fee and 2% payment gateway fee are retained. The remaining 96% will be automatically refunded.'}
               </Typography>
             </Box>
 
-            <Typography sx={{ color: '#64748B', fontWeight: 600, fontSize: '13px' }}>
+            <Typography sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '11.5px' }}>
               Select reason for cancellation
             </Typography>
 
             {/* Reasons List */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
               {CANCEL_REASONS.map(reason => {
                 const isSelected = selectedReason === reason.id;
                 return (
@@ -209,11 +211,12 @@ export default function CancelBookingModal({
                     elevation={0}
                     onClick={() => setSelectedReason(reason.id)}
                     sx={{
-                      p: 1.5,
-                      borderRadius: '12px',
+                      p: 1,
+                      borderRadius: '6px',
                       cursor: 'pointer',
-                      border: isSelected ? '1.5px solid #0A66C2' : '1px solid #E2E8F0',
-                      bgcolor: isSelected ? '#EFF6FF' : '#FFFFFF',
+                      border: isSelected ? '1.5px solid #0A66C2' : '1px solid',
+                      borderColor: isSelected ? 'primary.main' : 'divider',
+                      bgcolor: isSelected ? 'rgba(10, 92, 196, 0.08)' : 'background.paper',
                       display: 'flex',
                       alignItems: 'center',
                       gap: 1.5,

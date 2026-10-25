@@ -1,4 +1,4 @@
-﻿import { API_V1_URL } from '../config';
+import { API_V1_URL } from '../config';
 import React, { useState } from 'react';
 import {
   Box,
@@ -166,11 +166,11 @@ export default function FeedbackModal({ open, onClose, user, userRole = 'custome
 
       <ModalBody>
         {success ? (
-          <Box sx={{ textAlign: 'center', py: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5 }}>
+          <Box sx={{ textAlign: 'center', py: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
             <Box
               sx={{
-                width: 56,
-                height: 56,
+                width: 36,
+                height: 36,
                 borderRadius: '50%',
                 bgcolor: '#DCFCE7',
                 color: '#16A34A',
@@ -180,26 +180,26 @@ export default function FeedbackModal({ open, onClose, user, userRole = 'custome
                 border: '1px solid #BBF7D0'
               }}
             >
-              <CheckCircle size={32} />
+              <CheckCircle size={22} />
             </Box>
-            <Typography sx={{ fontWeight: 700, color: '#0F172A', fontSize: '16px' }}>
+            <Typography sx={{ fontWeight: 700, color: 'text.primary', fontSize: '14px' }}>
               Thank you for your feedback
             </Typography>
             {feedbackCreditsEnabled && feedbackRewardCredits > 0 && (
               <Chip
                 label={`+${feedbackRewardCredits} Seva credits added to wallet`}
                 size="small"
-                sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 600, fontSize: '12px', height: 26, borderRadius: '9999px' }}
+                sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 600, fontSize: '11px', height: 22, borderRadius: '4px' }}
               />
             )}
-            <Typography sx={{ color: '#64748B', fontSize: '13px', maxWidth: '360px', lineHeight: 1.5 }}>
+            <Typography sx={{ color: 'text.secondary', fontSize: '12px', maxWidth: '360px', lineHeight: 1.4 }}>
               Your feedback has been sent to our Salem Operations Desk. Our team reviews every report.
             </Typography>
           </Box>
         ) : (
-          <Box component="form" id="feedback-form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Box component="form" id="feedback-form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
             {error && (
-              <Alert severity="error" sx={{ borderRadius: '10px', fontSize: '13px' }}>
+              <Alert severity="error" sx={{ borderRadius: '6px', fontSize: '12px', p: 0.5 }}>
                 {error}
               </Alert>
             )}
@@ -208,41 +208,42 @@ export default function FeedbackModal({ open, onClose, user, userRole = 'custome
             <Paper
               elevation={0}
               sx={{
-                p: 1.5,
-                borderRadius: '12px',
-                bgcolor: '#F8FAFC',
-                border: '1px solid #E2E8F0',
+                p: 1,
+                borderRadius: '6px',
+                bgcolor: 'background.default',
+                border: '1px solid',
+                borderColor: 'divider',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between'
               }}
             >
-              <Typography sx={{ fontWeight: 600, color: '#0F172A', fontSize: '13px' }}>
+              <Typography sx={{ fontWeight: 600, color: 'text.primary', fontSize: '12px' }}>
                 {userName || (isTechnician ? 'Partner' : 'Customer')} {userPhone ? `(${userPhone})` : ''}
               </Typography>
               <Chip
                 label={isTechnician ? 'Partner' : 'Customer'}
                 size="small"
                 sx={{
-                  bgcolor: isTechnician ? '#DCFCE7' : '#EFF6FF',
-                  color: isTechnician ? '#166534' : '#0A66C2',
+                  bgcolor: isTechnician ? 'rgba(43, 146, 54, 0.1)' : 'rgba(10, 92, 196, 0.1)',
+                  color: isTechnician ? 'secondary.main' : 'primary.main',
                   fontWeight: 600,
                   fontSize: '11px',
-                  height: 24,
-                  borderRadius: '9999px'
+                  height: 20,
+                  borderRadius: '4px'
                 }}
               />
             </Paper>
 
             {/* 1. Star Rating */}
-            <Box sx={{ textAlign: 'center', p: 2, bgcolor: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
-              <Typography sx={{ fontWeight: 600, color: '#64748B', fontSize: '13px', mb: 1 }}>
+            <Box sx={{ textAlign: 'center', p: 1, bgcolor: 'background.default', borderRadius: '6px', border: '1px solid', borderColor: 'divider' }}>
+              <Typography sx={{ fontWeight: 600, color: 'text.secondary', fontSize: '12px', mb: 0.5 }}>
                 How would you rate your platform experience?
               </Typography>
               <Rating
                 value={rating}
                 onChange={(e, val) => setRating(val || 5)}
-                size="large"
+                size="medium"
                 emptyIcon={<Star style={{ opacity: 0.3 }} fontSize="inherit" />}
                 sx={{
                   color: '#F59E0B',

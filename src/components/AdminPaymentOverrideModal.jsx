@@ -144,45 +144,50 @@ export default function AdminPaymentOverrideModal({
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: '16px',
-          bgcolor: '#FFFFFF',
-          boxShadow: '0 24px 48px rgba(15, 23, 42, 0.25)',
-          overflow: 'hidden'
+          borderRadius: '8px',
+          bgcolor: 'background.paper',
+          p: '8px',
+          boxShadow: '0 8px 24px rgba(15, 23, 42, 0.12)',
+          border: '1px solid',
+          borderColor: 'divider',
+          overflowX: 'hidden',
+          maxWidth: 'calc(100vw - 16px)',
+          boxSizing: 'border-box'
         }
       }}
     >
       {/* Header */}
-      <DialogTitle sx={{ p: 2.2, bgcolor: '#0F172A', color: '#FFFFFF', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+      <DialogTitle sx={{ p: '8px', bgcolor: 'transparent', color: 'text.primary', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid', borderColor: 'divider' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Box
             sx={{
-              width: 38,
-              height: 38,
-              borderRadius: '10px',
-              bgcolor: 'rgba(2, 132, 199, 0.2)',
-              border: '1px solid #0284C7',
+              width: 28,
+              height: 28,
+              borderRadius: '6px',
+              bgcolor: 'rgba(2, 132, 199, 0.1)',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              color: '#0284C7'
             }}
           >
-            <PaymentsIcon sx={{ color: '#38BDF8', fontSize: 22 }} />
+            <PaymentsIcon sx={{ fontSize: 18 }} />
           </Box>
           <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#FFFFFF', fontSize: '15px', lineHeight: 1.2 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.primary', fontSize: '13.5px', lineHeight: 1.2 }}>
               Direct Payment Confirmation (நேரடி கட்டணப் பதிவு)
             </Typography>
-            <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '11px' }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '11px' }}>
               Booking #{booking.id} • {booking.customer_name || 'Customer'}
             </Typography>
           </Box>
         </Box>
-        <IconButton size="small" onClick={onClose} disabled={isSubmitting} sx={{ color: '#94A3B8', '&:hover': { color: '#FFFFFF' } }}>
-          <CloseIcon sx={{ fontSize: 18 }} />
+        <IconButton size="small" onClick={onClose} disabled={isSubmitting} sx={{ color: 'text.secondary', p: 0.5 }}>
+          <CloseIcon sx={{ fontSize: 16 }} />
         </IconButton>
       </DialogTitle>
 
-      <DialogContent sx={{ p: 2.5, bgcolor: '#F8FAFC' }}>
+      <DialogContent sx={{ p: '8px', bgcolor: 'transparent' }}>
         {/* Warning Callout for Direct Payment Confirmation */}
         <Paper
           elevation={0}
@@ -362,7 +367,7 @@ export default function AdminPaymentOverrideModal({
         </Box>
       </DialogContent>
 
-      <DialogActions sx={{ p: 2, bgcolor: '#FFFFFF', borderTop: '1px solid #E2E8F0', justifyContent: 'space-between' }}>
+      <DialogActions sx={{ p: '8px', bgcolor: 'transparent', borderTop: '1px solid', borderColor: 'divider', justifyContent: 'space-between' }}>
         <Button
           onClick={onClose}
           disabled={isSubmitting}

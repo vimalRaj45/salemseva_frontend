@@ -288,17 +288,18 @@ export default function SupportTicketModal({
             <Paper
               elevation={0}
               sx={{
-                p: 3,
+                p: 1.5,
                 textAlign: 'center',
-                bgcolor: '#F8FAFC',
-                borderRadius: '14px',
-                border: '1px solid #E2E8F0'
+                bgcolor: 'background.default',
+                borderRadius: '6px',
+                border: '1px solid',
+                borderColor: 'divider'
               }}
             >
               <Box
                 sx={{
-                  width: 52,
-                  height: 52,
+                  width: 36,
+                  height: 36,
                   borderRadius: '50%',
                   bgcolor: '#ECFDF5',
                   border: '1px solid #A7F3D0',
@@ -306,13 +307,13 @@ export default function SupportTicketModal({
                   alignItems: 'center',
                   justifyContent: 'center',
                   mx: 'auto',
-                  mb: 1.5
+                  mb: 1
                 }}
               >
-                <CheckCircle2 size={28} color="#059669" />
+                <CheckCircle2 size={20} color="#059669" />
               </Box>
 
-              <Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A', mb: 0.5, fontSize: '16px' }}>
+              <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', mb: 0.5, fontSize: '14px' }}>
                 Ticket Created Successfully
               </Typography>
 
@@ -587,11 +588,12 @@ export default function SupportTicketModal({
               <Paper
                 elevation={0}
                 sx={{
-                  p: 4,
+                  p: 1.5,
                   textAlign: 'center',
-                  bgcolor: '#F8FAFC',
-                  borderRadius: '12px',
-                  border: '1px dashed #CBD5E1'
+                  bgcolor: 'background.default',
+                  borderRadius: '6px',
+                  border: '1px dashed',
+                  borderColor: 'divider'
                 }}
               >
                 <FileText size={32} color="#94A3B8" style={{ margin: '0 auto 8px' }} />

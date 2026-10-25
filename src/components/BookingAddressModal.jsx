@@ -178,70 +178,73 @@ export default function BookingAddressModal({ open, onClose, currentAddress, onA
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: '16px',
-          overflow: 'hidden',
-          p: 0
+          borderRadius: '8px',
+          overflowX: 'hidden',
+          p: '8px',
+          maxWidth: 'calc(100vw - 16px)',
+          boxSizing: 'border-box'
         }
       }}
     >
-      <DialogTitle sx={{ m: 0, p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0', bgcolor: '#F8FAFC' }}>
+      <DialogTitle sx={{ m: 0, p: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid', borderColor: 'divider', bgcolor: 'transparent' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Box sx={{ width: 36, height: 36, borderRadius: '10px', bgcolor: '#E0F2FE', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0284C7' }}>
-            <MapPin size={20} />
+          <Box sx={{ width: 28, height: 28, borderRadius: '6px', bgcolor: 'rgba(2, 132, 199, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0284C7' }}>
+            <MapPin size={16} />
           </Box>
           <Box>
-            <Typography variant="h6" sx={{ fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
+            <Typography variant="subtitle2" sx={{ fontSize: '14px', fontWeight: 800, color: 'text.primary' }}>
               Service Location
             </Typography>
-            <Typography variant="caption" sx={{ color: '#64748B', fontSize: '12px' }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '11px' }}>
               Salem City Municipal Limits & Metro Zones
             </Typography>
           </Box>
         </Box>
-        <IconButton onClick={onClose} size="small" sx={{ color: '#94A3B8' }}>
-          <X size={18} />
+        <IconButton onClick={onClose} size="small" sx={{ color: 'text.secondary', p: 0.5 }}>
+          <X size={16} />
         </IconButton>
       </DialogTitle>
 
-      <Box sx={{ borderBottom: 1, borderColor: '#E2E8F0', bgcolor: '#FFFFFF' }}>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: 'background.paper', mb: 1 }}>
         <Tabs
           value={activeTab}
           onChange={(e, val) => setActiveTab(val)}
           variant="fullWidth"
           sx={{
-            minHeight: '44px',
+            minHeight: '38px',
             '& .MuiTab-root': {
-              minHeight: '44px',
+              minHeight: '38px',
               fontWeight: 700,
-              fontSize: '13px',
-              textTransform: 'none'
+              fontSize: '12.5px',
+              textTransform: 'none',
+              py: 0.5
             }
           }}
         >
           <Tab
-            icon={<Navigation size={15} style={{ marginRight: 6 }} />}
+            icon={<Navigation size={14} style={{ marginRight: 4 }} />}
             iconPosition="start"
             label="Use Live GPS"
           />
           <Tab
-            icon={<Home size={15} style={{ marginRight: 6 }} />}
+            icon={<Home size={14} style={{ marginRight: 4 }} />}
             iconPosition="start"
             label="Enter Manually"
           />
         </Tabs>
       </Box>
 
-      <DialogContent sx={{ p: { xs: 2, sm: 2.5 } }}>
+      <DialogContent sx={{ p: '8px' }}>
         {/* ================= OPTION 1: LIVE GPS ================= */}
         {activeTab === 0 && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
             <Paper
               elevation={0}
               sx={{
-                p: 2,
-                borderRadius: '12px',
+                p: 1,
+                borderRadius: '8px',
                 border: '1.5px dashed #0284C7',
-                bgcolor: '#F0F9FF',
+                bgcolor: 'rgba(2, 132, 199, 0.04)',
                 textAlign: 'center'
               }}
             >
@@ -433,7 +436,7 @@ export default function BookingAddressModal({ open, onClose, currentAddress, onA
         )}
       </DialogContent>
 
-      <DialogActions sx={{ p: 2, borderTop: '1px solid #E2E8F0', bgcolor: '#F8FAFC', display: 'flex', justifyContent: 'space-between' }}>
+      <DialogActions sx={{ p: '8px', borderTop: '1px solid', borderColor: 'divider', bgcolor: 'transparent', display: 'flex', justifyContent: 'space-between' }}>
         <Button
           onClick={onClose}
           sx={{ color: '#64748B', fontWeight: 700, fontSize: '13px', textTransform: 'none' }}

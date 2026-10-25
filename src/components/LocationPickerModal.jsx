@@ -166,11 +166,11 @@ export default function LocationPickerModal({
         )}
 
         {detectedOutsideRegion && (
-          <Box sx={{ p: 2, borderRadius: '12px', bgcolor: '#FEF2F2', border: '1px solid #FCA5A5' }}>
-            <Typography sx={{ color: '#991B1B', fontWeight: 700, fontSize: '13px', mb: 0.5 }}>
+          <Box sx={{ p: 1, borderRadius: '6px', bgcolor: 'rgba(220, 38, 38, 0.06)', border: '1px solid', borderColor: 'error.main' }}>
+            <Typography sx={{ color: 'error.main', fontWeight: 700, fontSize: '12px', mb: 0.25 }}>
               Location outside Salem region
             </Typography>
-            <Typography sx={{ color: '#7F1D1D', fontSize: '12px', lineHeight: 1.45 }}>
+            <Typography sx={{ color: 'text.secondary', fontSize: '11px', lineHeight: 1.4 }}>
               Your device ({detectedPlaceInfo?.name || 'Outside Area'}) is ~{Math.round(detectedPlaceInfo?.distanceKm || 0)} km from Salem. Shazu One doorstep service is available within Salem PINs (636xxx). Please select a Salem locality below.
             </Typography>
           </Box>
@@ -178,7 +178,7 @@ export default function LocationPickerModal({
 
         {/* Search localities */}
         <Box>
-          <Typography sx={{ fontWeight: 600, color: '#64748B', fontSize: '13px', mb: 0.8 }}>
+          <Typography sx={{ fontWeight: 600, color: 'text.secondary', fontSize: '12px', mb: 0.5 }}>
             Choose Salem locality hub
           </Typography>
           <TextField
@@ -190,15 +190,15 @@ export default function LocationPickerModal({
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <Search size={18} color="#94A3B8" />
+                  <Search size={16} color="#94A3B8" />
                 </InputAdornment>
               )
             }}
-            sx={{ mb: 1.5, '& .MuiOutlinedInput-root': { borderRadius: '12px', fontSize: '13px' } }}
+            sx={{ mb: 1, '& .MuiOutlinedInput-root': { borderRadius: '6px', fontSize: '12.5px' } }}
           />
 
           {/* Salem Localities: Clean wrapped chips without inner scrollbox */}
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
             {filteredLocalities.map((loc) => {
               const isSelected = selectedLocality === loc.name && !detectedOutsideRegion;
               return (
@@ -212,19 +212,17 @@ export default function LocationPickerModal({
                     setDetectedCoords({ lat: loc.lat, lng: loc.lng });
                     setDoorAddress(`Plot/House No., ${loc.name}, Salem - ${loc.pin}`);
                   }}
-                  icon={isSelected ? <CheckCircle size={14} color="#0A66C2" /> : undefined}
+                  icon={isSelected ? <CheckCircle size={12} color="#0A5CC4" /> : undefined}
                   sx={{
                     fontWeight: isSelected ? 700 : 500,
-                    fontSize: '12px',
-                    bgcolor: isSelected ? '#EFF6FF' : '#F8FAFC',
-                    color: isSelected ? '#0A66C2' : '#334155',
-                    border: isSelected ? '1.5px solid #0A66C2' : '1px solid #E2E8F0',
-                    borderRadius: '9999px',
-                    height: 36,
-                    cursor: 'pointer',
-                    '&:hover': {
-                      bgcolor: isSelected ? '#EFF6FF' : '#F1F5F9'
-                    }
+                    fontSize: '11.5px',
+                    bgcolor: isSelected ? 'rgba(10, 92, 196, 0.1)' : 'background.default',
+                    color: isSelected ? 'primary.main' : 'text.primary',
+                    border: isSelected ? '1px solid #0A5CC4' : '1px solid',
+                    borderColor: isSelected ? 'primary.main' : 'divider',
+                    borderRadius: '6px',
+                    height: 28,
+                    cursor: 'pointer'
                   }}
                 />
               );
@@ -233,7 +231,7 @@ export default function LocationPickerModal({
         </Box>
 
         {/* Postal PIN Code Verification */}
-        <Box sx={{ p: 2, borderRadius: '12px', bgcolor: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+        <Box sx={{ p: 1, borderRadius: '6px', bgcolor: 'background.default', border: '1px solid', borderColor: 'divider' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
             <Typography sx={{ fontWeight: 600, color: '#64748B', fontSize: '13px' }}>
               Postal PIN code (service region)

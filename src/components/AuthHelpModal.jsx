@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -102,22 +102,27 @@ export default function AuthHelpModal({ open, onClose, defaultRole = 'customer' 
       PaperProps={{
         sx: {
           borderRadius: '8px',
-          bgcolor: '#FFFFFF',
-          border: '1px solid #E2E8F0',
-          boxShadow: '0 20px 40px rgba(15, 23, 42, 0.15)'
+          bgcolor: 'background.paper',
+          p: '8px',
+          border: '1px solid',
+          borderColor: 'divider',
+          boxShadow: '0 8px 24px rgba(15, 23, 42, 0.12)',
+          maxWidth: 'calc(100vw - 16px)',
+          overflowX: 'hidden',
+          boxSizing: 'border-box'
         }
       }}
     >
-      <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1, borderBottom: '1px solid #F1F5F9' }}>
+      <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: '8px', borderBottom: '1px solid', borderColor: 'divider' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Box sx={{ width: 34, height: 34, borderRadius: '8px', bgcolor: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <SupportAgentIcon sx={{ color: '#0284C7', fontSize: 20 }} />
+          <Box sx={{ width: 28, height: 28, borderRadius: '6px', bgcolor: 'rgba(2, 132, 199, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <SupportAgentIcon sx={{ color: '#0284C7', fontSize: 18 }} />
           </Box>
           <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '16px', lineHeight: 1.2 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.primary', fontSize: '14px', lineHeight: 1.2 }}>
               Salem Central Support Desk
             </Typography>
-            <Typography variant="caption" sx={{ color: '#64748B', fontSize: '12px' }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '11px' }}>
               Instant Login & Access Recovery Assistance
             </Typography>
           </Box>
@@ -125,13 +130,13 @@ export default function AuthHelpModal({ open, onClose, defaultRole = 'customer' 
         <Button
           size="small"
           onClick={handleClose}
-          sx={{ minWidth: 32, width: 32, height: 32, p: 0, color: '#64748B', borderRadius: '50%' }}
+          sx={{ minWidth: 28, width: 28, height: 28, p: 0, color: 'text.secondary', borderRadius: '50%' }}
         >
-          <CloseIcon sx={{ fontSize: 18 }} />
+          <CloseIcon sx={{ fontSize: 16 }} />
         </Button>
       </DialogTitle>
 
-      <DialogContent sx={{ pt: 2, pb: 1 }}>
+      <DialogContent sx={{ p: '8px' }}>
         {submittedTicket ? (
           <Box sx={{ py: 2, textAlign: 'center' }}>
             <Box sx={{ width: 54, height: 54, borderRadius: '50%', bgcolor: '#ECFDF5', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 1.5 }}>
