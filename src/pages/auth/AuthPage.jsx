@@ -38,7 +38,9 @@ import {
   RefreshCw,
   AlertCircle,
   Briefcase,
-  Check
+  Check,
+  Upload,
+  FileCheck
 } from 'lucide-react';
 import { FormHelperText, Chip } from '@mui/material';
 import { useAuth } from '../../context/AuthContext';
@@ -50,12 +52,14 @@ const SALEM_LOCALITIES = [
   'Hasthampatti, Salem',
   'Alagapuram, Salem',
   'Suramangalam, Salem',
-  'Ammapet, Salem',
   'Meyyanur, Salem',
+  'Ammapet, Salem',
   'Shevapet, Salem',
-  'Kandhampatti, Salem',
+  'Gugai, Salem',
+  'Kondalampatti, Salem',
   'Kannankurichi, Salem',
-  'Gorimedu, Salem'
+  'Gorimedu, Salem',
+  'Steel Plant Area, Salem'
 ];
 
 const AVAILABLE_TRADES = [
@@ -133,8 +137,9 @@ export default function AuthPage({ initialMode = 'login' }) {
 
   // Flow specific fields
   const [yearsExperience, setYearsExperience] = useState('2');
-  const [partnerLocalities, setPartnerLocalities] = useState(['Fairlands, Salem', 'Hasthampatti, Salem']);
+  const [partnerLocalities, setPartnerLocalities] = useState([...SALEM_LOCALITIES]);
   const [aadhaarNumber, setAadhaarNumber] = useState('');
+  const [aadhaarDocName, setAadhaarDocName] = useState('');
   const [upiId, setUpiId] = useState('');
   const [userPreferences, setUserPreferences] = useState(['ac', 'electrician']);
   const [notificationChannel, setNotificationChannel] = useState('whatsapp');
@@ -162,6 +167,7 @@ export default function AuthPage({ initialMode = 'login' }) {
           setPartnerLocalities(draft.partnerLocalities);
         }
         if (draft.aadhaarNumber) setAadhaarNumber(draft.aadhaarNumber);
+        if (draft.aadhaarDocName) setAadhaarDocName(draft.aadhaarDocName);
         if (draft.upiId) setUpiId(draft.upiId);
         if (draft.userPreferences && Array.isArray(draft.userPreferences)) {
           setUserPreferences(draft.userPreferences);
@@ -183,6 +189,7 @@ export default function AuthPage({ initialMode = 'login' }) {
         yearsExperience,
         partnerLocalities,
         aadhaarNumber,
+        aadhaarDocName,
         upiId,
         userPreferences,
         notificationChannel,
@@ -421,7 +428,7 @@ export default function AuthPage({ initialMode = 'login' }) {
     }
   };
 
-  // Step 2 Continue - User
+  // Step 2 Continue - User (No location requested during signup)
   const handleUserStep2Continue = (e) => {
     if (e && e.preventDefault) e.preventDefault();
     setErrorMessage('');
@@ -430,10 +437,10 @@ export default function AuthPage({ initialMode = 'login' }) {
       return;
     }
     setRegisterStep(3);
-    saveDraft(3, { fullName: fullName.trim(), locality });
+    saveDraft(3, { fullName: fullName.trim() });
   };
 
-  // Step 2 Continue - Partner
+  // Step 2 Continue - Partner (All Salem locations validation)
   const handlePartnerStep2Continue = (e) => {
     if (e && e.preventDefault) e.preventDefault();
     setErrorMessage('');
@@ -443,6 +450,10 @@ export default function AuthPage({ initialMode = 'login' }) {
     }
     if (!trade) {
       setErrorMessage('Please select your primary trade specialty');
+      return;
+    }
+    if (!partnerLocalities || partnerLocalities.length === 0) {
+      setErrorMessage('Please select at least one Salem service coverage area');
       return;
     }
     setRegisterStep(3);
@@ -462,7 +473,7 @@ export default function AuthPage({ initialMode = 'login' }) {
         phone: cleanPhone,
         password: registerPassword.trim(),
         role: 'customer',
-        locality,
+        locality: 'Salem',
         referralCode: referralCode.trim(),
         preferences: isSkipping ? [] : userPreferences,
         notificationChannel
@@ -481,9 +492,19 @@ export default function AuthPage({ initialMode = 'login' }) {
     }
   };
 
-  // Step 3 Partner Submit / Skip -> Step 4 Done (Under Review)
-  const handleCompletePartnerRegistration = async (isSkipping = false) => {
+  // Step 3 Partner Submit -> Step 4 Done (Aadhaar is Mandatory)
+  const handleCompletePartnerRegistration = async () => {
     setErrorMessage('');
+    const cleanAadhaar = (aadhaarNumber || '').replace(/[^0-9]/g, '');
+    if (!cleanAadhaar || cleanAadhaar.length !== 12) {
+      setErrorMessage('A valid 12-digit Aadhaar number is mandatory for partner onboarding');
+      return;
+    }
+    if (!aadhaarDocName) {
+      setErrorMessage('Aadhaar document upload is mandatory for partner onboarding');
+      return;
+    }
+
     const cleanPhone = (phone || '').replace(/[^0-9]/g, '').slice(-10);
     isNewRegistrationRef.current = true;
     setIsLoading(true);
@@ -495,15 +516,17 @@ export default function AuthPage({ initialMode = 'login' }) {
         password: registerPassword.trim(),
         role: 'technician',
         trade,
-        locality: (partnerLocalities && partnerLocalities[0]) || locality || 'Fairlands, Salem',
-        aadhaar: isSkipping ? '' : aadhaarNumber.trim(),
-        upiId: isSkipping ? '' : upiId.trim(),
-        experienceYears: yearsExperience
+        locality: (partnerLocalities && partnerLocalities[0]) || 'Fairlands, Salem',
+        aadhaar: cleanAadhaar,
+        aadhaarDocument: aadhaarDocName,
+        upiId: upiId.trim(),
+        experienceYears: yearsExperience,
+        assignedLocalities: partnerLocalities
       });
       clearDraft();
       setIsLoading(false);
       setRegisteredUserPhone(cleanPhone);
-      toast.success('Partner application submitted for review');
+      toast.success('Partner application submitted with Aadhaar verification');
       setRegisterStep(4);
     } catch (err) {
       isNewRegistrationRef.current = false;
@@ -1469,11 +1492,11 @@ export default function AuthPage({ initialMode = 'login' }) {
                     )}
 
                     {/* ------------------------------------------------------------- */}
-                    {/* STEP 2: USER BASIC DETAILS */}
+                    {/* STEP 2: USER BASIC DETAILS (NO LOCATION NEEDED AT SIGNUP) */}
                     {/* ------------------------------------------------------------- */}
                     {registerStep === 2 && !isTech && (
                       <Box component="form" onSubmit={handleUserStep2Continue}>
-                        <Box sx={{ mb: 1.2 }}>
+                        <Box sx={{ mb: 1.4 }}>
                           <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.primary', display: 'block', mb: 0.3, fontSize: '11px' }}>
                             Full Name
                           </Typography>
@@ -1492,36 +1515,7 @@ export default function AuthPage({ initialMode = 'login' }) {
                             }}
                           />
                           <FormHelperText sx={{ fontSize: '10.5px', color: 'text.secondary', m: '3px 0 0' }}>
-                            Your full name for service booking and doorstep technician visits.
-                          </FormHelperText>
-                        </Box>
-
-                        <Box sx={{ mb: 1.2 }}>
-                          <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.primary', display: 'block', mb: 0.3, fontSize: '11px' }}>
-                            Salem Locality
-                          </Typography>
-                          <TextField
-                            select
-                            fullWidth
-                            value={locality}
-                            onChange={(e) => setLocality(e.target.value)}
-                            InputProps={{
-                              startAdornment: (
-                                <InputAdornment position="start">
-                                  <MapPin size={15} color="#64748B" />
-                                </InputAdornment>
-                              ),
-                              sx: { borderRadius: '6px', bgcolor: 'background.paper', fontSize: '12.5px', height: '38px' }
-                            }}
-                          >
-                            {SALEM_LOCALITIES.map((loc) => (
-                              <MenuItem key={loc} value={loc} sx={{ fontSize: '12.5px' }}>
-                                {loc}
-                              </MenuItem>
-                            ))}
-                          </TextField>
-                          <FormHelperText sx={{ fontSize: '10.5px', color: 'text.secondary', m: '3px 0 0' }}>
-                            Your neighborhood in Salem for faster technician arrival.
+                            Your full name for service booking. Location will be chosen when you book a service.
                           </FormHelperText>
                         </Box>
 
@@ -1667,11 +1661,28 @@ export default function AuthPage({ initialMode = 'login' }) {
                         </Box>
 
                         <Box sx={{ mb: 1.4 }}>
-                          <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.primary', display: 'block', mb: 0.4, fontSize: '11px' }}>
-                            Salem Service Coverage Areas
-                          </Typography>
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.6 }}>
-                            {SALEM_LOCALITIES.slice(0, 6).map((loc) => {
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+                            <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.primary', fontSize: '11px' }}>
+                              Salem Service Coverage Areas ({partnerLocalities.length}/{SALEM_LOCALITIES.length})
+                            </Typography>
+                            <Button
+                              size="small"
+                              variant="text"
+                              onClick={() => {
+                                if (partnerLocalities.length === SALEM_LOCALITIES.length) {
+                                  setPartnerLocalities([SALEM_LOCALITIES[0]]);
+                                } else {
+                                  setPartnerLocalities([...SALEM_LOCALITIES]);
+                                }
+                              }}
+                              sx={{ p: 0, minWidth: 'auto', fontSize: '10.5px', fontWeight: 700, color: 'primary.main', textTransform: 'none' }}
+                            >
+                              {partnerLocalities.length === SALEM_LOCALITIES.length ? 'Clear to 1' : 'Select All Locations'}
+                            </Button>
+                          </Box>
+
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.6, maxHeight: '160px', overflowY: 'auto', p: 0.5, border: '1px solid', borderColor: 'divider', borderRadius: '6px', bgcolor: 'background.paper' }}>
+                            {SALEM_LOCALITIES.map((loc) => {
                               const isChecked = partnerLocalities.includes(loc);
                               return (
                                 <Chip
@@ -1704,7 +1715,7 @@ export default function AuthPage({ initialMode = 'login' }) {
                             })}
                           </Box>
                           <FormHelperText sx={{ fontSize: '10.5px', color: 'text.secondary', m: '4px 0 0' }}>
-                            Localities in Salem where you can travel for doorstep jobs.
+                            All recognized Salem operational zones. Choose all areas you are available to service.
                           </FormHelperText>
                         </Box>
 
@@ -1902,13 +1913,14 @@ export default function AuthPage({ initialMode = 'login' }) {
                     )}
 
                     {/* ------------------------------------------------------------- */}
-                    {/* STEP 3: PARTNER VERIFICATION DOCUMENTS (SKIPPABLE) */}
+                    {/* STEP 3: PARTNER VERIFICATION (AADHAAR DOCUMENT IS MANDATORY) */}
                     {/* ------------------------------------------------------------- */}
                     {registerStep === 3 && isTech && (
                       <Box>
+                        {/* 1. Aadhaar Card Number (Mandatory) */}
                         <Box sx={{ mb: 1.2 }}>
                           <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.primary', display: 'block', mb: 0.3, fontSize: '11px' }}>
-                            Aadhaar Card Number
+                            Aadhaar Card Number (Mandatory *)
                           </Typography>
                           <TextField
                             fullWidth
@@ -1918,17 +1930,86 @@ export default function AuthPage({ initialMode = 'login' }) {
                             InputProps={{
                               startAdornment: (
                                 <InputAdornment position="start">
-                                  <ShieldCheck size={15} color="#64748B" />
+                                  <ShieldCheck size={15} color="#0A5CC4" />
                                 </InputAdornment>
                               ),
                               sx: { borderRadius: '6px', bgcolor: 'background.paper', fontSize: '12.5px', height: '38px' }
                             }}
                           />
                           <FormHelperText sx={{ fontSize: '10.5px', color: 'text.secondary', m: '3px 0 0' }}>
-                            Required to activate your verified partner badge.
+                            A valid 12-digit Aadhaar number is mandatory for partner verification.
                           </FormHelperText>
                         </Box>
 
+                        {/* 2. Aadhaar Document Attachment (Mandatory) */}
+                        <Box sx={{ mb: 1.2 }}>
+                          <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.primary', display: 'block', mb: 0.3, fontSize: '11px' }}>
+                            Aadhaar Card Document (Mandatory *)
+                          </Typography>
+                          <input
+                            type="file"
+                            accept="image/*,application/pdf"
+                            id="aadhaar-doc-upload"
+                            style={{ display: 'none' }}
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                setAadhaarDocName(file.name);
+                                saveDraft(3, { aadhaarDocName: file.name });
+                                toast.success(`Attached ${file.name}`);
+                              }
+                            }}
+                          />
+                          <label htmlFor="aadhaar-doc-upload" style={{ cursor: 'pointer', display: 'block' }}>
+                            <Paper
+                              elevation={0}
+                              sx={{
+                                p: 1,
+                                borderRadius: '6px',
+                                border: '1.5px dashed',
+                                borderColor: aadhaarDocName ? 'primary.main' : 'divider',
+                                bgcolor: aadhaarDocName ? 'rgba(10, 92, 196, 0.05)' : 'background.paper',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                transition: 'all 0.15s ease'
+                              }}
+                            >
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                {aadhaarDocName ? <FileCheck size={18} color="#0A5CC4" /> : <Upload size={18} color="#64748B" />}
+                                <Box>
+                                  <Typography sx={{ fontSize: '12px', fontWeight: 700, color: aadhaarDocName ? 'primary.main' : 'text.primary' }}>
+                                    {aadhaarDocName ? aadhaarDocName : 'Upload Aadhaar Card (Image or PDF)'}
+                                  </Typography>
+                                  <Typography sx={{ fontSize: '10.5px', color: 'text.secondary' }}>
+                                    {aadhaarDocName ? 'Document attached' : 'Front & back ID proof (Mandatory)'}
+                                  </Typography>
+                                </Box>
+                              </Box>
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                component="span"
+                                sx={{
+                                  fontSize: '10.5px',
+                                  height: '26px',
+                                  p: '0 8px',
+                                  borderRadius: '4px',
+                                  textTransform: 'none',
+                                  borderColor: 'divider',
+                                  color: 'text.primary'
+                                }}
+                              >
+                                {aadhaarDocName ? 'Change' : 'Upload'}
+                              </Button>
+                            </Paper>
+                          </label>
+                          <FormHelperText sx={{ fontSize: '10.5px', color: 'text.secondary', m: '3px 0 0' }}>
+                            Clear copy of your government Aadhaar card is required before duty activation.
+                          </FormHelperText>
+                        </Box>
+
+                        {/* 3. UPI Payout */}
                         <Box sx={{ mb: 1.5 }}>
                           <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.primary', display: 'block', mb: 0.3, fontSize: '11px' }}>
                             UPI ID or Payout Mobile
@@ -1947,63 +2028,44 @@ export default function AuthPage({ initialMode = 'login' }) {
                           </FormHelperText>
                         </Box>
 
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.8 }}>
-                          <Box sx={{ display: 'flex', gap: 1 }}>
-                            <Button
-                              type="button"
-                              variant="outlined"
-                              onClick={() => setRegisterStep(2)}
-                              startIcon={<ArrowLeft size={14} />}
-                              sx={{
-                                borderColor: 'divider',
-                                color: 'text.secondary',
-                                height: '38px',
-                                borderRadius: '6px',
-                                fontWeight: 700,
-                                fontSize: '12px',
-                                textTransform: 'none',
-                                px: 1.5,
-                                '&:hover': { bgcolor: 'background.default' }
-                              }}
-                            >
-                              Back
-                            </Button>
-                            <Button
-                              type="button"
-                              fullWidth
-                              variant="contained"
-                              disabled={isLoading}
-                              onClick={() => handleCompletePartnerRegistration(false)}
-                              sx={{
-                                bgcolor: brandPrimary,
-                                color: '#FFFFFF',
-                                height: '38px',
-                                borderRadius: '6px',
-                                fontWeight: 800,
-                                fontSize: '12.5px',
-                                textTransform: 'none',
-                                '&:hover': { bgcolor: brandHover }
-                              }}
-                            >
-                              {isLoading ? <CircularProgress size={16} color="inherit" /> : 'Submit Application'}
-                            </Button>
-                          </Box>
-
+                        <Box sx={{ display: 'flex', gap: 1 }}>
                           <Button
                             type="button"
-                            variant="text"
-                            disabled={isLoading}
-                            onClick={() => handleCompletePartnerRegistration(true)}
+                            variant="outlined"
+                            onClick={() => setRegisterStep(2)}
+                            startIcon={<ArrowLeft size={14} />}
                             sx={{
+                              borderColor: 'divider',
                               color: 'text.secondary',
-                              fontSize: '11.5px',
+                              height: '38px',
+                              borderRadius: '6px',
                               fontWeight: 700,
+                              fontSize: '12px',
                               textTransform: 'none',
-                              py: 0.3,
-                              '&:hover': { color: 'text.primary', bgcolor: 'transparent' }
+                              px: 1.5,
+                              '&:hover': { bgcolor: 'background.default' }
                             }}
                           >
-                            Skip document upload for now
+                            Back
+                          </Button>
+                          <Button
+                            type="button"
+                            fullWidth
+                            variant="contained"
+                            disabled={isLoading || aadhaarNumber.replace(/[^0-9]/g, '').length !== 12 || !aadhaarDocName}
+                            onClick={handleCompletePartnerRegistration}
+                            sx={{
+                              bgcolor: brandPrimary,
+                              color: '#FFFFFF',
+                              height: '38px',
+                              borderRadius: '6px',
+                              fontWeight: 800,
+                              fontSize: '12.5px',
+                              textTransform: 'none',
+                              '&:hover': { bgcolor: brandHover }
+                            }}
+                          >
+                            {isLoading ? <CircularProgress size={16} color="inherit" /> : 'Submit Application'}
                           </Button>
                         </Box>
                       </Box>
@@ -2055,8 +2117,8 @@ export default function AuthPage({ initialMode = 'login' }) {
                             <Typography sx={{ fontSize: '11.5px', fontWeight: 700, color: 'text.primary' }}>+91 {phone}</Typography>
                           </Box>
                           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <Typography sx={{ fontSize: '11.5px', color: 'text.secondary' }}>Locality:</Typography>
-                            <Typography sx={{ fontSize: '11.5px', fontWeight: 700, color: 'text.primary' }}>{locality}</Typography>
+                            <Typography sx={{ fontSize: '11.5px', color: 'text.secondary' }}>Account Status:</Typography>
+                            <Typography sx={{ fontSize: '11.5px', fontWeight: 700, color: 'secondary.main' }}>Active</Typography>
                           </Box>
                         </Paper>
 
