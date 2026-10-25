@@ -86,9 +86,17 @@ export default function QuoteReviewPage() {
     .reduce((s, i) => s + (parseFloat(i.price) || 0) * (parseInt(i.qty, 10) || 1), 0);
   const laborCost = rawLaborCost;
 
-  // Platform Fee is strictly 5% of Labor / Work Charge
-  const platformFee = Math.round(laborCost * 0.05 * 100) / 100;
-  const finalTotal = laborCost + platformFee;
+  // Dynamic dual-commission invoice from backend or fallback calculations
+  const invoice = quoteData?.invoice || null;
+  const visitFee = parseFloat(quoteData?.booking?.visit_fee || 99);
+  const totalJobAmount = invoice ? invoice.totalJobAmount : laborCost;
+  const upfrontFeePaid = invoice ? invoice.upfrontFeePaid : Math.min(totalJobAmount, visitFee);
+  const remainingWorkAmount = invoice ? invoice.remainingWorkAmount : Math.max(0, totalJobAmount - upfrontFeePaid);
+  const customerFeePercent = invoice ? invoice.customerFeePercent : 2.0;
+  const customerPlatformFee = invoice ? invoice.customerPlatformFee : Math.round(((remainingWorkAmount * customerFeePercent) / 100) * 100) / 100;
+  const gatewayFeePercent = invoice ? invoice.gatewayFeePercent : 2.0;
+  const paymentGatewayFee = invoice ? invoice.paymentGatewayFee : Math.round((((remainingWorkAmount + customerPlatformFee) * gatewayFeePercent) / 100) * 100) / 100;
+  const finalTotal = invoice ? invoice.customerFinalPayable : (remainingWorkAmount + customerPlatformFee + paymentGatewayFee);
 
   const handleApprove = async () => {
     setIsProcessing(true);
@@ -240,22 +248,49 @@ export default function QuoteReviewPage() {
           {/* Upfront Breakdown */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
             <Typography variant="body2" sx={{ color: '#475569', fontSize: '13px' }}>
-              தொழிலாளர் வேலைக் கட்டணம் (Technician Labor Charge):
+              தொழிலாளர் வேலைக் கட்டணம் (Approved Work Total):
             </Typography>
             <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '13px' }}>
-              ₹{laborCost.toFixed(2)}
+              ₹{totalJobAmount.toFixed(2)}
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
+            <Typography variant="body2" sx={{ color: '#16A34A', fontSize: '13px' }}>
+              கழித்தல்: முன்பணம் (Less: Doorstep Diagnosis Fee Paid):
+            </Typography>
+            <Typography variant="body2" sx={{ fontWeight: 700, color: '#16A34A', fontSize: '13px' }}>
+              -₹{upfrontFeePaid.toFixed(2)}
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
+            <Typography variant="body2" sx={{ color: '#475569', fontSize: '13px' }}>
+              மீதமுள்ள கட்டணம் (Net Balance Work):
+            </Typography>
+            <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '13px' }}>
+              ₹{remainingWorkAmount.toFixed(2)}
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <ShieldIcon sx={{ color: '#2563EB', fontSize: 14 }} />
+              <Typography variant="body2" sx={{ color: '#2563EB', fontSize: '12.5px', fontWeight: 600 }}>
+                Shazu One தளம் வசதிக் கட்டணம் ({customerFeePercent}% Platform Fee):
+              </Typography>
+            </Box>
+            <Typography variant="body2" sx={{ fontWeight: 700, color: '#2563EB', fontSize: '13px' }}>
+              +₹{customerPlatformFee.toFixed(2)}
             </Typography>
           </Box>
 
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <ShieldIcon sx={{ color: '#2563EB', fontSize: 14 }} />
-              <Typography variant="body2" sx={{ color: '#2563EB', fontSize: '12.5px', fontWeight: 600 }}>
-                Shazu One Platform & Safety Fee (5% on Labor):
-              </Typography>
-            </Box>
-            <Typography variant="body2" sx={{ fontWeight: 700, color: '#2563EB', fontSize: '13px' }}>
-              +₹{platformFee.toFixed(2)}
+            <Typography variant="body2" sx={{ color: '#64748B', fontSize: '12.5px' }}>
+              வங்கி மற்றும் கட்டண நுழைவாயில் ({gatewayFeePercent}% PG Fee):
+            </Typography>
+            <Typography variant="body2" sx={{ fontWeight: 700, color: '#64748B', fontSize: '13px' }}>
+              +₹{paymentGatewayFee.toFixed(2)}
             </Typography>
           </Box>
 
@@ -264,10 +299,10 @@ export default function QuoteReviewPage() {
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Box>
               <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '14px' }}>
-                மொத்த கட்டணம் (Total Payable):
+                மொத்த கட்டணம் (Total Payable Now):
               </Typography>
               <Typography variant="caption" sx={{ color: '#16A34A', fontWeight: 600, display: 'block' }}>
-                Work Charge + 5% Platform Fee Only
+                Net Work + Platform Fee + Payment Gateway
               </Typography>
             </Box>
 

@@ -75,6 +75,15 @@ export default function CheckoutPage() {
 
   const [partsAndLabor, setPartsAndLabor] = useState(900);
   const [visitFee, setVisitFee] = useState(99);
+  const [invoice, setInvoice] = useState(null);
+  const [totalJobAmount, setTotalJobAmount] = useState(1000);
+  const [upfrontFeePaid, setUpfrontFeePaid] = useState(99);
+  const [remainingWorkAmount, setRemainingWorkAmount] = useState(901);
+  const [customerFeePercent, setCustomerFeePercent] = useState(2.0);
+  const [customerPlatformFee, setCustomerPlatformFee] = useState(18.02);
+  const [gatewayFeePercent, setGatewayFeePercent] = useState(2.0);
+  const [paymentGatewayFee, setPaymentGatewayFee] = useState(18.38);
+  const [customerFinalPayable, setCustomerFinalPayable] = useState(937.40);
 
   useEffect(() => {
     if (bookingId) {
@@ -84,13 +93,37 @@ export default function CheckoutPage() {
       .then(res => res.json())
       .then(data => {
         if (data.success) {
-          const items = data.items || [];
-          const rawLaborCost = items
-            .filter(i => i.type !== 'Spare Part')
-            .reduce((s, i) => s + (parseFloat(i.price) || 0) * (parseInt(i.qty, 10) || 1), 0);
-          const laborCost = rawLaborCost;
-          const fee = Math.round(laborCost * 0.05 * 100) / 100;
-          setPartsAndLabor(laborCost + fee);
+          const inv = data.invoice;
+          if (inv) {
+            setInvoice(inv);
+            setTotalJobAmount(inv.totalJobAmount);
+            setUpfrontFeePaid(inv.upfrontFeePaid);
+            setRemainingWorkAmount(inv.remainingWorkAmount);
+            setCustomerFeePercent(inv.customerFeePercent);
+            setCustomerPlatformFee(inv.customerPlatformFee);
+            setGatewayFeePercent(inv.gatewayFeePercent);
+            setPaymentGatewayFee(inv.paymentGatewayFee);
+            setCustomerFinalPayable(inv.customerFinalPayable);
+            setPartsAndLabor(inv.customerFinalPayable);
+          } else {
+            const items = data.items || [];
+            const rawLaborCost = items
+              .filter(i => i.type !== 'Spare Part')
+              .reduce((s, i) => s + (parseFloat(i.price) || 0) * (parseInt(i.qty, 10) || 1), 0);
+            const laborCost = rawLaborCost || 1000;
+            const visit = data.booking?.visit_fee ? parseFloat(data.booking.visit_fee) : 99;
+            const rem = Math.max(0, laborCost - visit);
+            const cFee = Math.round(((rem * 2.0) / 100) * 100) / 100;
+            const pgFee = Math.round((((rem + cFee) * 2.0) / 100) * 100) / 100;
+            const finalPay = rem + cFee + pgFee;
+            setTotalJobAmount(laborCost);
+            setUpfrontFeePaid(visit);
+            setRemainingWorkAmount(rem);
+            setCustomerPlatformFee(cFee);
+            setPaymentGatewayFee(pgFee);
+            setCustomerFinalPayable(finalPay);
+            setPartsAndLabor(finalPay);
+          }
           if (data.booking?.visit_fee) {
             setVisitFee(parseFloat(data.booking.visit_fee));
           }
@@ -322,30 +355,52 @@ export default function CheckoutPage() {
           </Box>
 
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1, alignItems: 'center' }}>
-            <Typography variant="body2" sx={{ color: '#64748B', fontSize: '12.5px' }}>
-              Technician Doorstep Visit & Diagnosis Fee
+            <Typography variant="body2" sx={{ color: '#475569', fontSize: '12.5px' }}>
+              Approved Service Work Charge (வேலைக் கட்டணம்)
+            </Typography>
+            <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '13px' }}>
+              ₹{totalJobAmount.toFixed(2)}
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1, alignItems: 'center' }}>
+            <Typography variant="body2" sx={{ color: '#16A34A', fontSize: '12.5px' }}>
+              Doorstep Diagnosis Fee (முன்பணம் கழித்தல்)
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
               <Typography variant="caption" sx={{ color: '#16A34A', fontWeight: 800, bgcolor: '#DCFCE7', px: 0.8, py: 0.2, borderRadius: '4px', fontSize: '10px' }}>
-                PAID UPFRONT 
+                PAID UPFRONT
               </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 700, color: '#64748B', textDecoration: 'line-through' }}>
-                ₹{visitFee}
+              <Typography variant="body2" sx={{ fontWeight: 700, color: '#16A34A' }}>
+                -₹{upfrontFeePaid.toFixed(2)}
               </Typography>
             </Box>
           </Box>
 
-          <Box sx={{ mb: 1.5 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="body2" sx={{ color: '#0F172A', fontSize: '13px', fontWeight: 700 }}>
-                தொழிலாளர் வேலைக் கட்டணம் + 5% தள கட்டணம் (Labour & Platform Fee)
-              </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '13.5px' }}>
-                ₹{partsAndLabor.toFixed(2)}
-              </Typography>
-            </Box>
-            <Typography variant="caption" sx={{ color: '#166534', fontSize: '11px', display: 'block', mt: 0.3, fontWeight: 500 }}>
-              தளம் உதிரிபாகங்களை விற்பனை செய்வதில்லை. 5% தள கட்டணம் தொழிலாளர் வேலைக் கட்டணத்திற்கு மட்டுமே.
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1, alignItems: 'center' }}>
+            <Typography variant="body2" sx={{ color: '#475569', fontSize: '12.5px' }}>
+              Net Balance Work Charges (மீதமுள்ள கட்டணம்)
+            </Typography>
+            <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '13px' }}>
+              ₹{remainingWorkAmount.toFixed(2)}
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1, alignItems: 'center' }}>
+            <Typography variant="body2" sx={{ color: '#2563EB', fontSize: '12.5px', fontWeight: 600 }}>
+              Platform Convenience Fee ({customerFeePercent}% தளக் கட்டணம்)
+            </Typography>
+            <Typography variant="body2" sx={{ fontWeight: 700, color: '#2563EB', fontSize: '13px' }}>
+              +₹{customerPlatformFee.toFixed(2)}
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5, alignItems: 'center' }}>
+            <Typography variant="body2" sx={{ color: '#64748B', fontSize: '12.5px' }}>
+              Payment Gateway Surcharge ({gatewayFeePercent}% PG கட்டணம்)
+            </Typography>
+            <Typography variant="body2" sx={{ fontWeight: 700, color: '#64748B', fontSize: '13px' }}>
+              +₹{paymentGatewayFee.toFixed(2)}
             </Typography>
           </Box>
 
