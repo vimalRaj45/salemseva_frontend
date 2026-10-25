@@ -89,8 +89,40 @@
       }
     </style>
 
-    <!-- Google Translate Script & Handler -->
+    <!-- Google Translate Script & Handler + React DOM Protection Shield -->
     <script type="text/javascript">
+      // ── DOM Mutation Armor for React 18 & Google Translate / Browser Extensions ──
+      // Google Translate and browser extensions wrap text nodes in <font> or insert spans.
+      // When React tries to remove/insert nodes during unmounting or reconciliation,
+      // native removeChild throws NotFoundError because the parent-child relationship was altered.
+      // This monkey-patch prevents fatal app crashes while preserving normal DOM behavior.
+      if (typeof Node === 'function' && Node.prototype) {
+        const originalRemoveChild = Node.prototype.removeChild;
+        Node.prototype.removeChild = function(child) {
+          if (child && child.parentNode !== this) {
+            if (typeof console !== 'undefined' && console.warn) {
+              console.warn('[DOM Protection] Prevented removeChild NotFoundError on altered node:', child, 'expected parent:', this);
+            }
+            if (child.parentNode) {
+              return child.parentNode.removeChild(child);
+            }
+            return child;
+          }
+          return originalRemoveChild.apply(this, arguments);
+        };
+
+        const originalInsertBefore = Node.prototype.insertBefore;
+        Node.prototype.insertBefore = function(newNode, referenceNode) {
+          if (referenceNode && referenceNode.parentNode !== this) {
+            if (typeof console !== 'undefined' && console.warn) {
+              console.warn('[DOM Protection] Prevented insertBefore NotFoundError on altered node:', referenceNode, 'parent:', this);
+            }
+            return this.appendChild(newNode);
+          }
+          return originalInsertBefore.apply(this, arguments);
+        };
+      }
+
       function googleTranslateElementInit() {
         if (window.google && window.google.translate) {
           new google.translate.TranslateElement({
