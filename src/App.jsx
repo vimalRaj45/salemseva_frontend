@@ -93,12 +93,33 @@ function CustomerActiveJobGuard({ children }) {
     // Technicians should never run customer active job restoration
     if (isTechLoggedIn) return;
 
-    // Only guard customer browsing routes
+    // Only guard customer browsing routes (home, service catalog exploration)
     const isCustomerRoute = !location.pathname.startsWith('/partner') && !location.pathname.startsWith('/admin');
-    const isWorkStep = ['/matching', '/track', '/quote', '/checkout', '/rate'].some(p => location.pathname.startsWith(p));
-    const isLegalPage = ['/terms', '/privacy', '/refund-policy', '/refunds', '/how-it-works'].some(p => location.pathname.startsWith(p));
     
-    if (!isCustomerRoute || isWorkStep || isLegalPage) return;
+    // Explicit list of all active-job flow screens, VoIP call, masked chat, booking management & utility pages
+    const isExemptRoute = [
+      '/matching',
+      '/track',
+      '/tracking',
+      '/quote',
+      '/checkout',
+      '/rate',
+      '/chat',
+      '/call',
+      '/booking',
+      '/history',
+      '/wallet',
+      '/terms',
+      '/privacy',
+      '/refund-policy',
+      '/refunds',
+      '/how-it-works',
+      '/welcome',
+      '/login',
+      '/register'
+    ].some(p => location.pathname.startsWith(p));
+    
+    if (!isCustomerRoute || isExemptRoute) return;
 
     const activeBookingId = localStorage.getItem('shazuone_active_booking');
     if (!activeBookingId) return;
