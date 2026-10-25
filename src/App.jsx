@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Box } from '@mui/material';
 
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import LanguageSelectorModal from './components/LanguageSelectorModal';
 
 // Customer Pages
@@ -264,6 +265,9 @@ function MainLayout({ walletBalance, currentBooking, setCurrentBooking }) {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Box>
+
+        {/* Professional Enterprise Footer */}
+        <Footer />
       </Box>
     </CustomerActiveJobGuard>
   );
