@@ -232,13 +232,31 @@ const getComponentOverrides = (isDark = false) => {
         }
       }
     },
+    MuiInputBase: {
+      styleOverrides: {
+        root: {
+          color: isDark ? '#F8FAFC' : brandColors.slate[900],
+          '&.Mui-disabled': {
+            color: isDark ? '#64748B' : brandColors.slate[400]
+          }
+        },
+        input: {
+          color: isDark ? '#F8FAFC' : brandColors.slate[900],
+          '&::placeholder': {
+            color: isDark ? '#94A3B8' : brandColors.slate[400],
+            opacity: 1
+          }
+        }
+      }
+    },
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
           borderRadius: 8,
           fontSize: '0.875rem',
           minHeight: '42px',
-          backgroundColor: isDark ? '#0F1A34' : '#FFFFFF',
+          color: isDark ? '#F8FAFC' : brandColors.slate[900],
+          backgroundColor: isDark ? '#111D3B' : '#FFFFFF',
           '& fieldset': {
             borderColor: surfaceBorder,
             transition: 'border-color 140ms ease'
@@ -255,7 +273,48 @@ const getComponentOverrides = (isDark = false) => {
           }
         },
         input: {
-          padding: '10px 14px'
+          padding: '10px 14px',
+          color: isDark ? '#F8FAFC' : brandColors.slate[900],
+          '&::placeholder': {
+            color: isDark ? '#94A3B8' : brandColors.slate[400],
+            opacity: 1
+          }
+        }
+      }
+    },
+    MuiSelect: {
+      styleOverrides: {
+        select: {
+          color: isDark ? '#F8FAFC' : brandColors.slate[900],
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          '& span': {
+            color: isDark ? '#F8FAFC' : brandColors.slate[900]
+          },
+          '& *': {
+            color: isDark ? '#F8FAFC' : brandColors.slate[900]
+          }
+        },
+        icon: {
+          color: isDark ? '#94A3B8' : brandColors.slate[500]
+        }
+      }
+    },
+    MuiMenuItem: {
+      styleOverrides: {
+        root: {
+          color: isDark ? '#F8FAFC' : brandColors.slate[900],
+          fontSize: '0.875rem',
+          padding: '8px 14px',
+          '&:hover': {
+            backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : brandColors.slate[100]
+          },
+          '&.Mui-selected': {
+            backgroundColor: isDark ? 'rgba(56, 189, 248, 0.16)' : 'rgba(10, 92, 196, 0.08)',
+            color: isDark ? '#38BDF8' : brandColors.primary.main,
+            fontWeight: 700
+          }
         }
       }
     },

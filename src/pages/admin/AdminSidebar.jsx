@@ -194,7 +194,8 @@ export default function AdminSidebar({
             display: 'flex',
             alignItems: 'center',
             justifyContent: isCollapsed ? 'center' : 'space-between',
-            borderBottom: '1px solid #E2E8F0',
+            borderBottom: '1px solid',
+            borderColor: 'divider',
             minHeight: 64
           }}
         >
@@ -205,7 +206,7 @@ export default function AdminSidebar({
                   width: 38,
                   height: 38,
                   borderRadius: '10px',
-                  bgcolor: '#FFFFFF',
+                  bgcolor: 'background.paper',
                   boxShadow: '0 2px 8px rgba(13, 59, 102, 0.12)',
                   display: 'flex',
                   alignItems: 'center',
@@ -222,7 +223,7 @@ export default function AdminSidebar({
                 />
               </Box>
               <Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0F172A', lineHeight: 1.1 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 900, color: 'text.primary', lineHeight: 1.1 }}>
                   Shazu One
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#0284C7', fontWeight: 800, fontSize: '10.5px' }}>
@@ -429,14 +430,15 @@ export default function AdminSidebar({
         <Box
           sx={{
             p: isCollapsed ? 1 : 1.5,
-            borderTop: '1px solid #E2E8F0',
-            bgcolor: '#F8FAFC'
+            borderTop: '1px solid',
+            borderColor: 'divider',
+            bgcolor: 'background.default'
           }}
         >
           {!isCollapsed ? (
             <Box>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 800, fontSize: '10.5px' }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 800, fontSize: '10.5px' }}>
                   CURRENT RBAC ROLE
                 </Typography>
                 <Chip
@@ -448,8 +450,9 @@ export default function AdminSidebar({
                     fontSize: '10px',
                     fontWeight: 800,
                     color: roleLabels[currentRole]?.color || '#7C3AED',
-                    bgcolor: '#FFFFFF',
-                    border: '1px solid #E2E8F0'
+                    bgcolor: 'background.paper',
+                    border: '1px solid',
+                    borderColor: 'divider'
                   }}
                 />
               </Box>
@@ -460,11 +463,17 @@ export default function AdminSidebar({
                   value={currentRole}
                   onChange={(e) => onRoleChange(e.target.value)}
                   sx={{
-                    bgcolor: '#FFFFFF',
+                    bgcolor: 'background.paper',
+                    color: 'text.primary',
                     borderRadius: '8px',
                     fontSize: '12px',
                     fontWeight: 700,
-                    minHeight: 38
+                    minHeight: 38,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    '& .MuiSelect-select': {
+                      color: 'text.primary'
+                    }
                   }}
                 >
                   <MenuItem value="super_admin" sx={{ fontSize: '12.5px', fontWeight: 700 }}>
@@ -543,8 +552,9 @@ export default function AdminSidebar({
         sx={{
           width: collapsed ? 72 : 260,
           flexShrink: 0,
-          bgcolor: '#FFFFFF',
-          borderRight: '1px solid #E2E8F0',
+          bgcolor: 'background.paper',
+          borderRight: '1px solid',
+          borderColor: 'divider',
           display: { xs: 'none', md: 'flex' },
           flexDirection: 'column',
           height: '100vh',

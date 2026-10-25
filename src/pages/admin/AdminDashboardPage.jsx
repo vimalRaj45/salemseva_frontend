@@ -1238,7 +1238,7 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: '#F8FAFC' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}>
       {/* Enterprise Collapsible Left Sidebar */}
       <AdminSidebar
         collapsed={sidebarCollapsed}
@@ -1605,76 +1605,76 @@ export default function AdminDashboardPage() {
         {/* 4 KPI Stat Cards - 2x2 on mobile, 4-col on desktop */}
         <Grid container spacing={{ xs: 1, sm: 1.5 }} sx={{ mb: 2.5 }}>
           <Grid item xs={6} sm={6} md={3}>
-            <Card elevation={0} sx={{ bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px', p: { xs: 1.25, md: 1.5 }, height: '100%' }}>
+            <Card elevation={0} sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', borderRadius: '12px', p: { xs: 1.25, md: 1.5 }, height: '100%' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748B', fontSize: { xs: '11px', sm: '12px' } }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', fontSize: { xs: '11px', sm: '12px' } }}>
                   Active bookings
                 </Typography>
-                <Avatar sx={{ bgcolor: '#EFF6FF', color: '#2563EB', width: { xs: 26, md: 28 }, height: { xs: 26, md: 28 } }}>
+                <Avatar sx={{ bgcolor: 'primary.light', color: '#FFFFFF', width: { xs: 26, md: 28 }, height: { xs: 26, md: 28 } }}>
                   <SpeedIcon sx={{ fontSize: { xs: 14, md: 16 } }} />
                 </Avatar>
               </Box>
-              <Typography sx={{ fontWeight: 800, color: '#0F172A', my: 0.5, fontVariantNumeric: 'tabular-nums', fontSize: { xs: '1.3rem', sm: '1.6rem', md: '1.85rem' } }}>
+              <Typography sx={{ fontWeight: 800, color: 'text.primary', my: 0.5, fontVariantNumeric: 'tabular-nums', fontSize: { xs: '1.3rem', sm: '1.6rem', md: '1.85rem' } }}>
                 {metrics.activeBookings || recentBookings.length || 0}
               </Typography>
-              <Typography variant="caption" sx={{ color: '#16A34A', fontWeight: 700, fontSize: { xs: '10px', sm: '11.5px' }, display: 'block' }}>
+              <Typography variant="caption" sx={{ color: 'success.main', fontWeight: 700, fontSize: { xs: '10px', sm: '11.5px' }, display: 'block' }}>
                 Live dispatch sync
               </Typography>
             </Card>
           </Grid>
 
           <Grid item xs={6} sm={6} md={3}>
-            <Card elevation={0} sx={{ bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px', p: { xs: 1.25, md: 1.5 }, height: '100%' }}>
+            <Card elevation={0} sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', borderRadius: '12px', p: { xs: 1.25, md: 1.5 }, height: '100%' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748B', fontSize: { xs: '11px', sm: '12px' } }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', fontSize: { xs: '11px', sm: '12px' } }}>
                   Techs on duty
                 </Typography>
-                <Avatar sx={{ bgcolor: '#F0FDF4', color: '#166534', width: { xs: 26, md: 28 }, height: { xs: 26, md: 28 } }}>
+                <Avatar sx={{ bgcolor: 'success.light', color: 'success.main', width: { xs: 26, md: 28 }, height: { xs: 26, md: 28 } }}>
                   <EngineeringIcon sx={{ fontSize: { xs: 14, md: 16 } }} />
                 </Avatar>
               </Box>
-              <Typography sx={{ fontWeight: 800, color: '#2563EB', my: 0.5, fontVariantNumeric: 'tabular-nums', fontSize: { xs: '1.3rem', sm: '1.6rem', md: '1.85rem' } }}>
-                {technicians.filter(t => t.is_online).length} <span style={{ fontSize: '0.6em', color: '#64748B', fontWeight: 600 }}>/ {technicians.length}</span>
+              <Typography sx={{ fontWeight: 800, color: 'primary.main', my: 0.5, fontVariantNumeric: 'tabular-nums', fontSize: { xs: '1.3rem', sm: '1.6rem', md: '1.85rem' } }}>
+                {technicians.filter(t => t.is_online).length} <span style={{ fontSize: '0.6em', opacity: 0.7, fontWeight: 600 }}>/ {technicians.length}</span>
               </Typography>
-              <Typography variant="caption" sx={{ color: '#64748B', fontSize: { xs: '10px', sm: '11.5px' }, display: 'block' }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '10px', sm: '11.5px' }, display: 'block' }}>
                 Salem coverage zones
               </Typography>
             </Card>
           </Grid>
 
           <Grid item xs={6} sm={6} md={3}>
-            <Card elevation={0} sx={{ bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px', p: { xs: 1.25, md: 1.5 }, height: '100%' }}>
+            <Card elevation={0} sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', borderRadius: '12px', p: { xs: 1.25, md: 1.5 }, height: '100%' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748B', fontSize: { xs: '11px', sm: '12px' } }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', fontSize: { xs: '11px', sm: '12px' } }}>
                   Registered clients
                 </Typography>
-                <Avatar sx={{ bgcolor: '#F1F5F9', color: '#475569', width: { xs: 26, md: 28 }, height: { xs: 26, md: 28 } }}>
+                <Avatar sx={{ bgcolor: 'action.hover', color: 'text.secondary', width: { xs: 26, md: 28 }, height: { xs: 26, md: 28 } }}>
                   <PeopleAltIcon sx={{ fontSize: { xs: 14, md: 16 } }} />
                 </Avatar>
               </Box>
-              <Typography sx={{ fontWeight: 800, color: '#0F172A', my: 0.5, fontVariantNumeric: 'tabular-nums', fontSize: { xs: '1.3rem', sm: '1.6rem', md: '1.85rem' } }}>
+              <Typography sx={{ fontWeight: 800, color: 'text.primary', my: 0.5, fontVariantNumeric: 'tabular-nums', fontSize: { xs: '1.3rem', sm: '1.6rem', md: '1.85rem' } }}>
                 {customersList.length}
               </Typography>
-              <Typography variant="caption" sx={{ color: '#64748B', fontSize: { xs: '10px', sm: '11.5px' }, display: 'block' }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '10px', sm: '11.5px' }, display: 'block' }}>
                 Verified residents
               </Typography>
             </Card>
           </Grid>
 
           <Grid item xs={6} sm={6} md={3}>
-            <Card elevation={0} sx={{ bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px', p: { xs: 1.25, md: 1.5 }, height: '100%' }}>
+            <Card elevation={0} sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', borderRadius: '12px', p: { xs: 1.25, md: 1.5 }, height: '100%' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748B', fontSize: { xs: '11px', sm: '12px' } }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', fontSize: { xs: '11px', sm: '12px' } }}>
                   Today's volume
                 </Typography>
-                <Avatar sx={{ bgcolor: '#F0FDF4', color: '#166534', width: { xs: 26, md: 28 }, height: { xs: 26, md: 28 } }}>
+                <Avatar sx={{ bgcolor: 'success.light', color: 'success.main', width: { xs: 26, md: 28 }, height: { xs: 26, md: 28 } }}>
                   <AccountBalanceWalletIcon sx={{ fontSize: { xs: 14, md: 16 } }} />
                 </Avatar>
               </Box>
-              <Typography sx={{ fontWeight: 800, color: '#16A34A', my: 0.5, fontVariantNumeric: 'tabular-nums', fontSize: { xs: '1.3rem', sm: '1.6rem', md: '1.85rem' } }}>
+              <Typography sx={{ fontWeight: 800, color: 'success.main', my: 0.5, fontVariantNumeric: 'tabular-nums', fontSize: { xs: '1.3rem', sm: '1.6rem', md: '1.85rem' } }}>
                 ₹{Number(metrics.financials?.totalRevenue || 0).toLocaleString()}
               </Typography>
-              <Typography variant="caption" sx={{ color: '#64748B', fontSize: { xs: '10px', sm: '11.5px' }, display: 'block' }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '10px', sm: '11.5px' }, display: 'block' }}>
                 Digital escrow settlements
               </Typography>
             </Card>
@@ -1687,11 +1687,11 @@ export default function AdminDashboardPage() {
         {activeMainTab === 'ops' && (
           <>
             {/*  ADVANCED FILTERS TOOLBAR CARD */}
-            <Card elevation={0} sx={{ bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '20px', p: 2.5, mb: 3.5, boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
+            <Card elevation={0} sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', borderRadius: '16px', p: 2.5, mb: 3.5, boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <FilterListIcon sx={{ color: '#0284C7' }} />
-                  <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0F172A' }}>
+                  <FilterListIcon sx={{ color: 'primary.main' }} />
+                  <Typography variant="subtitle1" sx={{ fontWeight: 900, color: 'text.primary' }}>
                     Advanced Operations & Dispatch Filter
                   </Typography>
                   {activeFiltersCount > 0 && (
@@ -1738,7 +1738,15 @@ export default function AdminDashboardPage() {
                           </IconButton>
                         </InputAdornment>
                       ) : null,
-                      sx: { borderRadius: '12px', bgcolor: '#F8FAFC', fontSize: '13.5px' }
+                      sx: {
+                        borderRadius: '12px',
+                        bgcolor: 'background.default',
+                        color: 'text.primary',
+                        fontSize: '13.5px',
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        '& .MuiInputBase-input': { color: 'text.primary' }
+                      }
                     }}
                   />
                 </Grid>
@@ -1749,7 +1757,16 @@ export default function AdminDashboardPage() {
                     <Select
                       value={selectedTrade}
                       onChange={(e) => setSelectedTrade(e.target.value)}
-                      sx={{ borderRadius: '12px', bgcolor: '#F8FAFC', fontSize: '13.5px', fontWeight: 700 }}
+                      sx={{
+                        borderRadius: '12px',
+                        bgcolor: 'background.default',
+                        color: 'text.primary',
+                        fontSize: '13.5px',
+                        fontWeight: 700,
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        '& .MuiSelect-select': { color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }
+                      }}
                     >
                       <MenuItem value="all">
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -1791,7 +1808,16 @@ export default function AdminDashboardPage() {
                     <Select
                       value={selectedLocality}
                       onChange={(e) => setSelectedLocality(e.target.value)}
-                      sx={{ borderRadius: '12px', bgcolor: '#F8FAFC', fontSize: '13.5px', fontWeight: 700 }}
+                      sx={{
+                        borderRadius: '12px',
+                        bgcolor: 'background.default',
+                        color: 'text.primary',
+                        fontSize: '13.5px',
+                        fontWeight: 700,
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        '& .MuiSelect-select': { color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }
+                      }}
                     >
                       <MenuItem value="all">
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -1857,7 +1883,16 @@ export default function AdminDashboardPage() {
                     <Select
                       value={selectedStatus}
                       onChange={(e) => setSelectedStatus(e.target.value)}
-                      sx={{ borderRadius: '12px', bgcolor: '#F8FAFC', fontSize: '13.5px', fontWeight: 700 }}
+                      sx={{
+                        borderRadius: '12px',
+                        bgcolor: 'background.default',
+                        color: 'text.primary',
+                        fontSize: '13.5px',
+                        fontWeight: 700,
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        '& .MuiSelect-select': { color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }
+                      }}
                     >
                       <MenuItem value="all">
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -1920,7 +1955,16 @@ export default function AdminDashboardPage() {
                     <Select
                       value={selectedDateFilter}
                       onChange={(e) => setSelectedDateFilter(e.target.value)}
-                      sx={{ borderRadius: '12px', bgcolor: '#F8FAFC', fontSize: '13.5px', fontWeight: 700 }}
+                      sx={{
+                        borderRadius: '12px',
+                        bgcolor: 'background.default',
+                        color: 'text.primary',
+                        fontSize: '13.5px',
+                        fontWeight: 700,
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        '& .MuiSelect-select': { color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }
+                      }}
                     >
                       <MenuItem value="all">
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -1956,7 +2000,16 @@ export default function AdminDashboardPage() {
                     <Select
                       value={selectedDispatchMode}
                       onChange={(e) => setSelectedDispatchMode(e.target.value)}
-                      sx={{ borderRadius: '12px', bgcolor: '#F8FAFC', fontSize: '13.5px', fontWeight: 700 }}
+                      sx={{
+                        borderRadius: '12px',
+                        bgcolor: 'background.default',
+                        color: 'text.primary',
+                        fontSize: '13.5px',
+                        fontWeight: 700,
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        '& .MuiSelect-select': { color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }
+                      }}
                     >
                       <MenuItem value="all">
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -1992,7 +2045,16 @@ export default function AdminDashboardPage() {
                     <Select
                       value={selectedAudioFilter}
                       onChange={(e) => setSelectedAudioFilter(e.target.value)}
-                      sx={{ borderRadius: '12px', bgcolor: '#F8FAFC', fontSize: '13.5px', fontWeight: 700 }}
+                      sx={{
+                        borderRadius: '12px',
+                        bgcolor: 'background.default',
+                        color: 'text.primary',
+                        fontSize: '13.5px',
+                        fontWeight: 700,
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        '& .MuiSelect-select': { color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }
+                      }}
                     >
                       <MenuItem value="all">
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -2138,11 +2200,11 @@ export default function AdminDashboardPage() {
             </Card>
 
             {/*  SECTION 1: ACTIVE SALEM TECHNICIAN FLEET RADAR */}
-            <Card elevation={0} sx={{ bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '20px', p: 2.5, mb: 3.5, boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
+            <Card elevation={0} sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', borderRadius: '16px', p: 2.5, mb: 3.5, boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <SensorsIcon sx={{ color: '#10B981', fontSize: 22 }} />
-                  <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0F172A', fontSize: '16px' }}>
+                  <SensorsIcon sx={{ color: 'success.main', fontSize: 22 }} />
+                  <Typography variant="subtitle1" sx={{ fontWeight: 900, color: 'text.primary', fontSize: '16px' }}>
                     Salem Active Technician Fleet Radar ({filteredTechs.length} Technicians)
                   </Typography>
                 </Box>
@@ -2349,11 +2411,11 @@ export default function AdminDashboardPage() {
             </Card>
 
             {/* CENTRAL DISPATCH QUEUE & AUDIT TABLE */}
-            <Card elevation={0} sx={{ bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '20px', p: 2.5, mb: 3.5, boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
+            <Card elevation={0} sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', borderRadius: '16px', p: 2.5, mb: 3.5, boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <SyncAltIcon sx={{ color: '#0284C7' }} />
-                  <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0F172A', fontSize: '16px' }}>
+                  <SyncAltIcon sx={{ color: 'primary.main' }} />
+                  <Typography variant="subtitle1" sx={{ fontWeight: 900, color: 'text.primary', fontSize: '16px' }}>
                     Central Dispatch Queue & Live Traceability Tracker
                   </Typography>
                   <Chip

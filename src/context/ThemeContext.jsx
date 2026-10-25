@@ -28,8 +28,14 @@ export function AppThemeProvider({ children }) {
       localStorage.setItem('shazuone_color_mode', mode);
       if (mode === 'dark') {
         document.documentElement.classList.add('dark');
+        document.body.classList.add('dark');
+        document.body.style.backgroundColor = '#0B132B';
+        document.body.style.color = '#F8FAFC';
       } else {
         document.documentElement.classList.remove('dark');
+        document.body.classList.remove('dark');
+        document.body.style.backgroundColor = '#F8FAFC';
+        document.body.style.color = '#0F172A';
       }
     } catch (_) {}
   }, [mode]);
