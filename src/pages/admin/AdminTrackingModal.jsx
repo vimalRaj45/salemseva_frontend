@@ -420,7 +420,7 @@ export default function AdminTrackingModal({
                     DOORSTEP VERIFICATION PIN
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 900, color: '#14532D', letterSpacing: 1 }}>
-                    PIN: {booking.doorstep_otp || booking.doorstepOtp || '7491'}
+                    PIN: {booking.doorstep_otp || booking.doorstepOtp || '----'}
                   </Typography>
                 </Box>
                 <Chip

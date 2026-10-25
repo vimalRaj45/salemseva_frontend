@@ -22,7 +22,7 @@ export const SALEM_LOCALITIES = [
 ];
 
 /**
- * Calculates geodesic distance in kilometers between two coordinates
+ * Calculates geodesic distance in kilometers between two coordinates using Haversine formula
  */
 export function calculateDistanceKm(lat1, lon1, lat2, lon2) {
   const dLat = (lat2 - lat1) * (Math.PI / 180);
@@ -35,6 +35,28 @@ export function calculateDistanceKm(lat1, lon1, lat2, lon2) {
       Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return parseFloat((6371 * c).toFixed(1));
+}
+
+/**
+ * Finds the nearest recognized Salem locality and its distance in km
+ */
+export function findNearestSalemLocality(lat, lng) {
+  let closest = SALEM_LOCALITIES[0];
+  let minDistance = calculateDistanceKm(lat, lng, closest.lat, closest.lng);
+
+  for (let i = 1; i < SALEM_LOCALITIES.length; i++) {
+    const loc = SALEM_LOCALITIES[i];
+    const dist = calculateDistanceKm(lat, lng, loc.lat, loc.lng);
+    if (dist < minDistance) {
+      minDistance = dist;
+      closest = loc;
+    }
+  }
+
+  return {
+    ...closest,
+    distanceKm: minDistance
+  };
 }
 
 /**
@@ -60,63 +82,137 @@ export function verifySalemBoundary({ lat, lng, pincode, city, district }) {
 }
 
 /**
- * Reverse geocodes coordinates using OpenStreetMap Nominatim with fallback
+ * Reverse geocodes coordinates with dual providers and Salem locality snapping
  */
 export async function reverseGeocodeCoords(lat, lng) {
+  const nearestSalem = findNearestSalemLocality(lat, lng);
+  let resolvedCity = '';
+  let resolvedDistrict = '';
+  let resolvedSuburb = '';
+  let resolvedState = 'Tamil Nadu';
+  let resolvedPincode = '';
+  let fullDisplay = '';
+
+  // 1. Primary: BigDataCloud Client Reverse Geocode API (CORS friendly, fast, accurate city/taluk)
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 4500);
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
 
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
-      {
-        headers: { 'Accept': 'application/json' },
-        signal: controller.signal
-      }
+    const bdcRes = await fetch(
+      `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`,
+      { signal: controller.signal }
     );
     clearTimeout(timeoutId);
 
-    if (res.ok) {
-      const data = await res.json();
-      const addr = data.address || {};
-      const city = addr.city || addr.town || addr.village || addr.municipality || addr.county || 'Unknown Area';
-      const district = addr.state_district || addr.county || city;
-      const suburb = addr.suburb || addr.neighbourhood || addr.road || '';
-      const state = addr.state || 'Tamil Nadu';
-      const pincode = addr.postcode || '';
+    if (bdcRes.ok) {
+      const data = await bdcRes.json();
+      resolvedCity = data.city || data.locality || '';
+      resolvedState = data.principalSubdivision || 'Tamil Nadu';
+      resolvedPincode = data.postcode || '';
 
-      const boundary = verifySalemBoundary({ lat, lng, pincode, city, district });
-
-      const localityName = suburb ? `${suburb}, ${city}` : city;
-      const fullDisplay = data.display_name || `${localityName}, ${state}`;
-
-      return {
-        lat,
-        lng,
-        city,
-        district,
-        state,
-        pincode,
-        localityName,
-        fullAddress: fullDisplay,
-        ...boundary
-      };
+      if (data.localityInfo && Array.isArray(data.localityInfo.administrative)) {
+        const adminList = data.localityInfo.administrative;
+        const distObj = adminList.find(a => /district/i.test(a.description || a.name || ''));
+        if (distObj) resolvedDistrict = distObj.name;
+        const talukObj = adminList.find(a => /taluk/i.test(a.name || ''));
+        if (talukObj) resolvedSuburb = talukObj.name.replace(/taluk/i, '').trim();
+      }
     }
-  } catch (e) {
-    console.warn('Reverse geocode lookup error or timeout:', e);
+  } catch (err) {
+    // BigDataCloud fallback - continue to Nominatim
   }
 
-  // Fallback boundary check purely based on distance to Salem Center
-  const boundary = verifySalemBoundary({ lat, lng });
+  // 2. Secondary: OpenStreetMap Nominatim with zoom 16 (neighborhood level)
+  if (!resolvedCity || !resolvedSuburb) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+      const nomRes = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=16&addressdetails=1`,
+        {
+          headers: { 'Accept': 'application/json' },
+          signal: controller.signal
+        }
+      );
+      clearTimeout(timeoutId);
+
+      if (nomRes.ok) {
+        const data = await nomRes.json();
+        const addr = data.address || {};
+        if (!resolvedCity) {
+          resolvedCity = addr.city || addr.town || addr.village || addr.municipality || '';
+        }
+        if (!resolvedDistrict) {
+          resolvedDistrict = addr.state_district || addr.county || resolvedCity;
+        }
+        if (!resolvedSuburb) {
+          resolvedSuburb = addr.suburb || addr.neighbourhood || addr.residential || addr.road || '';
+        }
+        if (!resolvedPincode) {
+          resolvedPincode = addr.postcode || '';
+        }
+        fullDisplay = data.display_name || '';
+      }
+    } catch (err) {
+      // Nominatim timeout or error handled by fallbacks below
+    }
+  }
+
+  // 3. Boundary & Salem Service Eligibility Evaluation
+  const boundary = verifySalemBoundary({
+    lat,
+    lng,
+    pincode: resolvedPincode,
+    city: resolvedCity,
+    district: resolvedDistrict
+  });
+
+  // 4. Locality Name Resolution & Snapping
+  let finalLocality = '';
+  let finalPincode = resolvedPincode;
+
+  if (boundary.isSalem) {
+    // If within 6 km of a recognized Salem locality hub, snap to official locality name
+    if (nearestSalem.distanceKm <= 6.0) {
+      finalLocality = nearestSalem.name;
+      if (!finalPincode || !finalPincode.startsWith('636')) {
+        finalPincode = nearestSalem.pin;
+      }
+    } else if (resolvedSuburb) {
+      finalLocality = resolvedSuburb;
+      if (!finalPincode) finalPincode = '636016';
+    } else {
+      finalLocality = 'Fairlands';
+      finalPincode = '636016';
+    }
+    resolvedCity = 'Salem';
+    resolvedDistrict = 'Salem District';
+  } else {
+    finalLocality = resolvedSuburb || resolvedCity || `GPS (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+  }
+
+  const localityDisplay = boundary.isSalem ? `${finalLocality}, Salem` : finalLocality;
+  const addressLine = fullDisplay || `${localityDisplay}${finalPincode ? ' - ' + finalPincode : ''}, ${resolvedState}`;
+
   return {
     lat,
     lng,
-    city: boundary.isSalem ? 'Salem' : 'Outside Salem',
-    district: boundary.isSalem ? 'Salem District' : 'Outside Salem Region',
-    state: 'Tamil Nadu',
-    pincode: boundary.isSalem ? '636016' : '',
-    localityName: boundary.isSalem ? 'Salem Area' : `GPS (${lat.toFixed(4)}, ${lng.toFixed(4)})`,
-    fullAddress: `GPS Coordinates (${lat.toFixed(4)}, ${lng.toFixed(4)})`,
+    city: resolvedCity || (boundary.isSalem ? 'Salem' : 'Outside Salem'),
+    district: resolvedDistrict || (boundary.isSalem ? 'Salem District' : 'Outside Salem'),
+    state: resolvedState,
+    pincode: finalPincode,
+    localityName: finalLocality,
+    localityDisplay,
+    fullAddress: addressLine,
+    nearestSalemLocality: nearestSalem,
+    suggestedSalemLocality: {
+      name: 'Fairlands',
+      pin: '636016',
+      lat: 11.6738,
+      lng: 78.1460,
+      display: 'Fairlands, Salem'
+    },
     ...boundary
   };
 }
@@ -150,7 +246,7 @@ export async function getLiveAccurateLocation() {
         else if (err.code === 3) msg = 'Location request timed out';
         reject(new Error(msg));
       },
-      { enableHighAccuracy: true, timeout: 9000, maximumAge: 10000 }
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
     );
   });
 }

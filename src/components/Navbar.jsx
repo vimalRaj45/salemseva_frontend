@@ -28,9 +28,12 @@ import {
   Menu,
   MessageSquarePlus,
   LifeBuoy,
-  Fingerprint
+  Fingerprint,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useColorMode } from '../context/ThemeContext';
 import LanguageSelectorModal from './LanguageSelectorModal';
 import SideNavbar from './SideNavbar';
 import FeedbackModal from './FeedbackModal';
@@ -112,7 +115,8 @@ export default function Navbar({
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [hasScrolled, setHasScrolled] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const { mode, toggleColorMode } = useColorMode();
+  const isDarkMode = mode === 'dark';
   const [hasNotifications, setHasNotifications] = useState(true);
 
   // Refs for click outside handling
@@ -132,15 +136,6 @@ export default function Navbar({
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Clean standard light theme enforcement
-  useEffect(() => {
-    document.documentElement.classList.remove('dark');
-    try {
-      localStorage.removeItem('theme');
-    } catch (_) {}
-    setIsDarkMode(false);
   }, []);
 
   // Close popovers on click outside or escape key
@@ -198,7 +193,7 @@ export default function Navbar({
       try {
         const geo = await getLiveAccurateLocation();
         if (geo.isSalem) {
-          const locName = `${geo.localityName || 'Salem Central'}, Salem`;
+          const locName = `${geo.localityName || 'Fairlands'}, Salem`;
           setSelectedLocation(locName);
           setIsLocationOpen(false);
           const locationData = {
@@ -209,6 +204,7 @@ export default function Navbar({
             address: geo.fullAddress || `${locName} - 636016`
           };
           localStorage.setItem('shazuone_user_location', JSON.stringify(locationData));
+          toast.success(`Location set to ${locName}`);
           if (onLocationChange) onLocationChange(locName);
         } else {
           const placeLabel = geo.city || geo.district || 'Outside Area';
@@ -980,6 +976,31 @@ export default function Navbar({
               </button>
             )}
 
+            {/* Dark / Light Theme Mode Toggle Button */}
+            <button
+              type="button"
+              onClick={toggleColorMode}
+              title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              aria-label={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: isMobile ? '34px' : '38px',
+                height: isMobile ? '34px' : '38px',
+                borderRadius: '10px',
+                boxSizing: 'border-box',
+                backgroundColor: isDarkMode ? '#1E293B' : '#F8FAFC',
+                border: isDarkMode ? '1px solid #334155' : '1px solid #E2E8F0',
+                color: isDarkMode ? '#F59E0B' : '#475569',
+                cursor: 'pointer',
+                flexShrink: 0,
+                transition: 'all 0.15s ease'
+              }}
+            >
+              {isDarkMode ? <Sun size={isMobile ? 15 : 16} /> : <Moon size={isMobile ? 15 : 16} />}
+            </button>
+
             {/* 3.5 User Avatar & Adaptive Role Dropdown (If Logged In) OR Clean Sign In Button */}
             {user ? (
               <div style={{ position: 'relative' }} ref={profileRef}>
@@ -1083,7 +1104,7 @@ export default function Navbar({
                             {displayName}
                           </div>
                           <div style={{ fontSize: '10px', color: '#94A3B8' }}>
-                            {user?.phone || '+91 98427 11234'}
+                            {user?.phone || ''}
                           </div>
                         </div>
                       </div>
@@ -1539,7 +1560,8 @@ export default function Navbar({
         onClose={() => setIsSideNavOpen(false)}
         user={user}
         creditsAmount={creditsAmount}
-        isDarkMode={false}
+        isDarkMode={isDarkMode}
+        toggleDarkMode={toggleColorMode}
         onOpenLanguageModal={() => setIsLanguageModalOpen(true)}
         onOpenFeedbackModal={() => setIsFeedbackModalOpen(true)}
         onOpenSupportTicketModal={() => setIsSupportTicketModalOpen(true)}

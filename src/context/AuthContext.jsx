@@ -858,7 +858,7 @@ export function AuthProvider({ children }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          phone: user?.phone || '+91 98427 11234',
+          phone: user?.phone || '',
           amount: creditAmt,
           title,
           description,
@@ -880,7 +880,7 @@ export function AuthProvider({ children }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          phone: user?.phone || '+91 98427 11234',
+          phone: user?.phone || '',
           amount: actualDebit,
           bookingId
         })

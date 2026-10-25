@@ -1653,7 +1653,7 @@ export default function AdminDashboardPage() {
                 </Avatar>
               </Box>
               <Typography sx={{ fontWeight: 800, color: '#0F172A', my: 0.5, fontVariantNumeric: 'tabular-nums', fontSize: { xs: '1.3rem', sm: '1.6rem', md: '1.85rem' } }}>
-                {customersList.length || 1}
+                {customersList.length}
               </Typography>
               <Typography variant="caption" sx={{ color: '#64748B', fontSize: { xs: '10px', sm: '11.5px' }, display: 'block' }}>
                 Verified residents
@@ -1672,7 +1672,7 @@ export default function AdminDashboardPage() {
                 </Avatar>
               </Box>
               <Typography sx={{ fontWeight: 800, color: '#16A34A', my: 0.5, fontVariantNumeric: 'tabular-nums', fontSize: { xs: '1.3rem', sm: '1.6rem', md: '1.85rem' } }}>
-                ₹{metrics.financials?.totalRevenue ? Number(metrics.financials.totalRevenue).toLocaleString() : '42,850'}
+                ₹{Number(metrics.financials?.totalRevenue || 0).toLocaleString()}
               </Typography>
               <Typography variant="caption" sx={{ color: '#64748B', fontSize: { xs: '10px', sm: '11.5px' }, display: 'block' }}>
                 Digital escrow settlements
@@ -3465,9 +3465,9 @@ export default function AdminDashboardPage() {
                   {filteredFeedbacks.map((item, idx) => {
                     const isTech = (item.role || '').toLowerCase() === 'technician';
                     const isResolved = (item.status || 'new').toLowerCase() === 'resolved';
-                    const userName = item.user_name || item.userName || (isTech ? 'K. Ramesh (Partner)' : 'Salem Customer');
-                    const userPhone = item.user_phone || item.userPhone || '+91 98427 11234';
-                    const locality = item.locality || 'Fairlands, Salem';
+                    const userName = item.user_name || item.userName || (isTech ? 'Partner' : 'Customer');
+                    const userPhone = item.user_phone || item.userPhone || '—';
+                    const locality = item.locality || 'Salem';
                     const ratingVal = parseInt(item.rating, 10) || 5;
                     const categoryLabel = (item.feedback_type || item.feedbackType || 'General')
                       .replace(/_/g, ' ')
@@ -4468,10 +4468,10 @@ export default function AdminDashboardPage() {
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
                           <ShieldIcon sx={{ fontSize: 13, color: '#10B981' }} />
                           <Typography variant="caption" sx={{ fontWeight: 800, color: '#166534', fontSize: '10.5px' }}>
-                            PIN: {job.doorstep_otp || job.doorstepOtp || '7491'}
+                            PIN: {job.doorstep_otp || job.doorstepOtp || '----'}
                           </Typography>
                           <Typography variant="caption" sx={{ ml: 'auto', fontWeight: 800, color: '#0284C7' }}>
-                            Fee: ₹{parseFloat(job.visit_fee || 99).toFixed(0)}
+                            Fee: ₹{parseFloat(job.visit_fee || 0).toFixed(0)}
                           </Typography>
                         </Box>
                       </Box>
@@ -5150,7 +5150,7 @@ export default function AdminDashboardPage() {
                         {selectedBookingTrace.customer_name || 'Salem Customer'}
                       </Typography>
                       <Typography variant="caption" sx={{ color: '#64748B', display: 'block' }}>
-                        Phone: {selectedBookingTrace.customer_phone || '+91 98427 11234'}
+                        Phone: {selectedBookingTrace.customer_phone || '—'}
                       </Typography>
                       <Typography variant="caption" sx={{ color: '#475569', display: 'block', mt: 0.5 }}>
                         Address: {selectedBookingTrace.service_address || `${selectedBookingTrace.locality || 'Fairlands'}, Salem`}
@@ -5313,7 +5313,7 @@ export default function AdminDashboardPage() {
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
                           <ShieldIcon sx={{ color: '#10B981', fontSize: 18 }} />
                           <Typography variant="body2" sx={{ fontWeight: 900, color: '#0F172A', letterSpacing: 1 }}>
-                            PIN: {selectedBookingTrace.doorstep_otp || selectedBookingTrace.doorstepOtp || '7491'}
+                            PIN: {selectedBookingTrace.doorstep_otp || selectedBookingTrace.doorstepOtp || '----'}
                           </Typography>
                           <Chip label="Verified on Arrival" size="small" sx={{ bgcolor: '#ECFDF5', color: '#065F46', fontWeight: 800, fontSize: '9px', height: 18 }} />
                         </Box>

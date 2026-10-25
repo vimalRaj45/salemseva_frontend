@@ -256,9 +256,9 @@ export default function MatchingPage() {
             description: 'Part 1: Doorstep Inspection & Travel Advance (₹99)',
             order_id: (orderId && orderId.startsWith('order_') && orderId.length > 20) ? orderId : undefined,
             prefill: {
-              name: 'Vimal Raj',
-              email: 'customer@shazuone.in',
-              contact: '+919842711234'
+              name: user?.name || 'Customer',
+              email: user?.email || '',
+              contact: user?.phone ? user.phone.replace(/\s+/g, '') : ''
             },
             theme: {
               color: '#2563EB'

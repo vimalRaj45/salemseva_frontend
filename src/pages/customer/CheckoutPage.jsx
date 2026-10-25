@@ -241,7 +241,7 @@ export default function CheckoutPage() {
           prefill: {
             name: user?.name || 'Customer',
             email: user?.email || 'customer@shazuone.in',
-            contact: (user?.phone || '+919842711234').replace(/\s+/g, '')
+            contact: (user?.phone || '').replace(/\s+/g, '')
           },
           theme: {
             color: '#0284C7'

@@ -77,13 +77,13 @@ export default function BookingAddressModal({ open, onClose, currentAddress, onA
       // 2. Fetch live coordinates & reverse geocode
       const geo = await getLiveAccurateLocation();
 
+      setDetectedGpsData(geo);
+
       if (!geo.isSalem) {
-        throw new Error(
-          `Detected location (${geo.city || geo.district || 'Outside Area'}) is outside Salem service boundary. Shazu One operates within Salem (636xxx). Please enter your service address manually.`
+        setGpsError(
+          `Detected device position (${geo.city || geo.district || 'Outside Area'}) is outside the Salem service zone. You can use the one-tap Salem Hub button below for demo testing, or switch to manual entry.`
         );
       }
-
-      setDetectedGpsData(geo);
     } catch (err) {
       console.warn('GPS detection failed:', err);
       let errorMsg = err.message || 'Could not detect live GPS.';
@@ -283,6 +283,42 @@ export default function BookingAddressModal({ open, onClose, currentAddress, onA
               <Alert severity="warning" sx={{ fontSize: '12px', borderRadius: '10px' }}>
                 {gpsError}
               </Alert>
+            )}
+
+            {detectedGpsData && !detectedGpsData.isSalem && (
+              <Box sx={{ p: 1.5, bgcolor: '#EFF6FF', borderRadius: '10px', border: '1px solid #BFDBFE', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+                <Typography sx={{ fontSize: '12px', color: '#1E40AF', fontWeight: 600 }}>
+                  Demo Testing: Switch to Salem Hub
+                </Typography>
+                <Button
+                  size="small"
+                  variant="contained"
+                  onClick={() => {
+                    setDetectedGpsData({
+                      ...detectedGpsData,
+                      isSalem: true,
+                      localityName: 'Fairlands',
+                      localityDisplay: 'Fairlands, Salem',
+                      pincode: '636016',
+                      fullAddress: 'Fairlands, Salem - 636016, Tamil Nadu',
+                      lat: 11.6738,
+                      lng: 78.1460
+                    });
+                    setGpsError('');
+                  }}
+                  sx={{
+                    bgcolor: '#2563EB',
+                    color: '#FFF',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    textTransform: 'none',
+                    py: 0.5,
+                    px: 1.2
+                  }}
+                >
+                  Set Fairlands, Salem
+                </Button>
+              </Box>
             )}
 
             {detectedGpsData && (

@@ -62,6 +62,7 @@ import CurrencyRupeeIcon from '@mui/icons-material/CurrencyRupee';
 import CancelBookingModal from '../../components/CancelBookingModal';
 import Modal, { ModalHeader, ModalBody, ModalFooter } from '../../components/Modal';
 import { useAuth } from '../../context/AuthContext';
+import { PageHeader, EmptyState, LoadingSkeleton, StatusChip } from '../../components/common';
 
 function BookingStageStepper({ status }) {
   const isCancelled = status === 'cancelled';
@@ -196,37 +197,22 @@ export default function BookingHistoryPage() {
     <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', pb: { xs: 18, md: 8 } }}>
       <Container maxWidth="md" sx={{ px: { xs: 1, sm: 2, md: 3 }, pt: { xs: 1, md: 2 } }}>
         
-        {/* Top Header with Back Navigation Button */}
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
-            <IconButton 
-              onClick={() => navigate('/')} 
-              sx={{ 
-                bgcolor: '#FFFFFF', 
-                border: '1px solid #CBD5E1', 
-                color: '#0F172A',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                '&:hover': { bgcolor: '#F1F5F9' }
-              }}
-              size="small"
-            >
-              <ArrowBackIcon sx={{ fontSize: 20 }} />
-            </IconButton>
-            <Box>
-              <Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '18px', lineHeight: 1.2 }}>
-                Service & Payment History
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11.5px' }}>
-                Full timestamps, itemized quotes & payment ledgers
-              </Typography>
-            </Box>
-          </Box>
-          <Chip 
-            label="Salem Citizen" 
-            size="small" 
-            sx={{ bgcolor: '#EFF6FF', color: '#1D4ED8', fontWeight: 700, fontSize: '11px', borderRadius: '6px' }} 
-          />
-        </Box>
+        {/* Page Header */}
+        <PageHeader
+          title="Service & Payment History"
+          subtitle="Full timestamps, itemized quotes & payment ledgers"
+          backUrl="/"
+          backLabel="Home"
+          badge={
+            <Chip 
+              label="Salem Citizen" 
+              size="small" 
+              color="primary"
+              variant="outlined"
+              sx={{ fontWeight: 700, fontSize: '11px', borderRadius: '6px' }} 
+            />
+          }
+        />
         
         {/* Top Badges Banner with High Contrast */}
         <Box
@@ -309,56 +295,23 @@ export default function BookingHistoryPage() {
 
         {/* Booking History Items */}
         {!user ? (
-          <Paper elevation={0} sx={{ p: 4, textAlign: 'center', bgcolor: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', mb: 3 }}>
-            <WorkOutlineIcon sx={{ fontSize: 44, color: '#94A3B8', mb: 1.5 }} />
-            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '16px', mb: 0.5 }}>
-              Sign In to View Your Bookings
-            </Typography>
-            <Typography variant="body2" sx={{ color: '#64748B', fontSize: '13px', mb: 2 }}>
-              Track live service requests and download digital GST service bills.
-            </Typography>
-            <Button
-              variant="contained"
-              onClick={() => navigate('/login')}
-              sx={{ bgcolor: '#2563EB', color: '#FFF', fontWeight: 700, fontSize: '13px', borderRadius: '8px', textTransform: 'none', px: 3 }}
-            >
-              Sign In
-            </Button>
-          </Paper>
+          <EmptyState
+            title="Sign In to View Your Bookings"
+            description="Track live service requests and download digital GST service bills."
+            actionLabel="Sign In"
+            onAction={() => navigate('/login')}
+            sx={{ mb: 3 }}
+          />
         ) : isLoading ? (
-          [1, 2].map((n) => (
-            <Card
-              key={n}
-              elevation={0}
-              sx={{
-                bgcolor: '#FFFFFF',
-                border: '1px solid #E2E8F0',
-                borderRadius: '16px',
-                p: 2.2,
-                mb: 2
-              }}
-            >
-              <Skeleton variant="rounded" width="100%" height={120} sx={{ borderRadius: '12px', mb: 1 }} />
-              <Skeleton variant="text" width="60%" height={24} />
-            </Card>
-          ))
+          <LoadingSkeleton type="cards" count={3} sx={{ mb: 3 }} />
         ) : filteredBookings.length === 0 ? (
-          <Paper elevation={0} sx={{ p: 4, textAlign: 'center', bgcolor: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', mb: 3 }}>
-            <WorkOutlineIcon sx={{ fontSize: 44, color: '#94A3B8', mb: 1.5 }} />
-            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '16px', mb: 0.5 }}>
-              No Bookings Found in this Filter
-            </Typography>
-            <Typography variant="body2" sx={{ color: '#64748B', fontSize: '13px', mb: 2 }}>
-              Choose another tab or book a new verified technician in Salem.
-            </Typography>
-            <Button
-              variant="contained"
-              onClick={() => navigate('/')}
-              sx={{ bgcolor: '#0284C7', color: '#FFF', fontWeight: 700, fontSize: '13px', borderRadius: '8px', textTransform: 'none' }}
-            >
-              Book Doorstep Service
-            </Button>
-          </Paper>
+          <EmptyState
+            title="No Bookings Found in this Filter"
+            description="Choose another tab or book a new verified technician in Salem."
+            actionLabel="Book Doorstep Service"
+            onAction={() => navigate('/')}
+            sx={{ mb: 3 }}
+          />
         ) : (
           filteredBookings.map((item) => {
             const isExpanded = expandedBookingId === item.id;

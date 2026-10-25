@@ -90,8 +90,8 @@ export default function AuthPage({ initialMode = 'login' }) {
   );
 
   // Form Fields - Sign In
-  const [identifier, setIdentifier] = useState('98427 11234');
-  const [password, setPassword] = useState('salem123');
+  const [identifier, setIdentifier] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
 
@@ -100,7 +100,7 @@ export default function AuthPage({ initialMode = 'login' }) {
   const [phone, setPhone] = useState('');
   const [locality, setLocality] = useState('Fairlands, Salem');
   const [trade, setTrade] = useState('ac');
-  const [referralCode, setReferralCode] = useState('SALEM100');
+  const [referralCode, setReferralCode] = useState('');
   const [registerPassword, setRegisterPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
@@ -123,6 +123,8 @@ export default function AuthPage({ initialMode = 'login' }) {
   const [cooldownRemaining, setCooldownRemaining] = useState(0);
   const [expiryRemaining, setExpiryRemaining] = useState(0);
   const [isOtpSent, setIsOtpSent] = useState(false);
+  const [activeDemoOtp, setActiveDemoOtp] = useState('');
+  const [activeForgotDemoOtp, setActiveForgotDemoOtp] = useState('');
 
   // Passkey availability
   const [passkeySupported, setPasskeySupported] = useState(false);
@@ -281,9 +283,13 @@ export default function AuthPage({ initialMode = 'login' }) {
       setIsOtpSent(true);
       setCooldownRemaining(res.cooldownSeconds || 60);
       setExpiryRemaining(res.expiresInSeconds || 300);
-      toast.success('6-digit verification code sent to your WhatsApp!');
-      if (res.simulatedOtp) {
-        setOtpCode(res.simulatedOtp);
+      const code = res.demoOtp || res.simulatedOtp || res.otp || '';
+      if (code) {
+        setActiveDemoOtp(code);
+        setOtpCode(code);
+        toast.success(`Demo Verification OTP: ${code} (shown in UI)`, { duration: 6000 });
+      } else {
+        toast.success('6-digit verification code sent to your WhatsApp!');
       }
     } catch (err) {
       setIsLoading(false);
@@ -429,9 +435,13 @@ export default function AuthPage({ initialMode = 'login' }) {
       setForgotStep(2);
       setCooldownRemaining(res.cooldownSeconds || 60);
       setExpiryRemaining(res.expiresInSeconds || 300);
-      toast.success('Password reset code sent to your WhatsApp!');
-      if (res.simulatedOtp) {
-        setForgotOtp(res.simulatedOtp);
+      const code = res.demoOtp || res.simulatedOtp || res.otp || '';
+      if (code) {
+        setActiveForgotDemoOtp(code);
+        setForgotOtp(code);
+        toast.success(`Demo Password Reset OTP: ${code} (shown in UI)`, { duration: 6000 });
+      } else {
+        toast.success('Password reset code sent to your WhatsApp!');
       }
     } catch (err) {
       setIsLoading(false);
@@ -1225,6 +1235,57 @@ export default function AuthPage({ initialMode = 'login' }) {
                         {/* WhatsApp OTP Input Area */}
                         {isOtpSent && (
                           <Box sx={{ mb: 1.5, p: 1.5, bgcolor: brandSoftBg, borderRadius: '12px', border: `1px solid ${brandBorder}` }}>
+                            {/* Demo Mode OTP Callout */}
+                            {activeDemoOtp && (
+                              <Box
+                                sx={{
+                                  mb: 1.5,
+                                  p: 1.25,
+                                  bgcolor: '#EFF6FF',
+                                  borderRadius: '9px',
+                                  border: '1.5px dashed #3B82F6',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  gap: 1
+                                }}
+                              >
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <KeyRound size={16} color="#2563EB" />
+                                  <Box>
+                                    <Typography sx={{ fontSize: '10px', fontWeight: 800, color: '#1E40AF', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                      Demo Mode OTP
+                                    </Typography>
+                                    <Typography sx={{ fontSize: '16px', fontWeight: 900, color: '#1E3A8A', letterSpacing: '2.5px', fontFamily: 'monospace', lineHeight: 1.1 }}>
+                                      {activeDemoOtp}
+                                    </Typography>
+                                  </Box>
+                                </Box>
+                                <Button
+                                  size="small"
+                                  variant="contained"
+                                  onClick={() => {
+                                    setOtpCode(activeDemoOtp);
+                                    toast.success('Demo OTP auto-filled');
+                                  }}
+                                  sx={{
+                                    bgcolor: '#2563EB',
+                                    color: '#FFFFFF',
+                                    fontWeight: 700,
+                                    fontSize: '11px',
+                                    textTransform: 'none',
+                                    borderRadius: '6px',
+                                    py: 0.4,
+                                    px: 1.2,
+                                    boxShadow: 'none',
+                                    '&:hover': { bgcolor: '#1D4ED8' }
+                                  }}
+                                >
+                                  Auto Fill
+                                </Button>
+                              </Box>
+                            )}
+
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.8 }}>
                               <Typography variant="caption" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '11.5px' }}>
                                 Enter 6-digit WhatsApp OTP
@@ -1592,6 +1653,57 @@ export default function AuthPage({ initialMode = 'login' }) {
 
                     {forgotStep === 2 && (
                       <Box component="form" onSubmit={handleResetPassword}>
+                        {/* Demo Mode Reset OTP Callout */}
+                        {activeForgotDemoOtp && (
+                          <Box
+                            sx={{
+                              mb: 1.5,
+                              p: 1.25,
+                              bgcolor: '#EFF6FF',
+                              borderRadius: '9px',
+                              border: '1.5px dashed #3B82F6',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              gap: 1
+                            }}
+                          >
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <KeyRound size={16} color="#2563EB" />
+                              <Box>
+                                <Typography sx={{ fontSize: '10px', fontWeight: 800, color: '#1E40AF', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                  Demo Reset Code
+                                </Typography>
+                                <Typography sx={{ fontSize: '16px', fontWeight: 900, color: '#1E3A8A', letterSpacing: '2.5px', fontFamily: 'monospace', lineHeight: 1.1 }}>
+                                  {activeForgotDemoOtp}
+                                </Typography>
+                              </Box>
+                            </Box>
+                            <Button
+                              size="small"
+                              variant="contained"
+                              onClick={() => {
+                                setForgotOtp(activeForgotDemoOtp);
+                                toast.success('Demo reset OTP auto-filled');
+                              }}
+                              sx={{
+                                bgcolor: '#2563EB',
+                                color: '#FFFFFF',
+                                fontWeight: 700,
+                                fontSize: '11px',
+                                textTransform: 'none',
+                                borderRadius: '6px',
+                                py: 0.4,
+                                px: 1.2,
+                                boxShadow: 'none',
+                                '&:hover': { bgcolor: '#1D4ED8' }
+                              }}
+                            >
+                              Auto Fill
+                            </Button>
+                          </Box>
+                        )}
+
                         <Box sx={{ mb: 1.1 }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.3 }}>
                             <Typography variant="caption" sx={{ fontWeight: 700, color: '#1E293B', fontSize: '11px' }}>

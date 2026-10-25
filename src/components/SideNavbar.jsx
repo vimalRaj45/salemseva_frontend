@@ -24,7 +24,9 @@ import {
   Clock,
   MessageSquarePlus,
   Sparkles,
-  LifeBuoy
+  LifeBuoy,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { getCurrentLanguage, SUPPORTED_LANGUAGES } from '../services/languageService';
 
@@ -521,6 +523,17 @@ export default function SideNavbar({
                   onClick={() => {
                     onClose();
                     onOpenLanguageModal();
+                  }}
+                />
+                <SideNavItem
+                  icon={isDarkMode ? <Sun size={18} color="#F59E0B" /> : <Moon size={18} color="#0284C7" />}
+                  label={isDarkMode ? 'Appearance: Dark Mode' : 'Appearance: Light Mode'}
+                  sublabel="Toggle dark/light theme standard"
+                  badge={isDarkMode ? 'DARK' : 'LIGHT'}
+                  badgeColor={isDarkMode ? '#F59E0B' : '#0284C7'}
+                  isDark={isDarkMode}
+                  onClick={() => {
+                    if (toggleDarkMode) toggleDarkMode();
                   }}
                 />
                 <SideNavItem

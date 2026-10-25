@@ -6,41 +6,32 @@ import {
   Typography,
   Card,
   Grid,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
   Chip,
   Button,
   TextField,
   MenuItem,
   Select,
   FormControl,
-  InputLabel,
-  InputAdornment,
-  Skeleton,
-  LinearProgress,
   IconButton,
-  Tooltip
+  Tooltip,
+  Avatar
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
-import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
-import FilterAltIcon from '@mui/icons-material/FilterAlt';
-import SearchIcon from '@mui/icons-material/Search';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CreditCardIcon from '@mui/icons-material/CreditCard';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import ShieldIcon from '@mui/icons-material/Shield';
-import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
-import ReplayIcon from '@mui/icons-material/Replay';
-import HandshakeIcon from '@mui/icons-material/Handshake';
-import PaymentsIcon from '@mui/icons-material/Payments';
+import {
+  Wallet,
+  Calendar,
+  Filter,
+  CreditCard,
+  TrendingUp,
+  MapPin,
+  RefreshCw,
+  Shield,
+  Coins,
+  RotateCcw,
+  Users,
+  CheckCircle2
+} from 'lucide-react';
+import { PageHeader, DataTable, StatusChip } from '../../components/common';
 import AdminPaymentOverrideModal from '../../components/AdminPaymentOverrideModal';
 
 const SALEM_LOCALITIES = [
@@ -68,7 +59,6 @@ export default function AdminSettlementsPage() {
   const [endDate, setEndDate] = useState('');
   const [selectedLocality, setSelectedLocality] = useState('All Salem Regions');
   const [selectedService, setSelectedService] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
 
   // Data States
   const [financialData, setFinancialData] = useState(null);
@@ -101,10 +91,15 @@ export default function AdminSettlementsPage() {
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
-          setFinancialData(data);
+          setFinancialData(data.data);
+        } else {
+          setFinancialData(null);
         }
       })
-      .catch((err) => console.warn('Financials ledger fetch notice:', err))
+      .catch((err) => {
+        console.warn('Financial ledger fetch error:', err);
+        setFinancialData(null);
+      })
       .finally(() => setIsLoading(false));
   };
 
@@ -112,35 +107,34 @@ export default function AdminSettlementsPage() {
     fetchLedger();
   }, [selectedLocality, selectedService, startDate, endDate]);
 
-  // Handle Preset Date Buttons
-  const handlePresetChange = (preset) => {
-    setDatePreset(preset);
-    const today = new Date();
-    const formatDate = (d) => d.toISOString().split('T')[0];
+  const handlePresetChange = (presetId) => {
+    setDatePreset(presetId);
+    const now = new Date();
+    const toDateStr = (d) => d.toISOString().split('T')[0];
 
-    if (preset === 'today') {
-      const t = formatDate(today);
-      setStartDate(t);
-      setEndDate(t);
-    } else if (preset === 'yesterday') {
-      const y = new Date();
-      y.setDate(y.getDate() - 1);
-      const yStr = formatDate(y);
-      setStartDate(yStr);
-      setEndDate(yStr);
-    } else if (preset === '7days') {
-      const d7 = new Date();
-      d7.setDate(d7.getDate() - 7);
-      setStartDate(formatDate(d7));
-      setEndDate(formatDate(today));
-    } else if (preset === '30days') {
-      const d30 = new Date();
-      d30.setDate(d30.getDate() - 30);
-      setStartDate(formatDate(d30));
-      setEndDate(formatDate(today));
-    } else {
+    if (presetId === 'all') {
       setStartDate('');
       setEndDate('');
+    } else if (presetId === 'today') {
+      const todayStr = toDateStr(now);
+      setStartDate(todayStr);
+      setEndDate(todayStr);
+    } else if (presetId === 'yesterday') {
+      const y = new Date();
+      y.setDate(y.getDate() - 1);
+      const yStr = toDateStr(y);
+      setStartDate(yStr);
+      setEndDate(yStr);
+    } else if (presetId === '7days') {
+      const past = new Date();
+      past.setDate(past.getDate() - 7);
+      setStartDate(toDateStr(past));
+      setEndDate(toDateStr(now));
+    } else if (presetId === '30days') {
+      const past = new Date();
+      past.setDate(past.getDate() - 30);
+      setStartDate(toDateStr(past));
+      setEndDate(toDateStr(now));
     }
   };
 
@@ -150,150 +144,315 @@ export default function AdminSettlementsPage() {
     totalTechPayout: 0,
     totalPlatformCut: 0,
     totalCustomerRefunds: 0,
-    netPlatformEarnings: 0,
-    totalTransactions: 0,
-    completedOrders: 0
+    totalTransactions: 0
   };
 
+  const transactions = financialData?.transactions || [];
   const regionBreakdown = financialData?.regionBreakdown || [];
-  const rawTransactions = financialData?.transactions || [];
 
-  // Filter transactions by local search query
-  const filteredTransactions = useMemo(() => {
-    if (!searchQuery.trim()) return rawTransactions;
-    const q = searchQuery.toLowerCase();
-    return rawTransactions.filter(
-      (tx) =>
-        tx.bookingId?.toLowerCase().includes(q) ||
-        tx.customerName?.toLowerCase().includes(q) ||
-        tx.technicianName?.toLowerCase().includes(q) ||
-        tx.locality?.toLowerCase().includes(q) ||
-        tx.razorpayPaymentId?.toLowerCase().includes(q)
-    );
-  }, [rawTransactions, searchQuery]);
-
-  // Reusable Glassmorphism Style Token
-  const glassCardStyle = {
-    background: 'rgba(255, 255, 255, 0.82)',
-    backdropFilter: 'blur(20px) saturate(180%)',
-    WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-    border: '1px solid rgba(255, 255, 255, 0.65)',
-    borderRadius: '20px',
-    boxShadow: '0 8px 32px rgba(15, 23, 42, 0.05)',
-    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-    overflow: 'hidden'
-  };
+  // Table Columns Definition for DataTable
+  const columns = useMemo(
+    () => [
+      {
+        field: 'createdAt',
+        headerName: 'Date / Time',
+        minWidth: 130,
+        renderCell: (tx) => (
+          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+            {new Date(tx.createdAt).toLocaleDateString('en-IN', {
+              day: '2-digit',
+              month: 'short',
+              hour: '2-digit',
+              minute: '2-digit'
+            })}
+          </Typography>
+        )
+      },
+      {
+        field: 'bookingId',
+        headerName: 'Booking ID',
+        minWidth: 120,
+        renderCell: (tx) => (
+          <Chip
+            label={`#${tx.bookingId}`}
+            size="small"
+            color="primary"
+            variant="outlined"
+            onClick={() => navigate(`/track?bookingId=${tx.bookingId}`)}
+            sx={{ fontWeight: 700, cursor: 'pointer' }}
+          />
+        )
+      },
+      {
+        field: 'customerName',
+        headerName: 'Customer & Locality',
+        minWidth: 160,
+        renderCell: (tx) => (
+          <Box>
+            <Typography variant="body2" sx={{ fontWeight: 700 }}>
+              {tx.customerName}
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 600 }}>
+              {tx.locality}
+            </Typography>
+          </Box>
+        )
+      },
+      {
+        field: 'technicianName',
+        headerName: 'Technician',
+        minWidth: 140,
+        renderCell: (tx) => (
+          <Box>
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+              {tx.technicianName}
+            </Typography>
+            {tx.technicianTrade && (
+              <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'uppercase' }}>
+                {tx.technicianTrade}
+              </Typography>
+            )}
+          </Box>
+        )
+      },
+      {
+        field: 'grossAmount',
+        headerName: 'Gross Inflow',
+        align: 'right',
+        minWidth: 110,
+        renderCell: (tx) => (
+          <Typography variant="body2" sx={{ fontWeight: 800 }}>
+            ₹{tx.grossAmount.toFixed(2)}
+          </Typography>
+        )
+      },
+      {
+        field: 'razorpayFee',
+        headerName: 'Razorpay Fee',
+        align: 'right',
+        minWidth: 110,
+        renderCell: (tx) => (
+          <Typography variant="body2" sx={{ color: 'warning.main', fontWeight: 600 }}>
+            ₹{tx.razorpayFee.toFixed(2)}
+          </Typography>
+        )
+      },
+      {
+        field: 'techPayout',
+        headerName: 'Disbursed',
+        align: 'right',
+        minWidth: 110,
+        renderCell: (tx) => (
+          <Typography variant="body2" sx={{ color: 'secondary.main', fontWeight: 700 }}>
+            ₹{tx.techPayout.toFixed(2)}
+          </Typography>
+        )
+      },
+      {
+        field: 'platformCut',
+        headerName: 'Platform Cut',
+        align: 'right',
+        minWidth: 110,
+        renderCell: (tx) => (
+          <Typography variant="body2" sx={{ color: 'primary.main', fontWeight: 700 }}>
+            ₹{tx.platformCut.toFixed(2)}
+          </Typography>
+        )
+      },
+      {
+        field: 'status',
+        headerName: 'Status',
+        align: 'center',
+        minWidth: 120,
+        renderCell: (tx) => <StatusChip status={tx.status} />
+      },
+      {
+        field: 'actions',
+        headerName: 'Actions',
+        align: 'center',
+        sortable: false,
+        minWidth: 100,
+        renderCell: (tx) =>
+          tx.status !== 'SETTLED' && tx.status !== 'REFUNDED' ? (
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => {
+                setTargetBookingForOverride({
+                  bookingId: tx.bookingId,
+                  amount: tx.grossAmount,
+                  techPayout: tx.techPayout,
+                  customerPhone: tx.customerPhone || '',
+                  technicianPhone: tx.technicianPhone || ''
+                });
+                setOverrideModalOpen(true);
+              }}
+              sx={{ fontSize: '0.75rem', py: 0.25, px: 1, minHeight: 28 }}
+            >
+              Override
+            </Button>
+          ) : (
+            <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+              Finalized
+            </Typography>
+          )
+      }
+    ],
+    [navigate]
+  );
 
   return (
-    <Box
-      sx={{
-        background: 'linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 50%, #F1F5F9 100%)',
-        minHeight: '100vh',
-        py: 4
-      }}
-    >
-      <Container maxWidth="xl" sx={{ px: { xs: 2, md: 3 } }}>
-        {/* Navigation & Header */}
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
-          <Button
-            startIcon={<ArrowBackIcon />}
-            onClick={() => navigate('/admin')}
-            sx={{
-              color: '#0284C7',
-              fontWeight: 800,
-              textTransform: 'none',
-              bgcolor: 'rgba(255, 255, 255, 0.7)',
-              backdropFilter: 'blur(10px)',
-              borderRadius: '12px',
-              border: '1px solid rgba(255, 255, 255, 0.8)',
-              px: 2,
-              '&:hover': { bgcolor: '#FFFFFF' }
-            }}
-          >
-            Back to Central Ops Desk
-          </Button>
+    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', py: { xs: 2.5, sm: 4 } }}>
+      <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3 } }}>
+        <PageHeader
+          title="Financial Intelligence & Settlement Ledger"
+          subtitle="Real-time tracking of customer payments, Razorpay gateway fees, technician fuel & labor disbursals, and platform commission."
+          backUrl="/admin"
+          backLabel="Central Ops Desk"
+          actions={
+            <Tooltip title="Refresh Financials">
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={fetchLedger}
+                startIcon={<RefreshCw size={15} />}
+                sx={{ borderRadius: 1 }}
+              >
+                Refresh
+              </Button>
+            </Tooltip>
+          }
+          badge={
+            <Chip
+              icon={<Shield size={14} />}
+              label="Escrow Guarantee"
+              size="small"
+              color="primary"
+              variant="outlined"
+              sx={{ fontWeight: 700 }}
+            />
+          }
+        />
 
-          <Tooltip title="Refresh Financials">
-            <IconButton
-              onClick={fetchLedger}
-              sx={{
-                bgcolor: 'rgba(255, 255, 255, 0.7)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255, 255, 255, 0.8)'
-              }}
-            >
-              <RefreshIcon sx={{ color: '#0284C7' }} />
-            </IconButton>
-          </Tooltip>
-        </Box>
-
-        {/* Title Glass Hero */}
-        <Card elevation={0} sx={{ ...glassCardStyle, p: { xs: 2.5, md: 3.5 }, mb: 3.5 }}>
-          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { md: 'center' }, gap: 2 }}>
-            <Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.8 }}>
-                <Box
-                  sx={{
-                    width: 46,
-                    height: 46,
-                    borderRadius: '14px',
-                    bgcolor: '#0284C7',
-                    color: '#FFFFFF',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '0 4px 14px rgba(2, 132, 199, 0.3)'
-                  }}
-                >
-                  <AccountBalanceWalletIcon sx={{ fontSize: 26 }} />
-                </Box>
-                <Box>
-                  <Typography variant="h5" sx={{ fontWeight: 900, color: '#0F172A', letterSpacing: -0.5 }}>
-                    Salem End-to-End Financial Intelligence & Settlement Ledger
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: '#0284C7', fontWeight: 800, fontSize: '11px', letterSpacing: 0.5 }}>
-                    Shazu One ESCROW • RAZORPAY GATEWAY DEDUCTIONS • TECHNICIAN DISBURSALS
-                  </Typography>
-                </Box>
+        {/* 5 Glass KPI Metric Cards */}
+        <Grid container spacing={2} sx={{ mb: 3 }}>
+          {/* 1. Customer Gross Inflow */}
+          <Grid item xs={12} sm={6} md={2.4}>
+            <Card elevation={0} sx={{ p: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>
+                  CUSTOMER GROSS
+                </Typography>
+                <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.light', color: 'primary.main' }}>
+                  <Coins size={16} />
+                </Avatar>
               </Box>
-              <Typography variant="body2" sx={{ color: '#64748B', maxWidth: 860, lineHeight: 1.5 }}>
-                Real-time tracking of customer payments, automated 2.36% Razorpay payment gateway fees, 100% technician fuel travel disbursals, 95% quote labor releases, and platform commission.
+              <Typography variant="h5" sx={{ fontWeight: 800, color: 'text.primary', mb: 0.5 }}>
+                ₹{summary.totalGross.toLocaleString('en-IN')}
               </Typography>
-            </Box>
+              <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 600 }}>
+                {summary.totalTransactions} Total Transactions
+              </Typography>
+            </Card>
+          </Grid>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
-              <Chip
-                icon={<ShieldIcon sx={{ fontSize: 16, color: '#0284C7 !important' }} />}
-                label="Escrow Guarantee"
-                sx={{ bgcolor: '#E0F2FE', color: '#0369A1', fontWeight: 800, fontSize: '11px' }}
-              />
-              <Chip
-                icon={<CheckCircleIcon sx={{ fontSize: 16, color: '#16A34A !important' }} />}
-                label="Direct UPI Payouts"
-                sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 800, fontSize: '11px' }}
-              />
-            </Box>
-          </Box>
-        </Card>
+          {/* 2. Razorpay Gateway Fees */}
+          <Grid item xs={12} sm={6} md={2.4}>
+            <Card elevation={0} sx={{ p: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>
+                  RAZORPAY CHARGES
+                </Typography>
+                <Avatar sx={{ width: 32, height: 32, bgcolor: 'warning.light', color: 'warning.main' }}>
+                  <CreditCard size={16} />
+                </Avatar>
+              </Box>
+              <Typography variant="h5" sx={{ fontWeight: 800, color: 'warning.main', mb: 0.5 }}>
+                ₹{summary.totalRazorpayFee.toLocaleString('en-IN')}
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                2.36% Gateway MDR + GST
+              </Typography>
+            </Card>
+          </Grid>
 
-        {/* ========================================================================= */}
-        {/* INTERACTIVE FILTERS: REGION-WISE, DATE PRESET & DATE PICKER */}
-        {/* ========================================================================= */}
-        <Card elevation={0} sx={{ ...glassCardStyle, p: 2.5, mb: 3.5 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-            <FilterAltIcon sx={{ color: '#0284C7', fontSize: 20 }} />
-            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '14px' }}>
+          {/* 3. Disbursed to Technicians */}
+          <Grid item xs={12} sm={6} md={2.4}>
+            <Card elevation={0} sx={{ p: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>
+                  DISBURSED TO TECHS
+                </Typography>
+                <Avatar sx={{ width: 32, height: 32, bgcolor: 'secondary.light', color: 'secondary.dark' }}>
+                  <Users size={16} />
+                </Avatar>
+              </Box>
+              <Typography variant="h5" sx={{ fontWeight: 800, color: 'secondary.main', mb: 0.5 }}>
+                ₹{summary.totalTechPayout.toLocaleString('en-IN')}
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'secondary.dark', fontWeight: 600 }}>
+                100% Travel + 95% Labor
+              </Typography>
+            </Card>
+          </Grid>
+
+          {/* 4. Customer Refunds */}
+          <Grid item xs={12} sm={6} md={2.4}>
+            <Card elevation={0} sx={{ p: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>
+                  CUSTOMER REFUNDS
+                </Typography>
+                <Avatar sx={{ width: 32, height: 32, bgcolor: 'error.light', color: 'error.main' }}>
+                  <RotateCcw size={16} />
+                </Avatar>
+              </Box>
+              <Typography variant="h5" sx={{ fontWeight: 800, color: 'error.main', mb: 0.5 }}>
+                ₹{summary.totalCustomerRefunds.toLocaleString('en-IN')}
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                Cancellation Returns
+              </Typography>
+            </Card>
+          </Grid>
+
+          {/* 5. Net Platform Revenue */}
+          <Grid item xs={12} sm={6} md={2.4}>
+            <Card elevation={0} sx={{ p: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>
+                  NET PLATFORM CUT
+                </Typography>
+                <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.light', color: 'primary.dark' }}>
+                  <TrendingUp size={16} />
+                </Avatar>
+              </Box>
+              <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.main', mb: 0.5 }}>
+                ₹{summary.totalPlatformCut.toLocaleString('en-IN')}
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                5% Commission on Work Done
+              </Typography>
+            </Card>
+          </Grid>
+        </Grid>
+
+        {/* Multi-Dimensional Financial Filters */}
+        <Card elevation={0} sx={{ p: 2, mb: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+            <Filter size={16} color="#0A5CC4" />
+            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
               Multi-Dimensional Financial Filters
             </Typography>
           </Box>
 
           <Grid container spacing={2} alignItems="center">
             {/* Quick Date Presets */}
-            <Grid item xs={12} lg={4}>
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#64748B', display: 'block', mb: 0.8 }}>
+            <Grid item xs={12} lg={5}>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.75 }}>
                 DATE RANGE PRESET:
               </Typography>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.8 }}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
                 {[
                   { id: 'all', label: 'All Time' },
                   { id: 'today', label: 'Today' },
@@ -307,15 +466,9 @@ export default function AdminSettlementsPage() {
                       key={p.id}
                       label={p.label}
                       onClick={() => handlePresetChange(p.id)}
-                      sx={{
-                        fontWeight: isSelected ? 900 : 700,
-                        fontSize: '11.5px',
-                        bgcolor: isSelected ? '#0284C7' : 'rgba(255, 255, 255, 0.9)',
-                        color: isSelected ? '#FFFFFF' : '#475569',
-                        border: isSelected ? '1px solid #0284C7' : '1px solid #CBD5E1',
-                        borderRadius: '10px',
-                        cursor: 'pointer'
-                      }}
+                      color={isSelected ? 'primary' : 'default'}
+                      variant={isSelected ? 'filled' : 'outlined'}
+                      sx={{ fontWeight: 600, fontSize: '0.75rem', cursor: 'pointer' }}
                     />
                   );
                 })}
@@ -323,69 +476,49 @@ export default function AdminSettlementsPage() {
             </Grid>
 
             {/* Date Pickers */}
-            <Grid item xs={12} sm={6} md={3} lg={2.5}>
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#64748B', display: 'block', mb: 0.5 }}>
-                START DATE:
+            <Grid item xs={12} sm={6} md={3} lg={3.5}>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.5 }}>
+                CUSTOM DATE RANGE:
               </Typography>
-              <TextField
-                type="date"
-                fullWidth
-                size="small"
-                value={startDate}
-                onChange={(e) => {
-                  setDatePreset('custom');
-                  setStartDate(e.target.value);
-                }}
-                InputLabelProps={{ shrink: true }}
-                sx={{
-                  bgcolor: '#FFFFFF',
-                  borderRadius: '12px',
-                  '& .MuiOutlinedInput-root': { borderRadius: '12px' }
-                }}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={3} lg={2.5}>
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#64748B', display: 'block', mb: 0.5 }}>
-                END DATE:
-              </Typography>
-              <TextField
-                type="date"
-                fullWidth
-                size="small"
-                value={endDate}
-                onChange={(e) => {
-                  setDatePreset('custom');
-                  setEndDate(e.target.value);
-                }}
-                InputLabelProps={{ shrink: true }}
-                sx={{
-                  bgcolor: '#FFFFFF',
-                  borderRadius: '12px',
-                  '& .MuiOutlinedInput-root': { borderRadius: '12px' }
-                }}
-              />
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <TextField
+                  type="date"
+                  fullWidth
+                  size="small"
+                  value={startDate}
+                  onChange={(e) => {
+                    setDatePreset('custom');
+                    setStartDate(e.target.value);
+                  }}
+                  InputLabelProps={{ shrink: true }}
+                />
+                <TextField
+                  type="date"
+                  fullWidth
+                  size="small"
+                  value={endDate}
+                  onChange={(e) => {
+                    setDatePreset('custom');
+                    setEndDate(e.target.value);
+                  }}
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Box>
             </Grid>
 
             {/* Region / Locality Dropdown */}
-            <Grid item xs={12} sm={6} md={3} lg={3}>
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#64748B', display: 'block', mb: 0.5 }}>
+            <Grid item xs={12} sm={6} md={3} lg={3.5}>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.5 }}>
                 SALEM REGION / LOCALITY:
               </Typography>
               <FormControl fullWidth size="small">
-                {/* ds-allow-native-select */}
                 <Select
                   value={selectedLocality}
                   onChange={(e) => setSelectedLocality(e.target.value)}
-                  sx={{
-                    bgcolor: '#FFFFFF',
-                    borderRadius: '12px',
-                    fontWeight: 700,
-                    fontSize: '13px'
-                  }}
+                  sx={{ fontSize: '0.8125rem' }}
                 >
                   {SALEM_LOCALITIES.map((loc) => (
-                    <MenuItem key={loc} value={loc} sx={{ fontSize: '13px', fontWeight: 600 }}>
+                    <MenuItem key={loc} value={loc} sx={{ fontSize: '0.8125rem' }}>
                       {loc}
                     </MenuItem>
                   ))}
@@ -395,412 +528,35 @@ export default function AdminSettlementsPage() {
           </Grid>
         </Card>
 
-        {/* ========================================================================= */}
-        {/* 5 END-TO-END GLASS KPI METRIC CARDS */}
-        {/* ========================================================================= */}
-        <Grid container spacing={2.5} sx={{ mb: 3.5 }}>
-          {/* 1. Customer Gross Inflow */}
-          <Grid item xs={12} sm={6} md={2.4}>
-            <Card elevation={0} sx={{ ...glassCardStyle, p: 2.2, borderTop: '3px solid #0284C7' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="caption" sx={{ fontWeight: 800, color: '#64748B' }}>
-                  CUSTOMER GROSS
-                </Typography>
-                <MonetizationOnIcon sx={{ color: '#0284C7', fontSize: 20 }} />
-              </Box>
-              <Typography variant="h5" sx={{ fontWeight: 900, color: '#0F172A', mb: 0.5 }}>
-                ₹{summary.totalGross.toLocaleString('en-IN')}
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#0284C7', fontWeight: 700, fontSize: '11px' }}>
-                {summary.totalTransactions} Total Transactions
-              </Typography>
-            </Card>
-          </Grid>
-
-          {/* 2. Razorpay Gateway Fees */}
-          <Grid item xs={12} sm={6} md={2.4}>
-            <Card elevation={0} sx={{ ...glassCardStyle, p: 2.2, borderTop: '3px solid #F59E0B' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="caption" sx={{ fontWeight: 800, color: '#64748B' }}>
-                  RAZORPAY CHARGES
-                </Typography>
-                <CreditCardIcon sx={{ color: '#F59E0B', fontSize: 20 }} />
-              </Box>
-              <Typography variant="h5" sx={{ fontWeight: 900, color: '#B45309', mb: 0.5 }}>
-                ₹{summary.totalRazorpayFee.toLocaleString('en-IN')}
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#78350F', fontWeight: 700, fontSize: '11px' }}>
-                2.36% Gateway MDR + GST
-              </Typography>
-            </Card>
-          </Grid>
-
-          {/* 3. Disbursed to Technicians */}
-          <Grid item xs={12} sm={6} md={2.4}>
-            <Card elevation={0} sx={{ ...glassCardStyle, p: 2.2, borderTop: '3px solid #10B981' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="caption" sx={{ fontWeight: 800, color: '#64748B' }}>
-                  DISBURSED TO TECHS
-                </Typography>
-                <HandshakeIcon sx={{ color: '#10B981', fontSize: 20 }} />
-              </Box>
-              <Typography variant="h5" sx={{ fontWeight: 900, color: '#047857', mb: 0.5 }}>
-                ₹{summary.totalTechPayout.toLocaleString('en-IN')}
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#065F46', fontWeight: 700, fontSize: '11px' }}>
-                100% Visit Travel + 95% Labor
-              </Typography>
-            </Card>
-          </Grid>
-
-          {/* 4. Customer Refunds */}
-          <Grid item xs={12} sm={6} md={2.4}>
-            <Card elevation={0} sx={{ ...glassCardStyle, p: 2.2, borderTop: '3px solid #6366F1' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="caption" sx={{ fontWeight: 800, color: '#64748B' }}>
-                  CUSTOMER REFUNDS
-                </Typography>
-                <ReplayIcon sx={{ color: '#6366F1', fontSize: 20 }} />
-              </Box>
-              <Typography variant="h5" sx={{ fontWeight: 900, color: '#4338CA', mb: 0.5 }}>
-                ₹{summary.totalCustomerRefunds.toLocaleString('en-IN')}
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#3730A3', fontWeight: 700, fontSize: '11px' }}>
-                Pre-Dispatch Cancellation Return
-              </Typography>
-            </Card>
-          </Grid>
-
-          {/* 5. Net Platform Revenue */}
-          <Grid item xs={12} sm={6} md={2.4}>
-            <Card elevation={0} sx={{ ...glassCardStyle, p: 2.2, borderTop: '3px solid #06B6D4' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="caption" sx={{ fontWeight: 800, color: '#64748B' }}>
-                  NET PLATFORM CUT
-                </Typography>
-                <TrendingUpIcon sx={{ color: '#06B6D4', fontSize: 20 }} />
-              </Box>
-              <Typography variant="h5" sx={{ fontWeight: 900, color: '#0E7490', mb: 0.5 }}>
-                ₹{summary.totalPlatformCut.toLocaleString('en-IN')}
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#155E75', fontWeight: 700, fontSize: '11px' }}>
-                5% Commission on Work Done
-              </Typography>
-            </Card>
-          </Grid>
-        </Grid>
-
-        {/* ========================================================================= */}
-        {/* SALEM REGIONAL REVENUE DISTRIBUTION */}
-        {/* ========================================================================= */}
-        {regionBreakdown.length > 0 && (
-          <Card elevation={0} sx={{ ...glassCardStyle, p: 2.5, mb: 3.5 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <LocationOnIcon sx={{ color: '#0284C7', fontSize: 20 }} />
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '14px' }}>
-                  Salem Regional Financial Share Distribution
-                </Typography>
-              </Box>
-              <Chip
-                label={`${regionBreakdown.length} Active Localities`}
-                size="small"
-                sx={{ bgcolor: '#EFF6FF', color: '#1E40AF', fontWeight: 800, fontSize: '10px' }}
-              />
-            </Box>
-
-            <Grid container spacing={2}>
-              {regionBreakdown.map((r) => (
-                <Grid item xs={12} sm={6} md={3} key={r.locality}>
-                  <Box
-                    sx={{
-                      p: 1.8,
-                      borderRadius: '14px',
-                      bgcolor: 'rgba(255, 255, 255, 0.9)',
-                      border: '1px solid #E2E8F0',
-                      boxShadow: '0 2px 8px rgba(15, 23, 42, 0.03)'
-                    }}
-                  >
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '13px' }}>
-                        {r.locality}
-                      </Typography>
-                      <Chip
-                        label={`${r.pctShare}%`}
-                        size="small"
-                        sx={{ height: 18, fontSize: '9.5px', fontWeight: 900, bgcolor: '#E0F2FE', color: '#0284C7' }}
-                      />
-                    </Box>
-                    <Typography variant="h6" sx={{ fontWeight: 900, color: '#0369A1', fontSize: '15px' }}>
-                      ₹{r.gross.toLocaleString('en-IN')}
-                    </Typography>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 0.5, mb: 0.8 }}>
-                      <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11px' }}>
-                        {r.orders} orders • Tech: ₹{r.techPayout}
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: '#059669', fontWeight: 800, fontSize: '11px' }}>
-                        Cut: ₹{r.platformCut}
-                      </Typography>
-                    </Box>
-                    <LinearProgress
-                      variant="determinate"
-                      value={Math.min(100, r.pctShare)}
-                      sx={{ height: 6, borderRadius: '3px', bgcolor: '#F1F5F9', '& .MuiLinearProgress-bar': { bgcolor: '#0284C7' } }}
-                    />
-                  </Box>
-                </Grid>
-              ))}
-            </Grid>
-          </Card>
-        )}
-
-        {/* ========================================================================= */}
-        {/* COMPREHENSIVE END-TO-END ITEMIZED TRANSACTION LEDGER */}
-        {/* ========================================================================= */}
-        <Card elevation={0} sx={{ ...glassCardStyle, p: { xs: 2, md: 3 } }}>
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: { xs: 'column', md: 'row' },
-              justifyContent: 'space-between',
-              alignItems: { md: 'center' },
-              gap: 2,
-              mb: 2.5
-            }}
-          >
-            <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0F172A', fontSize: '16px' }}>
-                End-to-End Financial Settlement Ledger
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#64748B' }}>
-                Showing {filteredTransactions.length} itemized transaction lines with gateway fees and technician payouts
-              </Typography>
-            </Box>
-
-            <TextField
-              size="small"
-              placeholder="Search by customer, technician, booking ID..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon sx={{ color: '#94A3B8', fontSize: 18 }} />
-                  </InputAdornment>
-                )
-              }}
-              sx={{
-                width: { xs: '100%', md: 320 },
-                bgcolor: '#FFFFFF',
-                borderRadius: '12px',
-                '& .MuiOutlinedInput-root': { borderRadius: '12px' }
-              }}
-            />
-          </Box>
-
-          <Box sx={{ overflowX: 'auto' }}>
-            <Table size="small">
-              <TableHead>
-                <TableRow sx={{ bgcolor: 'rgba(241, 245, 249, 0.7)', '& th': { color: '#475569', fontWeight: 800, fontSize: '11px', py: 1.5 } }}>
-                  <TableCell>DATE / TIME</TableCell>
-                  <TableCell>BOOKING ID</TableCell>
-                  <TableCell>CUSTOMER & LOCALITY</TableCell>
-                  <TableCell>ASSIGNED TECHNICIAN</TableCell>
-                  <TableCell align="right">GROSS INFLOW</TableCell>
-                  <TableCell align="right">RAZORPAY FEE</TableCell>
-                  <TableCell align="right">DISBURSED TO TECH</TableCell>
-                  <TableCell align="right">PLATFORM CUT</TableCell>
-                  <TableCell align="right">REFUND</TableCell>
-                  <TableCell align="center">PAYMENT & STATUS</TableCell>
-                  <TableCell align="center">ACTIONS</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {isLoading ? (
-                  [1, 2, 3, 4].map((n) => (
-                    <TableRow key={n}>
-                      <TableCell><Skeleton width={80} height={20} /></TableCell>
-                      <TableCell><Skeleton width={90} height={20} /></TableCell>
-                      <TableCell><Skeleton width={120} height={20} /></TableCell>
-                      <TableCell><Skeleton width={110} height={20} /></TableCell>
-                      <TableCell align="right"><Skeleton width={60} height={20} /></TableCell>
-                      <TableCell align="right"><Skeleton width={50} height={20} /></TableCell>
-                      <TableCell align="right"><Skeleton width={60} height={20} /></TableCell>
-                      <TableCell align="right"><Skeleton width={50} height={20} /></TableCell>
-                      <TableCell align="right"><Skeleton width={50} height={20} /></TableCell>
-                      <TableCell align="center"><Skeleton width={90} height={20} /></TableCell>
-                    </TableRow>
-                  ))
-                ) : filteredTransactions.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={10} align="center" sx={{ py: 4 }}>
-                      <Typography variant="body2" sx={{ color: '#64748B', fontWeight: 700 }}>
-                        No transactions found matching the selected region or date filter.
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredTransactions.map((tx) => {
-                    const dateFormatted = new Date(tx.createdAt).toLocaleDateString('en-IN', {
-                      day: '2-digit',
-                      month: 'short',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    });
-
-                    return (
-                      <TableRow
-                        key={tx.id || tx.bookingId}
-                        hover
-                        sx={{
-                          '& td': { borderColor: '#F1F5F9', py: 1.3, fontSize: '12px' },
-                          '&:hover': { bgcolor: 'rgba(240, 249, 255, 0.4)' }
-                        }}
-                      >
-                        <TableCell sx={{ color: '#64748B', fontWeight: 600 }}>
-                          {dateFormatted}
-                        </TableCell>
-                        <TableCell>
-                          <Chip
-                            label={`#${tx.bookingId}`}
-                            size="small"
-                            onClick={() => navigate(`/track?bookingId=${tx.bookingId}`)}
-                            sx={{
-                              bgcolor: '#E0F2FE',
-                              color: '#0284C7',
-                              fontWeight: 800,
-                              fontSize: '11px',
-                              cursor: 'pointer'
-                            }}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '12.5px' }}>
-                            {tx.customerName}
-                          </Typography>
-                          <Typography variant="caption" sx={{ color: '#0284C7', fontWeight: 700 }}>
-                            {tx.locality}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '12px' }}>
-                            {tx.technicianName}
-                          </Typography>
-                          {tx.technicianTrade && (
-                            <Typography variant="caption" sx={{ color: '#64748B', fontSize: '10.5px' }}>
-                              {tx.technicianTrade.toUpperCase()}
-                            </Typography>
-                          )}
-                        </TableCell>
-                        <TableCell align="right" sx={{ fontWeight: 900, color: '#0F172A' }}>
-                          ₹{tx.grossAmount.toFixed(2)}
-                        </TableCell>
-                        <TableCell align="right" sx={{ color: '#D97706', fontWeight: 700 }}>
-                          ₹{tx.razorpayFee.toFixed(2)}
-                        </TableCell>
-                        <TableCell align="right" sx={{ color: '#059669', fontWeight: 800 }}>
-                          ₹{tx.techPayout.toFixed(2)}
-                        </TableCell>
-                        <TableCell align="right" sx={{ color: '#0284C7', fontWeight: 800 }}>
-                          ₹{tx.platformCut.toFixed(2)}
-                        </TableCell>
-                        <TableCell align="right" sx={{ color: tx.customerRefund > 0 ? '#DC2626' : '#94A3B8', fontWeight: 700 }}>
-                          {tx.customerRefund > 0 ? `₹${tx.customerRefund.toFixed(2)}` : '₹0.00'}
-                        </TableCell>
-                        <TableCell align="center">
-                          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.3 }}>
-                            <Chip
-                              label={tx.status}
-                              size="small"
-                              sx={{
-                                fontWeight: 900,
-                                fontSize: '9.5px',
-                                height: 18,
-                                bgcolor:
-                                  tx.status === 'SETTLED'
-                                    ? '#DCFCE7'
-                                    : tx.status === 'REFUNDED'
-                                    ? '#FEE2E2'
-                                    : '#FEF3C7',
-                                color:
-                                  tx.status === 'SETTLED'
-                                    ? '#15803D'
-                                    : tx.status === 'REFUNDED'
-                                    ? '#B91C1C'
-                                    : '#B45309'
-                              }}
-                            />
-                            {tx.paymentMethod && (tx.paymentMethod.includes('Manual') || tx.paymentMethod.includes('Direct UPI') || tx.paymentMethod.includes('Cash')) ? (
-                              <Chip
-                                label="OFFLINE PAYMENT"
-                                size="small"
-                                sx={{ bgcolor: '#FAF5FF', color: '#7E22CE', border: '1px solid #E9D5FF', fontWeight: 900, fontSize: '8px', height: 16 }}
-                              />
-                            ) : (
-                              <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '9.5px' }}>
-                                {tx.paymentMethod.split(' ')[0]}
-                              </Typography>
-                            )}
-                          </Box>
-                        </TableCell>
-                        <TableCell align="center">
-                          {tx.status !== 'SETTLED' && tx.status !== 'REFUNDED' ? (
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              startIcon={<PaymentsIcon sx={{ fontSize: 12 }} />}
-                              onClick={() => {
-                                setTargetBookingForOverride({
-                                  id: tx.bookingId,
-                                  customer_name: tx.customerName,
-                                  visit_fee: 99,
-                                  quote_subtotal: Math.max(0, tx.grossAmount - 99),
-                                  status: 'quote_presented'
-                                });
-                                setOverrideModalOpen(true);
-                              }}
-                              sx={{
-                                borderRadius: '8px',
-                                fontSize: '10.5px',
-                                fontWeight: 800,
-                                textTransform: 'none',
-                                py: 0.3,
-                                px: 1,
-                                color: '#D97706',
-                                borderColor: '#FDE68A',
-                                bgcolor: '#FFFBEB',
-                                '&:hover': { bgcolor: '#FEF3C7', borderColor: '#D97706' }
-                              }}
-                            >
-                              Direct Pay
-                            </Button>
-                          ) : (
-                            <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '10px' }}>
-                              Settled
-                            </Typography>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                )}
-              </TableBody>
-            </Table>
-          </Box>
-        </Card>
-
-        {/* Emergency Admin Payment Override Modal */}
-        <AdminPaymentOverrideModal
-          open={overrideModalOpen}
-          onClose={() => {
-            setOverrideModalOpen(false);
-            setTargetBookingForOverride(null);
-          }}
-          booking={targetBookingForOverride}
-          onSuccess={() => {
-            fetchLedger();
-          }}
+        {/* Financial Settlements Table with DataTable */}
+        <DataTable
+          columns={columns}
+          data={transactions}
+          keyField="bookingId"
+          isLoading={isLoading}
+          searchPlaceholder="Search by customer, technician, booking ID..."
+          searchFields={['bookingId', 'customerName', 'technicianName', 'locality']}
+          emptyTitle="No Financial Transactions Found"
+          emptyDescription="There are no transaction lines matching the selected date or region filter."
+          initialPageSize={10}
         />
+
+        {/* Manual Payment Override Modal */}
+        {overrideModalOpen && targetBookingForOverride && (
+          <AdminPaymentOverrideModal
+            open={overrideModalOpen}
+            onClose={() => {
+              setOverrideModalOpen(false);
+              setTargetBookingForOverride(null);
+            }}
+            booking={targetBookingForOverride}
+            onSuccess={() => {
+              setOverrideModalOpen(false);
+              setTargetBookingForOverride(null);
+              fetchLedger();
+            }}
+          />
+        )}
       </Container>
     </Box>
   );
