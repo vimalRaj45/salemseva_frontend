@@ -65,7 +65,6 @@ import LockIcon from '@mui/icons-material/Lock';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
 import { ApiService } from '../../services/api';
-import BookingAddressModal from '../../components/BookingAddressModal';
 import ProcessingBackdrop from '../../components/ProcessingBackdrop';
 import VoiceNoteRecorder from '../../components/VoiceNoteRecorder';
 import SalemLottie from '../../components/SalemLottie';
@@ -117,7 +116,6 @@ export default function ServiceDetailPage({ onStartBooking }) {
   );
   const [isLoadingIssues, setIsLoadingIssues] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [locationPickerOpen, setLocationPickerOpen] = useState(false);
 
   // Domain Technician Availability & Date Capacity Status
   const [domainAvailability, setDomainAvailability] = useState({
@@ -192,6 +190,17 @@ export default function ServiceDetailPage({ onStartBooking }) {
       lng: 78.1460
     };
   });
+
+  useEffect(() => {
+    const handleLocUpdate = () => {
+      try {
+        const saved = localStorage.getItem('shazuone_user_location');
+        if (saved) setUserLocation(JSON.parse(saved));
+      } catch (_) {}
+    };
+    window.addEventListener('shazuone_location_updated', handleLocUpdate);
+    return () => window.removeEventListener('shazuone_location_updated', handleLocUpdate);
+  }, []);
 
   useEffect(() => {
     async function loadServiceData() {
@@ -632,7 +641,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
           return (
             <Paper
               elevation={0}
-              onClick={() => setLocationPickerOpen(true)}
+              onClick={() => navigate('/booking/address', { state: { returnTo: location.pathname + location.search } })}
               sx={{
                 p: 1.2,
                 mb: 1.5,
@@ -2138,17 +2147,6 @@ export default function ServiceDetailPage({ onStartBooking }) {
           </Button>
         </ModalFooter>
       </Modal>
-
-      {/* SERVICE ADDRESS SELECTION MODAL (LIVE GPS & MANUAL HOUSE NO) */}
-      <BookingAddressModal
-        open={locationPickerOpen}
-        onClose={() => setLocationPickerOpen(false)}
-        currentAddress={userLocation}
-        onAddressSelected={(newLoc) => {
-          setUserLocation(newLoc);
-          toast.success(`Service address updated: ${newLoc.locality}`);
-        }}
-      />
     </Box>
   );
 }

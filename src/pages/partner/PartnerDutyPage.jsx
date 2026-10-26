@@ -99,14 +99,10 @@ import FingerprintIcon from '@mui/icons-material/Fingerprint';
 import VpnKeyIcon from '@mui/icons-material/VpnKey';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 
-import MaskedChatModal from '../../components/MaskedChatModal';
-import VoipCallModal from '../../components/VoipCallModal';
 import ProcessingBackdrop from '../../components/ProcessingBackdrop';
-import DocumentUploadControl from '../../components/DocumentUploadControl';
 import LeadAudioPlayer from '../../components/LeadAudioPlayer';
 import Modal, { ModalHeader, ModalBody, ModalFooter } from '../../components/Modal';
 import SalemLottie from '../../components/SalemLottie';
-import SupportTicketModal from '../../components/SupportTicketModal';
 import { useAuth } from '../../context/AuthContext';
 import { NativeNotifier } from '../../services/nativeNotify';
 import { API_V1_URL } from '../../config';
@@ -384,25 +380,29 @@ export default function PartnerDutyPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('autoAnswer') === 'true') {
-      setIsIncomingCall(true);
-      setCallOpen(true);
+      const bId = params.get('bookingId') || activeBookingId;
+      if (bId) navigate(`/call/${bId}?incoming=true&autoAnswer=true`);
     }
     const handleOpenActiveCall = (e) => {
       const job = e?.detail;
-      if (job) setSelectedCommunicationJob(job);
-      setIsIncomingCall(true);
-      setCallOpen(true);
+      const bId = job?.id || job?.bookingId || activeBookingId;
+      if (bId) navigate(`/call/${bId}?incoming=true`);
     };
     window.addEventListener('shazuone_open_active_call', handleOpenActiveCall);
     return () => window.removeEventListener('shazuone_open_active_call', handleOpenActiveCall);
-  }, []);
+  }, [activeBookingId, navigate]);
 
   const handleOpenCall = (job) => {
-    setSelectedCommunicationJob(job || activeJob);
-    setCallOpen(true);
+    const target = job || activeJob;
+    const targetId = target?.id || activeBookingId;
+    if (targetId) navigate(`/call/${targetId}`);
   };
 
   const handleOpenChat = (job) => {
+    const target = job || activeJob;
+    const targetId = target?.id || activeBookingId;
+    if (targetId) navigate(`/chat/${targetId}`);
+  };
     setSelectedCommunicationJob(job || activeJob);
     setChatOpen(true);
   };
@@ -732,17 +732,7 @@ export default function PartnerDutyPage() {
   };
 
   const handleOpenEditProfile = () => {
-    setProfileName(activeTech?.name || '');
-    const raw2 = activeTech?.payoutPhone || activeTech?.upi_vpa?.replace(/@.*$/, '') || '';
-    setProfilePayoutPhone(raw2);
-    setProfileTrade(activeTech?.trade || 'ac');
-    setProfileSecondaryTrades(
-      Array.isArray(activeTech?.secondaryTrades)
-        ? activeTech.secondaryTrades
-        : (Array.isArray(activeTech?.secondary_trades) ? activeTech.secondary_trades : [])
-    );
-    setProfileAadhaarUrl(activeTech?.aadhaarCardUrl || null);
-    setEditProfileOpen(true);
+    navigate('/partner/profile', { state: { returnTo: location.pathname } });
   };
 
   const handleSaveProfile = async () => {
@@ -1294,14 +1284,9 @@ export default function PartnerDutyPage() {
     }
   };
 
-  // Technician Reschedule Modal Opener
+  // Technician Reschedule Page Opener
   const handleOpenTechReschedule = (job) => {
-    setTechRescheduleJob(job);
-    setTechRescheduleMode('propose_slot');
-    setTechProposedDayIndex(0);
-    setTechProposedTime('02:00 PM - 04:00 PM');
-    setTechRescheduleReason(TECH_PROPOSE_REASONS[0]);
-    setTechRescheduleModalOpen(true);
+    navigate(`/partner/duty/reschedule/${job.id}`, { state: { job, returnTo: location.pathname } });
   };
 
   // Submit Technician Reschedule Proposal or Central Ops Handover
@@ -2057,7 +2042,7 @@ export default function PartnerDutyPage() {
                   <Button
                     size="small"
                     variant="outlined"
-                    onClick={() => setSupportTicketModalOpen(true)}
+                    onClick={() => navigate('/support', { state: { returnTo: location.pathname } })}
                     startIcon={<HelpOutlineIcon sx={{ fontSize: 14 }} />}
                     sx={{
                       borderColor: '#93C5FD',
@@ -5666,7 +5651,7 @@ export default function PartnerDutyPage() {
                         variant="outlined"
                         size="small"
                         startIcon={<ReceiptLongIcon sx={{ fontSize: 14 }} />}
-                        onClick={() => setSelectedSlipJob(job)}
+                        onClick={() => navigate(`/partner/settlements/${job.id}`, { state: { job, returnTo: location.pathname } })}
                         sx={{
                           color: '#2563EB',
                           borderColor: '#CBD5E1',
@@ -5686,94 +5671,6 @@ export default function PartnerDutyPage() {
             </Box>
           </Box>
         )}
-
-        {/* DIGITAL SETTLEMENT SLIP MODAL */}
-        <Modal open={Boolean(selectedSlipJob)} onClose={() => setSelectedSlipJob(null)} maxWidth="xs">
-          <ModalHeader
-            title="Payout settlement slip"
-            subtitle={selectedSlipJob ? `Booking #${selectedSlipJob.id} • ${selectedSlipJob.serviceName}` : 'Settlement details'}
-            onClose={() => setSelectedSlipJob(null)}
-          />
-
-          {selectedSlipJob && (
-            <ModalBody>
-              <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0', mb: 2 }}>
-                <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontSize: '12px' }}>
-                  Booking reference & service
-                </Typography>
-                <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '15px' }}>
-                  #{selectedSlipJob.id} • {selectedSlipJob.serviceName}
-                </Typography>
-                <Typography variant="caption" sx={{ color: '#0F172A', fontWeight: 600, display: 'block', mt: 0.5, fontSize: '13px' }}>
-                  Service date: {formatDateTime(selectedSlipJob.completedAt || selectedSlipJob.created_at)}
-                </Typography>
-                <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mt: 0.3, fontSize: '12px' }}>
-                  Customer: {selectedSlipJob.customerName} ({selectedSlipJob.locality})
-                </Typography>
-              </Paper>
-
-              <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748B', display: 'block', mb: 1, fontSize: '12px' }}>
-                Itemized settlement calculation
-              </Typography>
-
-              <Paper elevation={0} sx={{ p: 2, bgcolor: '#FFFFFF', borderRadius: '12px', border: '1px solid #E2E8F0', mb: 2 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.8, borderBottom: '1px dashed #E2E8F0', fontSize: '13px' }}>
-                  <span>Customer gross payment</span>
-                  <strong>₹{selectedSlipJob.grossAmount.toFixed(2)}</strong>
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.8, borderBottom: '1px dashed #E2E8F0', fontSize: '13px', color: '#16A34A' }}>
-                  <span>Technician base share (95%)</span>
-                  <strong>₹{(Math.max(0, (selectedSlipJob.grossAmount - (selectedSlipJob.visit_fee || selectedSlipJob.visitFee || 99))) * 0.95).toFixed(2)}</strong>
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.8, borderBottom: '1px dashed #E2E8F0', fontSize: '13px', color: '#16A34A' }}>
-                  <span>Visit & travel allowance (100%)</span>
-                  <strong>₹{parseFloat(selectedSlipJob.visit_fee || selectedSlipJob.visitFee || 99).toFixed(2)}</strong>
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.8, borderBottom: '1px dashed #E2E8F0', fontSize: '13px', color: '#DC2626' }}>
-                  <span>Platform fee (5%)</span>
-                  <span>-₹{selectedSlipJob.platformCommission.toFixed(2)}</span>
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1, mt: 0.5, fontSize: '15px', color: '#0F172A' }}>
-                  <strong>Net bank deposit:</strong>
-                  <strong style={{ color: '#16A34A' }}>₹{selectedSlipJob.techPayout.toFixed(2)}</strong>
-                </Box>
-              </Paper>
-
-              <Box sx={{ p: 1.5, bgcolor: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '10px' }}>
-                <Typography variant="caption" sx={{ color: '#166534', fontWeight: 600, display: 'block', fontSize: '12px' }}>
-                  Transfer method: Razorpay route direct transfer
-                </Typography>
-                <Typography variant="caption" sx={{ color: '#166534', display: 'block', fontSize: '11px', mt: 0.4 }}>
-                  Settled into: HDFC Bank (UPI: {selectedSlipJob.settlementUpi}) • Ref: {selectedSlipJob.bankRef}
-                </Typography>
-              </Box>
-            </ModalBody>
-          )}
-
-          <ModalFooter>
-            <Button
-              fullWidth
-              variant="contained"
-              startIcon={<PrintIcon />}
-              onClick={() => {
-                setTechToast('Settlement slip receipt downloaded / printed successfully.');
-                setSelectedSlipJob(null);
-              }}
-              sx={{
-                bgcolor: '#0A66C2',
-                color: '#FFF',
-                borderRadius: '14px',
-                fontWeight: 700,
-                fontSize: '14px',
-                height: 48,
-                textTransform: 'none',
-                '&:hover': { bgcolor: '#084e96' }
-              }}
-            >
-              Print / save settlement receipt
-            </Button>
-          </ModalFooter>
-        </Modal>
 
         {/* ===================== TAB 2: HELP (உதவி) ===================== */}
         {bottomNav === 2 && (
@@ -6368,30 +6265,6 @@ export default function PartnerDutyPage() {
 
       </Container>
 
-      {/* Masked Chat Modal (In-App Only) */}
-      <MaskedChatModal 
-        open={chatOpen} 
-        onClose={() => setChatOpen(false)} 
-        bookingId={selectedCommunicationJob?.id || activeBookingId}
-        userRole="technician"
-        peerName={selectedCommunicationJob?.customerName || activeJob?.customerName || 'Customer'} 
-      />
-
-      {/* Masked VoIP Call Modal (In-App Only - Zero Number Disclosure) */}
-      <VoipCallModal 
-        open={callOpen} 
-        onClose={() => {
-          NativeNotifier.stopCallRingtone();
-          setCallOpen(false);
-          setIsIncomingCall(false);
-        }} 
-        bookingId={selectedCommunicationJob?.id || activeBookingId}
-        calleeName={selectedCommunicationJob?.customerName || activeJob?.customerName || 'Customer'} 
-        role="Technician" 
-        isIncoming={isIncomingCall}
-        autoAnswer={new URLSearchParams(window.location.search).get('autoAnswer') === 'true'}
-      />
-
       {/* Instant Incoming Message Notification Banner */}
       <Snackbar
         open={Boolean(incomingMessageToast)}
@@ -6408,7 +6281,8 @@ export default function PartnerDutyPage() {
               variant="contained"
               onClick={() => {
                 setIncomingMessageToast(null);
-                setChatOpen(true);
+                const targetId = selectedCommunicationJob?.id || activeBookingId;
+                if (targetId) navigate(`/chat/${targetId}`);
               }}
               sx={{ bgcolor: '#2563EB', color: '#FFF', fontSize: '11px', textTransform: 'none', py: 0.2 }}
             >
@@ -6570,449 +6444,6 @@ export default function PartnerDutyPage() {
           </Button>
         </ModalFooter>
       </Modal>
-
-      {/* Edit Profile & KYC Documents Modal */}
-      <Modal
-        open={editProfileOpen}
-        onClose={() => setEditProfileOpen(false)}
-        maxWidth="sm"
-      >
-        <ModalHeader
-          title="Edit profile & KYC"
-          subtitle="Update payout phone and verified identity documents"
-          onClose={() => setEditProfileOpen(false)}
-        />
-
-        <ModalBody>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-            {/* Full Name */}
-            <Box>
-              <Typography variant="caption" sx={{ fontWeight: 600, color: '#64748B', display: 'block', mb: 0.6, fontSize: '13px' }}>
-                Full name
-              </Typography>
-              <TextField
-                fullWidth
-                size="small"
-                value={profileName}
-                onChange={(e) => setProfileName(e.target.value)}
-                placeholder="e.g. K. Ramesh"
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', fontSize: '14px' } }}
-              />
-            </Box>
-
-            {/* Trade Category Selection */}
-            <Box>
-              <Typography variant="caption" sx={{ fontWeight: 600, color: '#64748B', display: 'block', mb: 0.8, fontSize: '13px' }}>
-                முதன்மைத் தொழில் (Primary Trade)
-              </Typography>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                {[
-                  { id: 'ac', label: 'AC Repair' },
-                  { id: 'electrician', label: 'Electrician' },
-                  { id: 'plumber', label: 'Plumbing' },
-                  { id: 'cleaning', label: 'Cleaning' }
-                ].map((t) => (
-                  <Chip
-                    key={t.id}
-                    label={t.label}
-                    clickable
-                    onClick={() => handleProfilePrimaryTradeChange(t.id)}
-                    variant={profileTrade === t.id ? 'filled' : 'outlined'}
-                    sx={{
-                      fontWeight: 600,
-                      fontSize: '13px',
-                      borderRadius: '999px',
-                      minHeight: 40,
-                      px: 1,
-                      bgcolor: profileTrade === t.id ? '#0A66C2' : 'transparent',
-                      color: profileTrade === t.id ? '#FFFFFF' : '#0F172A',
-                      borderColor: '#CBD5E1',
-                      '&:hover': { bgcolor: profileTrade === t.id ? '#084e96' : '#F1F5F9' }
-                    }}
-                  />
-                ))}
-              </Box>
-            </Box>
-
-            {/* Additional Services Multi-Select */}
-            <Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
-                <Typography variant="caption" sx={{ fontWeight: 600, color: '#64748B', display: 'block', fontSize: '13px' }}>
-                  கூடுதல் சேவைகள் (Additional Services You Can Perform)
-                </Typography>
-                <Chip
-                  size="small"
-                  label={`${profileSecondaryTrades.filter(t => t !== profileTrade).length} selected`}
-                  sx={{
-                    bgcolor: profileSecondaryTrades.filter(t => t !== profileTrade).length > 0 ? '#F3E8FF' : '#F1F5F9',
-                    color: profileSecondaryTrades.filter(t => t !== profileTrade).length > 0 ? '#7E22CE' : '#64748B',
-                    fontWeight: 700,
-                    fontSize: '11px',
-                    height: 20
-                  }}
-                />
-              </Box>
-              <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11.5px', display: 'block', mb: 1 }}>
-                சேலத்தில் நீங்கள் செய்ய விரும்பும் பிற தொழில் பிரிவுகளைத் தேர்ந்தெடுக்கவும் (Tap to toggle):
-              </Typography>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                {[
-                  { id: 'ac', label: 'AC Repair & HVAC' },
-                  { id: 'electrician', label: 'Electrician & Wiring' },
-                  { id: 'plumber', label: 'Plumbing & Drainage' },
-                  { id: 'cleaning', label: 'Cleaning & Sanitation' }
-                ]
-                  .filter((t) => t.id !== profileTrade)
-                  .map((t) => {
-                    const isSelected = profileSecondaryTrades.includes(t.id);
-                    return (
-                      <Chip
-                        key={t.id}
-                        label={t.label}
-                        clickable
-                        onClick={() => toggleProfileSecondaryTrade(t.id)}
-                        variant={isSelected ? 'filled' : 'outlined'}
-                        icon={isSelected ? <CheckCircleIcon sx={{ fontSize: '15px !important', color: '#FFFFFF !important' }} /> : undefined}
-                        sx={{
-                          fontWeight: 600,
-                          fontSize: '12.5px',
-                          borderRadius: '999px',
-                          minHeight: 36,
-                          px: 1,
-                          bgcolor: isSelected ? '#7E22CE' : 'transparent',
-                          color: isSelected ? '#FFFFFF' : '#0F172A',
-                          borderColor: isSelected ? '#7E22CE' : '#CBD5E1',
-                          '&:hover': { bgcolor: isSelected ? '#6B21A8' : '#FAF5FF', borderColor: '#7E22CE' }
-                        }}
-                      />
-                    );
-                  })}
-              </Box>
-              <Typography variant="caption" sx={{ color: '#0284C7', fontSize: '11px', display: 'block', mt: 0.8, fontWeight: 600 }}>
-                * முதன்மைத் தொழில் மற்றும் கூடுதல் சேவைகள் இரண்டிற்கும் உரிய வேலை அறிவிப்புகள் உங்கள் Duty ஆப்பிற்கு அனுப்பப்படும்.
-              </Typography>
-            </Box>
-
-            {/* Payout Phone */}
-            <Box>
-              <Typography variant="caption" sx={{ fontWeight: 600, color: '#64748B', display: 'block', mb: 0.6, fontSize: '13px' }}>
-                Payout phone number
-              </Typography>
-              <TextField
-                fullWidth
-                size="small"
-                inputMode="numeric"
-                value={profilePayoutPhone}
-                onChange={(e) => setProfilePayoutPhone(e.target.value.replace(/[^0-9]/g, '').slice(0, 10))}
-                placeholder="e.g. 9842012345"
-                helperText="Earnings will be sent directly to this phone-linked UPI account."
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Typography sx={{ fontWeight: 700, color: '#475569', fontSize: '14px' }}>+91</Typography>
-                    </InputAdornment>
-                  )
-                }}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', fontSize: '14px' } }}
-              />
-            </Box>
-
-            {/* KYC Document Upload / Re-upload */}
-            <Box>
-              <Typography variant="caption" sx={{ fontWeight: 600, color: '#64748B', display: 'block', mb: 0.6, fontSize: '13px' }}>
-                KYC identity photo (Aadhaar / Govt ID)
-              </Typography>
-              <DocumentUploadControl
-                label="Aadhaar / Govt ID photo"
-                sublabel="Direct camera or gallery upload (up to 5 MB)"
-                folder="aadhaar"
-                referenceId={user?.phone || 'partner'}
-                existingUrl={profileAadhaarUrl}
-                onUploadSuccess={(url) => setProfileAadhaarUrl(url)}
-                onRemove={() => setProfileAadhaarUrl(null)}
-                maxSizeMb={5}
-              />
-            </Box>
-          </Box>
-        </ModalBody>
-
-        <ModalFooter>
-          <Button
-            onClick={() => setEditProfileOpen(false)}
-            sx={{ color: '#64748B', fontWeight: 600, textTransform: 'none', height: 48 }}
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleSaveProfile}
-            disabled={isSavingProfile}
-            sx={{
-              bgcolor: '#0A66C2',
-              color: '#FFFFFF',
-              fontWeight: 700,
-              borderRadius: '14px',
-              textTransform: 'none',
-              height: 48,
-              minWidth: 140,
-              fontSize: '14px',
-              '&:hover': { bgcolor: '#084e96' }
-            }}
-          >
-            {isSavingProfile ? 'Saving...' : 'Save changes'}
-          </Button>
-        </ModalFooter>
-      </Modal>
-
-      {/* Technician Reschedule / Delay Handover Modal */}
-      <Modal
-        open={techRescheduleModalOpen}
-        onClose={() => setTechRescheduleModalOpen(false)}
-        maxWidth="sm"
-      >
-        <ModalHeader
-          title="Reschedule / Emergency Handover • பணி மாற்றம்"
-          subtitle={`Booking #${techRescheduleJob?.id || ''} - ${techRescheduleJob?.customerName || 'Customer'}`}
-          onClose={() => setTechRescheduleModalOpen(false)}
-        />
-        <ModalBody>
-          {/* Mode Selector Tabs */}
-          <Box sx={{ display: 'flex', gap: 1, p: 0.5, bgcolor: '#0F172A', borderRadius: '10px', mb: 2.5 }}>
-            <Button
-              fullWidth
-              size="small"
-              onClick={() => {
-                setTechRescheduleMode('propose_slot');
-                setTechRescheduleReason(TECH_PROPOSE_REASONS[0]);
-              }}
-              sx={{
-                borderRadius: '8px',
-                py: 0.8,
-                fontWeight: 800,
-                fontSize: '11.5px',
-                textTransform: 'none',
-                bgcolor: techRescheduleMode === 'propose_slot' ? '#0284C7' : 'transparent',
-                color: techRescheduleMode === 'propose_slot' ? '#FFFFFF' : '#94A3B8',
-                '&:hover': { bgcolor: techRescheduleMode === 'propose_slot' ? '#0369A1' : '#1E293B' }
-              }}
-            >
-              Propose New Slot to Customer
-            </Button>
-            <Button
-              fullWidth
-              size="small"
-              onClick={() => {
-                setTechRescheduleMode('request_handover');
-                setTechRescheduleReason(TECH_HANDOVER_REASONS[0]);
-              }}
-              sx={{
-                borderRadius: '8px',
-                py: 0.8,
-                fontWeight: 800,
-                fontSize: '11.5px',
-                textTransform: 'none',
-                bgcolor: techRescheduleMode === 'request_handover' ? '#DC2626' : 'transparent',
-                color: techRescheduleMode === 'request_handover' ? '#FFFFFF' : '#94A3B8',
-                '&:hover': { bgcolor: techRescheduleMode === 'request_handover' ? '#B91C1C' : '#1E293B' }
-              }}
-            >
-              Handover to Central Ops
-            </Button>
-          </Box>
-
-          {techRescheduleMode === 'propose_slot' ? (
-            <>
-              {/* Context Pill */}
-              <Box sx={{ p: 1.5, bgcolor: '#F0F9FF', border: '1px solid #BAE6FD', borderRadius: '10px', mb: 2 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0369A1', fontSize: '12px' }}>
-                  Proposing Revised Time Window
-                </Typography>
-                <Typography variant="caption" sx={{ color: '#0C4A6E', fontSize: '11px', display: 'block' }}>
-                  The customer will receive an instant notification on their tracking screen to approve your revised slot. You remain assigned to this booking.
-                </Typography>
-              </Box>
-
-              {/* Step 1: Select Proposed Day */}
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', display: 'block', mb: 1, letterSpacing: '0.04em' }}>
-                SELECT PROPOSED SERVICE DATE
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto', pb: 1.5, mb: 2.5, '::-webkit-scrollbar': { height: 4 } }}>
-                {upcomingRescheduleDays.map((d, idx) => {
-                  const isSelected = techProposedDayIndex === idx;
-                  return (
-                    <Box
-                      key={d.iso}
-                      onClick={() => setTechProposedDayIndex(idx)}
-                      sx={{
-                        flexShrink: 0,
-                        width: 72,
-                        py: 0.8,
-                        px: 0.5,
-                        textAlign: 'center',
-                        cursor: 'pointer',
-                        borderRadius: '8px',
-                        border: isSelected ? '2px solid #0284C7' : '1px solid #E2E8F0',
-                        bgcolor: isSelected ? '#F0F9FF' : '#FFFFFF',
-                        transition: 'all 0.15s ease'
-                      }}
-                    >
-                      <Typography variant="caption" sx={{ fontWeight: 800, fontSize: '10px', color: isSelected ? '#0284C7' : '#64748B', display: 'block' }}>
-                        {d.dayLabel}
-                      </Typography>
-                      <Typography variant="body1" sx={{ fontWeight: 900, fontSize: '15px', color: isSelected ? '#0C4A6E' : '#0F172A', my: 0.2 }}>
-                        {d.dayNum}
-                      </Typography>
-                      <Typography variant="caption" sx={{ fontSize: '9.5px', color: isSelected ? '#0369A1' : '#94A3B8', display: 'block' }}>
-                        {d.monthLabel}
-                      </Typography>
-                    </Box>
-                  );
-                })}
-              </Box>
-
-              {/* Step 2: Select Proposed Time Window */}
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', display: 'block', mb: 1, letterSpacing: '0.04em' }}>
-                CHOOSE PROPOSED TIME WINDOW
-              </Typography>
-              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 1, mb: 2.5 }}>
-                {TECH_RESCHEDULE_TIME_SLOTS.map((slot) => {
-                  const isSelected = techProposedTime === slot;
-                  return (
-                    <Button
-                      key={slot}
-                      variant={isSelected ? 'contained' : 'outlined'}
-                      size="small"
-                      onClick={() => setTechProposedTime(slot)}
-                      sx={{
-                        py: 0.9,
-                        px: 1,
-                        borderRadius: '8px',
-                        borderColor: isSelected ? '#0284C7' : '#E2E8F0',
-                        bgcolor: isSelected ? '#0284C7' : '#FFFFFF',
-                        color: isSelected ? '#FFFFFF' : '#0F172A',
-                        fontWeight: 700,
-                        fontSize: '11px',
-                        textTransform: 'none',
-                        justifyContent: 'center',
-                        '&:hover': {
-                          bgcolor: isSelected ? '#0369A1' : '#F8FAFC',
-                          borderColor: '#0284C7'
-                        }
-                      }}
-                    >
-                      {slot}
-                    </Button>
-                  );
-                })}
-              </Box>
-
-              {/* Step 3: Reason for Delay / Reschedule */}
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', display: 'block', mb: 1, letterSpacing: '0.04em' }}>
-                REASON FOR DELAY OR TIME REVISION
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 0.8, flexWrap: 'wrap', mb: 2 }}>
-                {TECH_PROPOSE_REASONS.map((r) => {
-                  const isSelected = techRescheduleReason === r;
-                  return (
-                    <Chip
-                      key={r}
-                      label={r}
-                      size="small"
-                      clickable
-                      onClick={() => setTechRescheduleReason(r)}
-                      sx={{
-                        bgcolor: isSelected ? '#0F172A' : '#F1F5F9',
-                        color: isSelected ? '#FFFFFF' : '#334155',
-                        fontWeight: 700,
-                        fontSize: '11px',
-                        border: isSelected ? '1px solid #0F172A' : '1px solid #E2E8F0'
-                      }}
-                    />
-                  );
-                })}
-              </Box>
-            </>
-          ) : (
-            <>
-              {/* Mode B: Emergency Handover Notice */}
-              <Box sx={{ p: 1.5, bgcolor: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '10px', mb: 2.5 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#991B1B', fontSize: '12.5px', mb: 0.5 }}>
-                  Immediate Central Operations Handover
-                </Typography>
-                <Typography variant="caption" sx={{ color: '#B91C1C', fontSize: '11px', display: 'block', lineHeight: 1.5 }}>
-                  If you can no longer attend this appointment due to an emergency or breakdown, Shazu One Central Ops will immediately reassign this customer to another verified technician in your trade without service interruption.
-                </Typography>
-              </Box>
-
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', display: 'block', mb: 1, letterSpacing: '0.04em' }}>
-                SELECT HANDOVER REASON
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 0.8, flexWrap: 'wrap', mb: 2 }}>
-                {TECH_HANDOVER_REASONS.map((r) => {
-                  const isSelected = techRescheduleReason === r;
-                  return (
-                    <Chip
-                      key={r}
-                      label={r}
-                      size="small"
-                      clickable
-                      onClick={() => setTechRescheduleReason(r)}
-                      sx={{
-                        bgcolor: isSelected ? '#DC2626' : '#F1F5F9',
-                        color: isSelected ? '#FFFFFF' : '#334155',
-                        fontWeight: 700,
-                        fontSize: '11px',
-                        border: isSelected ? '1px solid #DC2626' : '1px solid #E2E8F0'
-                      }}
-                    />
-                  );
-                })}
-              </Box>
-            </>
-          )}
-        </ModalBody>
-        <ModalFooter>
-          <Box sx={{ display: 'flex', gap: 1, width: '100%' }}>
-            <Button
-              variant="outlined"
-              onClick={() => setTechRescheduleModalOpen(false)}
-              sx={{ flex: 1, borderRadius: '8px', textTransform: 'none', fontWeight: 700, color: '#64748B', borderColor: '#CBD5E1' }}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="contained"
-              disabled={techSubmittingReschedule}
-              onClick={handleSubmitTechReschedule}
-              sx={{
-                flex: 2,
-                borderRadius: '8px',
-                textTransform: 'none',
-                fontWeight: 800,
-                fontSize: '12.5px',
-                bgcolor: techRescheduleMode === 'propose_slot' ? '#0284C7' : '#DC2626',
-                color: '#FFF',
-                '&:hover': { bgcolor: techRescheduleMode === 'propose_slot' ? '#0369A1' : '#B91C1C' }
-              }}
-            >
-              {techSubmittingReschedule
-                ? 'Submitting...'
-                : techRescheduleMode === 'propose_slot'
-                ? 'Send Proposed Slot to Customer'
-                : 'Confirm Handover to Central Ops'}
-            </Button>
-          </Box>
-        </ModalFooter>
-      </Modal>
-
-      {/* Partner Support Ticket & Resolution Modal */}
-      <SupportTicketModal
-        open={supportTicketModalOpen}
-        onClose={() => setSupportTicketModalOpen(false)}
-        defaultBookingId={activeBookingId || ''}
-        defaultCategory="duty_gps_issue"
-      />
-
 
     </Box>
   );

@@ -32,7 +32,6 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { PageHeader, DataTable, StatusChip } from '../../components/common';
-import AdminPaymentOverrideModal from '../../components/AdminPaymentOverrideModal';
 
 const SALEM_LOCALITIES = [
   'All Salem Regions',
@@ -63,10 +62,6 @@ export default function AdminSettlementsPage() {
   // Data States
   const [financialData, setFinancialData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-
-  // Manual Payment Override State
-  const [overrideModalOpen, setOverrideModalOpen] = useState(false);
-  const [targetBookingForOverride, setTargetBookingForOverride] = useState(null);
 
   // Fetch End-to-End Financial Ledger
   const fetchLedger = () => {
@@ -278,14 +273,18 @@ export default function AdminSettlementsPage() {
               variant="outlined"
               size="small"
               onClick={() => {
-                setTargetBookingForOverride({
-                  bookingId: tx.bookingId,
-                  amount: tx.grossAmount,
-                  techPayout: tx.techPayout,
-                  customerPhone: tx.customerPhone || '',
-                  technicianPhone: tx.technicianPhone || ''
+                navigate(`/admin/settlements/${tx.bookingId}/override`, {
+                  state: {
+                    booking: {
+                      bookingId: tx.bookingId,
+                      amount: tx.grossAmount,
+                      techPayout: tx.techPayout,
+                      customerPhone: tx.customerPhone || '',
+                      technicianPhone: tx.technicianPhone || ''
+                    },
+                    returnTo: location.pathname
+                  }
                 });
-                setOverrideModalOpen(true);
               }}
               sx={{ fontSize: '0.75rem', py: 0.25, px: 1, minHeight: 28 }}
             >

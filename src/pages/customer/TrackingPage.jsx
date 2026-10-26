@@ -59,9 +59,6 @@ import NavigationIcon from '@mui/icons-material/Navigation';
 import CloseIcon from '@mui/icons-material/Close';
 import ZoomInIcon from '@mui/icons-material/ZoomIn';
 
-import MaskedChatModal from '../../components/MaskedChatModal';
-import VoipCallModal from '../../components/VoipCallModal';
-import CancelBookingModal from '../../components/CancelBookingModal';
 import CustomerRescheduleDrawer from './CustomerRescheduleDrawer';
 import Modal, { ModalHeader, ModalBody, ModalFooter } from '../../components/Modal';
 import SalemLottie from '../../components/SalemLottie';
@@ -2044,42 +2041,6 @@ export default function TrackingPage() {
         )}
 
       </Container>
-
-      {/* Universal Cancel Booking Modal */}
-      <CancelBookingModal
-        open={cancelModalOpen}
-        onClose={() => setCancelModalOpen(false)}
-        bookingId={bookingId}
-        currentStatus={bookingStatus}
-      />
-
-
-
-
-
-      {/* Masked Chat Modal */}
-      <MaskedChatModal 
-        open={chatOpen} 
-        onClose={() => setChatOpen(false)} 
-        bookingId={bookingId}
-        userRole="customer"
-        peerName={tech?.name || 'Assigned Partner'} 
-      />
-
-      {/* Secure Masked VoIP Calling Modal */}
-      <VoipCallModal 
-        open={callOpen} 
-        onClose={() => {
-          NativeNotifier.stopCallRingtone();
-          setCallOpen(false);
-          setIsIncomingCall(false);
-        }} 
-        bookingId={bookingId}
-        calleeName={tech?.name ? `${tech.name} (Technician)` : 'Assigned Technician'} 
-        role="Customer" 
-        isIncoming={isIncomingCall}
-        autoAnswer={new URLSearchParams(window.location.search).get('autoAnswer') === 'true'}
-      />
 
       {/* Instant Incoming Message Notification Banner */}
       <Snackbar

@@ -59,8 +59,6 @@ import ReceiptIcon from '@mui/icons-material/Receipt';
 import CloseIcon from '@mui/icons-material/Close';
 import CurrencyRupeeIcon from '@mui/icons-material/CurrencyRupee';
 
-import CancelBookingModal from '../../components/CancelBookingModal';
-import Modal, { ModalHeader, ModalBody, ModalFooter } from '../../components/Modal';
 import { useAuth } from '../../context/AuthContext';
 import { PageHeader, EmptyState, LoadingSkeleton, StatusChip } from '../../components/common';
 
@@ -124,10 +122,7 @@ export default function BookingHistoryPage() {
   const [filterTab, setFilterTab] = useState('all');
   const [bookings, setBookings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [cancelModalOpen, setCancelModalOpen] = useState(false);
-  const [selectedBookingForCancel, setSelectedBookingForCancel] = useState(null);
   const [expandedBookingId, setExpandedBookingId] = useState(null);
-  const [invoiceModalBooking, setInvoiceModalBooking] = useState(null);
 
   const formatDateTime = (dateStr) => {
     if (!dateStr) {
@@ -649,7 +644,7 @@ export default function BookingHistoryPage() {
                         size="small"
                         variant="outlined"
                         startIcon={<ReceiptIcon sx={{ fontSize: 14 }} />}
-                        onClick={() => setInvoiceModalBooking(item)}
+                        onClick={() => navigate(`/receipt/${item.id}`)}
                         sx={{ borderColor: '#CBD5E1', color: '#334155', borderRadius: '8px', fontWeight: 700, fontSize: '11px', py: 0.6, textTransform: 'none', '&:hover': { bgcolor: '#F8FAFC' } }}
                       >
                         Receipt
@@ -672,98 +667,6 @@ export default function BookingHistoryPage() {
         )}
 
       </Container>
-
-      {/* Digital Receipt / Invoice Modal */}
-      {invoiceModalBooking && (
-        <Modal
-          open={Boolean(invoiceModalBooking)}
-          onClose={() => setInvoiceModalBooking(null)}
-          maxWidth="xs"
-        >
-          <ModalHeader
-            title="Tax invoice & receipt"
-            subtitle={`Booking #${invoiceModalBooking.id}`}
-            onClose={() => setInvoiceModalBooking(null)}
-          />
-          <ModalBody>
-            <Box sx={{ bgcolor: '#F8FAFC', p: 2, borderRadius: '12px', border: '1px solid #E2E8F0', mb: 2 }}>
-              <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontSize: '12px' }}>Service date and time</Typography>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A', mb: 1.5, fontSize: '14px' }}>{formatDateTime(invoiceModalBooking.created_at)}</Typography>
-
-              <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontSize: '12px' }}>Assigned partner</Typography>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A', mb: 1.5, fontSize: '14px' }}>{invoiceModalBooking.technician_name || 'K. Ramesh (Salem Verified)'}</Typography>
-
-              <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontSize: '12px' }}>Doorstep address</Typography>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '14px' }}>{invoiceModalBooking.address_line || invoiceModalBooking.locality || 'Fairlands, Salem'}</Typography>
-            </Box>
-
-            <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748B', display: 'block', mb: 1, fontSize: '12px' }}>
-              Itemized charges
-            </Typography>
-
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-              <Typography variant="body2" sx={{ color: '#334155', fontSize: '13px' }}>Part 1: Inspection & doorstep travel fee</Typography>
-              <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '13px' }}>₹99.00</Typography>
-            </Box>
-
-            {invoiceModalBooking.status === 'completed' && (
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="body2" sx={{ color: '#334155', fontSize: '13px' }}>Part 2: Repair workmanship & skilled labour</Typography>
-                <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '13px' }}>₹{invoiceModalBooking.quote_subtotal || 800}.00</Typography>
-              </Box>
-            )}
-
-            <Divider sx={{ my: 1.5 }} />
-
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '14px' }}>Total amount paid</Typography>
-              <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#16A34A', fontSize: '18px' }}>
-                ₹{invoiceModalBooking.status === 'completed' ? (parseFloat(invoiceModalBooking.quote_subtotal || 800) + 99) : 99}.00
-              </Typography>
-            </Box>
-
-            <Box sx={{ mt: 2, p: 1.5, bgcolor: '#F0FDF4', borderRadius: '8px', border: '1px solid #BBF7D0' }}>
-              <Typography variant="caption" sx={{ color: '#166534', display: 'block', fontSize: '12px', lineHeight: 1.4 }}>
-                Protected by 30-day warranty guarantee across Salem Corporation limits.
-              </Typography>
-            </Box>
-          </ModalBody>
-          <ModalFooter>
-            <Button
-              fullWidth
-              variant="contained"
-              onClick={() => setInvoiceModalBooking(null)}
-              sx={{
-                bgcolor: '#0A66C2',
-                borderRadius: '14px',
-                textTransform: 'none',
-                fontWeight: 700,
-                height: 48,
-                fontSize: '14px',
-                '&:hover': { bgcolor: '#084e96' }
-              }}
-            >
-              Close receipt
-            </Button>
-          </ModalFooter>
-        </Modal>
-      )}
-
-      {/* Universal Cancel Booking Modal */}
-      {selectedBookingForCancel && (
-        <CancelBookingModal
-          open={cancelModalOpen}
-          onClose={() => {
-            setCancelModalOpen(false);
-            setSelectedBookingForCancel(null);
-          }}
-          bookingId={selectedBookingForCancel.id}
-          currentStatus={selectedBookingForCancel.status}
-          onCancelledSuccess={() => {
-            fetchHistory();
-          }}
-        />
-      )}
 
       {/* Bottom Navigation */}
       <Paper 

@@ -37,7 +37,6 @@ import SecurityIcon from '@mui/icons-material/Security';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 
 import ProcessingBackdrop from '../../components/ProcessingBackdrop';
-import CancelBookingModal from '../../components/CancelBookingModal';
 
 export default function QuoteReviewPage() {
   const navigate = useNavigate();
@@ -48,7 +47,6 @@ export default function QuoteReviewPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [quoteData, setQuoteData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [cancelModalOpen, setCancelModalOpen] = useState(false);
 
 
   // Reschedule return state when user buys parts
@@ -340,7 +338,7 @@ export default function QuoteReviewPage() {
             variant="outlined"
             fullWidth
             startIcon={<CancelOutlinedIcon sx={{ fontSize: 16 }} />}
-            onClick={() => setCancelModalOpen(true)}
+            onClick={() => navigate(`/booking/${bookingId}/cancel`)}
             sx={{
               borderColor: '#FECACA',
               color: '#DC2626',
@@ -358,15 +356,6 @@ export default function QuoteReviewPage() {
         </Box>
 
       </Container>
-
-      {/* Universal Cancel Booking Modal */}
-      <CancelBookingModal
-        open={cancelModalOpen}
-        onClose={() => setCancelModalOpen(false)}
-        bookingId={bookingId}
-        currentStatus="quote_presented"
-      />
-
 
       {/* Bottom Navigation */}
       <Paper elevation={0} sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, bgcolor: '#FFFFFF', borderTop: '1px solid #E2E8F0', zIndex: 1000, display: { xs: 'block', md: 'none' } }}>
