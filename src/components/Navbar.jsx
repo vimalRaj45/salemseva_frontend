@@ -30,10 +30,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import LanguageSelectorModal from './LanguageSelectorModal';
 import SideNavbar from './SideNavbar';
-import FeedbackModal from './FeedbackModal';
-import SupportTicketModal from './SupportTicketModal';
 import { SUPPORTED_LANGUAGES, getCurrentLanguage } from '../services/languageService';
 import { getLiveAccurateLocation } from '../utils/geoUtils';
 import toast from 'react-hot-toast';
@@ -100,11 +97,8 @@ export default function Navbar({
   const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-  // Modal States
+  // Drawer State
   const [isSideNavOpen, setIsSideNavOpen] = useState(false);
-  const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
-  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
-  const [isSupportTicketModalOpen, setIsSupportTicketModalOpen] = useState(false);
 
   // Search & Location
   const [selectedLocation, setSelectedLocation] = useState(propLocation || user?.locality || 'Fairlands, Salem');
@@ -1214,7 +1208,7 @@ export default function Navbar({
             {!isAdmin && !isMobile && (
               <button
                 type="button"
-                onClick={() => setIsLanguageModalOpen(true)}
+                onClick={() => navigate('/language')}
                 title="Change Language"
                 style={{
                   display: 'inline-flex',
@@ -1487,7 +1481,7 @@ export default function Navbar({
                         className="nav-hover-item"
                         onClick={() => {
                           setIsProfileOpen(false);
-                          setIsLanguageModalOpen(true);
+                          navigate('/language');
                         }}
                         style={{
                           display: 'flex',
@@ -1514,7 +1508,7 @@ export default function Navbar({
                         className="nav-hover-item"
                         onClick={() => {
                           setIsProfileOpen(false);
-                          setIsSupportTicketModalOpen(true);
+                          navigate('/support');
                         }}
                         style={{
                           display: 'flex',
@@ -1536,7 +1530,7 @@ export default function Navbar({
                         className="nav-hover-item"
                         onClick={() => {
                           setIsProfileOpen(false);
-                          setIsFeedbackModalOpen(true);
+                          navigate('/feedback');
                         }}
                         style={{
                           display: 'flex',
@@ -1643,27 +1637,6 @@ export default function Navbar({
         </div>
       </div>
 
-      {/* Language Selector Modal */}
-      <LanguageSelectorModal
-        open={isLanguageModalOpen}
-        onClose={() => setIsLanguageModalOpen(false)}
-        isDarkMode={false}
-      />
-
-      {/* Platform Feedback Modal */}
-      <FeedbackModal
-        open={isFeedbackModalOpen}
-        onClose={() => setIsFeedbackModalOpen(false)}
-        user={user}
-        userRole={userRole}
-      />
-
-      {/* In-App Support Ticket Modal */}
-      <SupportTicketModal
-        open={isSupportTicketModalOpen}
-        onClose={() => setIsSupportTicketModalOpen(false)}
-      />
-
       {/* Role Adaptive Slide-Out Drawer Panel */}
       <SideNavbar
         isOpen={isSideNavOpen}
@@ -1676,9 +1649,9 @@ export default function Navbar({
         isCustomer={isCustomer}
         isPartnerOnline={isPartnerOnline}
         onToggleDuty={handleToggleDutyStatus}
-        onOpenLanguageModal={() => setIsLanguageModalOpen(true)}
-        onOpenFeedbackModal={() => setIsFeedbackModalOpen(true)}
-        onOpenSupportTicketModal={() => setIsSupportTicketModalOpen(true)}
+        onOpenLanguageModal={() => navigate('/language')}
+        onOpenFeedbackModal={() => navigate('/feedback')}
+        onOpenSupportTicketModal={() => navigate('/support')}
         logout={logout}
         logoutTech={logoutTech}
       />

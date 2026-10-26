@@ -5,7 +5,26 @@ import { Box } from '@mui/material';
 
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import LanguageSelectorModal from './components/LanguageSelectorModal';
+
+// Customer & Global Action Pages (Migrated from Modals)
+import LanguageSelectionPage from './pages/customer/LanguageSelectionPage';
+import FeedbackPage from './pages/customer/FeedbackPage';
+import SupportHubPage from './pages/customer/SupportHubPage';
+import LocationPickerPage from './pages/customer/LocationPickerPage';
+import BookingReceiptPage from './pages/customer/BookingReceiptPage';
+import BookingAddressPage from './pages/customer/BookingAddressPage';
+
+// Partner Action Pages (Migrated from Modals)
+import PartnerSettlementSlipPage from './pages/partner/PartnerSettlementSlipPage';
+import PartnerProfilePage from './pages/partner/PartnerProfilePage';
+import PartnerJobReschedulePage from './pages/partner/PartnerJobReschedulePage';
+
+// Admin Action Pages (Migrated from Modals)
+import AdminPaymentOverridePage from './pages/admin/AdminPaymentOverridePage';
+import AdminLiveTrackingPage from './pages/admin/AdminLiveTrackingPage';
+import AdminDispatchPage from './pages/admin/AdminDispatchPage';
+import AdminOrderCancelPage from './pages/admin/AdminOrderCancelPage';
+import AuthHelpPage from './pages/auth/AuthHelpPage';
 
 // Customer Pages
 import CustomerHomePage from './pages/customer/CustomerHomePage';
@@ -116,7 +135,14 @@ function CustomerActiveJobGuard({ children }) {
       '/how-it-works',
       '/welcome',
       '/login',
-      '/register'
+      '/register',
+      '/language',
+      '/feedback',
+      '/support',
+      '/location',
+      '/receipt',
+      '/partner',
+      '/admin'
     ].some(p => location.pathname.startsWith(p));
     
     if (!isCustomerRoute || isExemptRoute) return;
@@ -199,6 +225,11 @@ function InitialHomeRoute() {
     return <Navigate to="/partner" replace />;
   }
 
+  const hasChosenLang = localStorage.getItem('shazuone_lang_chosen');
+  if (!hasChosenLang && !user) {
+    return <Navigate to="/language?firstTime=true" replace />;
+  }
+
   const hasSeen = localStorage.getItem('shazuone_has_seen_onboarding');
   if (!hasSeen && !user) {
     return <Navigate to="/welcome" replace />;
@@ -216,9 +247,23 @@ function MainLayout({ walletBalance, currentBooking, setCurrentBooking }) {
     isAuthPage ||
     location.pathname === '/how-it-works' ||
     location.pathname === '/welcome' ||
+    location.pathname === '/language' ||
+    location.pathname === '/feedback' ||
+    location.pathname === '/support' ||
+    location.pathname === '/location' ||
+    location.pathname.startsWith('/receipt/') ||
     location.pathname.startsWith('/call/') ||
     location.pathname.startsWith('/chat/') ||
-    location.pathname.startsWith('/booking/');
+    location.pathname.startsWith('/booking/') ||
+    location.pathname.startsWith('/partner/settlements/') ||
+    location.pathname === '/partner/profile' ||
+    location.pathname.startsWith('/partner/duty/reschedule/') ||
+    location.pathname.startsWith('/admin/settlements/') ||
+    location.pathname.startsWith('/admin/jobs/') ||
+    location.pathname.startsWith('/admin/dispatch/') ||
+    location.pathname.startsWith('/admin/orders/') ||
+    location.pathname === '/login/help' ||
+    location.pathname === '/auth/help';
 
   return (
     <CustomerActiveJobGuard>
@@ -234,10 +279,29 @@ function MainLayout({ walletBalance, currentBooking, setCurrentBooking }) {
         }}>
           <Routes>
             {/* Dedicated Action Pages (Migrated from Modals) */}
+            <Route path="/language" element={<LanguageSelectionPage />} />
+            <Route path="/feedback" element={<FeedbackPage />} />
+            <Route path="/support" element={<SupportHubPage />} />
+            <Route path="/location" element={<LocationPickerPage />} />
+            <Route path="/receipt/:bookingId" element={<BookingReceiptPage />} />
+            <Route path="/booking/address" element={<BookingAddressPage />} />
             <Route path="/chat/:bookingId" element={<BookingChatPage />} />
             <Route path="/call/:bookingId" element={<VoipCallingPage />} />
             <Route path="/booking/:bookingId/cancel" element={<BookingCancelPage />} />
             <Route path="/booking/:bookingId/reschedule" element={<BookingReschedulePage />} />
+
+            {/* Partner Dedicated Action Pages */}
+            <Route path="/partner/settlements/:bookingId" element={<PartnerSettlementSlipPage />} />
+            <Route path="/partner/profile" element={<PartnerProfilePage />} />
+            <Route path="/partner/duty/reschedule/:bookingId" element={<PartnerJobReschedulePage />} />
+
+            {/* Admin Dedicated Action Pages */}
+            <Route path="/admin/settlements/:bookingId/override" element={<AdminPaymentOverridePage />} />
+            <Route path="/admin/jobs/:bookingId/live-track" element={<AdminLiveTrackingPage />} />
+            <Route path="/admin/dispatch/:bookingId" element={<AdminDispatchPage />} />
+            <Route path="/admin/orders/:bookingId/cancel" element={<AdminOrderCancelPage />} />
+            <Route path="/login/help" element={<AuthHelpPage />} />
+            <Route path="/auth/help" element={<Navigate to="/login/help" replace />} />
 
             {/* Customer Routes - Blocked for authenticated technicians */}
             <Route path="/onboarding" element={<CustomerRouteGuard><CustomerOnboardingPage onLoginSuccess={(u) => console.log('Logged in:', u)} /></CustomerRouteGuard>} />
@@ -298,7 +362,6 @@ function AppContent() {
   const { user } = useAuth();
   const [currentBooking, setCurrentBooking] = useState(null);
   const [showSplash, setShowSplash] = useState(true);
-  const [showFirstTimeLangModal, setShowFirstTimeLangModal] = useState(false);
 
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
@@ -311,19 +374,6 @@ function AppContent() {
       }
     }
   }, []);
-
-  useEffect(() => {
-    // When splash finishes, check if user has chosen their preferred language yet
-    if (!showSplash) {
-      const hasChosen = localStorage.getItem('shazuone_lang_chosen');
-      if (!hasChosen) {
-        const timer = setTimeout(() => {
-          setShowFirstTimeLangModal(true);
-        }, 300);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [showSplash]);
 
   const walletBalance = user?.walletBalance ?? 150;
 
@@ -340,13 +390,6 @@ function AppContent() {
           walletBalance={walletBalance}
           currentBooking={currentBooking}
           setCurrentBooking={setCurrentBooking}
-        />
-
-        {/* First-time Language Choice Modal */}
-        <LanguageSelectorModal
-          open={showFirstTimeLangModal}
-          onClose={() => setShowFirstTimeLangModal(false)}
-          isFirstTime
         />
 
       {/* PWA Floating Install Prompt */}
