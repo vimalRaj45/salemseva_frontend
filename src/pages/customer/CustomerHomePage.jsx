@@ -53,6 +53,15 @@ export default function CustomerHomePage() {
   const [services, setServices] = useState([]);
   const [servicesAvailability, setServicesAvailability] = useState({});
   const [isLoading, setIsLoading] = useState(true);
+  const [expandedBenefits, setExpandedBenefits] = useState({});
+
+  const toggleBenefits = (e, svcId) => {
+    e.stopPropagation();
+    setExpandedBenefits(prev => ({
+      ...prev,
+      [svcId]: !prev[svcId]
+    }));
+  };
   const [userLocation, setUserLocation] = useState(() => {
     const saved = localStorage.getItem('shazuone_user_location');
     return saved ? JSON.parse(saved) : {
@@ -871,13 +880,13 @@ export default function CustomerHomePage() {
                       }
                     }}
                   >
-                    {/* 1. Photo Header (3:2 on desktop/tablet, 4:3 on mobile) */}
+                    {/* 1. Photo Header (3:2 on desktop/tablet, 16:11 compact on mobile) */}
                     <Box sx={{ position: 'relative', width: '100%' }}>
                       <Box
                         sx={{
                           position: 'relative',
                           width: '100%',
-                          aspectRatio: { xs: '4/3', sm: '3/2' },
+                          aspectRatio: { xs: '16/11', sm: '3/2' },
                           overflow: 'hidden',
                           bgcolor: '#F1F5F9',
                           borderTopLeftRadius: { xs: '12px', sm: '16px' },
@@ -909,7 +918,7 @@ export default function CustomerHomePage() {
                           }}
                         />
 
-                        {/* Optional ribbon: Customer favourite tag */}
+                        {/* Optional ribbon: Customer favourite tag (hidden on mobile to prevent overlap with status) */}
                         {meta.ribbon && (
                           <Box
                             sx={{
@@ -918,14 +927,15 @@ export default function CustomerHomePage() {
                               left: { xs: 8, sm: 12 },
                               bgcolor: '#0066CC',
                               color: '#FFFFFF',
-                              fontSize: { xs: '9.5px', sm: '11px' },
+                              fontSize: { xs: '9px', sm: '11px' },
                               fontWeight: 700,
                               px: { xs: 0.8, sm: 1.2 },
                               py: { xs: 0.25, sm: 0.4 },
                               borderRadius: '6px',
                               boxShadow: '0 2px 6px rgba(0, 102, 204, 0.35)',
                               letterSpacing: '0.02em',
-                              lineHeight: 1.2
+                              lineHeight: 1.2,
+                              display: { xs: 'none', sm: 'block' }
                             }}
                           >
                             {meta.ribbon}
@@ -970,10 +980,10 @@ export default function CustomerHomePage() {
                         sx={{
                           position: 'absolute',
                           bottom: { xs: '-14px', sm: '-18px' },
-                          left: { xs: '12px', sm: '20px' },
-                          width: { xs: '32px', sm: '40px' },
-                          height: { xs: '32px', sm: '40px' },
-                          borderRadius: { xs: '8px', sm: '10px' },
+                          left: { xs: '10px', sm: '20px' },
+                          width: { xs: '30px', sm: '40px' },
+                          height: { xs: '30px', sm: '40px' },
+                          borderRadius: { xs: '7px', sm: '10px' },
                           bgcolor: '#FFFFFF',
                           border: '1px solid #E2E8F0',
                           boxShadow: '0 4px 12px rgba(15, 23, 42, 0.08)',
@@ -982,7 +992,7 @@ export default function CustomerHomePage() {
                           justifyContent: 'center',
                           zIndex: 3,
                           '& svg': {
-                            fontSize: { xs: '16px !important', sm: '20px !important' }
+                            fontSize: { xs: '15px !important', sm: '20px !important' }
                           }
                         }}
                       >
@@ -993,9 +1003,9 @@ export default function CustomerHomePage() {
                     {/* 2. Content Area */}
                     <Box
                       sx={{
-                        pt: { xs: '18px', sm: '26px' },
-                        px: { xs: '12px', sm: '20px' },
-                        pb: { xs: '14px', sm: '20px' },
+                        pt: { xs: '16px', sm: '26px' },
+                        px: { xs: '10px', sm: '20px' },
+                        pb: { xs: '12px', sm: '20px' },
                         display: 'flex',
                         flexDirection: 'column',
                         flex: 1
@@ -1005,13 +1015,13 @@ export default function CustomerHomePage() {
                       <Typography
                         variant="h6"
                         sx={{
-                          fontSize: { xs: '13.5px', sm: '18px' },
+                          fontSize: { xs: '13px', sm: '18px' },
                           fontWeight: 800,
                           color: '#0F172A',
                           letterSpacing: '-0.3px',
                           lineHeight: 1.25,
-                          mb: { xs: 0.4, sm: 0.8 },
-                          minHeight: { xs: '34px', sm: 'auto' }
+                          mb: { xs: 0.3, sm: 0.8 },
+                          minHeight: { xs: '32px', sm: 'auto' }
                         }}
                       >
                         {meta.name}
@@ -1021,11 +1031,11 @@ export default function CustomerHomePage() {
                       <Typography
                         variant="body2"
                         sx={{
-                          fontSize: { xs: '11px', sm: '14px' },
+                          fontSize: { xs: '10.5px', sm: '14px' },
                           color: '#475569',
                           lineHeight: 1.35,
-                          mb: { xs: 1.2, sm: 2 },
-                          minHeight: { xs: '30px', sm: '40px' },
+                          mb: { xs: 1, sm: 2 },
+                          minHeight: { xs: '26px', sm: '40px' },
                           display: '-webkit-box',
                           WebkitLineClamp: 2,
                           WebkitBoxOrient: 'vertical',
@@ -1035,37 +1045,73 @@ export default function CustomerHomePage() {
                         {meta.desc}
                       </Typography>
 
-                      {/* Row of benefit chips */}
+                      {/* Row of benefit chips with +more toggle on mobile */}
                       <Box
                         sx={{
                           display: 'flex',
                           alignItems: 'center',
                           gap: { xs: '4px', sm: '6px' },
                           flexWrap: 'wrap',
-                          mb: { xs: 1.5, sm: 2.5 }
+                          mb: { xs: 1.2, sm: 2.5 }
                         }}
                       >
-                        {meta.benefits.map((benefit, i) => (
+                        {meta.benefits.map((benefit, i) => {
+                          const isExpanded = Boolean(expandedBenefits[svc.id]);
+                          const isHiddenOnMobile = i > 0 && !isExpanded;
+
+                          return (
+                            <Box
+                              key={i}
+                              sx={{
+                                height: { xs: '22px', sm: '28px' },
+                                px: { xs: '7px', sm: '10px' },
+                                borderRadius: '999px',
+                                bgcolor: '#F8FAFC',
+                                border: '1px solid #E2E8F0',
+                                color: '#475569',
+                                fontSize: { xs: '9.5px', sm: '11.5px' },
+                                fontWeight: 600,
+                                display: isHiddenOnMobile ? { xs: 'none', sm: 'inline-flex' } : 'inline-flex',
+                                alignItems: 'center',
+                                lineHeight: 1,
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              {benefit}
+                            </Box>
+                          );
+                        })}
+
+                        {/* Mobile +more / less toggle */}
+                        {meta.benefits.length > 1 && (
                           <Box
-                            key={i}
+                            component="button"
+                            type="button"
+                            aria-label={expandedBenefits[svc.id] ? "Show fewer benefits" : `Show ${meta.benefits.length - 1} more benefits`}
+                            onClick={(e) => toggleBenefits(e, svc.id)}
                             sx={{
-                              height: { xs: '22px', sm: '28px' },
-                              px: { xs: '7px', sm: '10px' },
+                              display: { xs: 'inline-flex', sm: 'none' },
+                              height: '22px',
+                              px: '7px',
                               borderRadius: '999px',
-                              bgcolor: '#F8FAFC',
-                              border: '1px solid #E2E8F0',
-                              color: '#475569',
-                              fontSize: { xs: '9.5px', sm: '11.5px' },
-                              fontWeight: 600,
-                              display: 'inline-flex',
+                              bgcolor: expandedBenefits[svc.id] ? '#EFF6FF' : '#F1F5F9',
+                              border: expandedBenefits[svc.id] ? '1px solid #BFDBFE' : '1px solid #CBD5E1',
+                              color: expandedBenefits[svc.id] ? '#0066CC' : '#475569',
+                              fontSize: '9.5px',
+                              fontWeight: 700,
                               alignItems: 'center',
+                              cursor: 'pointer',
                               lineHeight: 1,
-                              whiteSpace: 'nowrap'
+                              whiteSpace: 'nowrap',
+                              outline: 'none',
+                              '&:hover': {
+                                bgcolor: '#E2E8F0'
+                              }
                             }}
                           >
-                            {benefit}
+                            {expandedBenefits[svc.id] ? 'Less' : `+${meta.benefits.length - 1} more`}
                           </Box>
-                        ))}
+                        )}
                       </Box>
 
                       {/* 3. Footer Row, separated by a 1px top border (pinned to bottom) */}
