@@ -35,7 +35,6 @@ import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import { resolveMediaUrl } from '../../utils/mediaUtils';
 import { API_V1_URL } from '../../config';
-import { Modal, ModalHeader, ModalBody, ModalFooter } from '../../components/Modal';
 
 export default function AdminTechnicianDossierPage() {
   const { id } = useParams();
@@ -45,7 +44,6 @@ export default function AdminTechnicianDossierPage() {
   const [jobsHistory, setJobsHistory] = useState([]);
   const [financials, setFinancials] = useState({ lifetimeEarnings: 0, grossJobVolume: 0 });
   const [loading, setLoading] = useState(true);
-  const [aadhaarModalOpen, setAadhaarModalOpen] = useState(false);
   const [actionNotice, setActionNotice] = useState('');
 
   const fetchDossier = async () => {
@@ -301,7 +299,22 @@ export default function AdminTechnicianDossierPage() {
                     component="img"
                     src={resolveMediaUrl(tech.aadhaar_card_url || tech.aadhaarCardUrl)}
                     alt="Aadhaar Document"
-                    onClick={() => setAadhaarModalOpen(true)}
+                    onClick={() => {
+                      const docUrl = tech.aadhaar_card_url || tech.aadhaarCardUrl;
+                      if (docUrl) {
+                        navigate('/admin/documents/preview', {
+                          state: {
+                            document: {
+                              url: docUrl,
+                              title: `${tech.full_name || tech.name} - Aadhaar Inspection`,
+                              type: 'aadhaar',
+                              data: tech
+                            },
+                            returnTo: `/admin/technicians/${tech.id}/dossier`
+                          }
+                        });
+                      }
+                    }}
                     sx={{
                       width: '100%',
                       maxHeight: 220,
@@ -320,7 +333,22 @@ export default function AdminTechnicianDossierPage() {
                       size="small"
                       variant="outlined"
                       startIcon={<VisibilityIcon sx={{ fontSize: 14 }} />}
-                      onClick={() => setAadhaarModalOpen(true)}
+                      onClick={() => {
+                        const docUrl = tech.aadhaar_card_url || tech.aadhaarCardUrl;
+                        if (docUrl) {
+                          navigate('/admin/documents/preview', {
+                            state: {
+                              document: {
+                                url: docUrl,
+                                title: `${tech.full_name || tech.name} - Aadhaar Inspection`,
+                                type: 'aadhaar',
+                                data: tech
+                              },
+                              returnTo: `/admin/technicians/${tech.id}/dossier`
+                            }
+                          });
+                        }
+                      }}
                       sx={{ textTransform: 'none', fontWeight: 800, fontSize: '11px', borderRadius: '8px', color: '#0284C7', borderColor: '#BAE6FD' }}
                     >
                       Enlarge Document
@@ -489,32 +517,6 @@ export default function AdminTechnicianDossierPage() {
           </Grid>
         </Grid>
       </Container>
-
-      {/* Aadhaar Full-Screen Zoom Modal */}
-      <Modal open={aadhaarModalOpen} onClose={() => setAadhaarModalOpen(false)} maxWidth="md">
-        <ModalHeader
-          title="Aadhaar Document Inspection"
-          subtitle={`Technician: ${tech.full_name} • ID: #${tech.id}`}
-          onClose={() => setAadhaarModalOpen(false)}
-        />
-        <ModalBody sx={{ p: 2, textAlign: 'center', bgcolor: '#0F172A' }}>
-          {(tech.aadhaar_card_url || tech.aadhaarCardUrl) ? (
-            <Box
-              component="img"
-              src={resolveMediaUrl(tech.aadhaar_card_url || tech.aadhaarCardUrl)}
-              alt="High-Res Aadhaar Scan"
-              sx={{ width: '100%', maxHeight: '75vh', objectFit: 'contain', borderRadius: '8px' }}
-            />
-          ) : (
-            <Typography variant="body2" sx={{ color: '#CBD5E1' }}>No document available</Typography>
-          )}
-        </ModalBody>
-        <ModalFooter>
-          <Button variant="contained" onClick={() => setAadhaarModalOpen(false)} sx={{ bgcolor: '#0284C7', textTransform: 'none', fontWeight: 700 }}>
-            Done Inspecting
-          </Button>
-        </ModalFooter>
-      </Modal>
     </Box>
   );
 }

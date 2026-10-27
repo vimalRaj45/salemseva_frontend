@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -13,10 +14,6 @@ import {
   IconButton,
   TextField,
   InputAdornment,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   FormControl,
   InputLabel,
   Select,
@@ -27,7 +24,6 @@ import {
   Grid,
   CircularProgress
 } from '@mui/material';
-import Modal, { ModalHeader, ModalBody, ModalFooter } from '../../components/Modal';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -62,6 +58,7 @@ const getServiceCategoryIcon = (category) => {
 };
 
 export default function AdminServicesModule({ currentRole = 'super_admin', onToast = () => {} }) {
+  const navigate = useNavigate();
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
@@ -120,78 +117,15 @@ const formatServicePrice = (srv) => {
 };
 
   const handleOpenFeeDialog = (srv) => {
-    setSelectedServiceForFee(srv);
-    const rawVal = srv.visit_fee ?? srv.visitFee ?? '99.00';
-    const parsed = parseFloat(rawVal);
-    setNewVisitFee(isNaN(parsed) ? '99.00' : parsed.toFixed(2));
-    setFeeDialogOpen(true);
-  };
-
-  const handleSaveVisitFee = async () => {
-    if (!selectedServiceForFee) return;
-    const feeNum = parseFloat(newVisitFee);
-    if (isNaN(feeNum) || feeNum < 0) {
-      onToast('Please enter a valid positive inspection fee', 'warning');
-      return;
-    }
-
-    try {
-      setSavingFee(true);
-      const payload = JSON.stringify({ visitFee: feeNum, visit_fee: feeNum, fee: feeNum });
-      const res = await fetch(`${API_V1_URL}/admin/services/${selectedServiceForFee.id}/fee`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: payload
-      });
-
-      const data = await res.json();
-      if (res.ok && data.success) {
-        const formattedFee = feeNum.toFixed(2);
-        onToast(`Inspection fee updated to ₹${formattedFee} for ${selectedServiceForFee.name}`, 'success');
-        setServices(prev => prev.map(s => (s.id === selectedServiceForFee.id ? {
-          ...s,
-          visit_fee: formattedFee,
-          visitFee: feeNum,
-          inspectionFee: feeNum
-        } : s)));
-        setFeeDialogOpen(false);
-        fetchServices();
-      } else {
-        onToast(data.error || 'Failed to update inspection fee in database', 'error');
-      }
-    } catch (err) {
-      onToast(err.message || 'Error updating fee', 'error');
-    } finally {
-      setSavingFee(false);
-    }
+    navigate(`/admin/services/${srv.id}/edit`, { state: { service: srv } });
   };
 
   const handleOpenCreateService = () => {
-    setEditingService(null);
-    setFormData({
-      id: `srv_${Date.now()}`,
-      name: '',
-      category: 'ac',
-      base_price: '299.00',
-      visit_fee: '99.00',
-      description: '',
-      rating_avg: '4.85'
-    });
-    setServiceModalOpen(true);
+    navigate('/admin/services/new');
   };
 
   const handleOpenEditService = (srv) => {
-    setEditingService(srv);
-    setFormData({
-      id: srv.id,
-      name: srv.name_en || srv.name || '',
-      category: srv.category || 'ac',
-      base_price: srv.base_price || (srv.est_price_range_en ? srv.est_price_range_en.split('-')[0].replace(/[^0-9]/g, '') : '299.00'),
-      visit_fee: srv.visit_fee ? String(srv.visit_fee) : '99.00',
-      description: srv.description || '',
-      rating_avg: srv.rating_avg || '4.85'
-    });
-    setServiceModalOpen(true);
+    navigate(`/admin/services/${srv.id}/edit`, { state: { service: srv } });
   };
 
   const handleSaveService = async (e) => {
@@ -565,217 +499,6 @@ const formatServicePrice = (srv) => {
         </Box>
       )}
       </Card>
-
-      {/* Quick Edit Visit/Inspection Fee Modal */}
-      <Modal
-        open={feeDialogOpen}
-        onClose={() => !savingFee && setFeeDialogOpen(false)}
-        maxWidth="xs"
-      >
-        <ModalHeader
-          title="Update inspection fee"
-          subtitle={selectedServiceForFee ? `Doorstep visit charge for ${selectedServiceForFee.name}` : 'Inspection fee'}
-          onClose={() => !savingFee && setFeeDialogOpen(false)}
-        />
-        <ModalBody>
-          <Typography variant="body2" sx={{ color: '#64748B', mb: 2, fontSize: '13px' }}>
-            This diagnostic fee is charged to customer for doorstep diagnostic assessment.
-          </Typography>
-
-          <TextField
-            fullWidth
-            label="Doorstep inspection fee (₹)"
-            type="number"
-            value={newVisitFee}
-            onChange={(e) => setNewVisitFee(e.target.value)}
-            InputProps={{
-              startAdornment: <InputAdornment position="start">₹</InputAdornment>,
-              sx: { borderRadius: '12px', fontWeight: 700, fontSize: '15px' }
-            }}
-            sx={{ mb: 2.5 }}
-          />
-
-          {/* Quick preset chips */}
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-            <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 600, width: '100%', fontSize: '12px' }}>
-              Quick presets:
-            </Typography>
-            {['49.00', '79.00', '99.00', '149.00', '199.00'].map(preset => (
-              <Chip
-                key={preset}
-                label={`₹${preset}`}
-                clickable
-                onClick={() => setNewVisitFee(preset)}
-                sx={{
-                  fontWeight: 600,
-                  fontSize: '12px',
-                  borderRadius: '999px',
-                  minHeight: 36,
-                  bgcolor: newVisitFee === preset ? '#0A66C2' : '#F1F5F9',
-                  color: newVisitFee === preset ? '#FFFFFF' : '#475569',
-                  '&:hover': { bgcolor: newVisitFee === preset ? '#084e96' : '#E2E8F0' }
-                }}
-              />
-            ))}
-          </Box>
-        </ModalBody>
-        <ModalFooter>
-          <Button
-            onClick={() => setFeeDialogOpen(false)}
-            disabled={savingFee}
-            sx={{ fontWeight: 600, color: '#64748B', textTransform: 'none', height: 48 }}
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleSaveVisitFee}
-            disabled={savingFee}
-            sx={{
-              bgcolor: '#0A66C2',
-              color: '#FFFFFF',
-              fontWeight: 700,
-              borderRadius: '14px',
-              textTransform: 'none',
-              height: 48,
-              minWidth: 160,
-              fontSize: '14px',
-              '&:hover': { bgcolor: '#084e96' }
-            }}
-          >
-            {savingFee ? 'Saving...' : 'Save inspection fee'}
-          </Button>
-        </ModalFooter>
-      </Modal>
-
-      {/* Full Create / Edit Service Modal */}
-      <Modal
-        open={serviceModalOpen}
-        onClose={() => !savingService && setServiceModalOpen(false)}
-        maxWidth="sm"
-      >
-        <ModalHeader
-          title={editingService ? `Edit service: ${editingService.name}` : 'Create new service'}
-          subtitle="Configure pricing, categories, and service details"
-          onClose={() => !savingService && setServiceModalOpen(false)}
-        />
-        <Box component="form" onSubmit={handleSaveService} sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
-          <ModalBody>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Service name"
-                  placeholder="e.g., Water Purifier Full Service"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
-                  InputProps={{ sx: { borderRadius: '12px' } }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Category</InputLabel>
-                  {/* ds-allow-native-select */}
-                  <Select
-                    value={formData.category}
-                    label="Category"
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    sx={{ borderRadius: '12px' }}
-                  >
-                    <MenuItem value="ac">AC Repair</MenuItem>
-                    <MenuItem value="electrical">Electrician</MenuItem>
-                    <MenuItem value="plumbing">Plumbing</MenuItem>
-                    <MenuItem value="cleaning">Home Cleaning</MenuItem>
-                    <MenuItem value="painting">Painting</MenuItem>
-                    <MenuItem value="carpentry">Carpentry</MenuItem>
-                    <MenuItem value="appliances">Appliances</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Base price (₹)"
-                  type="number"
-                  placeholder="299.00"
-                  value={formData.base_price}
-                  onChange={(e) => setFormData({ ...formData, base_price: e.target.value })}
-                  required
-                  InputProps={{
-                    startAdornment: <InputAdornment position="start">₹</InputAdornment>,
-                    sx: { borderRadius: '12px' }
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Inspection visit fee (₹)"
-                  type="number"
-                  placeholder="99.00"
-                  value={formData.visit_fee}
-                  onChange={(e) => setFormData({ ...formData, visit_fee: e.target.value })}
-                  required
-                  InputProps={{
-                    startAdornment: <InputAdornment position="start">₹</InputAdornment>,
-                    sx: { borderRadius: '12px' }
-                  }}
-                  helperText="Doorstep assessment charge"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Display rating"
-                  value={formData.rating_avg}
-                  onChange={(e) => setFormData({ ...formData, rating_avg: e.target.value })}
-                  InputProps={{ sx: { borderRadius: '12px' } }}
-                  helperText="Default rating score (e.g. 4.85)"
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Description / Scope of work"
-                  multiline
-                  rows={3}
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  InputProps={{ sx: { borderRadius: '12px' } }}
-                />
-              </Grid>
-            </Grid>
-          </ModalBody>
-          <ModalFooter>
-            <Button
-              onClick={() => setServiceModalOpen(false)}
-              disabled={savingService}
-              sx={{ fontWeight: 600, color: '#64748B', textTransform: 'none', height: 48 }}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={savingService}
-              sx={{
-                bgcolor: '#0A66C2',
-                color: '#FFFFFF',
-                fontWeight: 700,
-                borderRadius: '14px',
-                textTransform: 'none',
-                height: 48,
-                minWidth: 150,
-                fontSize: '14px',
-                '&:hover': { bgcolor: '#084e96' }
-              }}
-            >
-              {savingService ? 'Saving...' : editingService ? 'Update service' : 'Create service'}
-            </Button>
-          </ModalFooter>
-        </Box>
-      </Modal>
     </Box>
   );
 }

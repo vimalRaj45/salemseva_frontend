@@ -1,4 +1,5 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -23,7 +24,6 @@ import {
   Avatar,
   CircularProgress
 } from '@mui/material';
-import Modal, { ModalHeader, ModalBody, ModalFooter } from '../../components/Modal';
 import GroupIcon from '@mui/icons-material/Group';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -71,6 +71,7 @@ const roleMeta = {
 };
 
 export default function AdminTeamModule({ currentRole = 'super_admin', onToast = () => {} }) {
+  const navigate = useNavigate();
   const [team, setTeam] = useState([]);
   const [loading, setLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -108,29 +109,11 @@ export default function AdminTeamModule({ currentRole = 'super_admin', onToast =
   }, []);
 
   const handleOpenAdd = () => {
-    setEditingMember(null);
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      role: 'ops_dispatcher',
-      hub_locality: 'Salem Central HQ',
-      status: 'active'
-    });
-    setDialogOpen(true);
+    navigate('/admin/team/new');
   };
 
   const handleOpenEdit = (m) => {
-    setEditingMember(m);
-    setFormData({
-      name: m.name,
-      email: m.email,
-      phone: m.phone || '',
-      role: m.role,
-      hub_locality: m.hub_locality || 'Salem Central HQ',
-      status: m.status || 'active'
-    });
-    setDialogOpen(true);
+    navigate(`/admin/team/${m.id}/edit`, { state: { member: m } });
   };
 
   const handleSave = async (e) => {
@@ -453,126 +436,6 @@ export default function AdminTeamModule({ currentRole = 'super_admin', onToast =
         </Box>
       )}
       </Card>
-
-      {/* Add / Edit Staff Modal */}
-      <Modal
-        open={dialogOpen}
-        onClose={() => !saving && setDialogOpen(false)}
-        maxWidth="sm"
-      >
-        <ModalHeader
-          title={editingMember ? `Edit staff member: ${editingMember.name}` : 'Add operations staff member'}
-          subtitle="Configure operations role, hub locality, and permissions"
-          onClose={() => !saving && setDialogOpen(false)}
-        />
-        <Box component="form" onSubmit={handleSave} sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
-          <ModalBody>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Full name"
-                  placeholder="e.g. Anand M."
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
-                  InputProps={{ sx: { borderRadius: '12px' } }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Official email"
-                  type="email"
-                  placeholder="e.g. anand@Shazu One.in"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
-                  InputProps={{ sx: { borderRadius: '12px' } }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Phone number"
-                  placeholder="+91 98421 00000"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  InputProps={{ sx: { borderRadius: '12px' } }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Operational role</InputLabel>
-                  {/* ds-allow-native-select */}
-                  <Select
-                    value={formData.role}
-                    label="Operational role"
-                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                    sx={{ borderRadius: '12px' }}
-                  >
-                    <MenuItem value="super_admin">Super Admin (Root)</MenuItem>
-                    <MenuItem value="ops_dispatcher">Ops Dispatcher</MenuItem>
-                    <MenuItem value="support_quality">Support & Quality</MenuItem>
-                    <MenuItem value="finance_officer">Finance Officer</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Hub / Locality"
-                  value={formData.hub_locality}
-                  onChange={(e) => setFormData({ ...formData, hub_locality: e.target.value })}
-                  InputProps={{ sx: { borderRadius: '12px' } }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Status</InputLabel>
-                  {/* ds-allow-native-select */}
-                  <Select
-                    value={formData.status}
-                    label="Status"
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    sx={{ borderRadius: '12px' }}
-                  >
-                    <MenuItem value="active">Active</MenuItem>
-                    <MenuItem value="suspended">Suspended</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-            </Grid>
-          </ModalBody>
-          <ModalFooter>
-            <Button
-              onClick={() => setDialogOpen(false)}
-              disabled={saving}
-              sx={{ fontWeight: 600, color: '#64748B', textTransform: 'none', height: 48 }}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={saving}
-              sx={{
-                bgcolor: '#0A66C2',
-                color: '#FFFFFF',
-                fontWeight: 700,
-                borderRadius: '14px',
-                textTransform: 'none',
-                height: 48,
-                minWidth: 150,
-                fontSize: '14px',
-                '&:hover': { bgcolor: '#084e96' }
-              }}
-            >
-              {saving ? 'Saving...' : editingMember ? 'Update staff member' : 'Save staff member'}
-            </Button>
-          </ModalFooter>
-        </Box>
-      </Modal>
     </Box>
   );
 }

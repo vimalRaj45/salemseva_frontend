@@ -45,7 +45,6 @@ import {
 import { FormHelperText, Chip } from '@mui/material';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
-import AuthHelpModal from '../../components/AuthHelpModal';
 
 const SALEM_LOCALITIES = [
   'Fairlands, Salem',
@@ -2569,7 +2568,7 @@ export default function AuthPage({ initialMode = 'login' }) {
                 <Button
                   size="small"
                   variant="text"
-                  onClick={() => setHelpModalOpen(true)}
+                  onClick={() => navigate('/auth/help', { state: { returnTo: location.pathname } })}
                   startIcon={<HelpCircle size={13} color="#64748B" />}
                   sx={{
                     color: '#64748B',
@@ -2676,9 +2675,6 @@ export default function AuthPage({ initialMode = 'login' }) {
           </Box>
         </Box>
       </Card>
-
-      {/* Account Trouble / Help Modal */}
-      <AuthHelpModal open={helpModalOpen} onClose={() => setHelpModalOpen(false)} />
     </Box>
   );
 }

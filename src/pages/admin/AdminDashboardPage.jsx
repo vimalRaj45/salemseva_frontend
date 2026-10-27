@@ -128,10 +128,7 @@ import AdminWhatsAppModule from './AdminWhatsAppModule';
 import AdminDispatchDrawer from './AdminDispatchDrawer';
 import AdminTechnicianDossierDrawer from './AdminTechnicianDossierDrawer';
 import AdminCustomerDossierDrawer from './AdminCustomerDossierDrawer';
-import AdminTrackingModal from './AdminTrackingModal';
-import AdminPaymentOverrideModal from '../../components/AdminPaymentOverrideModal';
 import LeadAudioPlayer from '../../components/LeadAudioPlayer';
-import Modal, { ModalHeader, ModalBody, ModalFooter } from '../../components/Modal';
 import { useAuth } from '../../context/AuthContext';
 
 import { API_V1_URL } from '../../config';
@@ -614,48 +611,15 @@ export default function AdminDashboardPage() {
     return () => clearInterval(interval);
   }, [activeMainTab]);
 
-  // Open Customer Full History Modal
-  const handleOpenCustomerHistory = async (customer) => {
+  // Open Customer Full History Page
+  const handleOpenCustomerHistory = (customer) => {
     const phone = customer.customer_phone || customer.phone;
-    setSelectedCustomerPhone(phone);
-    setCustomerDetails(customer);
-    setCustomerModalOpen(true);
-    setCustomerHistoryLoading(true);
-    try {
-      const res = await fetch(`${API_V1_URL}/admin/customers/${phone}/history`);
-      const data = await res.json();
-      if (data.success && data.history) {
-        setCustomerHistory(data.history);
-      } else {
-        setCustomerHistory([]);
-      }
-    } catch (err) {
-      console.error('Failed to load customer history:', err);
-    } finally {
-      setCustomerHistoryLoading(false);
-    }
+    navigate(`/admin/customers/${phone}`, { state: { customer, returnTo: location.pathname } });
   };
 
-  // Open Technician Full Dossier Modal
-  const handleOpenTechDossier = async (tech) => {
-    setSelectedTechDossier(tech);
-    setTechDossierModalOpen(true);
-    setTechDossierLoading(true);
-    try {
-      const res = await fetch(`${API_V1_URL}/admin/technicians/${tech.id}/dossier`);
-      const data = await res.json();
-      if (data.success) {
-        setTechJobsHistory(data.jobs || []);
-        setTechFinancials(data.financials || { lifetimeEarnings: 0, grossJobVolume: 0 });
-        if (data.technician) {
-          setSelectedTechDossier(prev => ({ ...prev, ...data.technician }));
-        }
-      }
-    } catch (err) {
-      console.error('Failed to load technician dossier:', err);
-    } finally {
-      setTechDossierLoading(false);
-    }
+  // Open Technician Full Dossier Page
+  const handleOpenTechDossier = (tech) => {
+    navigate(`/admin/technicians/${tech.id}`, { state: { technician: tech, returnTo: location.pathname } });
   };
 
   // Open In-App Aadhaar Card Viewer
@@ -665,15 +629,16 @@ export default function AdminDashboardPage() {
       setToast({ open: true, message: 'No Aadhaar document uploaded for this technician.', severity: 'warning' });
       return;
     }
-    const resolved = resolveMediaUrl(rawUrl);
-    setDocZoom(1);
-    setDocImgError(false);
-    setDocPreviewModal({
-      open: true,
-      url: resolved,
-      title: `${tech.full_name || tech.name || 'Technician'} - Aadhaar e-KYC Identity Proof`,
-      type: 'aadhaar',
-      data: tech
+    navigate('/admin/documents/preview', {
+      state: {
+        document: {
+          url: rawUrl,
+          title: `${tech.full_name || tech.name || 'Technician'} - Aadhaar e-KYC Identity Proof`,
+          type: 'aadhaar',
+          data: tech
+        },
+        returnTo: location.pathname
+      }
     });
   };
 
@@ -684,22 +649,22 @@ export default function AdminDashboardPage() {
       setToast({ open: true, message: 'No parts bill uploaded for this booking.', severity: 'warning' });
       return;
     }
-    const resolved = resolveMediaUrl(rawUrl);
-    setDocZoom(1);
-    setDocImgError(false);
-    setDocPreviewModal({
-      open: true,
-      url: resolved,
-      title: `Parts Receipt Bill for Booking #${booking.id}`,
-      type: 'bill',
-      data: booking
+    navigate('/admin/documents/preview', {
+      state: {
+        document: {
+          url: rawUrl,
+          title: `Parts Receipt Bill for Booking #${booking.id}`,
+          type: 'bill',
+          data: booking
+        },
+        returnTo: location.pathname
+      }
     });
   };
 
-  // Open Deep Booking Traceability Modal
+  // Open Deep Booking Traceability Page
   const handleOpenBookingTrace = (booking) => {
-    setSelectedBookingTrace(booking);
-    setBookingTraceModalOpen(true);
+    navigate(`/admin/traceability?bookingId=${booking.id}`);
   };
 
   // Admin 1-Click KYC Approve / Reject Action
@@ -970,13 +935,11 @@ export default function AdminDashboardPage() {
   };
 
   const handleOpenDispatch = (booking) => {
-    setTargetBooking(booking);
-    setDispatchDrawerOpen(true);
+    navigate(`/admin/dispatch/${booking.id}`, { state: { booking, returnTo: location.pathname } });
   };
 
   const handleOpenTracking = (booking) => {
-    setSelectedTrackingBooking(booking);
-    setTrackingModalOpen(true);
+    navigate(`/admin/jobs/${booking.id}/live-track`, { state: { booking, returnTo: location.pathname } });
   };
 
   const handleExecuteDispatch = async () => {
@@ -1011,11 +974,7 @@ export default function AdminDashboardPage() {
   };
 
   const handleOpenReleaseDialog = (booking) => {
-    setTargetBookingForRelease(booking);
-    setReleaseReason('Customer not answering phone calls / Doorbell no response at doorstep');
-    setReleaseDetails('');
-    setCompensateTech(true);
-    setReleaseDialogOpen(true);
+    navigate(`/admin/orders/${booking.id}/cancel`, { state: { booking, returnTo: location.pathname } });
   };
 
   const handleExecuteReleaseTechnician = async () => {
@@ -1054,13 +1013,7 @@ export default function AdminDashboardPage() {
 
   // ── Admin Cancel Order & Release Technician ──────────────────────────────
   const handleOpenCancelOrder = (booking) => {
-    setCancelOrderTarget(booking);
-    setCancelOrderReason('');
-    setCancelOrderDetails('');
-    // Suggest compensation only if tech is already dispatched
-    const hasTech = Boolean(booking.technician_id || booking.technician_name);
-    setCancelOrderCompensate(hasTech && ['en_route', 'arrived', 'in_progress', 'quote_presented'].includes(booking.status));
-    setCancelOrderOpen(true);
+    navigate(`/admin/orders/${booking.id}/cancel`, { state: { booking, returnTo: location.pathname } });
   };
 
   const handleExecuteCancelOrder = async () => {
@@ -2674,8 +2627,7 @@ export default function AdminDashboardPage() {
                                 size="small"
                                 startIcon={<PaymentsIcon sx={{ fontSize: 13 }} />}
                                 onClick={() => {
-                                  setTargetBookingForPayment(job);
-                                  setPaymentOverrideModalOpen(true);
+                                  navigate(`/admin/settlements/${job.id}/override`, { state: { booking: job, returnTo: location.pathname } });
                                 }}
                                 title="Record offline payment — mark as paid via Cash/Direct UPI"
                                 sx={{
@@ -4189,21 +4141,7 @@ export default function AdminDashboardPage() {
                     variant="contained"
                     size="small"
                     startIcon={<AddIcon sx={{ fontSize: 18 }} />}
-                    onClick={() => {
-                      setEditingCoupon(null);
-                      setCouponFormData({
-                        code: '',
-                        discountType: 'flat',
-                        discountValue: '',
-                        minOrderAmount: '99',
-                        maxDiscountCap: '',
-                        description: '',
-                        isActive: true,
-                        validUntil: '',
-                        usageLimit: ''
-                      });
-                      setCouponModalOpen(true);
-                    }}
+                    onClick={() => navigate('/admin/coupons/new', { state: { returnTo: location.pathname } })}
                     sx={{
                       bgcolor: '#0284C7',
                       '&:hover': { bgcolor: '#0369A1' },
@@ -4292,19 +4230,7 @@ export default function AdminDashboardPage() {
                           <IconButton
                             size="small"
                             onClick={() => {
-                              setEditingCoupon(c);
-                              setCouponFormData({
-                                code: c.code,
-                                discountType: c.discountType,
-                                discountValue: String(c.discountValue),
-                                minOrderAmount: String(c.minOrderAmount),
-                                maxDiscountCap: c.maxDiscountCap ? String(c.maxDiscountCap) : '',
-                                description: c.description || '',
-                                isActive: c.isActive,
-                                validUntil: c.validUntil ? c.validUntil.slice(0, 10) : '',
-                                usageLimit: c.usageLimit ? String(c.usageLimit) : ''
-                              });
-                              setCouponModalOpen(true);
+                              navigate(`/admin/coupons/${c.code}/edit`, { state: { coupon: c, returnTo: location.pathname } });
                             }}
                             sx={{ color: '#0284C7' }}
                           >
@@ -4325,142 +4251,6 @@ export default function AdminDashboardPage() {
               </Box>
             )}
             </Card>
-
-            {/* CREATE / EDIT COUPON MODAL */}
-            <Modal open={couponModalOpen} onClose={() => setCouponModalOpen(false)} maxWidth="sm">
-              <ModalHeader
-                title={editingCoupon ? `Edit coupon: ${editingCoupon.code}` : 'Create promotional coupon'}
-                subtitle="Set discount value, usage limits, and activation status"
-                onClose={() => setCouponModalOpen(false)}
-              />
-              <ModalBody>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Coupon code"
-                      placeholder="e.g. FESTIVE50"
-                      size="small"
-                      value={couponFormData.code}
-                      onChange={(e) => setCouponFormData({ ...couponFormData, code: e.target.value.toUpperCase() })}
-                      helperText="Must be unique alphanumeric characters"
-                      InputProps={{ sx: { borderRadius: '12px' } }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <FormControl fullWidth size="small">
-                      <InputLabel>Discount type</InputLabel>
-                      {/* ds-allow-native-select */}
-                      <Select
-                        label="Discount type"
-                        value={couponFormData.discountType}
-                        onChange={(e) => setCouponFormData({ ...couponFormData, discountType: e.target.value })}
-                        sx={{ borderRadius: '12px' }}
-                      >
-                        <MenuItem value="flat">Flat amount (INR)</MenuItem>
-                        <MenuItem value="percent">Percentage (%)</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label={couponFormData.discountType === 'percent' ? 'Discount percentage (%)' : 'Discount amount (INR)'}
-                      size="small"
-                      type="number"
-                      value={couponFormData.discountValue}
-                      onChange={(e) => setCouponFormData({ ...couponFormData, discountValue: e.target.value })}
-                      InputProps={{ sx: { borderRadius: '12px' } }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Min order amount (INR)"
-                      size="small"
-                      type="number"
-                      value={couponFormData.minOrderAmount}
-                      onChange={(e) => setCouponFormData({ ...couponFormData, minOrderAmount: e.target.value })}
-                      InputProps={{ sx: { borderRadius: '12px' } }}
-                    />
-                  </Grid>
-
-                  {couponFormData.discountType === 'percent' && (
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="Max discount cap (INR)"
-                        placeholder="e.g. 50"
-                        size="small"
-                        type="number"
-                        value={couponFormData.maxDiscountCap}
-                        onChange={(e) => setCouponFormData({ ...couponFormData, maxDiscountCap: e.target.value })}
-                        InputProps={{ sx: { borderRadius: '12px' } }}
-                      />
-                    </Grid>
-                  )}
-
-                  <Grid item xs={12} sm={couponFormData.discountType === 'percent' ? 6 : 12}>
-                    <TextField
-                      fullWidth
-                      label="Max usage limit (optional)"
-                      placeholder="e.g. 100 uses"
-                      size="small"
-                      type="number"
-                      value={couponFormData.usageLimit}
-                      onChange={(e) => setCouponFormData({ ...couponFormData, usageLimit: e.target.value })}
-                      InputProps={{ sx: { borderRadius: '12px' } }}
-                    />
-                  </Grid>
-
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="Description / Purpose"
-                      placeholder="e.g. Salem promotional discount for doorstep services"
-                      size="small"
-                      value={couponFormData.description}
-                      onChange={(e) => setCouponFormData({ ...couponFormData, description: e.target.value })}
-                      InputProps={{ sx: { borderRadius: '12px' } }}
-                    />
-                  </Grid>
-
-                  <Grid item xs={12}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Switch
-                        checked={couponFormData.isActive}
-                        onChange={(e) => setCouponFormData({ ...couponFormData, isActive: e.target.checked })}
-                      />
-                      <Typography variant="body2" sx={{ fontWeight: 600, color: '#334155' }}>
-                        Coupon active & ready for customer redemption
-                      </Typography>
-                    </Box>
-                  </Grid>
-                </Grid>
-              </ModalBody>
-              <ModalFooter>
-                <Button onClick={() => setCouponModalOpen(false)} sx={{ textTransform: 'none', fontWeight: 600, color: '#64748B', height: 48 }}>
-                  Cancel
-                </Button>
-                <Button
-                  variant="contained"
-                  onClick={handleSaveCoupon}
-                  sx={{
-                    bgcolor: '#0A66C2',
-                    '&:hover': { bgcolor: '#084e96' },
-                    textTransform: 'none',
-                    fontWeight: 700,
-                    borderRadius: '14px',
-                    height: 48,
-                    minWidth: 140,
-                    fontSize: '14px'
-                  }}
-                >
-                  Save coupon
-                </Button>
-              </ModalFooter>
-            </Modal>
           </Box>
         )}
 
@@ -4697,796 +4487,17 @@ export default function AdminDashboardPage() {
           getStatusChip={getStatusChip}
         />
 
-        {/* MANUAL DISPATCH MODAL */}
-        <Modal open={dispatchDialogOpen} onClose={() => setDispatchDialogOpen(false)} maxWidth="sm">
-          <ModalHeader
-            title={`Dispatch technician to booking #${targetBooking?.id}`}
-            subtitle="Assign verified partner according to duty schedule"
-            onClose={() => setDispatchDialogOpen(false)}
-          />
-          <ModalBody>
-            {targetBooking?.scheduled_slot && targetBooking.scheduled_slot !== 'instant_now' && (
-              <Paper elevation={0} sx={{ p: 1.5, mb: 2, bgcolor: '#F0F9FF', border: '1px solid #BAE6FD', borderRadius: '12px' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <EventIcon sx={{ color: '#0A66C2', fontSize: 18 }} />
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0369A1', fontSize: '13px' }}>
-                    Scheduled window: {targetBooking.scheduled_slot}
-                  </Typography>
-                </Box>
-                <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mt: 0.5, fontSize: '12px' }}>
-                  Assigning reserves partner duty schedule and notifies the customer immediately.
-                </Typography>
-              </Paper>
-            )}
-
-            <Typography variant="body2" sx={{ color: '#0F172A', mb: 2, fontSize: '14px' }}>
-              Customer: <strong>{targetBooking?.customer_name}</strong> • Locality: <strong>{targetBooking?.locality}</strong> • Service: <strong>{targetBooking?.service_id}</strong>
-            </Typography>
-
-            <FormControl fullWidth size="small" sx={{ mt: 1 }}>
-              <InputLabel>Select online verified technician</InputLabel>
-              {/* ds-allow-native-select */}
-              <Select
-                value={selectedTechForDispatch}
-                label="Select online verified technician"
-                onChange={(e) => setSelectedTechForDispatch(e.target.value)}
-                sx={{ borderRadius: '12px' }}
-              >
-                {technicians.map(t => (
-                  <MenuItem key={t.id} value={t.id}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <SensorsIcon sx={{ color: t.is_online ? '#16A34A' : '#94A3B8', fontSize: 16 }} />
-                      <span>{t.full_name} ({getTradeLabel(t.primary_trade)}) • Rating {t.rating_avg} [{t.is_online ? 'Available' : 'Offline'}]</span>
-                    </Box>
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </ModalBody>
-          <ModalFooter>
-            <Button onClick={() => setDispatchDialogOpen(false)} sx={{ color: '#64748B', fontWeight: 600, textTransform: 'none', height: 48 }}>
-              Cancel
-            </Button>
-            <Button
-              variant="contained"
-              startIcon={<SendIcon sx={{ fontSize: 16 }} />}
-              onClick={handleExecuteDispatch}
-              disabled={dispatchLoading || !selectedTechForDispatch}
-              sx={{
-                bgcolor: '#0A66C2',
-                color: '#FFF',
-                fontWeight: 700,
-                borderRadius: '14px',
-                textTransform: 'none',
-                height: 48,
-                minWidth: 160,
-                fontSize: '14px',
-                '&:hover': { bgcolor: '#084e96' }
-              }}
-            >
-              {dispatchLoading ? <CircularProgress size={20} sx={{ color: '#FFF' }} /> : 'Confirm & dispatch'}
-            </Button>
-          </ModalFooter>
-        </Modal>
-
         {/* LEGACY: RELEASE TECHNICIAN (CUSTOMER UNRESPONSIVE) */}
-        <Modal open={releaseDialogOpen} onClose={() => setReleaseDialogOpen(false)} maxWidth="sm">
-          <ModalHeader
-            title={`Release Technician & Cancel Booking #${targetBookingForRelease?.id || ''}`}
-            subtitle="Emergency central dispatch override for customer no-show / unresponsive"
-            onClose={() => setReleaseDialogOpen(false)}
-          />
-          <ModalBody>
-            <Paper elevation={0} sx={{ p: 2, mb: 2, bgcolor: '#FEF2F2', border: '1.5px solid #FECACA', borderRadius: '12px' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.8 }}>
-                <PhoneDisabledIcon sx={{ color: '#DC2626', fontSize: 20 }} />
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#991B1B', fontSize: '13.5px' }}>
-                  Customer Unresponsive / Doorstep No-Show Override
-                </Typography>
-              </Box>
-              <Typography variant="caption" sx={{ color: '#7F1D1D', display: 'block', fontSize: '12px', lineHeight: 1.45 }}>
-                Use this administrative action when the assigned technician has reached the location or is waiting, but the customer does not answer phone calls or open the door. This will immediately free the technician for new duties.
-              </Typography>
-            </Paper>
-            <Box sx={{ mb: 2, p: 1.5, bgcolor: '#F8FAFC', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
-              <Typography variant="body2" sx={{ color: '#0F172A', fontSize: '13px', mb: 0.5 }}>
-                Customer: <strong>{targetBookingForRelease?.customer_name || 'Customer'}</strong> • Phone: <strong>{targetBookingForRelease?.customer_phone || 'N/A'}</strong>
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#0F172A', fontSize: '13px', mb: 0.5 }}>
-                Assigned Specialist: <strong>{targetBookingForRelease?.technician_name || 'Assigned Technician'}</strong>
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#64748B', fontSize: '12px' }}>
-                Locality: <strong>{targetBookingForRelease?.locality || 'Salem'}</strong> • Current Status: <strong>{targetBookingForRelease?.status}</strong>
-              </Typography>
-            </Box>
-            <FormControl fullWidth size="small" sx={{ mb: 2 }}>
-              <InputLabel>Cancellation Reason</InputLabel>
-              {/* ds-allow-native-select */}
-              <Select value={releaseReason} label="Cancellation Reason" onChange={(e) => setReleaseReason(e.target.value)} sx={{ borderRadius: '10px' }}>
-                <MenuItem value="Customer not answering phone calls / Doorbell no response at doorstep">Customer not answering phone calls / Doorbell no response at doorstep</MenuItem>
-                <MenuItem value="Customer doorstep address incorrect or untraceable in Salem">Customer doorstep address incorrect or untraceable in Salem</MenuItem>
-                <MenuItem value="Customer refused entry or verbally asked to cancel">Customer refused entry or verbally asked to cancel</MenuItem>
-                <MenuItem value="Customer requested cancellation via Central Ops Hotline">Customer requested cancellation via Central Ops Hotline</MenuItem>
-                <MenuItem value="Admin emergency schedule override">Admin emergency schedule override</MenuItem>
-              </Select>
-            </FormControl>
-            <TextField fullWidth size="small" multiline rows={2} label="Dispatcher Notes (Optional)" value={releaseDetails} onChange={(e) => setReleaseDetails(e.target.value)} sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: '10px' } }} />
-            <Box sx={{ p: 1.5, bgcolor: compensateTech ? '#F0FDF4' : '#F8FAFC', border: compensateTech ? '1px solid #BBF7D0' : '1px solid #E2E8F0', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: compensateTech ? '#166534' : '#0F172A', fontSize: '13px' }}>Compensate Partner Travel Allowance (Rs.99.00)</Typography>
-                <Typography variant="caption" sx={{ color: compensateTech ? '#15803D' : '#64748B', fontSize: '11.5px', display: 'block' }}>Credit Rs.99 doorstep travel fee to technician wallet.</Typography>
-              </Box>
-              <Switch checked={compensateTech} onChange={(e) => setCompensateTech(e.target.checked)} color="success" />
-            </Box>
-          </ModalBody>
-          <ModalFooter>
-            <Button onClick={() => setReleaseDialogOpen(false)} sx={{ color: '#64748B', fontWeight: 600, textTransform: 'none', height: 44 }}>Close</Button>
-            <Button variant="contained" startIcon={<PhoneDisabledIcon sx={{ fontSize: 16 }} />} onClick={handleExecuteReleaseTechnician} disabled={releaseLoading}
-              sx={{ bgcolor: '#DC2626', color: '#FFF', fontWeight: 700, borderRadius: '12px', textTransform: 'none', height: 44, minWidth: 180, fontSize: '13.5px', boxShadow: '0 4px 12px rgba(220,38,38,0.25)', '&:hover': { bgcolor: '#B91C1C' } }}>
-              {releaseLoading ? <CircularProgress size={20} sx={{ color: '#FFF' }} /> : 'Release & Cancel'}
-            </Button>
-          </ModalFooter>
-        </Modal>
+        
 
         {/* ── ADMIN CANCEL ORDER & RELEASE TECHNICIAN MODAL ─────────────────── */}
-        <Modal open={cancelOrderOpen} onClose={() => !cancelOrderLoading && setCancelOrderOpen(false)} maxWidth="sm">
-          <ModalHeader
-            title={`Cancel Order #${cancelOrderTarget?.id || ''}`}
-            subtitle="Admin override — cancels the booking and immediately releases the technician"
-            onClose={() => !cancelOrderLoading && setCancelOrderOpen(false)}
-          />
-          <ModalBody>
-
-            {/* Booking summary strip */}
-            <Paper elevation={0} sx={{ p: 2, mb: 2.5, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px' }}>
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
-                <Box sx={{ width: 36, height: 36, borderRadius: '10px', bgcolor: '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <CancelIcon sx={{ color: '#DC2626', fontSize: 20 }} />
-                </Box>
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography sx={{ fontWeight: 800, fontSize: '13.5px', color: '#0F172A', mb: 0.4 }}>
-                    {cancelOrderTarget?.service_name || cancelOrderTarget?.selected_issue || 'Service Booking'}
-                  </Typography>
-                  <Typography sx={{ fontSize: '12px', color: '#475569', mb: 0.2 }}>
-                    Customer: <strong>{cancelOrderTarget?.customer_name || cancelOrderTarget?.customer_phone || 'N/A'}</strong>
-                    {cancelOrderTarget?.customer_phone && cancelOrderTarget?.customer_name ? ` • ${cancelOrderTarget.customer_phone}` : ''}
-                  </Typography>
-                  {(cancelOrderTarget?.technician_name || cancelOrderTarget?.technician_id) ? (
-                    <Typography sx={{ fontSize: '12px', color: '#475569', mb: 0.2 }}>
-                      Assigned Tech: <strong>{cancelOrderTarget.technician_name || `ID ${cancelOrderTarget.technician_id}`}</strong>
-                    </Typography>
-                  ) : (
-                    <Typography sx={{ fontSize: '12px', color: '#94A3B8', mb: 0.2 }}>No technician assigned yet</Typography>
-                  )}
-                  <Box sx={{ mt: 0.6, display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
-                    <Chip label={cancelOrderTarget?.status?.toUpperCase()} size="small" sx={{ fontSize: '10px', fontWeight: 900, bgcolor: '#FEE2E2', color: '#991B1B', height: 20 }} />
-                    {cancelOrderTarget?.locality && <Chip label={cancelOrderTarget.locality} size="small" sx={{ fontSize: '10px', fontWeight: 700, bgcolor: '#F1F5F9', color: '#64748B', height: 20 }} />}
-                  </Box>
-                </Box>
-              </Box>
-            </Paper>
-
-            {/* Reason selector */}
-            <FormControl fullWidth size="small" sx={{ mb: 2 }} required>
-              <InputLabel>Cancellation Reason *</InputLabel>
-              {/* ds-allow-native-select */}
-              <Select
-                value={cancelOrderReason}
-                label="Cancellation Reason *"
-                onChange={(e) => setCancelOrderReason(e.target.value)}
-                sx={{ borderRadius: '10px' }}
-                displayEmpty
-              >
-                <MenuItem value="" disabled><em>Select a reason...</em></MenuItem>
-                <MenuItem value="Customer not answering phone calls / Doorbell no response at doorstep">Customer unresponsive — no answer / doorbell no-show</MenuItem>
-                <MenuItem value="Customer requested cancellation via Shazu One Central Ops">Customer requested cancellation via Shazu One Central Ops</MenuItem>
-                <MenuItem value="Customer address is incorrect or untraceable in Salem">Customer address is incorrect or untraceable in Salem</MenuItem>
-                <MenuItem value="Customer refused entry or verbally requested cancellation">Customer refused entry or verbally requested cancellation</MenuItem>
-                <MenuItem value="Technician breakdown or vehicle issue — unable to reach">Technician breakdown or vehicle issue — unable to reach</MenuItem>
-                <MenuItem value="Technician wrongly assigned — skill mismatch for this job">Technician wrongly assigned — skill mismatch for this job</MenuItem>
-                <MenuItem value="Service temporarily unavailable in this locality">Service temporarily unavailable in this locality</MenuItem>
-                <MenuItem value="Admin emergency override — operational requirement">Admin emergency override — operational requirement</MenuItem>
-              </Select>
-            </FormControl>
-
-            {/* Notes */}
-            <TextField
-              fullWidth
-              size="small"
-              multiline
-              rows={3}
-              label="Admin Notes / Operational Details"
-              placeholder="e.g. Technician called 3 times, no answer. Waiting since 4:30 PM at Fairlands site."
-              value={cancelOrderDetails}
-              onChange={(e) => setCancelOrderDetails(e.target.value)}
-              sx={{ mb: 2.5, '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
-            />
-
-            {/* Tech compensation toggle — only show if tech is assigned */}
-            {(cancelOrderTarget?.technician_id || cancelOrderTarget?.technician_name) && (
-              <Box sx={{
-                p: 1.5,
-                bgcolor: cancelOrderCompensate ? '#F0FDF4' : '#F8FAFC',
-                border: cancelOrderCompensate ? '1px solid #BBF7D0' : '1px solid #E2E8F0',
-                borderRadius: '10px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                mb: 1
-              }}>
-                <Box>
-                  <Typography sx={{ fontWeight: 800, color: cancelOrderCompensate ? '#166534' : '#0F172A', fontSize: '13px' }}>
-                    Compensate Technician Travel Allowance (Rs.99)
-                  </Typography>
-                  <Typography sx={{ color: cancelOrderCompensate ? '#15803D' : '#64748B', fontSize: '11.5px', display: 'block' }}>
-                    Credit Rs.99 travel fee so the technician does not bear a travel loss for this cancellation.
-                  </Typography>
-                </Box>
-                <Switch
-                  checked={cancelOrderCompensate}
-                  onChange={(e) => setCancelOrderCompensate(e.target.checked)}
-                  color="success"
-                />
-              </Box>
-            )}
-
-            {/* Warning note */}
-            <Paper elevation={0} sx={{ p: 1.5, bgcolor: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '10px', mt: cancelOrderTarget?.technician_id ? 1.5 : 0 }}>
-              <Typography sx={{ fontSize: '11.5px', color: '#92400E', lineHeight: 1.5 }}>
-                <strong>This action is permanent and logged.</strong> The booking will be marked cancelled, the technician will be immediately set online and available for new assignments, and this action will be recorded in the audit trail.
-              </Typography>
-            </Paper>
-          </ModalBody>
-          <ModalFooter>
-            <Button
-              onClick={() => setCancelOrderOpen(false)}
-              disabled={cancelOrderLoading}
-              sx={{ color: '#64748B', fontWeight: 600, textTransform: 'none', height: 44 }}
-            >
-              Keep Order
-            </Button>
-            <Button
-              variant="contained"
-              startIcon={cancelOrderLoading ? null : <CancelIcon sx={{ fontSize: 16 }} />}
-              onClick={handleExecuteCancelOrder}
-              disabled={cancelOrderLoading || !cancelOrderReason}
-              sx={{
-                bgcolor: '#DC2626',
-                color: '#FFF',
-                fontWeight: 700,
-                borderRadius: '12px',
-                textTransform: 'none',
-                height: 44,
-                minWidth: 200,
-                fontSize: '13.5px',
-                boxShadow: '0 4px 14px rgba(220,38,38,0.28)',
-                '&:hover': { bgcolor: '#B91C1C', boxShadow: '0 6px 18px rgba(220,38,38,0.35)' },
-                '&.Mui-disabled': { bgcolor: '#FCA5A5', color: '#FFF' }
-              }}
-            >
-              {cancelOrderLoading
-                ? <><CircularProgress size={18} sx={{ color: '#FFF', mr: 1 }} />Cancelling...</>
-                : 'Confirm Cancel & Release'}
-            </Button>
-          </ModalFooter>
-        </Modal>
+        
 
         {/* IN-APP DOCUMENT VIEWER MODAL (AADHAAR CARD & PARTS BILL RECEIPT) */}
-        <Modal
-          open={docPreviewModal.open}
-          onClose={() => setDocPreviewModal(prev => ({ ...prev, open: false }))}
-          maxWidth="md"
-        >
-          <ModalHeader
-            title={docPreviewModal.title || 'Document inspection'}
-            subtitle="Verified secure storage document vault"
-            onClose={() => setDocPreviewModal(prev => ({ ...prev, open: false }))}
-          />
-
-          <ModalBody sx={{ p: 0, bgcolor: '#0F172A', minHeight: 400, display: 'flex', flexDirection: 'column' }}>
-            {/* Zoom toolbar */}
-            <Box sx={{ p: 1, bgcolor: '#1E293B', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1, borderBottom: '1px solid #334155' }}>
-              <IconButton
-                size="small"
-                onClick={() => setDocZoom(prev => Math.max(0.5, prev - 0.25))}
-                title="Zoom Out"
-                sx={{ bgcolor: '#0F172A', color: '#FFF', border: '1px solid #475569' }}
-              >
-                <ZoomOutIcon sx={{ fontSize: 18 }} />
-              </IconButton>
-              <Chip
-                label={`${Math.round(docZoom * 100)}%`}
-                size="small"
-                sx={{ fontWeight: 700, fontSize: '11px', bgcolor: '#0F172A', color: '#FFF', border: '1px solid #475569' }}
-              />
-              <IconButton
-                size="small"
-                onClick={() => setDocZoom(prev => Math.min(3, prev + 0.25))}
-                title="Zoom In"
-                sx={{ bgcolor: '#0F172A', color: '#FFF', border: '1px solid #475569' }}
-              >
-                <ZoomInIcon sx={{ fontSize: 18 }} />
-              </IconButton>
-              <IconButton
-                size="small"
-                onClick={() => setDocZoom(1)}
-                title="Reset Zoom"
-                sx={{ bgcolor: '#0F172A', color: '#FFF', border: '1px solid #475569' }}
-              >
-                <RestartAltIcon sx={{ fontSize: 18 }} />
-              </IconButton>
-              <IconButton
-                size="small"
-                onClick={() => window.open(resolveMediaUrl(docPreviewModal.url), '_blank')}
-                title="Open Original in New Tab"
-                sx={{ bgcolor: '#0F172A', color: '#38BDF8', border: '1px solid #475569' }}
-              >
-                <OpenInNewIcon sx={{ fontSize: 18 }} />
-              </IconButton>
-            </Box>
-
-            <Box
-              sx={{
-                p: 2,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flex: 1,
-                overflow: 'auto',
-                minHeight: 340
-              }}
-            >
-              {docImgError ? (
-                <Box sx={{ textAlign: 'center', p: 3, maxWidth: 440 }}>
-                  <Typography variant="subtitle1" sx={{ color: '#F87171', fontWeight: 700, mb: 1 }}>
-                    Document Preview Unavailable in Frame
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: '#94A3B8', mb: 2.5, fontSize: '13px' }}>
-                    The uploaded document is safely stored in the S3 vault. You can inspect or download it directly in a new browser tab.
-                  </Typography>
-                  <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1.5, flexWrap: 'wrap' }}>
-                    <Button
-                      variant="contained"
-                      onClick={() => window.open(resolveMediaUrl(docPreviewModal.url), '_blank')}
-                      sx={{ bgcolor: '#0284C7', color: '#FFF', fontWeight: 700, textTransform: 'none', borderRadius: '6px' }}
-                    >
-                      Open Document in New Tab
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      onClick={() => setDocImgError(false)}
-                      sx={{ color: '#E2E8F0', borderColor: '#475569', fontWeight: 600, textTransform: 'none', borderRadius: '6px' }}
-                    >
-                      Retry Load
-                    </Button>
-                  </Box>
-                </Box>
-              ) : (
-                <img
-                  src={resolveMediaUrl(docPreviewModal.url)}
-                  alt="Document Preview"
-                  onError={() => setDocImgError(true)}
-                  style={{
-                    maxWidth: '100%',
-                    maxHeight: '62vh',
-                    objectFit: 'contain',
-                    borderRadius: '6px',
-                    boxShadow: '0 8px 30px rgba(0,0,0,0.5)',
-                    transform: `scale(${docZoom})`,
-                    transformOrigin: 'center center',
-                    transition: 'transform 0.15s ease'
-                  }}
-                />
-              )}
-            </Box>
-          </ModalBody>
-
-          <ModalFooter>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', flexWrap: 'wrap', gap: 1 }}>
-              {docPreviewModal.type === 'aadhaar' && docPreviewModal.data ? (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Avatar sx={{ bgcolor: docPreviewModal.data.is_kyc_verified ? '#DCFCE7' : '#FEF3C7', color: docPreviewModal.data.is_kyc_verified ? '#166534' : '#92400E', width: 32, height: 32 }}>
-                    <FingerprintIcon sx={{ fontSize: 18 }} />
-                  </Avatar>
-                  <Box>
-                    <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A' }}>
-                      {docPreviewModal.data.full_name || docPreviewModal.data.name} • {docPreviewModal.data.phone}
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: '#64748B' }}>
-                      Status: {docPreviewModal.data.is_kyc_verified ? 'Verified Partner' : 'Aadhaar Verification Pending'}
-                    </Typography>
-                  </Box>
-                </Box>
-              ) : (
-                <Box>
-                  <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 600 }}>
-                    Salem S3 secure document vault
-                  </Typography>
-                </Box>
-              )}
-
-              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                {docPreviewModal.type === 'aadhaar' && docPreviewModal.data && !docPreviewModal.data.is_kyc_verified && (
-                  <>
-                    <Button
-                      variant="contained"
-                      startIcon={<CheckCircleIcon sx={{ fontSize: 16 }} />}
-                      onClick={() => handleKycDecision(docPreviewModal.data.id, 'approve')}
-                      sx={{ bgcolor: '#16A34A', color: '#FFF', fontWeight: 700, textTransform: 'none', borderRadius: '6px', height: 40, px: 2, '&:hover': { bgcolor: '#15803D' } }}
-                    >
-                      Approve KYC
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      startIcon={<CancelIcon sx={{ fontSize: 16 }} />}
-                      onClick={() => handleKycDecision(docPreviewModal.data.id, 'reject')}
-                      sx={{ color: '#DC2626', borderColor: '#FCA5A5', fontWeight: 700, textTransform: 'none', borderRadius: '6px', height: 40, px: 2 }}
-                    >
-                      Reject KYC
-                    </Button>
-                  </>
-                )}
-                <Button
-                  variant="outlined"
-                  onClick={() => setDocPreviewModal(prev => ({ ...prev, open: false }))}
-                  sx={{ color: '#0F172A', borderColor: '#E2E8F0', fontWeight: 600, borderRadius: '6px', height: 40, px: 2.5, textTransform: 'none' }}
-                >
-                  Close
-                </Button>
-              </Box>
-            </Box>
-          </ModalFooter>
-        </Modal>
+        
 
         {/* DEEP BOOKING TRACEABILITY & AUDIT DOSSIER MODAL */}
-        <Modal
-          open={bookingTraceModalOpen}
-          onClose={() => setBookingTraceModalOpen(false)}
-          maxWidth="md"
-        >
-          <ModalHeader
-            title={`Booking traceability dossier #${selectedBookingTrace?.id}`}
-            subtitle="End-to-end operational dispatch, escrow, and audit trail"
-            onClose={() => setBookingTraceModalOpen(false)}
-          />
-
-          <ModalBody sx={{ p: 2.5 }}>
-            {selectedBookingTrace && (
-              <Box>
-                {/* 1. Top Status & Overview Banner */}
-                <Paper elevation={0} sx={{ p: 2, bgcolor: '#F0F9FF', border: '1.5px solid #BAE6FD', borderRadius: '12px', mb: 2.5 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Box sx={{ width: 40, height: 40, borderRadius: '10px', bgcolor: '#0284C7', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        {getTradeIcon(selectedBookingTrace.service_id)}
-                      </Box>
-                      <Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                          <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0F172A', fontSize: '15px' }}>
-                            {selectedBookingTrace.service_name || (selectedBookingTrace.service_id || 'SERVICE').toUpperCase()}
-                          </Typography>
-                          {selectedBookingTrace.is_urgent_dispatch && (
-                            <Chip label="URGENT 25-MIN DISPATCH" size="small" sx={{ bgcolor: '#FEF2F2', color: '#DC2626', fontWeight: 900, fontSize: '9.5px', height: 20 }} />
-                          )}
-                        </Box>
-                        <Typography variant="caption" sx={{ color: '#0369A1', fontWeight: 700 }}>
-                          Created at: {new Date(selectedBookingTrace.created_at || Date.now()).toLocaleString()} • Locality: {selectedBookingTrace.locality || 'Fairlands, Salem'}
-                        </Typography>
-                      </Box>
-                    </Box>
-
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      {getStatusChip(selectedBookingTrace.status)}
-                      <Typography variant="h6" sx={{ fontWeight: 900, color: '#0F172A', ml: 1 }}>
-                        ₹{selectedBookingTrace.final_amount || selectedBookingTrace.total_price || '299.00'}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Paper>
-
-                {/* 2. Customer & Technician Cross-Link Cards */}
-                <Grid container spacing={2} sx={{ mb: 2.5 }}>
-                  <Grid item xs={12} sm={6}>
-                    <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', height: '100%' }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                        <Typography variant="caption" sx={{ fontWeight: 800, color: '#64748B', letterSpacing: 0.5 }}>
-                          CUSTOMER DETAILS
-                        </Typography>
-                        <Button
-                          size="small"
-                          onClick={() => {
-                            setBookingTraceModalOpen(false);
-                            handleOpenCustomerHistory({
-                              customer_phone: selectedBookingTrace.customer_phone,
-                              customer_name: selectedBookingTrace.customer_name,
-                              locality: selectedBookingTrace.locality,
-                              service_address: selectedBookingTrace.service_address
-                            });
-                          }}
-                          sx={{ textTransform: 'none', fontWeight: 800, fontSize: '11px', color: '#0284C7', p: 0 }}
-                        >
-                          View 360 History →
-                        </Button>
-                      </Box>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0F172A' }}>
-                        {selectedBookingTrace.customer_name || 'Salem Customer'}
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: '#64748B', display: 'block' }}>
-                        Phone: {selectedBookingTrace.customer_phone || '—'}
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: '#475569', display: 'block', mt: 0.5 }}>
-                        Address: {selectedBookingTrace.service_address || `${selectedBookingTrace.locality || 'Fairlands'}, Salem`}
-                      </Typography>
-
-                      {/* Location Coordinates & Navigation Link */}
-                      <Box sx={{ mt: 1.5, p: 1, bgcolor: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
-                          <LocationOnIcon sx={{ fontSize: 16, color: '#0284C7' }} />
-                          <Typography variant="caption" sx={{ color: '#0F172A', fontWeight: 700, fontSize: '11px' }}>
-                            {selectedBookingTrace.customer_lat && selectedBookingTrace.customer_lng
-                              ? `GPS: ${Number(selectedBookingTrace.customer_lat).toFixed(4)}, ${Number(selectedBookingTrace.customer_lng).toFixed(4)}`
-                              : `Zone: ${selectedBookingTrace.locality || 'Salem Urban'}`}
-                          </Typography>
-                        </Box>
-
-                        <Button
-                          size="small"
-                          startIcon={<OpenInNewIcon sx={{ fontSize: 13 }} />}
-                          onClick={() => {
-                            const lat = selectedBookingTrace.customer_lat || 11.6643;
-                            const lng = selectedBookingTrace.customer_lng || 78.1460;
-                            window.open(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`, '_blank');
-                          }}
-                          sx={{ textTransform: 'none', fontWeight: 800, fontSize: '10.5px', color: '#0284C7', p: 0 }}
-                        >
-                          View in Maps
-                        </Button>
-                      </Box>
-                    </Paper>
-                  </Grid>
-
-                  <Grid item xs={12} sm={6}>
-                    <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', height: '100%' }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                        <Typography variant="caption" sx={{ fontWeight: 800, color: '#64748B', letterSpacing: 0.5 }}>
-                          ASSIGNED TECHNICIAN
-                        </Typography>
-                        {selectedBookingTrace.technician_name && (
-                          <Button
-                            size="small"
-                            onClick={() => {
-                              const matched = technicians.find(t => t.id === selectedBookingTrace.technician_id || t.full_name === selectedBookingTrace.technician_name);
-                              if (matched) {
-                                setBookingTraceModalOpen(false);
-                                handleOpenTechDossier(matched);
-                              }
-                            }}
-                            sx={{ textTransform: 'none', fontWeight: 800, fontSize: '11px', color: '#0284C7', p: 0 }}
-                          >
-                            View Dossier →
-                          </Button>
-                        )}
-                      </Box>
-                      {selectedBookingTrace.technician_name ? (
-                        <Box>
-                          <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0F172A' }}>
-                            {selectedBookingTrace.technician_name}
-                          </Typography>
-                          <Typography variant="caption" sx={{ color: '#64748B', display: 'block' }}>
-                            Trade: {getTradeLabel(selectedBookingTrace.primary_trade || selectedBookingTrace.service_id)}{selectedBookingTrace.technician_rating && Number(selectedBookingTrace.technician_rating) > 0 ? ` • Rating: ${selectedBookingTrace.technician_rating} / 5.0` : ''}
-                          </Typography>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.8 }}>
-                            <Chip
-                              icon={<ShieldIcon sx={{ fontSize: '12px !important', color: '#166534 !important' }} />}
-                              label="Aadhaar KYC Verified"
-                              size="small"
-                              sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 800, fontSize: '9.5px', height: 18 }}
-                            />
-                            {selectedBookingTrace.tech_aadhaar_url && (
-                              <Button
-                                size="small"
-                                onClick={() => handleOpenAadhaarViewer({ full_name: selectedBookingTrace.technician_name, aadhaar_card_url: selectedBookingTrace.tech_aadhaar_url, phone: selectedBookingTrace.technician_phone, is_kyc_verified: true })}
-                                sx={{ textTransform: 'none', fontSize: '10.5px', fontWeight: 800, color: '#0284C7', p: 0 }}
-                              >
-                                View Aadhaar Proof
-                              </Button>
-                            )}
-                          </Box>
-                        </Box>
-                      ) : (
-                        <Box sx={{ py: 1 }}>
-                          <Typography variant="body2" sx={{ color: '#DC2626', fontWeight: 700 }}>
-                            No technician assigned yet
-                          </Typography>
-                          <Button
-                            variant="outlined"
-                            size="small"
-                            startIcon={<SendIcon sx={{ fontSize: 13 }} />}
-                            onClick={() => {
-                              setBookingTraceModalOpen(false);
-                              handleOpenDispatch(selectedBookingTrace);
-                            }}
-                            sx={{ mt: 0.8, textTransform: 'none', fontWeight: 800, fontSize: '11px', borderRadius: '8px', color: '#0284C7', borderColor: '#BAE6FD' }}
-                          >
-                            Dispatch Technician Now
-                          </Button>
-                        </Box>
-                      )}
-                    </Paper>
-                  </Grid>
-                </Grid>
-
-                {/* 2b. Customer Reported Problem & Spoken Voice Note Inspection */}
-                <Paper elevation={0} sx={{ p: 2, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px', mb: 2.5 }}>
-                  <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', display: 'block', mb: 1.2, letterSpacing: 0.5 }}>
-                    CUSTOMER REPORTED ISSUE & VOICE RECORDING
-                  </Typography>
-
-                  <Box sx={{ p: 1.8, bgcolor: '#F8FAFC', borderRadius: '10px', border: '1px solid #E2E8F0', mb: selectedBookingTrace.voice_note_url ? 1.5 : 0 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.6 }}>
-                      <Chip
-                        label={selectedBookingTrace.service_name || selectedBookingTrace.service_id?.toUpperCase() || 'SERVICE ISSUE'}
-                        size="small"
-                        sx={{ bgcolor: '#E0F2FE', color: '#0369A1', fontWeight: 800, fontSize: '10px', height: 20 }}
-                      />
-                      {selectedBookingTrace.selected_issue_id && (
-                        <Chip
-                          label={selectedBookingTrace.selected_issue_id}
-                          size="small"
-                          sx={{ bgcolor: '#F1F5F9', color: '#475569', fontWeight: 700, fontSize: '10px', height: 20 }}
-                        />
-                      )}
-                    </Box>
-
-                    <Typography variant="body2" sx={{ color: '#0F172A', fontWeight: 600, lineHeight: 1.5 }}>
-                      {selectedBookingTrace.custom_issue_description || 'Customer booked standard inspection and diagnostic visit.'}
-                    </Typography>
-                  </Box>
-
-                  {/* Embedded Voice Note Audio Player */}
-                  {selectedBookingTrace.voice_note_url && (
-                    <Box sx={{ p: 1.5, bgcolor: '#0F172A', borderRadius: '10px', border: '1.5px solid #0284C7' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                          <VolumeUpIcon sx={{ color: '#38BDF8', fontSize: 18 }} />
-                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#F0F9FF', fontSize: '12px' }}>
-                            Customer Audio Recording (வாடிக்கையாளர் குரல் பதிவு)
-                          </Typography>
-                        </Box>
-                        <Chip label="AUDIO ATTACHED" size="small" sx={{ bgcolor: '#0284C7', color: '#FFFFFF', fontWeight: 900, fontSize: '9px', height: 18 }} />
-                      </Box>
-                      <LeadAudioPlayer audioSrc={selectedBookingTrace.voice_note_url} />
-                      <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '11px', display: 'block', mt: 0.8 }}>
-                        Recorded voice explanation provided by the customer during initial service booking.
-                      </Typography>
-                    </Box>
-                  )}
-                </Paper>
-
-                {/* 3. Doorstep Verification PIN & Parts Bill Inspection */}
-                <Paper elevation={0} sx={{ p: 2, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px', mb: 2.5 }}>
-                  <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', display: 'block', mb: 1, letterSpacing: 0.5 }}>
-                    DOORSTEP SAFETY & HARDWARE BILL AUDIT
-                  </Typography>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6}>
-                      <Box sx={{ p: 1.5, bgcolor: '#F8FAFC', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
-                        <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700 }}>DOORSTEP OTP SECURITY PIN</Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-                          <ShieldIcon sx={{ color: '#10B981', fontSize: 18 }} />
-                          <Typography variant="body2" sx={{ fontWeight: 900, color: '#0F172A', letterSpacing: 1 }}>
-                            PIN: {selectedBookingTrace.doorstep_otp || selectedBookingTrace.doorstepOtp || '----'}
-                          </Typography>
-                          <Chip label="Verified on Arrival" size="small" sx={{ bgcolor: '#ECFDF5', color: '#065F46', fontWeight: 800, fontSize: '9px', height: 18 }} />
-                        </Box>
-                      </Box>
-                    </Grid>
-
-                    <Grid item xs={12} sm={6}>
-                      <Box sx={{ p: 1.5, bgcolor: '#F8FAFC', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
-                        <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700 }}>PARTS PROCUREMENT RECEIPT</Typography>
-                        {selectedBookingTrace.parts_bill_url ? (
-                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 0.5 }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                              <ReceiptLongIcon sx={{ color: '#0284C7', fontSize: 18 }} />
-                              <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A' }}>
-                                Bill Attached
-                              </Typography>
-                            </Box>
-                            <Button
-                              variant="contained"
-                              size="small"
-                              startIcon={<VisibilityIcon sx={{ fontSize: 13 }} />}
-                              onClick={() => handleOpenBillViewer(selectedBookingTrace)}
-                              sx={{ bgcolor: '#0284C7', color: '#FFF', fontWeight: 800, fontSize: '11px', textTransform: 'none', borderRadius: '6px', py: 0.3 }}
-                            >
-                              Inspect Bill
-                            </Button>
-                          </Box>
-                        ) : (
-                          <Typography variant="body2" sx={{ color: '#64748B', mt: 0.5 }}>
-                            No spare parts bill required for this service
-                          </Typography>
-                        )}
-                      </Box>
-                    </Grid>
-                  </Grid>
-                </Paper>
-
-                {/* 4. Financial Split & Instant Escrow Settlement Breakdown */}
-                <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px' }}>
-                  <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', display: 'block', mb: 1, letterSpacing: 0.5 }}>
-                    FINANCIAL ESCROW SETTLEMENT SPLIT
-                  </Typography>
-                  <Grid container spacing={2}>
-                    <Grid item xs={6} sm={3}>
-                      <Typography variant="caption" sx={{ color: '#64748B' }}>Doorstep Visit Fee</Typography>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A' }}>₹{parseFloat(selectedBookingTrace.visit_fee || 99).toFixed(2)}</Typography>
-                    </Grid>
-                    <Grid item xs={6} sm={3}>
-                      <Typography variant="caption" sx={{ color: '#64748B' }}>Labor / Quote Amount</Typography>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A' }}>₹{parseFloat(selectedBookingTrace.quote_subtotal || selectedBookingTrace.final_amount || 299).toFixed(2)}</Typography>
-                    </Grid>
-                    <Grid item xs={6} sm={3}>
-                      <Typography variant="caption" sx={{ color: '#64748B' }}>Partner Share (95%)</Typography>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#059669' }}>
-                        ₹{((parseFloat(selectedBookingTrace.final_amount || 299) - 99) * 0.95 + 99).toFixed(2)}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={6} sm={3}>
-                      <Typography variant="caption" sx={{ color: '#64748B' }}>Platform Cut (5%)</Typography>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0284C7' }}>
-                        ₹{((parseFloat(selectedBookingTrace.final_amount || 299) - 99) * 0.05).toFixed(2)}
-                      </Typography>
-                    </Grid>
-                  </Grid>
-                </Paper>
-              </Box>
-            )}
-          </ModalBody>
-          <ModalFooter sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-            {selectedBookingTrace?.status !== 'completed' && selectedBookingTrace?.status !== 'cancelled' ? (
-              <Button
-                variant="outlined"
-                color="warning"
-                startIcon={<PaymentsIcon sx={{ fontSize: 16 }} />}
-                onClick={() => {
-                  setTargetBookingForPayment(selectedBookingTrace);
-                  setPaymentOverrideModalOpen(true);
-                }}
-                sx={{
-                  borderColor: '#D97706',
-                  color: '#D97706',
-                  fontWeight: 800,
-                  borderRadius: '12px',
-                  textTransform: 'none',
-                  fontSize: '13px',
-                  px: 2,
-                  '&:hover': { bgcolor: '#FFFBEB', borderColor: '#B45309' }
-                }}
-              >
-                Mark as Paid (Direct Offline Payment)
-              </Button>
-            ) : <Box />}
-            <Button
-              variant="contained"
-              onClick={() => setBookingTraceModalOpen(false)}
-              sx={{
-                bgcolor: '#0A66C2',
-                color: '#FFF',
-                fontWeight: 700,
-                borderRadius: '14px',
-                height: 48,
-                minWidth: 140,
-                textTransform: 'none',
-                fontSize: '14px',
-                '&:hover': { bgcolor: '#084e96' }
-              }}
-            >
-              Close dossier
-            </Button>
-          </ModalFooter>
-        </Modal>
+        
 
         {/* Smart Technician Dispatch Drawer ("give tech to customer requested") */}
         <AdminDispatchDrawer
@@ -5501,39 +4512,6 @@ export default function AdminDashboardPage() {
               severity: 'success'
             });
             fetchOverview(true);
-          }}
-        />
-
-        {/* 7-Stage End-to-End Live Tracking Console Modal */}
-        <AdminTrackingModal
-          open={trackingModalOpen}
-          onClose={() => setTrackingModalOpen(false)}
-          booking={selectedTrackingBooking}
-          technician={technicians.find(t => t.id === selectedTrackingBooking?.technician_id)}
-          onStatusUpdated={(bId, newStatus) => {
-            setToast({
-              open: true,
-              message: `Booking #${bId} advanced to ${newStatus.toUpperCase()}`,
-              severity: 'success'
-            });
-            setSelectedTrackingBooking(prev => prev ? { ...prev, status: newStatus } : null);
-            fetchOverview(true);
-          }}
-        />
-
-        {/* Emergency Admin Payment Override Modal */}
-        <AdminPaymentOverrideModal
-          open={paymentOverrideModalOpen}
-          onClose={() => {
-            setPaymentOverrideModalOpen(false);
-            setTargetBookingForPayment(null);
-          }}
-          booking={targetBookingForPayment}
-          onSuccess={(res) => {
-            fetchOverview(true);
-            if (bookingTraceModalOpen && selectedBookingTrace?.id === targetBookingForPayment?.id) {
-              setSelectedBookingTrace(prev => prev ? ({ ...prev, status: res.status }) : null);
-            }
           }}
         />
 

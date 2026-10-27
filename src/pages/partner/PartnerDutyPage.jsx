@@ -101,7 +101,6 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 
 import ProcessingBackdrop from '../../components/ProcessingBackdrop';
 import LeadAudioPlayer from '../../components/LeadAudioPlayer';
-import Modal, { ModalHeader, ModalBody, ModalFooter } from '../../components/Modal';
 import SalemLottie from '../../components/SalemLottie';
 import { useAuth } from '../../context/AuthContext';
 import { NativeNotifier } from '../../services/nativeNotify';
@@ -402,9 +401,6 @@ export default function PartnerDutyPage() {
     const target = job || activeJob;
     const targetId = target?.id || activeBookingId;
     if (targetId) navigate(`/chat/${targetId}`);
-  };
-    setSelectedCommunicationJob(job || activeJob);
-    setChatOpen(true);
   };
 
   const chatOpenRef = useRef(chatOpen);
@@ -4387,10 +4383,7 @@ export default function PartnerDutyPage() {
                                                   variant="outlined"
                                                   size="small"
                                                   onClick={() => {
-                                                    setTechRescheduleJob(job);
-                                                    setTechRescheduleMode('request_handover');
-                                                    setTechRescheduleReason(TECH_HANDOVER_REASONS[0]);
-                                                    setTechRescheduleModalOpen(true);
+                                                    navigate(`/partner/duty/reschedule/${job.id}`, { state: { job, mode: 'request_handover', returnTo: '/partner' } });
                                                   }}
                                                   sx={{
                                                     color: '#EF4444',
@@ -6317,54 +6310,45 @@ export default function PartnerDutyPage() {
         </BottomNavigation>
       </Paper>
 
-      {/* Transparent Customer Cancellation Notice Modal */}
-      <Modal
-        open={Boolean(cancellationNotice)}
-        onClose={handleAcknowledgeCancellation}
-        maxWidth="xs"
-      >
-        <ModalHeader
-          title="Customer cancelled booking"
-          subtitle={cancellationNotice ? `Booking #${cancellationNotice.bookingId}` : 'Cancellation notice'}
-          onClose={handleAcknowledgeCancellation}
-        />
-        <ModalBody>
-          <Typography variant="body2" sx={{ color: '#0F172A', fontSize: '14px', mb: 2, lineHeight: 1.5 }}>
-            Customer <strong>{cancellationNotice?.customerName || 'Customer'}</strong> ({cancellationNotice?.locality || 'Fairlands, Salem'}) has cancelled booking <strong>#{cancellationNotice?.bookingId}</strong>.
+      {/* Transparent Customer Cancellation Notice Banner (Non-modal) */}
+      {Boolean(cancellationNotice) && (
+        <Paper
+          elevation={4}
+          sx={{
+            position: 'fixed',
+            bottom: { xs: 70, md: 24 },
+            left: { xs: 16, sm: 24 },
+            right: { xs: 16, sm: 24 },
+            maxWidth: 500,
+            mx: 'auto',
+            zIndex: 1200,
+            p: 2.5,
+            borderRadius: '16px',
+            border: '1px solid #E2E8F0',
+            bgcolor: '#FFFFFF',
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)'
+          }}
+        >
+          <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', mb: 0.5, fontSize: '16px' }}>
+            Customer cancelled booking #{cancellationNotice.bookingId}
+          </Typography>
+          <Typography variant="body2" sx={{ color: '#0F172A', fontSize: '13.5px', mb: 2, lineHeight: 1.5 }}>
+            Customer <strong>{cancellationNotice?.customerName || 'Customer'}</strong> ({cancellationNotice?.locality || 'Fairlands, Salem'}) has cancelled this request.
           </Typography>
 
-          <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', mb: 2 }}>
-            <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700, display: 'block', mb: 1, fontSize: '12px' }}>
-              Settlement and compensation breakdown
-            </Typography>
-
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, fontSize: '13px' }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: '#64748B' }}>Cancellation reason:</span>
-                <strong style={{ color: '#0F172A' }}>{cancellationNotice?.reason || 'Customer request'}</strong>
-              </Box>
-              <Divider sx={{ borderColor: '#E2E8F0' }} />
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ color: '#64748B' }}>Travel & fuel compensation:</span>
-                <strong style={{ color: '#16A34A', fontSize: '14px' }}>
-                  ₹{cancellationNotice?.technicianTravelDisbursal || 99}.00 (100%)
-                </strong>
-              </Box>
-              <Divider sx={{ borderColor: '#E2E8F0' }} />
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: '#64748B' }}>Platform commission:</span>
-                <strong style={{ color: '#64748B' }}>₹0.00 (Zero deduction)</strong>
-              </Box>
+          <Box sx={{ p: 1.5, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px', mb: 2, display: 'flex', flexDirection: 'column', gap: 0.8, fontSize: '12.5px' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: '#64748B' }}>Travel & fuel compensation:</span>
+              <strong style={{ color: '#16A34A', fontSize: '13px' }}>
+                ₹{cancellationNotice?.technicianTravelDisbursal || 99}.00 (100%)
+              </strong>
             </Box>
-          </Paper>
-
-          <Box sx={{ bgcolor: '#F0FDF4', color: '#166534', border: '1px solid #BBF7D0', borderRadius: '8px', p: 1.5 }}>
-            <Typography variant="caption" sx={{ fontSize: '12px', lineHeight: 1.4, display: 'block' }}>
-              ₹{cancellationNotice?.technicianTravelDisbursal || 99}.00 visit fee has been sent to your payout phone. Your duty radar is unlocked for new leads.
-            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: '#64748B' }}>Platform commission:</span>
+              <strong style={{ color: '#64748B' }}>₹0.00 (Zero deduction)</strong>
+            </Box>
           </Box>
-        </ModalBody>
-        <ModalFooter>
+
           <Button
             fullWidth
             variant="contained"
@@ -6372,78 +6356,80 @@ export default function PartnerDutyPage() {
             sx={{
               bgcolor: '#0A66C2',
               color: '#FFFFFF',
-              borderRadius: '14px',
+              borderRadius: '12px',
               fontWeight: 700,
-              fontSize: '14px',
-              height: 48,
+              fontSize: '13.5px',
+              height: 44,
               textTransform: 'none',
               '&:hover': { bgcolor: '#084e96' }
             }}
           >
             Acknowledge and continue duty
           </Button>
-        </ModalFooter>
-      </Modal>
+        </Paper>
+      )}
 
-      {/* Location Permission Request Modal */}
-      <Modal 
-        open={locationModalOpen} 
-        onClose={() => setLocationModalOpen(false)}
-        maxWidth="xs"
-      >
-        <ModalHeader
-          title="Location access required"
-          subtitle="Required for live navigation and job dispatch"
-          onClose={() => setLocationModalOpen(false)}
-        />
-        <ModalBody>
-          <Typography variant="body2" sx={{ color: '#0F172A', mb: 2, lineHeight: 1.5, fontSize: '14px' }}>
-            Shazu One requires device location <strong>only while you are on duty</strong> to calculate live customer ETAs, doorstep route navigation in Salem, and dispatch nearby high-paying jobs.
+      {/* Location Permission Request Banner (Non-modal) */}
+      {locationModalOpen && (
+        <Paper
+          elevation={4}
+          sx={{
+            position: 'fixed',
+            bottom: { xs: 70, md: 24 },
+            left: { xs: 16, sm: 24 },
+            right: { xs: 16, sm: 24 },
+            maxWidth: 500,
+            mx: 'auto',
+            zIndex: 1200,
+            p: 2.5,
+            borderRadius: '16px',
+            border: '1px solid #BAE6FD',
+            bgcolor: '#FFFFFF',
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)'
+          }}
+        >
+          <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', mb: 0.5, fontSize: '16px' }}>
+            Location access required
           </Typography>
-          <Box sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px' }}>
-            <Typography variant="caption" sx={{ color: '#0A66C2', fontWeight: 700, display: 'block', mb: 0.5, fontSize: '12px' }}>
-              Privacy guaranteed
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontSize: '12px', lineHeight: 1.4 }}>
-              Your location is never tracked when offline. Turning duty off stops all GPS broadcasting immediately.
-            </Typography>
+          <Typography variant="body2" sx={{ color: '#64748B', mb: 1.5, fontSize: '13px', lineHeight: 1.5 }}>
+            Shazu One requires device location only while on duty to calculate live customer ETAs and dispatch nearby Salem jobs.
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 1.5 }}>
+            <Button
+              onClick={() => {
+                setLocationModalOpen(false);
+                setIsOnline(false);
+                setIsGpsBroadcasting(false);
+              }}
+              sx={{ color: '#64748B', fontWeight: 600, textTransform: 'none', height: 44, flex: 1 }}
+            >
+              Stay offline
+            </Button>
+            <Button
+              variant="contained"
+              onClick={() => {
+                setLocationModalOpen(false);
+                setLocationPermission('granted');
+                setIsOnline(true);
+                setIsGpsBroadcasting(true);
+                requestLocationPermission();
+              }}
+              sx={{
+                bgcolor: '#0A66C2',
+                color: '#FFF',
+                fontWeight: 700,
+                borderRadius: '12px',
+                height: 44,
+                flex: 1.5,
+                textTransform: 'none',
+                '&:hover': { bgcolor: '#084e96' }
+              }}
+            >
+              Allow and go online
+            </Button>
           </Box>
-        </ModalBody>
-        <ModalFooter>
-          <Button 
-            onClick={() => {
-              setLocationModalOpen(false);
-              setIsOnline(false);
-              setIsGpsBroadcasting(false);
-            }} 
-            sx={{ color: '#64748B', fontWeight: 600, textTransform: 'none', height: 48 }}
-          >
-            Stay offline
-          </Button>
-          <Button
-            variant="contained"
-            onClick={() => {
-              setLocationModalOpen(false);
-              setLocationPermission('granted');
-              setIsOnline(true);
-              setIsGpsBroadcasting(true);
-              requestLocationPermission();
-            }}
-            sx={{
-              bgcolor: '#0A66C2',
-              color: '#FFF',
-              fontWeight: 700,
-              borderRadius: '14px',
-              height: 48,
-              minWidth: 150,
-              textTransform: 'none',
-              '&:hover': { bgcolor: '#084e96' }
-            }}
-          >
-            Allow and go online
-          </Button>
-        </ModalFooter>
-      </Modal>
+        </Paper>
+      )}
 
     </Box>
   );

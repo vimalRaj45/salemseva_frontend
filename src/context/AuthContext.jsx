@@ -6,7 +6,6 @@ import {
   Avatar,
   Paper
 } from '@mui/material';
-import Modal, { ModalHeader, ModalBody, ModalFooter } from '../components/Modal';
 import DevicesIcon from '@mui/icons-material/Devices';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
@@ -145,7 +144,8 @@ export function AuthProvider({ children }) {
           localStorage.removeItem('shazuone_user');
           localStorage.removeItem('shazuone_session_token');
           sessionTokenRef.current = '';
-          setSessionTerminatedModalOpen(true);
+          toast.error('Session ended: Your account was accessed from another device.');
+          window.location.href = '/login?session_expired=true';
         }
       } catch (e) {}
     };
@@ -1010,191 +1010,6 @@ export function AuthProvider({ children }) {
       }}
     >
       {children}
-
-      {/* SINGLE-DEVICE CONCURRENT LOGIN LOGOUT MODAL */}
-      <Modal
-        open={sessionTerminatedModalOpen}
-        onClose={() => setSessionTerminatedModalOpen(false)}
-        maxWidth="xs"
-      >
-        <ModalHeader
-          title="Logged in on another device"
-          subtitle="Account security notification"
-          onClose={() => setSessionTerminatedModalOpen(false)}
-        />
-
-        <ModalBody>
-          <Box
-            sx={{
-              p: 2,
-              bgcolor: '#F8FAFC',
-              border: '1px solid #E2E8F0',
-              borderRadius: '12px',
-              mb: 2
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
-              <WarningAmberIcon sx={{ color: '#D97706', fontSize: 22, mt: 0.2 }} />
-              <Typography variant="body2" sx={{ color: '#0F172A', fontSize: '13px', lineHeight: 1.5, fontWeight: 500 }}>
-                Your Shazu One account was accessed from a new phone or browser. To protect your data, you have been automatically logged out from this device.
-              </Typography>
-            </Box>
-          </Box>
-
-          <Typography variant="caption" sx={{ color: '#64748B', fontSize: '13px', display: 'block', textAlign: 'center' }}>
-            If this was you, you can log back in on this device anytime.
-          </Typography>
-        </ModalBody>
-
-        <ModalFooter>
-          <Button
-            fullWidth
-            variant="contained"
-            onClick={() => {
-              setSessionTerminatedModalOpen(false);
-              setAuthModalOpen(true);
-            }}
-            sx={{
-              bgcolor: '#0A66C2',
-              color: '#FFF',
-              borderRadius: '14px',
-              height: 48,
-              fontWeight: 700,
-              fontSize: '14px',
-              textTransform: 'none',
-              '&:hover': { bgcolor: '#084e96' }
-            }}
-          >
-            Log in again
-          </Button>
-        </ModalFooter>
-      </Modal>
-
-      {/* 1-TAP FINGERPRINT / PASSKEY ENROLLMENT PROMPT MODAL */}
-      <Modal
-        open={passkeyPromptOpen}
-        onClose={handleDismissPasskeyPrompt}
-        maxWidth="xs"
-      >
-        <ModalHeader
-          title="Enable 1-Tap Login (கைரேகை லாகின்)"
-          subtitle="Fast, password-free login next time"
-          onClose={handleDismissPasskeyPrompt}
-        />
-
-        <ModalBody>
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              textAlign: 'center',
-              pt: 0.5,
-              pb: 1.5
-            }}
-          >
-            <Box
-              sx={{
-                width: 60,
-                height: 60,
-                borderRadius: '50%',
-                bgcolor: '#EFF6FF',
-                border: '1.5px solid #BFDBFE',
-                color: '#0066CC',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                mb: 1.8,
-                boxShadow: '0 4px 14px rgba(0, 102, 204, 0.15)'
-              }}
-            >
-              <FingerprintIcon sx={{ fontSize: 34 }} />
-            </Box>
-
-            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '15.5px', mb: 0.5 }}>
-              Use Fingerprint / Face ID for Easy Login?
-            </Typography>
-            <Typography variant="body2" sx={{ color: '#475569', fontSize: '12.5px', lineHeight: 1.5, mb: 2, px: 0.5 }}>
-              அடுத்த முறை கடவுச்சொல் தட்டச்சு செய்யாமல், உங்கள் போன் கைரேகை மூலம் 1 நொடியில் எளிதாக உள்நுழையலாம்.
-            </Typography>
-
-            <Box
-              sx={{
-                width: '100%',
-                bgcolor: '#F8FAFC',
-                border: '1px solid #E2E8F0',
-                borderRadius: '12px',
-                p: 1.5,
-                textAlign: 'left',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 1
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <CheckCircleIcon sx={{ fontSize: 16, color: '#16A34A', flexShrink: 0 }} />
-                <Typography variant="caption" sx={{ color: '#334155', fontWeight: 600, fontSize: '12px' }}>
-                  1-Tap Sign-in • No passwords to memorize
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <CheckCircleIcon sx={{ fontSize: 16, color: '#16A34A', flexShrink: 0 }} />
-                <Typography variant="caption" sx={{ color: '#334155', fontWeight: 600, fontSize: '12px' }}>
-                  Stored safely in your phone hardware
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <CheckCircleIcon sx={{ fontSize: 16, color: '#16A34A', flexShrink: 0 }} />
-                <Typography variant="caption" sx={{ color: '#334155', fontWeight: 600, fontSize: '12px' }}>
-                  Works for both Customers and Specialists
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
-        </ModalBody>
-
-        <ModalFooter>
-          <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <Button
-              fullWidth
-              variant="contained"
-              onClick={handleEnablePasskeyFromPrompt}
-              disabled={passkeyEnrolling}
-              startIcon={<FingerprintIcon sx={{ fontSize: 18 }} />}
-              sx={{
-                bgcolor: '#0066CC',
-                color: '#FFF',
-                borderRadius: '12px',
-                height: 46,
-                fontWeight: 700,
-                fontSize: '13.5px',
-                textTransform: 'none',
-                boxShadow: '0 2px 8px rgba(0, 102, 204, 0.25)',
-                '&:hover': { bgcolor: '#0052A3' }
-              }}
-            >
-              {passkeyEnrolling ? 'Verifying on device...' : 'Enable 1-Tap Login (இப்போது இணைக்கவும்)'}
-            </Button>
-            <Button
-              fullWidth
-              variant="text"
-              onClick={handleDismissPasskeyPrompt}
-              disabled={passkeyEnrolling}
-              sx={{
-                color: '#64748B',
-                borderRadius: '12px',
-                height: 38,
-                fontWeight: 600,
-                fontSize: '12.5px',
-                textTransform: 'none',
-                '&:hover': { bgcolor: '#F1F5F9' }
-              }}
-            >
-              Maybe Later (பிறகு செய்கிறேன்)
-            </Button>
-          </Box>
-        </ModalFooter>
-      </Modal>
     </AuthContext.Provider>
   );
 }

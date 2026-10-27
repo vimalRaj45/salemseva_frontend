@@ -11,7 +11,6 @@ import {
   IconButton,
   Chip
 } from '@mui/material';
-import Modal, { ModalHeader, ModalBody, ModalFooter } from './Modal';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -48,7 +47,6 @@ export default function DocumentUploadControl({
 
   const [isUploading, setIsUploading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [zoomOpen, setZoomOpen] = useState(false);
 
   useEffect(() => {
     if (existingUrl) {
@@ -466,7 +464,11 @@ export default function DocumentUploadControl({
         >
           {/* Thumbnail / Icon with Zoom trigger */}
           <Box
-            onClick={() => !isPdf && setZoomOpen(true)}
+            onClick={() => {
+              if (!isPdf && activeDisplayUrl) {
+                window.open(resolveMediaUrl(activeDisplayUrl), '_blank', 'noopener,noreferrer');
+              }
+            }}
             sx={{
               width: 58,
               height: 58,
@@ -527,7 +529,16 @@ export default function DocumentUploadControl({
           {/* Action Buttons: Zoom, Replace, Delete */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             {!isPdf && (
-              <IconButton size="small" onClick={() => setZoomOpen(true)} title="Zoom In" sx={{ color: '#0369A1' }}>
+              <IconButton
+                size="small"
+                onClick={() => {
+                  if (activeDisplayUrl) {
+                    window.open(resolveMediaUrl(activeDisplayUrl), '_blank', 'noopener,noreferrer');
+                  }
+                }}
+                title="Zoom In"
+                sx={{ color: '#0369A1' }}
+              >
                 <ZoomInIcon fontSize="small" />
               </IconButton>
             )}
@@ -544,46 +555,6 @@ export default function DocumentUploadControl({
           </Box>
         </Paper>
       )}
-
-      {/* ================= LIGHTBOX / FULL-SIZE INSPECTION MODAL ================= */}
-      <Modal open={zoomOpen} onClose={() => setZoomOpen(false)} maxWidth="sm">
-        <ModalHeader
-          title={label || 'Document preview'}
-          subtitle="Full resolution inspection"
-          onClose={() => setZoomOpen(false)}
-        />
-        <ModalBody sx={{ p: 2, bgcolor: '#0F172A', textAlign: 'center' }}>
-          {activeDisplayUrl && (
-            <img
-              src={resolveMediaUrl(activeDisplayUrl)}
-              alt="Full Preview"
-              style={{ maxWidth: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: '6px' }}
-            />
-          )}
-          <Box sx={{ mt: 1.5, display: 'flex', justifyContent: 'center' }}>
-            <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '12px' }}>
-              {stagedFile ? 'Pre-upload inspection' : 'Verified cloud document'}
-            </Typography>
-          </Box>
-        </ModalBody>
-        <ModalFooter>
-          <Button
-            variant="outlined"
-            onClick={() => setZoomOpen(false)}
-            sx={{
-              width: '100%',
-              height: 44,
-              borderRadius: '6px',
-              borderColor: '#E2E8F0',
-              color: '#0F172A',
-              fontWeight: 600,
-              textTransform: 'none'
-            }}
-          >
-            Close preview
-          </Button>
-        </ModalFooter>
-      </Modal>
     </Box>
   );
 }

@@ -539,23 +539,6 @@ export default function AdminSettlementsPage() {
           emptyDescription="There are no transaction lines matching the selected date or region filter."
           initialPageSize={10}
         />
-
-        {/* Manual Payment Override Modal */}
-        {overrideModalOpen && targetBookingForOverride && (
-          <AdminPaymentOverrideModal
-            open={overrideModalOpen}
-            onClose={() => {
-              setOverrideModalOpen(false);
-              setTargetBookingForOverride(null);
-            }}
-            booking={targetBookingForOverride}
-            onSuccess={() => {
-              setOverrideModalOpen(false);
-              setTargetBookingForOverride(null);
-              fetchLedger();
-            }}
-          />
-        )}
       </Container>
     </Box>
   );

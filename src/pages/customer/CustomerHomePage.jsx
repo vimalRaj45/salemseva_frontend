@@ -41,7 +41,6 @@ import BoltIcon from '@mui/icons-material/Bolt';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 
 import { ApiService } from '../../services/api';
-import LocationPickerModal from '../../components/LocationPickerModal';
 import DynamicTrustTicker from '../../components/DynamicTrustTicker';
 import { useAuth } from '../../context/AuthContext';
 
@@ -54,7 +53,6 @@ export default function CustomerHomePage() {
   const [services, setServices] = useState([]);
   const [servicesAvailability, setServicesAvailability] = useState({});
   const [isLoading, setIsLoading] = useState(true);
-  const [locationPickerOpen, setLocationPickerOpen] = useState(false);
   const [userLocation, setUserLocation] = useState(() => {
     const saved = localStorage.getItem('shazuone_user_location');
     return saved ? JSON.parse(saved) : {
@@ -65,6 +63,25 @@ export default function CustomerHomePage() {
       lng: 78.1460
     };
   });
+
+  useEffect(() => {
+    const handleLocationUpdate = (e) => {
+      if (e.detail) {
+        setUserLocation(e.detail);
+      } else {
+        const saved = localStorage.getItem('shazuone_user_location');
+        if (saved) {
+          try { setUserLocation(JSON.parse(saved)); } catch {}
+        }
+      }
+    };
+    window.addEventListener('shazuone_location_updated', handleLocationUpdate);
+    window.addEventListener('storage', handleLocationUpdate);
+    return () => {
+      window.removeEventListener('shazuone_location_updated', handleLocationUpdate);
+      window.removeEventListener('storage', handleLocationUpdate);
+    };
+  }, []);
 
   const [activeBooking, setActiveBooking] = useState(null);
   const [realReviews, setRealReviews] = useState([]);
@@ -257,7 +274,7 @@ export default function CustomerHomePage() {
         >
           {/* Location Area Selector */}
           <Box
-            onClick={() => setLocationPickerOpen(true)}
+            onClick={() => navigate('/location', { state: { returnTo: '/', currentLocation: userLocation } })}
             sx={{
               display: 'flex',
               alignItems: 'center',
@@ -1366,14 +1383,6 @@ export default function CustomerHomePage() {
           })}
         </Box>
       </Box>
-
-      {/* Location Picker Modal */}
-      <LocationPickerModal
-        open={locationPickerOpen}
-        onClose={() => setLocationPickerOpen(false)}
-        currentLocation={userLocation}
-        onSelectLocation={(newLoc) => setUserLocation(newLoc)}
-      />
     </Box>
   );
 }

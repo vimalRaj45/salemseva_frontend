@@ -18,7 +18,6 @@ import HandymanIcon from '@mui/icons-material/Handyman';
 import PersonIcon from '@mui/icons-material/Person';
 import CloseIcon from '@mui/icons-material/Close';
 import { Globe } from 'lucide-react';
-import LanguageSelectorModal from '../../components/LanguageSelectorModal';
 import { getCurrentLanguage, SUPPORTED_LANGUAGES } from '../../services/languageService';
 import { ILLUSTRATIONS } from '../../constants/visualAssets';
 
@@ -259,7 +258,7 @@ export default function FirstTimeOnboardingPage() {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, flexShrink: 0 }}>
               <Button
                 size="small"
-                onClick={() => setIsLangModalOpen(true)}
+                onClick={() => navigate('/language', { state: { returnTo: '/welcome' } })}
                 startIcon={<Globe size={13} color="#0284C7" />}
                 sx={{
                   color: '#0F172A',
@@ -501,12 +500,6 @@ export default function FirstTimeOnboardingPage() {
           </Button>
         </Box>
       </Container>
-
-      {/* Language Selector Modal */}
-      <LanguageSelectorModal
-        open={isLangModalOpen}
-        onClose={() => setIsLangModalOpen(false)}
-      />
     </Box>
   );
 }

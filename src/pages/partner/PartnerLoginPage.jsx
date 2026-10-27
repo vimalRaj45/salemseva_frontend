@@ -32,7 +32,6 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import { API_BASE_URL } from '../../config';
-import AuthHelpModal from '../../components/AuthHelpModal';
 
 export default function PartnerLoginPage() {
   const navigate = useNavigate();
@@ -44,7 +43,6 @@ export default function PartnerLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [helpModalOpen, setHelpModalOpen] = useState(false);
 
   // If already authenticated as a technician, redirect to duty page
   useEffect(() => {
@@ -385,7 +383,7 @@ export default function PartnerLoginPage() {
           <Box sx={{ mt: 1.5, textAlign: 'center' }}>
             <Button
               size="small"
-              onClick={() => setHelpModalOpen(true)}
+              onClick={() => navigate('/auth/help?role=partner', { state: { returnTo: '/partner/login' } })}
               startIcon={<HelpOutlineIcon sx={{ fontSize: 16 }} />}
               sx={{
                 color: '#94A3B8',
@@ -399,13 +397,6 @@ export default function PartnerLoginPage() {
             </Button>
           </Box>
         </Card>
-
-        {/* Auth Help Modal */}
-        <AuthHelpModal
-          open={helpModalOpen}
-          onClose={() => setHelpModalOpen(false)}
-          defaultRole="technician"
-        />
 
         {/* Back to Customer App link */}
         <Box sx={{ textAlign: 'center', mt: 3 }}>

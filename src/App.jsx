@@ -24,6 +24,10 @@ import AdminPaymentOverridePage from './pages/admin/AdminPaymentOverridePage';
 import AdminLiveTrackingPage from './pages/admin/AdminLiveTrackingPage';
 import AdminDispatchPage from './pages/admin/AdminDispatchPage';
 import AdminOrderCancelPage from './pages/admin/AdminOrderCancelPage';
+import AdminCouponEditorPage from './pages/admin/AdminCouponEditorPage';
+import AdminServiceEditorPage from './pages/admin/AdminServiceEditorPage';
+import AdminStaffEditorPage from './pages/admin/AdminStaffEditorPage';
+import DocumentViewerPage from './pages/admin/DocumentViewerPage';
 import AuthHelpPage from './pages/auth/AuthHelpPage';
 
 // Customer Pages
@@ -262,6 +266,10 @@ function MainLayout({ walletBalance, currentBooking, setCurrentBooking }) {
     location.pathname.startsWith('/admin/jobs/') ||
     location.pathname.startsWith('/admin/dispatch/') ||
     location.pathname.startsWith('/admin/orders/') ||
+    location.pathname.startsWith('/admin/coupons/') ||
+    location.pathname.startsWith('/admin/services/') ||
+    location.pathname.startsWith('/admin/team/') ||
+    location.pathname === '/admin/documents/preview' ||
     location.pathname === '/login/help' ||
     location.pathname === '/auth/help';
 
@@ -300,6 +308,13 @@ function MainLayout({ walletBalance, currentBooking, setCurrentBooking }) {
             <Route path="/admin/jobs/:bookingId/live-track" element={<AdminLiveTrackingPage />} />
             <Route path="/admin/dispatch/:bookingId" element={<AdminDispatchPage />} />
             <Route path="/admin/orders/:bookingId/cancel" element={<AdminOrderCancelPage />} />
+            <Route path="/admin/coupons/new" element={<AdminCouponEditorPage />} />
+            <Route path="/admin/coupons/:code/edit" element={<AdminCouponEditorPage />} />
+            <Route path="/admin/services/new" element={<AdminServiceEditorPage />} />
+            <Route path="/admin/services/:id/edit" element={<AdminServiceEditorPage />} />
+            <Route path="/admin/team/new" element={<AdminStaffEditorPage />} />
+            <Route path="/admin/team/:id/edit" element={<AdminStaffEditorPage />} />
+            <Route path="/admin/documents/preview" element={<DocumentViewerPage />} />
             <Route path="/login/help" element={<AuthHelpPage />} />
             <Route path="/auth/help" element={<Navigate to="/login/help" replace />} />
 
