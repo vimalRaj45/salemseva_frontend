@@ -204,15 +204,10 @@ export default function SideNavbar({
                 style={{ width: '100%', height: '100%', objectFit: 'contain' }}
               />
             </div>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', lineHeight: 1.1 }}>
-                <span style={{ fontSize: '17px', fontWeight: 900, color: '#0A5CC4', letterSpacing: '-0.3px' }}>Shazu</span>
-                <span style={{ fontSize: '17px', fontWeight: 900, color: isTechnician ? '#2B9236' : isAdmin ? '#D97706' : '#2B9236', letterSpacing: '-0.3px' }}>
-                  {isTechnician ? 'Partner' : isAdmin ? 'Ops' : 'One'}
-                </span>
-              </div>
-              <span style={{ fontSize: '10px', color: '#64748B', fontWeight: 600 }}>
-                {isTechnician ? 'Partner Specialist Console' : isAdmin ? 'Operations Command HQ' : 'Salem Home Services Hub'}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', lineHeight: 1 }}>
+              <span style={{ fontSize: '18px', fontWeight: 900, color: '#0A5CC4', letterSpacing: '-0.3px' }}>Shazu</span>
+              <span style={{ fontSize: '18px', fontWeight: 900, color: isTechnician ? '#2B9236' : isAdmin ? '#D97706' : '#2B9236', letterSpacing: '-0.3px' }}>
+                {isTechnician ? 'Partner' : isAdmin ? 'Ops' : 'One'}
               </span>
             </div>
           </div>

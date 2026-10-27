@@ -1693,7 +1693,7 @@ export default function TrackingPage() {
                             {tech.rating}
                           </Typography>
                           <Typography variant="caption" sx={{ color: '#2563EB', fontWeight: 500, fontSize: '11px' }}>
-                            ({tech.jobsCompleted} jobs • Salem verified)
+                            ({tech.jobsCompleted} jobs)
                           </Typography>
                         </>
                       ) : (

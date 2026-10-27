@@ -120,7 +120,7 @@ export default function BookingChatPage() {
   };
 
   const partnerName = bookingInfo?.technician_name || 'Assigned Partner';
-  const partnerRole = bookingInfo?.service_title || 'Salem Verified Specialist';
+  const partnerRole = bookingInfo?.service_title || 'Service Specialist';
 
   const quickReplies =
     userRole === 'customer'

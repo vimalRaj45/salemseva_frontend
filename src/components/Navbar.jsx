@@ -360,94 +360,25 @@ export default function Navbar({
                 />
               </div>
 
-              {/* Dynamic Wordmark & Role Subtitle */}
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', lineHeight: 1 }}>
-                  <span
-                    style={{
-                      fontSize: isMobile ? '17px' : '19px',
-                      fontWeight: 900,
-                      letterSpacing: '-0.4px',
-                      color: '#0A5CC4'
-                    }}
-                  >
-                    Shazu{' '}
-                    <span
-                      style={{
-                        color: isTechnician ? '#2B9236' : isAdmin ? '#D97706' : '#2B9236'
-                      }}
-                    >
-                      {isTechnician ? 'Partner' : isAdmin ? 'Ops' : 'One'}
-                    </span>
-                  </span>
-
-                  {/* Role Specific Verified Pill */}
-                  {isTechnician ? (
-                    <span
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '3px',
-                        padding: '2px 6px',
-                        borderRadius: '999px',
-                        fontSize: '9.5px',
-                        fontWeight: 800,
-                        backgroundColor: '#DCFCE7',
-                        color: '#15803D',
-                        border: '1px solid #86EFAC'
-                      }}
-                    >
-                      <ShieldCheck size={10} color="#15803D" />
-                      {user?.trade?.toUpperCase() || 'AC'} PRO
-                    </span>
-                  ) : isAdmin ? (
-                    <span
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '3px',
-                        padding: '2px 6px',
-                        borderRadius: '999px',
-                        fontSize: '9.5px',
-                        fontWeight: 800,
-                        backgroundColor: '#FEF3C7',
-                        color: '#92400E',
-                        border: '1px solid #FCD34D'
-                      }}
-                    >
-                      OPS HQ
-                    </span>
-                  ) : (
-                    <span
-                      style={{
-                        display: isMobile ? 'none' : 'inline-flex',
-                        alignItems: 'center',
-                        gap: '3px',
-                        padding: '2px 6px',
-                        borderRadius: '999px',
-                        fontSize: '9.5px',
-                        fontWeight: 700,
-                        backgroundColor: '#EFF6FF',
-                        color: '#0A5CC4',
-                        border: '1px solid #BFDBFE'
-                      }}
-                    >
-                      <ShieldCheck size={10} color="#0A5CC4" />
-                      Salem Verified
-                    </span>
-                  )}
-                </div>
-
-                {!isMobile && (
-                  <span style={{ fontSize: '10.5px', fontWeight: 500, color: '#64748B', marginTop: '2px' }}>
-                    {isTechnician
-                      ? 'Verified Specialist Duty Hub'
-                      : isAdmin
-                      ? 'Operations Command & Telemetry'
-                      : 'Salem Home Services Hub'}
-                  </span>
-                )}
-              </div>
+              {/* Dynamic Wordmark */}
+              <span
+                style={{
+                  fontSize: isMobile ? '18px' : '20px',
+                  fontWeight: 900,
+                  letterSpacing: '-0.4px',
+                  color: '#0A5CC4',
+                  lineHeight: 1
+                }}
+              >
+                Shazu{' '}
+                <span
+                  style={{
+                    color: isTechnician ? '#2B9236' : isAdmin ? '#D97706' : '#2B9236'
+                  }}
+                >
+                  {isTechnician ? 'Partner' : isAdmin ? 'Ops' : 'One'}
+                </span>
+              </span>
             </div>
           </div>
 

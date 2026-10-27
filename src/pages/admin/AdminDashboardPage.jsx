@@ -33,11 +33,18 @@ import {
   DialogActions,
   Tabs,
   Tab,
-  Switch
+  Switch,
+  Collapse,
+  Menu,
+  TablePagination
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
 // Professional Material UI Icons
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import ElectricMopedIcon from '@mui/icons-material/ElectricMoped';
 import HubIcon from '@mui/icons-material/Hub';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
@@ -279,6 +286,52 @@ export default function AdminDashboardPage() {
 
   // Toast Notification
   const [toast, setToast] = useState({ open: false, message: '', severity: 'info' });
+
+  // Advanced Filter Collapse State
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+
+  // Row Action Dropdown Menu State (Dispatch Queue)
+  const [actionMenuAnchor, setActionMenuAnchor] = useState(null);
+  const [actionTargetJob, setActionTargetJob] = useState(null);
+
+  // Row Action Dropdown Menu State (Technicians)
+  const [techActionMenuAnchor, setTechActionMenuAnchor] = useState(null);
+  const [actionTargetTech, setActionTargetTech] = useState(null);
+
+  // Row Action Dropdown Menu State (Customers)
+  const [custActionMenuAnchor, setCustActionMenuAnchor] = useState(null);
+  const [actionTargetCust, setActionTargetCust] = useState(null);
+
+  // Table Pagination State
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  const handleActionMenuOpen = (event, job) => {
+    setActionMenuAnchor(event.currentTarget);
+    setActionTargetJob(job);
+  };
+  const handleActionMenuClose = () => {
+    setActionMenuAnchor(null);
+    setActionTargetJob(null);
+  };
+
+  const handleTechActionMenuOpen = (event, tech) => {
+    setTechActionMenuAnchor(event.currentTarget);
+    setActionTargetTech(tech);
+  };
+  const handleTechActionMenuClose = () => {
+    setTechActionMenuAnchor(null);
+    setActionTargetTech(null);
+  };
+
+  const handleCustActionMenuOpen = (event, cust) => {
+    setCustActionMenuAnchor(event.currentTarget);
+    setActionTargetCust(cust);
+  };
+  const handleCustActionMenuClose = () => {
+    setCustActionMenuAnchor(null);
+    setActionTargetCust(null);
+  };
 
   // Fetch Platform Feedbacks (From API and Local Storage sync)
   const fetchFeedbacks = async () => {
@@ -1656,22 +1709,43 @@ export default function AdminDashboardPage() {
                   )}
                 </Box>
 
-                {activeFiltersCount > 0 && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Button
-                    variant="text"
+                    variant="outlined"
                     size="small"
-                    onClick={handleResetFilters}
-                    startIcon={<ClearIcon sx={{ fontSize: 14 }} />}
-                    sx={{ color: '#DC2626', fontWeight: 800, fontSize: '12px', textTransform: 'none' }}
+                    onClick={() => setShowAdvancedFilters(prev => !prev)}
+                    startIcon={<TuneIcon sx={{ fontSize: 14 }} />}
+                    endIcon={showAdvancedFilters ? <KeyboardArrowUpIcon sx={{ fontSize: 16 }} /> : <KeyboardArrowDownIcon sx={{ fontSize: 16 }} />}
+                    sx={{
+                      color: '#0284C7',
+                      borderColor: '#BAE6FD',
+                      fontWeight: 700,
+                      fontSize: '12px',
+                      textTransform: 'none',
+                      borderRadius: '8px',
+                      bgcolor: showAdvancedFilters ? '#F0F9FF' : '#FFF'
+                    }}
                   >
-                    Reset All Filters
+                    {showAdvancedFilters ? 'Hide Advanced Filters' : 'Advanced Filters'}
                   </Button>
-                )}
+
+                  {activeFiltersCount > 0 && (
+                    <Button
+                      variant="text"
+                      size="small"
+                      onClick={handleResetFilters}
+                      startIcon={<ClearIcon sx={{ fontSize: 14 }} />}
+                      sx={{ color: '#DC2626', fontWeight: 800, fontSize: '12px', textTransform: 'none' }}
+                    >
+                      Reset All
+                    </Button>
+                  )}
+                </Box>
               </Box>
 
-              {/* Row 1: Primary Search, Trade, Locality, Status */}
-              <Grid container spacing={2} sx={{ mb: 2 }}>
-                <Grid item xs={12} md={4}>
+              {/* Row 1: Primary Search & Live Stage (Always Visible) */}
+              <Grid container spacing={2} sx={{ mb: showAdvancedFilters ? 2 : 0 }}>
+                <Grid item xs={12} sm={7} md={8}>
                   <TextField
                     fullWidth
                     size="small"
@@ -1703,8 +1777,81 @@ export default function AdminDashboardPage() {
                     }}
                   />
                 </Grid>
+                <Grid item xs={12} sm={5} md={4}>
+                  <FormControl fullWidth size="small">
+                    {/* ds-allow-native-select */}
+                    <Select
+                      value={selectedStatus}
+                      onChange={(e) => setSelectedStatus(e.target.value)}
+                      sx={{
+                        borderRadius: '12px',
+                        bgcolor: 'background.default',
+                        color: 'text.primary',
+                        fontSize: '13.5px',
+                        fontWeight: 700,
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        '& .MuiSelect-select': { color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }
+                      }}
+                    >
+                      <MenuItem value="all">
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <SyncAltIcon sx={{ fontSize: 17, color: '#64748B' }} />
+                          <span>All Live Stages</span>
+                        </Box>
+                      </MenuItem>
+                      <MenuItem value="matching">
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <BoltIcon sx={{ fontSize: 17, color: '#DC2626' }} />
+                          <span>Pending Dispatch</span>
+                        </Box>
+                      </MenuItem>
+                      <MenuItem value="en_route">
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <DirectionsBikeIcon sx={{ fontSize: 17, color: '#D97706' }} />
+                          <span>En Route to Home</span>
+                        </Box>
+                      </MenuItem>
+                      <MenuItem value="arrived">
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <RoomIcon sx={{ fontSize: 17, color: '#854D0E' }} />
+                          <span>On Site</span>
+                        </Box>
+                      </MenuItem>
+                      <MenuItem value="in_progress">
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <BuildIcon sx={{ fontSize: 17, color: '#4338CA' }} />
+                          <span>Work In Progress</span>
+                        </Box>
+                      </MenuItem>
+                      <MenuItem value="quote_presented">
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <ReceiptLongIcon sx={{ fontSize: 17, color: '#0284C7' }} />
+                          <span>Quote Presented</span>
+                        </Box>
+                      </MenuItem>
+                      <MenuItem value="completed">
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <TaskAltIcon sx={{ fontSize: 17, color: '#166534' }} />
+                          <span>Job Completed</span>
+                        </Box>
+                      </MenuItem>
+                      <MenuItem value="cancelled">
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <CancelOutlinedIcon sx={{ fontSize: 17, color: '#DC2626' }} />
+                          <span>Customer Cancelled</span>
+                        </Box>
+                      </MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+              </Grid>
 
-                <Grid item xs={12} sm={4} md={2.8}>
+              {/* Collapsible Secondary Filters Panel */}
+              <Collapse in={showAdvancedFilters} timeout="auto" unmountOnExit>
+                <Box sx={{ pt: 2, borderTop: '1px solid #E2E8F0', mt: 2 }}>
+                  <Grid container spacing={2} sx={{ mb: 2 }}>
+                    <Grid item xs={12} sm={6} md={6}>
                   <FormControl fullWidth size="small">
                     {/* ds-allow-native-select */}
                     <Select
@@ -1754,8 +1901,7 @@ export default function AdminDashboardPage() {
                     </Select>
                   </FormControl>
                 </Grid>
-
-                <Grid item xs={12} sm={4} md={2.8}>
+                    <Grid item xs={12} sm={6} md={6}>
                   <FormControl fullWidth size="small">
                     {/* ds-allow-native-select */}
                     <Select
@@ -1829,78 +1975,9 @@ export default function AdminDashboardPage() {
                     </Select>
                   </FormControl>
                 </Grid>
+                  </Grid>
 
-                <Grid item xs={12} sm={4} md={2.4}>
-                  <FormControl fullWidth size="small">
-                    {/* ds-allow-native-select */}
-                    <Select
-                      value={selectedStatus}
-                      onChange={(e) => setSelectedStatus(e.target.value)}
-                      sx={{
-                        borderRadius: '12px',
-                        bgcolor: 'background.default',
-                        color: 'text.primary',
-                        fontSize: '13.5px',
-                        fontWeight: 700,
-                        border: '1px solid',
-                        borderColor: 'divider',
-                        '& .MuiSelect-select': { color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }
-                      }}
-                    >
-                      <MenuItem value="all">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <SyncAltIcon sx={{ fontSize: 17, color: '#64748B' }} />
-                          <span>All Live Stages</span>
-                        </Box>
-                      </MenuItem>
-                      <MenuItem value="matching">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <BoltIcon sx={{ fontSize: 17, color: '#DC2626' }} />
-                          <span>Pending Dispatch</span>
-                        </Box>
-                      </MenuItem>
-                      <MenuItem value="en_route">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <DirectionsBikeIcon sx={{ fontSize: 17, color: '#D97706' }} />
-                          <span>En Route to Home</span>
-                        </Box>
-                      </MenuItem>
-                      <MenuItem value="arrived">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <RoomIcon sx={{ fontSize: 17, color: '#854D0E' }} />
-                          <span>On Site</span>
-                        </Box>
-                      </MenuItem>
-                      <MenuItem value="in_progress">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <BuildIcon sx={{ fontSize: 17, color: '#4338CA' }} />
-                          <span>Work In Progress</span>
-                        </Box>
-                      </MenuItem>
-                      <MenuItem value="quote_presented">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <ReceiptLongIcon sx={{ fontSize: 17, color: '#0284C7' }} />
-                          <span>Quote Presented</span>
-                        </Box>
-                      </MenuItem>
-                      <MenuItem value="completed">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <TaskAltIcon sx={{ fontSize: 17, color: '#166534' }} />
-                          <span>Job Completed</span>
-                        </Box>
-                      </MenuItem>
-                      <MenuItem value="cancelled">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <CancelOutlinedIcon sx={{ fontSize: 17, color: '#DC2626' }} />
-                          <span>Customer Cancelled</span>
-                        </Box>
-                      </MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-              </Grid>
-
-              {/* Row 2: Date Window, Dispatch Mode, Audio Voice Note Filter */}
+                  {/* Row 2: Date Window, Dispatch Mode, Audio Voice Note Filter */}
               <Grid container spacing={2} sx={{ mb: 2 }}>
                 <Grid item xs={12} sm={4} md={4}>
                   <FormControl fullWidth size="small">
@@ -2032,6 +2109,8 @@ export default function AdminDashboardPage() {
                 </Grid>
               </Grid>
 
+                  
+
               {/* Active Filter Chips & Dismissal Bar */}
               {activeFiltersCount > 0 && (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center', p: 1.5, bgcolor: '#F0F9FF', borderRadius: '12px', border: '1px solid #BAE6FD', mb: 2 }}>
@@ -2150,6 +2229,9 @@ export default function AdminDashboardPage() {
                   />
                 ))}
               </Box>
+            
+                </Box>
+              </Collapse>
             </Card>
 
             {/*  SECTION 1: ACTIVE SALEM TECHNICIAN FLEET RADAR */}
@@ -2400,13 +2482,13 @@ export default function AdminDashboardPage() {
                   <Typography variant="caption" sx={{ display: { xs: 'block', md: 'none' }, color: '#94A3B8', px: 2, pt: 1, fontSize: '10.5px' }}>
                     Swipe left/right to view full table details
                   </Typography>
-                  <Table size="small" sx={{ minWidth: 720 }}>
+                  <Table size="small" sx={{ minWidth: { xs: 580, md: '100%' } }}>
                   <TableHead>
                     <TableRow sx={{ bgcolor: '#F8FAFC', '& th': { color: '#475569', fontWeight: 800, borderColor: '#E2E8F0', py: 1.4 } }}>
                       <TableCell>Booking ID</TableCell>
                       <TableCell>Customer & Locality</TableCell>
                       <TableCell>Service & Problem</TableCell>
-                      <TableCell>Scheduled Slot / Window</TableCell>
+                      <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>Scheduled Slot / Window</TableCell>
                       <TableCell>Assigned Technician</TableCell>
                       <TableCell align="center">Live Stage</TableCell>
                       <TableCell align="right">Amount</TableCell>
@@ -2414,7 +2496,7 @@ export default function AdminDashboardPage() {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {filteredBookings.map((job) => (
+                    {filteredBookings.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((job) => (
                       <TableRow key={job.id} hover sx={{ '& td': { borderColor: '#E2E8F0', py: 1.5 } }}>
                         <TableCell 
                           sx={{ fontWeight: 800, color: '#0284C7', cursor: 'pointer', textDecoration: 'underline' }}
@@ -2483,7 +2565,7 @@ export default function AdminDashboardPage() {
                             </Typography>
                           )}
                         </TableCell>
-                        <TableCell>
+                        <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
                           {job.scheduled_slot && job.scheduled_slot !== 'instant_now' && job.scheduled_slot !== 'priority_12h' ? (
                             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.3 }}>
                               <Chip
@@ -2581,94 +2663,29 @@ export default function AdminDashboardPage() {
                           ₹{job.final_amount || job.total_price || '299.00'}
                         </TableCell>
                         <TableCell align="center">
-                          <Box sx={{ display: 'flex', gap: 0.6, justifyContent: 'center' }}>
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              startIcon={<NavigationIcon sx={{ fontSize: 13 }} />}
-                              onClick={() => handleOpenTracking(job)}
-                              sx={{
-                                borderRadius: '8px',
-                                fontSize: '11px',
-                                fontWeight: 800,
-                                textTransform: 'none',
-                                py: 0.4,
-                                color: '#16A34A',
-                                borderColor: '#BBF7D0',
-                                bgcolor: '#F0FDF4',
-                                '&:hover': { bgcolor: '#DCFCE7', borderColor: '#16A34A' }
-                              }}
-                            >
-                              Live Track
-                            </Button>
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              startIcon={<ArticleIcon sx={{ fontSize: 13 }} />}
-                              onClick={() => handleOpenBookingTrace(job)}
-                              sx={{
-                                borderRadius: '8px',
-                                fontSize: '11px',
-                                fontWeight: 800,
-                                textTransform: 'none',
-                                py: 0.4,
-                                color: '#0284C7',
-                                borderColor: '#BAE6FD',
-                                bgcolor: '#F0F9FF',
-                                '&:hover': { bgcolor: '#E0F2FE', borderColor: '#0284C7' }
-                              }}
-                            >
-                              Trace
-                            </Button>
-                            {/* Admin Payment Override — Mark as Paid (Razorpay edge case fallback) */}
-                            {!['completed', 'cancelled'].includes(job.status) && (
+                          <Box sx={{ display: 'flex', gap: 0.8, alignItems: 'center', justifyContent: 'center' }}>
+                            {['en_route', 'arrived', 'in_progress'].includes(job.status) ? (
                               <Button
                                 variant="outlined"
                                 size="small"
-                                startIcon={<PaymentsIcon sx={{ fontSize: 13 }} />}
-                                onClick={() => {
-                                  navigate(`/admin/settlements/${job.id}/override`, { state: { booking: job, returnTo: location.pathname } });
-                                }}
-                                title="Record offline payment — mark as paid via Cash/Direct UPI"
+                                startIcon={<NavigationIcon sx={{ fontSize: 13 }} />}
+                                onClick={() => handleOpenTracking(job)}
                                 sx={{
                                   borderRadius: '8px',
                                   fontSize: '11px',
                                   fontWeight: 800,
                                   textTransform: 'none',
                                   py: 0.4,
-                                  color: '#D97706',
-                                  borderColor: '#FDE68A',
-                                  bgcolor: '#FFFBEB',
-                                  '&:hover': { bgcolor: '#FEF3C7', borderColor: '#D97706' }
+                                  px: 1.2,
+                                  color: '#16A34A',
+                                  borderColor: '#BBF7D0',
+                                  bgcolor: '#F0FDF4',
+                                  '&:hover': { bgcolor: '#DCFCE7', borderColor: '#16A34A' }
                                 }}
                               >
-                                Mark Paid
+                                Live Track
                               </Button>
-                            )}
-                            {/* Admin Cancel Order & Release Tech — available for all active bookings */}
-                            {!['completed', 'cancelled'].includes(job.status) && (
-                              <Button
-                                variant="outlined"
-                                size="small"
-                                startIcon={<CancelIcon sx={{ fontSize: 13 }} />}
-                                onClick={() => handleOpenCancelOrder(job)}
-                                title="Cancel this order and release the technician (admin override)"
-                                sx={{
-                                  borderRadius: '8px',
-                                  fontSize: '11px',
-                                  fontWeight: 800,
-                                  textTransform: 'none',
-                                  py: 0.4,
-                                  color: '#DC2626',
-                                  borderColor: '#FCA5A5',
-                                  bgcolor: '#FEF2F2',
-                                  '&:hover': { bgcolor: '#FEE2E2', borderColor: '#DC2626' }
-                                }}
-                              >
-                                Cancel Order
-                              </Button>
-                            )}
-                            {job.status === 'matching' && (
+                            ) : job.status === 'matching' ? (
                               <Button
                                 variant="contained"
                                 size="small"
@@ -2682,18 +2699,68 @@ export default function AdminDashboardPage() {
                                   color: '#FFF',
                                   textTransform: 'none',
                                   py: 0.4,
+                                  px: 1.2,
                                   '&:hover': { bgcolor: '#0369A1' }
                                 }}
                               >
-                                Assign Tech
+                                Assign
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="outlined"
+                                size="small"
+                                startIcon={<ArticleIcon sx={{ fontSize: 13 }} />}
+                                onClick={() => handleOpenBookingTrace(job)}
+                                sx={{
+                                  borderRadius: '8px',
+                                  fontSize: '11px',
+                                  fontWeight: 800,
+                                  textTransform: 'none',
+                                  py: 0.4,
+                                  px: 1.2,
+                                  color: '#0284C7',
+                                  borderColor: '#BAE6FD',
+                                  bgcolor: '#F0F9FF',
+                                  '&:hover': { bgcolor: '#E0F2FE', borderColor: '#0284C7' }
+                                }}
+                              >
+                                Trace
                               </Button>
                             )}
+
+                            <IconButton
+                              size="small"
+                              onClick={(e) => handleActionMenuOpen(e, job)}
+                              aria-label="Actions menu"
+                              sx={{
+                                border: '1px solid #E2E8F0',
+                                borderRadius: '8px',
+                                p: 0.5,
+                                color: '#475569',
+                                '&:hover': { bgcolor: '#F1F5F9', borderColor: '#CBD5E1' }
+                              }}
+                            >
+                              <MoreVertIcon sx={{ fontSize: 18 }} />
+                            </IconButton>
                           </Box>
                         </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
+                  <TablePagination
+                    rowsPerPageOptions={[10, 25, 50]}
+                    component="div"
+                    count={filteredBookings.length}
+                    rowsPerPage={rowsPerPage}
+                    page={Math.min(page, Math.max(0, Math.ceil(filteredBookings.length / rowsPerPage) - 1))}
+                    onPageChange={(e, newPage) => setPage(newPage)}
+                    onRowsPerPageChange={(e) => {
+                      setRowsPerPage(parseInt(e.target.value, 10));
+                      setPage(0);
+                    }}
+                    sx={{ borderTop: '1px solid #E2E8F0' }}
+                  />
               </Box>
             )}
             </Card>
@@ -2745,7 +2812,7 @@ export default function AdminDashboardPage() {
                 <Typography variant="caption" sx={{ display: { xs: 'block', md: 'none' }, color: '#94A3B8', px: 2, pt: 1, fontSize: '10.5px' }}>
                   Swipe left/right to view full table details
                 </Typography>
-                <Table size="small" sx={{ minWidth: 720 }}>
+                <Table size="small" sx={{ minWidth: { xs: 580, md: '100%' } }}>
                 <TableHead>
                   <TableRow sx={{ bgcolor: '#F8FAFC', '& th': { color: '#475569', fontWeight: 800, borderColor: '#E2E8F0', py: 1.4 } }}>
                     <TableCell>Customer Profile</TableCell>
@@ -2825,9 +2892,9 @@ export default function AdminDashboardPage() {
                         )}
                       </TableCell>
                       <TableCell align="center">
-                        <Box sx={{ display: 'flex', gap: 0.6, justifyContent: 'center' }}>
+                        <Box sx={{ display: 'flex', gap: 0.8, alignItems: 'center', justifyContent: 'center' }}>
                           <Button
-                            variant="contained"
+                            variant="outlined"
                             size="small"
                             startIcon={<HistoryEduIcon sx={{ fontSize: 13 }} />}
                             onClick={() => handleOpenCustomerHistory(cust)}
@@ -2835,36 +2902,31 @@ export default function AdminDashboardPage() {
                               borderRadius: '8px',
                               fontSize: '11px',
                               fontWeight: 800,
-                              bgcolor: '#0284C7',
-                              color: '#FFF',
+                              color: '#0284C7',
+                              borderColor: '#BAE6FD',
+                              bgcolor: '#F0F9FF',
                               textTransform: 'none',
-                              py: 0.3,
-                              '&:hover': { bgcolor: '#0369A1' }
+                              py: 0.4,
+                              px: 1.2,
+                              '&:hover': { bgcolor: '#E0F2FE' }
                             }}
                           >
                             History
                           </Button>
-                          {cust.is_blocked ? (
-                            <Button
-                              variant="outlined"
-                              color="success"
-                              size="small"
-                              onClick={() => handleToggleCustomerBlock(cust, false)}
-                              sx={{ borderRadius: '8px', fontSize: '11px', fontWeight: 800, textTransform: 'none', py: 0.3 }}
-                            >
-                              Unblock
-                            </Button>
-                          ) : (
-                            <Button
-                              variant="outlined"
-                              color="error"
-                              size="small"
-                              onClick={() => handleToggleCustomerBlock(cust, true)}
-                              sx={{ borderRadius: '8px', fontSize: '11px', fontWeight: 800, textTransform: 'none', py: 0.3 }}
-                            >
-                              Block
-                            </Button>
-                          )}
+                          <IconButton
+                            size="small"
+                            onClick={(e) => handleCustActionMenuOpen(e, cust)}
+                            aria-label="Customer actions"
+                            sx={{
+                              border: '1px solid #E2E8F0',
+                              borderRadius: '8px',
+                              p: 0.5,
+                              color: '#475569',
+                              '&:hover': { bgcolor: '#F1F5F9' }
+                            }}
+                          >
+                            <MoreVertIcon sx={{ fontSize: 18 }} />
+                          </IconButton>
                         </Box>
                       </TableCell>
                     </TableRow>
@@ -3054,49 +3116,27 @@ export default function AdminDashboardPage() {
                     </TableCell>
 
                     <TableCell align="center">
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, alignItems: 'center' }}>
+                      <Box sx={{ display: 'flex', gap: 0.8, alignItems: 'center', justifyContent: 'center' }}>
                         {!tech.is_kyc_verified ? (
-                          <Box sx={{ display: 'flex', gap: 0.5 }}>
-                            <Button
-                              variant="contained"
-                              size="small"
-                              onClick={() => handleKycDecision(tech.id, 'approve')}
-                              sx={{
-                                bgcolor: '#16A34A',
-                                color: '#FFF',
-                                fontWeight: 800,
-                                fontSize: '11px',
-                                textTransform: 'none',
-                                borderRadius: '6px',
-                                py: 0.3,
-                                px: 1,
-                                '&:hover': { bgcolor: '#15803D' }
-                              }}
-                            >
-                              Approve KYC
-                            </Button>
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              onClick={() => handleKycDecision(tech.id, 'reject')}
-                              sx={{
-                                color: '#DC2626',
-                                borderColor: '#FCA5A5',
-                                fontWeight: 700,
-                                fontSize: '10.5px',
-                                textTransform: 'none',
-                                borderRadius: '6px',
-                                py: 0.3,
-                                px: 0.8,
-                                '&:hover': { bgcolor: '#FEF2F2' }
-                              }}
-                            >
-                              Reject
-                            </Button>
-                          </Box>
-                        ) : null}
-
-                        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', justifyContent: 'center' }}>
+                          <Button
+                            variant="contained"
+                            size="small"
+                            onClick={() => handleKycDecision(tech.id, 'approve')}
+                            sx={{
+                              bgcolor: '#16A34A',
+                              color: '#FFF',
+                              fontWeight: 800,
+                              fontSize: '11px',
+                              textTransform: 'none',
+                              borderRadius: '8px',
+                              py: 0.4,
+                              px: 1.2,
+                              '&:hover': { bgcolor: '#15803D' }
+                            }}
+                          >
+                            Approve KYC
+                          </Button>
+                        ) : (
                           <Button
                             variant="outlined"
                             size="small"
@@ -3110,35 +3150,28 @@ export default function AdminDashboardPage() {
                               borderColor: '#BAE6FD',
                               bgcolor: '#F8FAFC',
                               textTransform: 'none',
-                              py: 0.3,
-                              px: 1,
-                              '&:hover': { bgcolor: '#F0F9FF' }
+                              py: 0.4,
+                              px: 1.2,
+                              '&:hover': { bgcolor: '#F1F5F9' }
                             }}
                           >
-                            Dossier 360
+                            Dossier
                           </Button>
-                          {tech.is_blocked ? (
-                            <Button
-                              variant="outlined"
-                              color="success"
-                              size="small"
-                              onClick={() => handleToggleTechnicianBlock(tech, false)}
-                              sx={{ borderRadius: '8px', fontSize: '10.5px', fontWeight: 800, textTransform: 'none', py: 0.2, px: 0.8 }}
-                            >
-                              Unblock
-                            </Button>
-                          ) : (
-                            <Button
-                              variant="outlined"
-                              color="error"
-                              size="small"
-                              onClick={() => handleToggleTechnicianBlock(tech, true)}
-                              sx={{ borderRadius: '8px', fontSize: '10.5px', fontWeight: 800, textTransform: 'none', py: 0.2, px: 0.8 }}
-                            >
-                              Suspend
-                            </Button>
-                          )}
-                        </Box>
+                        )}
+                        <IconButton
+                          size="small"
+                          onClick={(e) => handleTechActionMenuOpen(e, tech)}
+                          aria-label="Technician actions"
+                          sx={{
+                            border: '1px solid #E2E8F0',
+                            borderRadius: '8px',
+                            p: 0.5,
+                            color: '#475569',
+                            '&:hover': { bgcolor: '#F1F5F9' }
+                          }}
+                        >
+                          <MoreVertIcon sx={{ fontSize: 18 }} />
+                        </IconButton>
                       </Box>
                     </TableCell>
                   </TableRow>
@@ -3463,7 +3496,7 @@ export default function AdminDashboardPage() {
                 <Typography variant="caption" sx={{ display: { xs: 'block', md: 'none' }, color: '#94A3B8', px: 2, pt: 1, fontSize: '10.5px' }}>
                   Swipe left/right to view full table details
                 </Typography>
-                <Table size="small" sx={{ minWidth: 720 }}>
+                <Table size="small" sx={{ minWidth: { xs: 580, md: '100%' } }}>
                 <TableHead>
                   <TableRow sx={{ bgcolor: '#F8FAFC', '& th': { color: '#475569', fontWeight: 800, borderColor: '#E2E8F0', py: 1.4 } }}>
                     <TableCell>User / Reporter</TableCell>
@@ -3776,7 +3809,7 @@ export default function AdminDashboardPage() {
                 <Typography variant="caption" sx={{ display: { xs: 'block', md: 'none' }, color: '#94A3B8', px: 2, pt: 1, fontSize: '10.5px' }}>
                   Swipe left/right to view full table details
                 </Typography>
-                <Table size="small" sx={{ minWidth: 740 }}>
+                <Table size="small" sx={{ minWidth: { xs: 580, md: '100%' } }}>
                 <TableHead>
                   <TableRow sx={{ bgcolor: '#F8FAFC', '& th': { color: '#475569', fontWeight: 800, borderColor: '#E2E8F0', py: 1.4 } }}>
                     <TableCell>Timestamp (IST)</TableCell>
@@ -4514,6 +4547,227 @@ export default function AdminDashboardPage() {
             fetchOverview(true);
           }}
         />
+
+        {/* Dispatch Action Dropdown Menu */}
+        <Menu
+          anchorEl={actionMenuAnchor}
+          open={Boolean(actionMenuAnchor)}
+          onClose={handleActionMenuClose}
+          PaperProps={{
+            elevation: 3,
+            sx: {
+              borderRadius: '12px',
+              minWidth: 220,
+              border: '1px solid #E2E8F0',
+              boxShadow: '0 10px 25px -5px rgba(15, 23, 42, 0.12)',
+              p: 0.5
+            }
+          }}
+          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+        >
+          <MenuItem
+            onClick={() => {
+              const job = actionTargetJob;
+              handleActionMenuClose();
+              if (job) handleOpenBookingTrace(job);
+            }}
+            sx={{ fontSize: '12.5px', fontWeight: 600, gap: 1, py: 1, borderRadius: '8px' }}
+          >
+            <ArticleIcon sx={{ fontSize: 16, color: '#0284C7' }} />
+            Inspect Audit Trail & Trace
+          </MenuItem>
+
+          <MenuItem
+            onClick={() => {
+              const job = actionTargetJob;
+              handleActionMenuClose();
+              if (job) handleOpenTracking(job);
+            }}
+            sx={{ fontSize: '12.5px', fontWeight: 600, gap: 1, py: 1, borderRadius: '8px' }}
+          >
+            <NavigationIcon sx={{ fontSize: 16, color: '#16A34A' }} />
+            Live Map Telemetry
+          </MenuItem>
+
+          {actionTargetJob && !['completed', 'cancelled'].includes(actionTargetJob.status) && (
+            <MenuItem
+              onClick={() => {
+                const job = actionTargetJob;
+                handleActionMenuClose();
+                if (job) handleOpenDispatch(job);
+              }}
+              sx={{ fontSize: '12.5px', fontWeight: 600, gap: 1, py: 1, borderRadius: '8px' }}
+            >
+              <ElectricMopedIcon sx={{ fontSize: 16, color: '#0284C7' }} />
+              Reassign / Dispatch Specialist
+            </MenuItem>
+          )}
+
+          {actionTargetJob && !['completed', 'cancelled'].includes(actionTargetJob.status) && (
+            <MenuItem
+              onClick={() => {
+                const job = actionTargetJob;
+                handleActionMenuClose();
+                if (job) navigate(`/admin/settlements/${job.id}/override`, { state: { booking: job, returnTo: location.pathname } });
+              }}
+              sx={{ fontSize: '12.5px', fontWeight: 600, gap: 1, py: 1, borderRadius: '8px' }}
+            >
+              <PaymentsIcon sx={{ fontSize: 16, color: '#D97706' }} />
+              Record Payment (Cash/Direct UPI)
+            </MenuItem>
+          )}
+
+          <Divider sx={{ my: 0.5 }} />
+
+          {actionTargetJob && !['completed', 'cancelled'].includes(actionTargetJob.status) && (
+            <MenuItem
+              onClick={() => {
+                const job = actionTargetJob;
+                handleActionMenuClose();
+                if (job) handleOpenCancelOrder(job);
+              }}
+              sx={{ fontSize: '12.5px', fontWeight: 600, gap: 1, py: 1, borderRadius: '8px', color: '#DC2626' }}
+            >
+              <CancelIcon sx={{ fontSize: 16, color: '#DC2626' }} />
+              Cancel Order & Release Tech
+            </MenuItem>
+          )}
+        </Menu>
+
+        {/* Technicians Action Dropdown Menu */}
+        <Menu
+          anchorEl={techActionMenuAnchor}
+          open={Boolean(techActionMenuAnchor)}
+          onClose={handleTechActionMenuClose}
+          PaperProps={{
+            elevation: 3,
+            sx: {
+              borderRadius: '12px',
+              minWidth: 220,
+              border: '1px solid #E2E8F0',
+              boxShadow: '0 10px 25px -5px rgba(15, 23, 42, 0.12)',
+              p: 0.5
+            }
+          }}
+          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+        >
+          <MenuItem
+            onClick={() => {
+              const tech = actionTargetTech;
+              handleTechActionMenuClose();
+              if (tech) handleOpenTechDossier(tech);
+            }}
+            sx={{ fontSize: '12.5px', fontWeight: 600, gap: 1, py: 1, borderRadius: '8px' }}
+          >
+            <EngineeringIcon sx={{ fontSize: 16, color: '#0284C7' }} />
+            View 360 Performance Dossier
+          </MenuItem>
+
+          {actionTargetTech && !actionTargetTech.is_kyc_verified && (
+            <MenuItem
+              onClick={() => {
+                const tech = actionTargetTech;
+                handleTechActionMenuClose();
+                if (tech) handleKycDecision(tech.id, 'approve');
+              }}
+              sx={{ fontSize: '12.5px', fontWeight: 600, gap: 1, py: 1, borderRadius: '8px', color: '#16A34A' }}
+            >
+              <CheckCircleIcon sx={{ fontSize: 16, color: '#16A34A' }} />
+              Approve DigiLocker KYC
+            </MenuItem>
+          )}
+
+          {actionTargetTech && !actionTargetTech.is_kyc_verified && (
+            <MenuItem
+              onClick={() => {
+                const tech = actionTargetTech;
+                handleTechActionMenuClose();
+                if (tech) handleKycDecision(tech.id, 'reject');
+              }}
+              sx={{ fontSize: '12.5px', fontWeight: 600, gap: 1, py: 1, borderRadius: '8px', color: '#DC2626' }}
+            >
+              <CancelIcon sx={{ fontSize: 16, color: '#DC2626' }} />
+              Reject Document / Application
+            </MenuItem>
+          )}
+
+          <Divider sx={{ my: 0.5 }} />
+
+          {actionTargetTech && (
+            <MenuItem
+              onClick={() => {
+                const tech = actionTargetTech;
+                handleTechActionMenuClose();
+                if (tech) handleToggleTechnicianBlock(tech);
+              }}
+              sx={{
+                fontSize: '12.5px',
+                fontWeight: 600,
+                gap: 1,
+                py: 1,
+                borderRadius: '8px',
+                color: actionTargetTech.is_blocked ? '#16A34A' : '#DC2626'
+              }}
+            >
+              <PowerSettingsNewIcon sx={{ fontSize: 16 }} />
+              {actionTargetTech.is_blocked ? 'Unblock Partner Account' : 'Suspend / Block Partner'}
+            </MenuItem>
+          )}
+        </Menu>
+
+        {/* Customers Action Dropdown Menu */}
+        <Menu
+          anchorEl={custActionMenuAnchor}
+          open={Boolean(custActionMenuAnchor)}
+          onClose={handleCustActionMenuClose}
+          PaperProps={{
+            elevation: 3,
+            sx: {
+              borderRadius: '12px',
+              minWidth: 220,
+              border: '1px solid #E2E8F0',
+              boxShadow: '0 10px 25px -5px rgba(15, 23, 42, 0.12)',
+              p: 0.5
+            }
+          }}
+          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+        >
+          <MenuItem
+            onClick={() => {
+              const cust = actionTargetCust;
+              handleCustActionMenuClose();
+              if (cust) handleOpenCustomerHistory(cust);
+            }}
+            sx={{ fontSize: '12.5px', fontWeight: 600, gap: 1, py: 1, borderRadius: '8px' }}
+          >
+            <HistoryEduIcon sx={{ fontSize: 16, color: '#0284C7' }} />
+            View Order History Dossier
+          </MenuItem>
+
+          {actionTargetCust && (
+            <MenuItem
+              onClick={() => {
+                const cust = actionTargetCust;
+                handleCustActionMenuClose();
+                if (cust) handleToggleCustomerBlock(cust, !cust.is_blocked);
+              }}
+              sx={{
+                fontSize: '12.5px',
+                fontWeight: 600,
+                gap: 1,
+                py: 1,
+                borderRadius: '8px',
+                color: actionTargetCust.is_blocked ? '#16A34A' : '#DC2626'
+              }}
+            >
+              <PowerSettingsNewIcon sx={{ fontSize: 16 }} />
+              {actionTargetCust.is_blocked ? 'Unblock Customer Account' : 'Suspend Customer Account'}
+            </MenuItem>
+          )}
+        </Menu>
 
         {/* Global Toast Alert */}
         <Snackbar

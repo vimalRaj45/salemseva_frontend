@@ -33,7 +33,7 @@ html, body {
   margin: 0;
   padding: 0;
   width: 100%;
-  max-width: 100vw;
+  max-width: 100%;
   overflow-x: hidden;
   position: relative;
   font-family: 'Poppins', 'Montserrat', 'Noto Sans Tamil', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -62,7 +62,7 @@ html.dark, html.dark body, body.dark {
 
 #root {
   width: 100%;
-  max-width: 100vw;
+  max-width: 100%;
   min-height: 100vh;
   overflow-x: hidden;
   display: flex;
@@ -96,7 +96,7 @@ iframe {
 @media (max-width: 600px) {
   .MuiContainer-root {
     width: 100% !important;
-    max-width: 100vw !important;
+    max-width: 100% !important;
     box-sizing: border-box !important;
   }
 }

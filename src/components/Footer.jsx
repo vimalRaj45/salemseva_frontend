@@ -101,7 +101,7 @@ export default function Footer() {
           bgcolor: '#F8FAFC'
         }}
       >
-        <Container maxWidth="lg">
+        <Container maxWidth={false} sx={{ maxWidth: '1380px', px: { xs: 2, sm: 3 } }}>
           <Grid container spacing={2.5}>
             <Grid item xs={12} sm={6} md={3}>
               <Box
@@ -259,7 +259,7 @@ export default function Footer() {
       </Box>
 
       {/* ── 2. Main Navigation Columns (Crisp White Background) ── */}
-      <Container maxWidth="lg" sx={{ py: 5 }}>
+      <Container maxWidth={false} sx={{ maxWidth: '1380px', px: { xs: 2, sm: 3 }, py: 5 }}>
         <Grid container spacing={4}>
           {/* Brand & Overview Column */}
           <Grid item xs={12} md={4}>
@@ -507,7 +507,7 @@ export default function Footer() {
           bgcolor: '#F8FAFC'
         }}
       >
-        <Container maxWidth="lg">
+        <Container maxWidth={false} sx={{ maxWidth: '1380px', px: { xs: 2, sm: 3 } }}>
           <Box
             sx={{
               display: 'flex',

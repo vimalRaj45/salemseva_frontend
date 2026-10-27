@@ -253,7 +253,7 @@ export default function CustomerHomePage() {
 
   return (
     <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', pb: { xs: 8, md: 5 } }}>
-      <Container maxWidth={false} sx={{ maxWidth: '1440px', px: { xs: 1.5, sm: 2.5, md: 3.5 }, pt: { xs: 1.5, md: 2.5 } }}>
+      <Container maxWidth={false} sx={{ maxWidth: '1380px', px: { xs: 1.5, sm: 2.5, md: 3 }, pt: { xs: 1.5, md: 2.5 } }}>
         
         {/* Unified Top Context Deck: Location Bar & User Account Status */}
         <Paper

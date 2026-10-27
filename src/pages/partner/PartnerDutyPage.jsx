@@ -1634,7 +1634,7 @@ export default function PartnerDutyPage() {
 
   return (
     <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', pb: 10 }}>
-      <Container maxWidth="md" sx={{ px: { xs: 2, sm: 3 }, pt: { xs: 2, sm: 3 } }}>
+      <Container maxWidth={false} sx={{ maxWidth: '1200px', px: { xs: 1.5, sm: 2.5, md: 3 }, pt: { xs: 2, sm: 3 } }}>
         
         {/* Top Header Mode Toggle */}
         <Box sx={{ display: 'flex', gap: 0.8, mb: 2 }}>
@@ -2016,18 +2016,10 @@ export default function PartnerDutyPage() {
                     <EngineeringIcon sx={{ fontSize: 22 }} />
                   </Box>
                   <Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '14px', lineHeight: 1.2 }}>
-                        {activeTech?.name || user?.name || 'Partner'}
-                      </Typography>
-                      <Chip
-                        icon={<CheckCircleIcon sx={{ color: '#16A34A !important', fontSize: 13 }} />}
-                        label="Salem Verified"
-                        size="small"
-                        sx={{ bgcolor: '#F0FDF4', color: '#166534', fontWeight: 700, fontSize: '10px', height: 18 }}
-                      />
-                    </Box>
-                    <Typography variant="caption" sx={{ color: '#059669', fontWeight: 600, fontSize: '11px', display: 'block' }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '14px', lineHeight: 1.2 }}>
+                      {activeTech?.name || user?.name || 'Partner'}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#059669', fontWeight: 600, fontSize: '11px', display: 'block', mt: 0.3 }}>
                       {activeTech?.tradeName || `${activeTech?.trade?.toUpperCase() || 'SERVICE'} Specialist`} - {activeTech?.phone || ''}
                     </Typography>
                   </Box>

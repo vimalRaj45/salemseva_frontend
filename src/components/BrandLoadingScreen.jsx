@@ -51,42 +51,42 @@ export default function BrandLoadingScreen({
     splash: {
       title: 'Shazu One',
       subtitle: 'All Your Home Services. One Platform.',
-      badge: 'Salem Verified Network'
+      badge: null
     },
     payment: {
       title: 'Securing Escrow Payment...',
       subtitle: 'Bank-grade 256-bit encryption. Funds held safely in escrow until service completion.',
-      badge: '100% Escrow Protected'
+      badge: null
     },
     booking: {
       title: 'Registering Your Booking...',
-      subtitle: 'Reserving your doorstep inspection slot with Salem Central Ops.',
-      badge: 'Central Ops Dispatched'
+      subtitle: 'Reserving your doorstep inspection slot.',
+      badge: null
     },
     matching: {
       title: 'Locating Nearby Specialists...',
-      subtitle: 'Broadcasting to certified technicians across Fairlands and Salem zones.',
-      badge: 'Active Salem 636 Network'
+      subtitle: 'Connecting with verified technicians across Salem.',
+      badge: null
     },
     tracking: {
       title: 'Connecting to Live GPS...',
-      subtitle: 'Retrieving live specialist telemetry and route updates.',
-      badge: 'Live Two-Wheeler Dispatch'
+      subtitle: 'Retrieving specialist location and route updates.',
+      badge: null
     },
     wallet: {
       title: 'Updating Wallet Credits...',
       subtitle: 'Processing reward balance and instant credits securely.',
-      badge: 'Instant Escrow Sync'
+      badge: null
     },
     dispatch: {
       title: 'Technician on the Way',
-      subtitle: 'Partner en route with verified safety equipment and tools.',
-      badge: 'Live GPS Active'
+      subtitle: 'Partner en route with equipment and tools.',
+      badge: null
     },
     startup: {
       title: 'Connecting to Shazu One...',
-      subtitle: 'Loading real-time service availability and pricing across Salem.',
-      badge: 'Salem Hyperlocal Grid'
+      subtitle: 'Loading service availability and pricing across Salem.',
+      badge: null
     }
   };
 
