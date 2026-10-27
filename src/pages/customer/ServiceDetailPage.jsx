@@ -1042,9 +1042,35 @@ export default function ServiceDetailPage({ onStartBooking }) {
           <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: { xs: '14.5px', sm: '16px' } }}>
             Select issue or problem
           </Typography>
-          <Typography variant="caption" sx={{ color: '#64748B', fontSize: { xs: '12.5px', sm: '13.5px' } }}>
-            Estimated cost in Salem
+          <Typography variant="caption" sx={{ color: '#64748B', fontSize: { xs: '12px', sm: '13px' }, fontWeight: 600 }}>
+            Salem Standardized Rates
           </Typography>
+        </Box>
+
+        {/* Transparent Pricing Explanation Card */}
+        <Box
+          sx={{
+            p: { xs: 1.4, sm: 1.8 },
+            mb: 1.8,
+            borderRadius: '10px',
+            bgcolor: '#F0F9FF',
+            border: '1px solid #BAE6FD',
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 1.2
+          }}
+        >
+          <ReceiptLongIcon sx={{ color: '#0284C7', fontSize: { xs: 20, sm: 22 }, mt: 0.2, flexShrink: 0 }} />
+          <Box>
+            <Typography sx={{ fontWeight: 800, color: '#0369A1', fontSize: { xs: '13px', sm: '14px' }, mb: 0.3, lineHeight: 1.3 }}>
+              How our pricing works
+            </Typography>
+            <Typography sx={{ color: '#334155', fontSize: { xs: '11.5px', sm: '12.5px' }, lineHeight: 1.5 }}>
+              • <strong>Pay ₹{inspectionFeeNumber} today:</strong> Secures your appointment slot and covers doorstep inspection, diagnosis, and quotation.<br />
+              • <strong>Est. Job Cost (e.g. ₹350 - ₹750):</strong> The estimated price range for parts and labor if repair is needed. The specialist provides an exact itemized digital quote on-site for your approval before starting any work.<br />
+              • <strong>Pay after service:</strong> No repair money is charged upfront. You only pay for repairs after the work is completed to your satisfaction.
+            </Typography>
+          </Box>
         </Box>
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2, mb: 2.5 }}>
@@ -1087,13 +1113,47 @@ export default function ServiceDetailPage({ onStartBooking }) {
                     </Typography>
                   </Box>
 
-                  <Box sx={{ textAlign: 'right' }}>
-                    <Typography variant="caption" sx={{ color: '#475569', fontWeight: 700, display: 'block', fontSize: { xs: '12.5px', sm: '13.5px' } }}>
+                  <Box sx={{ textAlign: 'right', flexShrink: 0, ml: 1.5 }}>
+                    <Typography
+                      sx={{
+                        color: '#0F172A',
+                        fontWeight: 800,
+                        fontSize: { xs: '13px', sm: '14.5px' },
+                        lineHeight: 1.2
+                      }}
+                    >
                       {item.estRange}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: '#16A34A', fontSize: { xs: '11.5px', sm: '12.5px' }, fontWeight: 600 }}>
-                      Visit fee: ₹{inspectionFeeNumber}
+                    <Typography
+                      sx={{
+                        color: '#64748B',
+                        fontSize: { xs: '10px', sm: '11px' },
+                        fontWeight: 600,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.02em',
+                        lineHeight: 1.2,
+                        mt: 0.2
+                      }}
+                    >
+                      Est. Job Cost
                     </Typography>
+                    <Box
+                      sx={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 0.4,
+                        mt: 0.4,
+                        px: 0.8,
+                        py: 0.2,
+                        borderRadius: '4px',
+                        bgcolor: '#ECFDF5',
+                        border: '1px solid #BBF7D0'
+                      }}
+                    >
+                      <Typography sx={{ color: '#15803D', fontSize: { xs: '10px', sm: '11px' }, fontWeight: 700 }}>
+                        Pay now: ₹{inspectionFeeNumber}
+                      </Typography>
+                    </Box>
                   </Box>
                 </Card>
               );
