@@ -376,6 +376,15 @@ export default function PartnerDutyPage() {
   const [incomingMessageToast, setIncomingMessageToast] = useState(null);
   const [selectedCommunicationJob, setSelectedCommunicationJob] = useState(null);
 
+  const [activeJob, setActiveJob] = useState(null);
+  const storedPartnerJob = localStorage.getItem('shazuone_partner_active_job');
+  const storedActiveBooking = localStorage.getItem('shazuone_active_booking');
+  const activeBookingId = (activeJob?.id && activeJob.id !== 'null') 
+    ? activeJob.id 
+    : ((paramBookingId && paramBookingId !== 'null') 
+      ? paramBookingId 
+      : (storedPartnerJob || storedActiveBooking || 'SLM-84920'));
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('autoAnswer') === 'true') {
@@ -406,8 +415,6 @@ export default function PartnerDutyPage() {
   const chatOpenRef = useRef(chatOpen);
   chatOpenRef.current = chatOpen;
   const lastMessageCountRef = useRef(-1);
-
-  const [activeJob, setActiveJob] = useState(null);
   const [offlineJobRequest, setOfflineJobRequest] = useState(null);
   const [countdown, setCountdown] = useState(45);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -1351,14 +1358,6 @@ export default function PartnerDutyPage() {
       setIsProcessing(false);
     }
   };
-
-  const storedPartnerJob = localStorage.getItem('shazuone_partner_active_job');
-  const storedActiveBooking = localStorage.getItem('shazuone_active_booking');
-  const activeBookingId = (activeJob?.id && activeJob.id !== 'null') 
-    ? activeJob.id 
-    : ((paramBookingId && paramBookingId !== 'null') 
-      ? paramBookingId 
-      : (storedPartnerJob || storedActiveBooking || 'SLM-84920'));
 
   const [step3Quote, setStep3Quote] = useState(null);
 
