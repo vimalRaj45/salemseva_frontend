@@ -246,6 +246,17 @@ function InitialHomeRoute() {
 
 function MainLayout({ walletBalance, currentBooking, setCurrentBooking }) {
   const location = useLocation();
+
+  // Automatically reset scroll position to top on every route navigation
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    if (document.documentElement) {
+      document.documentElement.scrollTop = 0;
+    }
+    if (document.body) {
+      document.body.scrollTop = 0;
+    }
+  }, [location.pathname]);
   const isAuthPage = location.pathname === '/login' || location.pathname === '/register' || location.pathname === '/partner/login' || location.pathname === '/technician/login';
   const isFullScreenPage =
     isAuthPage ||
