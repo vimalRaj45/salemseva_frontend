@@ -1118,66 +1118,90 @@ export default function CustomerHomePage() {
                       <Box
                         sx={{
                           mt: 'auto',
-                          pt: { xs: '10px', sm: '16px' },
+                          pt: { xs: '8px', sm: '16px' },
                           borderTop: '1px solid #E2E8F0',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
-                          gap: { xs: 0.8, sm: 1.5 }
+                          gap: { xs: 0.5, sm: 1.5 }
                         }}
                       >
-                        {/* Left side: Starting at + fee */}
-                        <Box>
+                        {/* Left side: Starting fee */}
+                        <Box sx={{ flexShrink: 0 }}>
                           <Typography
                             sx={{
-                              fontSize: { xs: '8.5px', sm: '11px' },
+                              fontSize: { xs: '8px', sm: '11px' },
                               fontWeight: 600,
                               color: '#64748B',
                               textTransform: 'uppercase',
-                              letterSpacing: '0.04em',
-                              lineHeight: 1.1,
-                              mb: 0.2
+                              letterSpacing: '0.02em',
+                              lineHeight: 1,
+                              whiteSpace: 'nowrap'
                             }}
                           >
-                            Starting at
+                            From
                           </Typography>
                           <Typography
                             sx={{
-                              fontSize: { xs: '15px', sm: '20px' },
+                              fontSize: { xs: '14px', sm: '20px' },
                               fontWeight: 900,
                               color: '#0F172A',
                               letterSpacing: '-0.3px',
-                              lineHeight: 1
+                              lineHeight: 1.1,
+                              mt: 0.2,
+                              whiteSpace: 'nowrap'
                             }}
                           >
                             ₹{svc.visitFee || 99}
                           </Typography>
                         </Box>
 
-                        {/* Right side: Book Now button */}
+                        {/* Right side: Book Now button with premium shimmer effect */}
                         <Button
                           variant="contained"
                           className="service-book-btn"
                           size="small"
-                          endIcon={<ArrowForwardIcon sx={{ fontSize: { xs: '12px !important', sm: '15px !important' } }} />}
+                          endIcon={<ArrowForwardIcon sx={{ fontSize: { xs: '11px !important', sm: '15px !important' }, ml: { xs: '3px !important', sm: '8px !important' } }} />}
                           onClick={(e) => {
                             e.stopPropagation();
                             navigate(`/book/${svc.id}`, { state: { service: svc } });
                           }}
                           sx={{
+                            position: 'relative',
+                            overflow: 'hidden',
                             bgcolor: '#0066CC',
                             color: '#FFFFFF',
-                            height: { xs: '32px', sm: '40px' },
-                            px: { xs: 1.2, sm: 2 },
-                            borderRadius: { xs: '8px', sm: '10px' },
-                            fontSize: { xs: '11.5px', sm: '13.5px' },
+                            height: { xs: '28px', sm: '40px' },
+                            px: { xs: 1, sm: 2 },
+                            borderRadius: { xs: '7px', sm: '10px' },
+                            fontSize: { xs: '10.5px', sm: '13.5px' },
                             fontWeight: 700,
                             textTransform: 'none',
+                            whiteSpace: 'nowrap',
                             boxShadow: 'none',
                             transition: 'background-color 200ms ease',
                             '&:hover': {
                               bgcolor: '#0052CC',
                               boxShadow: 'none'
+                            },
+                            '&::after': {
+                              content: '""',
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              width: '55%',
+                              height: '100%',
+                              background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent)',
+                              transform: 'skewX(-20deg) translateX(-180%)',
+                              animation: 'btnShimmer 2.8s infinite cubic-bezier(0.4, 0, 0.2, 1)',
+                              pointerEvents: 'none'
+                            },
+                            '@keyframes btnShimmer': {
+                              '0%': { transform: 'skewX(-20deg) translateX(-180%)' },
+                              '55%, 100%': { transform: 'skewX(-20deg) translateX(350%)' }
+                            },
+                            '@media (prefers-reduced-motion: reduce)': {
+                              '&::after': { animation: 'none' }
                             }
                           }}
                         >
