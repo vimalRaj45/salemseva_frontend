@@ -802,23 +802,23 @@ export default function CustomerHomePage() {
           />
         </Box>
 
-        {/* Responsive Services Grid (4 equal-width cards in a grid, gap 20px, same height) */}
-        <Grid container spacing={2.5} sx={{ mb: 4.5, alignItems: 'stretch' }}>
+        {/* Responsive Services Grid (4 equal-width cards in a grid: 2x2 on mobile, 2 cols on tablet, 4 on desktop) */}
+        <Grid container spacing={{ xs: 1.5, sm: 2.5 }} sx={{ mb: 4.5, alignItems: 'stretch' }}>
           {isLoading ? (
             [1, 2, 3, 4].map((n) => (
-              <Grid item xs={12} sm={6} md={3} key={n}>
-                <Card elevation={0} sx={{ height: '100%', borderRadius: '16px', border: '1px solid #E2E8F0', overflow: 'hidden' }}>
-                  <Skeleton variant="rectangular" sx={{ width: '100%', aspectRatio: { xs: '16/9', sm: '3/2' } }} />
-                  <Box sx={{ p: '20px' }}>
-                    <Skeleton variant="text" width="65%" height={26} sx={{ mb: 1 }} />
-                    <Skeleton variant="text" width="95%" height={18} sx={{ mb: 2 }} />
-                    <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
-                      <Skeleton variant="rounded" width={80} height={28} sx={{ borderRadius: '999px' }} />
-                      <Skeleton variant="rounded" width={90} height={28} sx={{ borderRadius: '999px' }} />
+              <Grid item xs={6} sm={6} md={3} key={n}>
+                <Card elevation={0} sx={{ height: '100%', borderRadius: { xs: '12px', sm: '16px' }, border: '1px solid #E2E8F0', overflow: 'hidden' }}>
+                  <Skeleton variant="rectangular" sx={{ width: '100%', aspectRatio: { xs: '4/3', sm: '3/2' } }} />
+                  <Box sx={{ p: { xs: '12px', sm: '20px' } }}>
+                    <Skeleton variant="text" width="65%" height={22} sx={{ mb: 1 }} />
+                    <Skeleton variant="text" width="95%" height={16} sx={{ mb: 1.5 }} />
+                    <Box sx={{ display: 'flex', gap: 0.8, mb: 2 }}>
+                      <Skeleton variant="rounded" width={55} height={22} sx={{ borderRadius: '999px' }} />
+                      <Skeleton variant="rounded" width={65} height={22} sx={{ borderRadius: '999px' }} />
                     </Box>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 2, borderTop: '1px solid #E2E8F0' }}>
-                      <Skeleton variant="text" width={50} height={32} />
-                      <Skeleton variant="rounded" width={95} height={40} sx={{ borderRadius: '10px' }} />
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 1.5, borderTop: '1px solid #E2E8F0' }}>
+                      <Skeleton variant="text" width={40} height={26} />
+                      <Skeleton variant="rounded" width={75} height={32} sx={{ borderRadius: '8px' }} />
                     </Box>
                   </Box>
                 </Card>
@@ -829,7 +829,7 @@ export default function CustomerHomePage() {
               const meta = getServiceMetadata(svc);
 
               return (
-                <Grid item xs={12} sm={6} md={3} key={svc.id}>
+                <Grid item xs={6} sm={6} md={3} key={svc.id}>
                   <Card
                     elevation={0}
                     tabIndex={0}
@@ -846,7 +846,7 @@ export default function CustomerHomePage() {
                       height: '100%',
                       display: 'flex',
                       flexDirection: 'column',
-                      borderRadius: '16px',
+                      borderRadius: { xs: '12px', sm: '16px' },
                       bgcolor: '#FFFFFF',
                       border: '1px solid #E2E8F0',
                       overflow: 'hidden',
@@ -871,17 +871,17 @@ export default function CustomerHomePage() {
                       }
                     }}
                   >
-                    {/* 1. Photo Header (3:2 on desktop/tablet, 16:9 on mobile) */}
+                    {/* 1. Photo Header (3:2 on desktop/tablet, 4:3 on mobile) */}
                     <Box sx={{ position: 'relative', width: '100%' }}>
                       <Box
                         sx={{
                           position: 'relative',
                           width: '100%',
-                          aspectRatio: { xs: '16/9', sm: '3/2' },
+                          aspectRatio: { xs: '4/3', sm: '3/2' },
                           overflow: 'hidden',
                           bgcolor: '#F1F5F9',
-                          borderTopLeftRadius: '16px',
-                          borderTopRightRadius: '16px'
+                          borderTopLeftRadius: { xs: '12px', sm: '16px' },
+                          borderTopRightRadius: { xs: '12px', sm: '16px' }
                         }}
                       >
                         <Box
@@ -914,14 +914,14 @@ export default function CustomerHomePage() {
                           <Box
                             sx={{
                               position: 'absolute',
-                              top: 12,
-                              left: 12,
+                              top: { xs: 8, sm: 12 },
+                              left: { xs: 8, sm: 12 },
                               bgcolor: '#0066CC',
                               color: '#FFFFFF',
-                              fontSize: '11px',
+                              fontSize: { xs: '9.5px', sm: '11px' },
                               fontWeight: 700,
-                              px: 1.2,
-                              py: 0.4,
+                              px: { xs: 0.8, sm: 1.2 },
+                              py: { xs: 0.25, sm: 0.4 },
                               borderRadius: '6px',
                               boxShadow: '0 2px 6px rgba(0, 102, 204, 0.35)',
                               letterSpacing: '0.02em',
@@ -936,27 +936,27 @@ export default function CustomerHomePage() {
                         <Box
                           sx={{
                             position: 'absolute',
-                            top: 12,
-                            right: 12,
+                            top: { xs: 8, sm: 12 },
+                            right: { xs: 8, sm: 12 },
                             bgcolor: 'rgba(255, 255, 255, 0.95)',
                             backdropFilter: 'blur(6px)',
                             color: '#0F172A',
-                            fontSize: '11px',
+                            fontSize: { xs: '9px', sm: '11px' },
                             fontWeight: 700,
-                            px: 1.2,
-                            py: 0.4,
+                            px: { xs: 0.8, sm: 1.2 },
+                            py: { xs: 0.25, sm: 0.4 },
                             borderRadius: '999px',
                             boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
                             border: '1px solid rgba(255, 255, 255, 0.8)',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: 0.6
+                            gap: { xs: 0.4, sm: 0.6 }
                           }}
                         >
                           <Box
                             sx={{
-                              width: 6,
-                              height: 6,
+                              width: { xs: 5, sm: 6 },
+                              height: { xs: 5, sm: 6 },
                               borderRadius: '50%',
                               bgcolor: meta.status === 'Book for tomorrow' ? '#0284C7' : '#16A34A'
                             }}
@@ -969,85 +969,93 @@ export default function CustomerHomePage() {
                       <Box
                         sx={{
                           position: 'absolute',
-                          bottom: '-18px',
-                          left: '20px',
-                          width: '40px',
-                          height: '40px',
-                          borderRadius: '10px',
+                          bottom: { xs: '-14px', sm: '-18px' },
+                          left: { xs: '12px', sm: '20px' },
+                          width: { xs: '32px', sm: '40px' },
+                          height: { xs: '32px', sm: '40px' },
+                          borderRadius: { xs: '8px', sm: '10px' },
                           bgcolor: '#FFFFFF',
                           border: '1px solid #E2E8F0',
                           boxShadow: '0 4px 12px rgba(15, 23, 42, 0.08)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          zIndex: 3
+                          zIndex: 3,
+                          '& svg': {
+                            fontSize: { xs: '16px !important', sm: '20px !important' }
+                          }
                         }}
                       >
                         {meta.icon}
                       </Box>
                     </Box>
 
-                    {/* 2. Content Area (20px padding) */}
+                    {/* 2. Content Area */}
                     <Box
                       sx={{
-                        pt: '26px',
-                        px: '20px',
-                        pb: '20px',
+                        pt: { xs: '18px', sm: '26px' },
+                        px: { xs: '12px', sm: '20px' },
+                        pb: { xs: '14px', sm: '20px' },
                         display: 'flex',
                         flexDirection: 'column',
                         flex: 1
                       }}
                     >
-                      {/* Title: 18px, bold, dark */}
+                      {/* Title */}
                       <Typography
                         variant="h6"
                         sx={{
-                          fontSize: '18px',
+                          fontSize: { xs: '13.5px', sm: '18px' },
                           fontWeight: 800,
                           color: '#0F172A',
                           letterSpacing: '-0.3px',
                           lineHeight: 1.25,
-                          mb: 0.8
+                          mb: { xs: 0.4, sm: 0.8 },
+                          minHeight: { xs: '34px', sm: 'auto' }
                         }}
                       >
                         {meta.name}
                       </Typography>
 
-                      {/* Description: 14-15px slate-600, one short line */}
+                      {/* Description */}
                       <Typography
                         variant="body2"
                         sx={{
-                          fontSize: '14px',
+                          fontSize: { xs: '11px', sm: '14px' },
                           color: '#475569',
-                          lineHeight: 1.45,
-                          mb: 2,
-                          minHeight: '40px'
+                          lineHeight: 1.35,
+                          mb: { xs: 1.2, sm: 2 },
+                          minHeight: { xs: '30px', sm: '40px' },
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden'
                         }}
                       >
                         {meta.desc}
                       </Typography>
 
-                      {/* Row of 2-3 small benefit chips: 28px tall, fully rounded, light tinted */}
+                      {/* Row of benefit chips */}
                       <Box
                         sx={{
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '6px',
+                          gap: { xs: '4px', sm: '6px' },
                           flexWrap: 'wrap',
-                          mb: 2.5
+                          mb: { xs: 1.5, sm: 2.5 }
                         }}
                       >
                         {meta.benefits.map((benefit, i) => (
                           <Box
                             key={i}
                             sx={{
-                              height: '28px',
-                              px: '10px',
+                              height: { xs: '22px', sm: '28px' },
+                              px: { xs: '7px', sm: '10px' },
                               borderRadius: '999px',
                               bgcolor: '#F8FAFC',
                               border: '1px solid #E2E8F0',
                               color: '#475569',
-                              fontSize: '11.5px',
+                              fontSize: { xs: '9.5px', sm: '11.5px' },
                               fontWeight: 600,
                               display: 'inline-flex',
                               alignItems: 'center',
@@ -1064,32 +1072,32 @@ export default function CustomerHomePage() {
                       <Box
                         sx={{
                           mt: 'auto',
-                          pt: '16px',
+                          pt: { xs: '10px', sm: '16px' },
                           borderTop: '1px solid #E2E8F0',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
-                          gap: 1.5
+                          gap: { xs: 0.8, sm: 1.5 }
                         }}
                       >
-                        {/* Left side: small Starting at label with bold ₹99 */}
+                        {/* Left side: Starting at + fee */}
                         <Box>
                           <Typography
                             sx={{
-                              fontSize: '11px',
+                              fontSize: { xs: '8.5px', sm: '11px' },
                               fontWeight: 600,
                               color: '#64748B',
                               textTransform: 'uppercase',
                               letterSpacing: '0.04em',
                               lineHeight: 1.1,
-                              mb: 0.3
+                              mb: 0.2
                             }}
                           >
                             Starting at
                           </Typography>
                           <Typography
                             sx={{
-                              fontSize: '20px',
+                              fontSize: { xs: '15px', sm: '20px' },
                               fontWeight: 900,
                               color: '#0F172A',
                               letterSpacing: '-0.3px',
@@ -1100,12 +1108,12 @@ export default function CustomerHomePage() {
                           </Typography>
                         </Box>
 
-                        {/* Right side: clear Book Now button */}
+                        {/* Right side: Book Now button */}
                         <Button
                           variant="contained"
                           className="service-book-btn"
                           size="small"
-                          endIcon={<ArrowForwardIcon sx={{ fontSize: '15px !important' }} />}
+                          endIcon={<ArrowForwardIcon sx={{ fontSize: { xs: '12px !important', sm: '15px !important' } }} />}
                           onClick={(e) => {
                             e.stopPropagation();
                             navigate(`/book/${svc.id}`, { state: { service: svc } });
@@ -1113,10 +1121,10 @@ export default function CustomerHomePage() {
                           sx={{
                             bgcolor: '#0066CC',
                             color: '#FFFFFF',
-                            height: '40px',
-                            px: 2,
-                            borderRadius: '10px',
-                            fontSize: '13.5px',
+                            height: { xs: '32px', sm: '40px' },
+                            px: { xs: 1.2, sm: 2 },
+                            borderRadius: { xs: '8px', sm: '10px' },
+                            fontSize: { xs: '11.5px', sm: '13.5px' },
                             fontWeight: 700,
                             textTransform: 'none',
                             boxShadow: 'none',
