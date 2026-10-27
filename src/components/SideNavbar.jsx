@@ -183,6 +183,7 @@ export default function SideNavbar({
             style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
           >
             <div
+              className="brand-logo-shine"
               style={{
                 width: '36px',
                 height: '36px',
@@ -194,7 +195,8 @@ export default function SideNavbar({
                 alignItems: 'center',
                 justifyContent: 'center',
                 border: '1px solid #E2E8F0',
-                flexShrink: 0
+                flexShrink: 0,
+                position: 'relative'
               }}
             >
               <img
@@ -205,8 +207,8 @@ export default function SideNavbar({
               />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', lineHeight: 1 }}>
-              <span style={{ fontSize: '18px', fontWeight: 900, color: '#0066CC', letterSpacing: '-0.3px' }}>Shazu</span>
-              <span style={{ fontSize: '18px', fontWeight: 900, color: isTechnician ? '#16A34A' : isAdmin ? '#D97706' : '#16A34A', letterSpacing: '-0.3px' }}>
+              <span className="brand-title-shazu" style={{ fontSize: '18px', fontWeight: 900, letterSpacing: '-0.3px' }}>Shazu</span>
+              <span className={isTechnician ? 'brand-title-partner' : isAdmin ? 'brand-title-ops' : 'brand-title-one'} style={{ fontSize: '18px', fontWeight: 900, letterSpacing: '-0.3px' }}>
                 {isTechnician ? 'Partner' : isAdmin ? 'Ops' : 'One'}
               </span>
             </div>

@@ -342,6 +342,7 @@ export default function Navbar({
             >
               {/* Brand Logo Icon */}
               <div
+                className="brand-logo-shine"
                 style={{
                   width: isMobile ? '34px' : '38px',
                   height: isMobile ? '34px' : '38px',
@@ -353,7 +354,8 @@ export default function Navbar({
                   flexShrink: 0,
                   backgroundColor: '#FFFFFF',
                   border: '1px solid #E2E8F0',
-                  boxShadow: '0 1px 3px rgba(10, 92, 196, 0.12)'
+                  boxShadow: '0 1px 3px rgba(10, 92, 196, 0.12)',
+                  position: 'relative'
                 }}
               >
                 <img
@@ -370,15 +372,21 @@ export default function Navbar({
                   fontSize: isMobile ? '18px' : '20px',
                   fontWeight: 900,
                   letterSpacing: '-0.4px',
-                  color: '#0066CC',
-                  lineHeight: 1
+                  lineHeight: 1,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px'
                 }}
               >
-                Shazu{' '}
+                <span className="brand-title-shazu">Shazu</span>
                 <span
-                  style={{
-                    color: isTechnician ? '#16A34A' : isAdmin ? '#D97706' : '#16A34A'
-                  }}
+                  className={
+                    isTechnician
+                      ? 'brand-title-partner'
+                      : isAdmin
+                      ? 'brand-title-ops'
+                      : 'brand-title-one'
+                  }
                 >
                   {isTechnician ? 'Partner' : isAdmin ? 'Ops' : 'One'}
                 </span>

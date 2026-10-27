@@ -272,4 +272,99 @@ div:has(> [data-hot-toast]),
   flex-shrink: 0 !important;
 }
 
+/* Premium Brand Shimmer Animations */
+@keyframes brandLogoShine {
+  0% {
+    transform: translateX(-160%) skewX(-20deg);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.55;
+  }
+  45% {
+    transform: translateX(260%) skewX(-20deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(260%) skewX(-20deg);
+    opacity: 0;
+  }
+}
+
+@keyframes brandTextSheen {
+  0% {
+    background-position: 220% 0;
+  }
+  45% {
+    background-position: -60% 0;
+  }
+  100% {
+    background-position: -60% 0;
+  }
+}
+
+.brand-logo-shine {
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.brand-logo-shine::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+  transform: translateX(-160%) skewX(-20deg);
+  animation: brandLogoShine 4.5s infinite cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+.brand-title-shazu {
+  background: linear-gradient(110deg, #0066CC 0%, #0066CC 38%, #60A5FA 50%, #0066CC 62%, #0066CC 100%);
+  background-size: 240% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: brandTextSheen 4.5s infinite cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-block;
+}
+
+.brand-title-one {
+  background: linear-gradient(110deg, #16A34A 0%, #16A34A 38%, #86EFAC 50%, #16A34A 62%, #16A34A 100%);
+  background-size: 240% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: brandTextSheen 4.5s infinite cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-block;
+}
+
+.brand-title-partner {
+  background: linear-gradient(110deg, #16A34A 0%, #16A34A 38%, #86EFAC 50%, #16A34A 62%, #16A34A 100%);
+  background-size: 240% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: brandTextSheen 4.5s infinite cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-block;
+}
+
+.brand-title-ops {
+  background: linear-gradient(110deg, #D97706 0%, #D97706 38%, #FCD34D 50%, #D97706 62%, #D97706 100%);
+  background-size: 240% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: brandTextSheen 4.5s infinite cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-block;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-logo-shine::after,
+  .brand-title-shazu,
+  .brand-title-one,
+  .brand-title-partner,
+  .brand-title-ops {
+    animation: none !important;
+  }
+}
+
 
