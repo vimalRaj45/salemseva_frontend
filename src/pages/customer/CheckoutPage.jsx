@@ -574,6 +574,7 @@ export default function CheckoutPage() {
         {/* 4. Action Button */}
         <Button
           variant="contained"
+          className="btn-shimmer"
           fullWidth
           size="large"
           disabled={isProcessing}

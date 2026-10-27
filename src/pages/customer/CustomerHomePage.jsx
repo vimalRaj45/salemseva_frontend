@@ -611,6 +611,7 @@ export default function CustomerHomePage() {
               <Button
                 size="small"
                 variant="contained"
+                className="btn-shimmer"
                 onClick={() => navigate(resumeUrl)}
                 sx={{
                   bgcolor: '#0066CC',
@@ -704,6 +705,7 @@ export default function CustomerHomePage() {
                   <Button
                     size="small"
                     variant="contained"
+                    className="btn-shimmer"
                     onClick={() => {
                       const acService = activeServicesList.find(s => s.id === 'ac') || { id: 'ac', name: 'AC Repair & Service', visitFee: 149 };
                       navigate('/book/ac', { state: { service: acService } });

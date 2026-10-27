@@ -1534,6 +1534,7 @@ export default function Navbar({
             ) : (
               <button
                 type="button"
+                className="btn-shimmer"
                 onClick={() => navigate('/login')}
                 style={{
                   display: 'inline-flex',
@@ -1544,7 +1545,7 @@ export default function Navbar({
                   borderRadius: '8px',
                   fontSize: isMobile ? '12px' : '13px',
                   fontWeight: 600,
-                  backgroundColor: '#0A5CC4',
+                  backgroundColor: '#0066CC',
                   color: '#FFFFFF',
                   border: 'none',
                   cursor: 'pointer',

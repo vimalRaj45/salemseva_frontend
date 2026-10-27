@@ -1645,6 +1645,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
 
           <Button
             variant="contained"
+            className="btn-shimmer"
             disabled={isDomainTemporarilyClosed || isSelectedDateFull}
             onClick={handleProceed}
             endIcon={!isDomainTemporarilyClosed && !isSelectedDateFull ? <ArrowForwardIcon sx={{ fontSize: 20 }} /> : undefined}

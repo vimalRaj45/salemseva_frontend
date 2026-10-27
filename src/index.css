@@ -303,6 +303,34 @@ div:has(> [data-hot-toast]),
   }
 }
 
+/* Premium CTA Button Shimmer Effect for Important Action Buttons */
+@keyframes btnShimmer {
+  0% {
+    transform: skewX(-20deg) translateX(-180%);
+  }
+  55%, 100% {
+    transform: skewX(-20deg) translateX(350%);
+  }
+}
+
+.btn-shimmer {
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.btn-shimmer::after {
+  content: "" !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 55% !important;
+  height: 100% !important;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent) !important;
+  transform: skewX(-20deg) translateX(-180%) !important;
+  animation: btnShimmer 2.8s infinite cubic-bezier(0.4, 0, 0.2, 1) !important;
+  pointer-events: none !important;
+}
+
 .brand-logo-shine {
   position: relative !important;
   overflow: hidden !important;
@@ -362,7 +390,8 @@ div:has(> [data-hot-toast]),
   .brand-title-shazu,
   .brand-title-one,
   .brand-title-partner,
-  .brand-title-ops {
+  .brand-title-ops,
+  .btn-shimmer::after {
     animation: none !important;
   }
 }

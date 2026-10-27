@@ -314,6 +314,7 @@ export default function QuoteReviewPage() {
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
           <Button
             variant="contained"
+            className="btn-shimmer"
             fullWidth
             size="large"
             endIcon={<ArrowForwardIcon sx={{ fontSize: 16 }} />}
