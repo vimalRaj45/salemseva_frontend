@@ -82,10 +82,10 @@ export default function Navbar({
   const isPartnerOnline = user?.isOnline !== false;
 
   // Responsive mobile state
-  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 900 : false);
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 1024 : false);
 
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 900);
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
     window.addEventListener('resize', handleResize, { passive: true });
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -264,12 +264,13 @@ export default function Navbar({
         right: 0,
         zIndex: 1100,
         width: '100%',
+        height: isMobile ? '56px' : '72px',
         boxSizing: 'border-box',
         backgroundColor: '#FFFFFF',
         borderBottom: '1px solid #E2E8F0',
         boxShadow: hasScrolled
           ? '0 4px 12px -2px rgba(15, 23, 42, 0.08)'
-          : '0 1px 2px rgba(15, 23, 42, 0.03)',
+          : '0 1px 3px rgba(15, 23, 42, 0.04)',
         transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
         fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
       }}
@@ -299,13 +300,16 @@ export default function Navbar({
 
       <div
         style={{
-          maxWidth: '1380px',
+          maxWidth: '1200px',
           width: '100%',
+          height: isMobile ? '56px' : '72px',
           boxSizing: 'border-box',
           margin: '0 auto',
-          padding: isMobile ? '0 12px' : '0 24px',
+          padding: isMobile ? '0 16px' : '0 24px',
           display: 'flex',
-          flexDirection: 'column'
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '12px'
         }}
       >
         {/* Main Navigation Row */}
@@ -314,8 +318,8 @@ export default function Navbar({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            height: isMobile ? '56px' : '64px',
-            gap: isMobile ? '8px' : '16px',
+            height: isMobile ? '56px' : '72px',
+            gap: isMobile ? '8px' : '12px',
             width: '100%',
             boxSizing: 'border-box'
           }}
@@ -366,14 +370,14 @@ export default function Navbar({
                   fontSize: isMobile ? '18px' : '20px',
                   fontWeight: 900,
                   letterSpacing: '-0.4px',
-                  color: '#0A5CC4',
+                  color: '#0066CC',
                   lineHeight: 1
                 }}
               >
                 Shazu{' '}
                 <span
                   style={{
-                    color: isTechnician ? '#2B9236' : isAdmin ? '#D97706' : '#2B9236'
+                    color: isTechnician ? '#16A34A' : isAdmin ? '#D97706' : '#16A34A'
                   }}
                 >
                   {isTechnician ? 'Partner' : isAdmin ? 'Ops' : 'One'}
@@ -384,7 +388,7 @@ export default function Navbar({
 
           {/* ================= 2. CENTER: ROLE ADAPTIVE ACTION / SEARCH BAR (DESKTOP) ================= */}
           {!isMobile && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, maxWidth: '580px', margin: '0 8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
               
               {/* --- CASE A: CUSTOMER OR GUEST: Locality Pill + Search --- */}
               {(!isTechnician && !isAdmin) && (
@@ -402,12 +406,12 @@ export default function Navbar({
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '6px',
-                        height: '38px',
+                        height: '40px',
                         padding: '0 12px',
                         borderRadius: '8px',
                         boxSizing: 'border-box',
-                        fontSize: '12.5px',
-                        fontWeight: 700,
+                        fontSize: '13px',
+                        fontWeight: 600,
                         backgroundColor: isLocationOpen ? '#EFF6FF' : '#F8FAFC',
                         color: isLocationOpen ? '#0A5CC4' : '#1E293B',
                         border: isLocationOpen ? '1px solid #0A5CC4' : '1px solid #E2E8F0',
@@ -527,13 +531,13 @@ export default function Navbar({
                   </div>
 
                   {/* Global Search Bar */}
-                  <form onSubmit={handleSearchSubmit} style={{ flex: 1, margin: 0 }}>
+                  <form onSubmit={handleSearchSubmit} style={{ flex: 1, maxWidth: '420px', minWidth: 0, margin: 0 }}>
                     <div
                       style={{
                         display: 'flex',
                         alignItems: 'center',
                         width: '100%',
-                        height: '38px',
+                        height: '40px',
                         boxSizing: 'border-box',
                         borderRadius: '8px',
                         backgroundColor: '#F8FAFC',
@@ -551,7 +555,7 @@ export default function Navbar({
                         onChange={(e) => setSearchQuery(e.target.value)}
                         onFocus={() => setIsSearchFocused(true)}
                         onBlur={() => setIsSearchFocused(false)}
-                        placeholder="Search AC repair, electrician, plumber, cleaning..."
+                        placeholder="Search AC repair, electrician, plumber..."
                         style={{
                           width: '100%',
                           height: '100%',
@@ -559,9 +563,13 @@ export default function Navbar({
                           border: 'none',
                           outline: 'none',
                           padding: 0,
-                          fontSize: '12.5px',
+                          fontSize: '13px',
                           fontWeight: 500,
-                          color: '#0F172A'
+                          color: '#0F172A',
+                          textOverflow: 'ellipsis',
+                          overflow: 'hidden',
+                          whiteSpace: 'nowrap',
+                          minWidth: 0
                         }}
                       />
                       <span
@@ -666,7 +674,7 @@ export default function Navbar({
           )}
 
           {/* ================= 3. RIGHT NAVIGATION & ROLE DROP-DOWNS ================= */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '6px' : '10px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '12px', flexShrink: 0 }}>
             
             {/* 3.1 SERVICES DROPDOWN (Customer & Guest Desktop) */}
             {(!isTechnician && !isAdmin) && !isMobile && (
@@ -682,12 +690,12 @@ export default function Navbar({
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '5px',
-                    height: '38px',
+                    height: '40px',
                     padding: '0 12px',
                     borderRadius: '8px',
                     boxSizing: 'border-box',
-                    fontSize: '12.5px',
-                    fontWeight: 700,
+                    fontSize: '13px',
+                    fontWeight: 600,
                     backgroundColor: isServicesOpen ? '#EFF6FF' : 'transparent',
                     color: isServicesOpen ? '#0A5CC4' : '#334155',
                     border: 'none',
@@ -1058,11 +1066,11 @@ export default function Navbar({
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '6px',
-                    height: '38px',
+                    height: '40px',
                     padding: '0 12px',
                     borderRadius: '8px',
-                    fontSize: '12.5px',
-                    fontWeight: 700,
+                    fontSize: '13px',
+                    fontWeight: 600,
                     backgroundColor: 'transparent',
                     color: '#475569',
                     border: 'none',
@@ -1079,11 +1087,11 @@ export default function Navbar({
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '6px',
-                    height: '38px',
-                    padding: '0 12px',
+                    height: '40px',
+                    padding: '0 14px',
                     borderRadius: '8px',
-                    fontSize: '12.5px',
-                    fontWeight: 700,
+                    fontSize: '13px',
+                    fontWeight: 600,
                     backgroundColor: '#F0FDF4',
                     color: '#15803D',
                     border: '1px solid #BBF7D0',
@@ -1107,8 +1115,8 @@ export default function Navbar({
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  width: isMobile ? '34px' : '38px',
-                  height: isMobile ? '34px' : '38px',
+                  width: isMobile ? '34px' : '40px',
+                  height: isMobile ? '34px' : '40px',
                   borderRadius: '8px',
                   backgroundColor: '#F8FAFC',
                   border: '1px solid #E2E8F0',
@@ -1145,15 +1153,15 @@ export default function Navbar({
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '4px',
-                  height: '38px',
-                  padding: '0 10px',
+                  height: '40px',
+                  padding: '0 12px',
                   borderRadius: '8px',
                   backgroundColor: '#EFF6FF',
                   border: '1px solid #BFDBFE',
                   color: '#0A5CC4',
                   cursor: 'pointer',
-                  fontSize: '12px',
-                  fontWeight: 700
+                  fontSize: '13px',
+                  fontWeight: 600
                 }}
               >
                 <Globe size={14} color="#0A5CC4" />
@@ -1523,11 +1531,11 @@ export default function Navbar({
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  height: isMobile ? '34px' : '38px',
+                  height: isMobile ? '36px' : '40px',
                   padding: isMobile ? '0 12px' : '0 16px',
                   borderRadius: '8px',
                   fontSize: isMobile ? '12px' : '13px',
-                  fontWeight: 700,
+                  fontWeight: 600,
                   backgroundColor: '#0A5CC4',
                   color: '#FFFFFF',
                   border: 'none',

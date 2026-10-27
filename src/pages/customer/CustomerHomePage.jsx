@@ -199,61 +199,90 @@ export default function CustomerHomePage() {
     return () => clearInterval(interval);
   }, []);
 
-  const getServiceMetadata = (s) => {
-    switch (s.id) {
-      case 'ac':
-        return {
-          desc: 'Jet cleaning, gas check & cooling repairs',
-          eta: '25 min ETA',
-          icon: <AcUnitIcon sx={{ fontSize: 24 }} />,
-          color: '#0284C7',
-          bg: '#F0F9FF',
-          accent: '#BAE6FD'
-        };
-      case 'electrician':
-        return {
-          desc: 'Fan installation, switchboard & wiring fixes',
-          eta: '20 min ETA',
-          icon: <ElectricBoltIcon sx={{ fontSize: 24 }} />,
-          color: '#D97706',
-          bg: '#FFFBEB',
-          accent: '#FDE68A'
-        };
-      case 'plumber':
-        return {
-          desc: 'Pipe leakage, tap replacement & motor repair',
-          eta: '30 min ETA',
-          icon: <PlumbingIcon sx={{ fontSize: 24 }} />,
-          color: '#7C3AED',
-          bg: '#FAF5FF',
-          accent: '#DDD6FE'
-        };
-      case 'cleaning':
-        return {
-          desc: 'Bathroom deep clean & home sanitization',
-          eta: '35 min ETA',
-          icon: <CleaningServicesIcon sx={{ fontSize: 24 }} />,
-          color: '#059669',
-          bg: '#ECFDF5',
-          accent: '#A7F3D0'
-        };
-      default:
-        return {
-          desc: s.category || 'Professional home service & repair',
-          eta: '30 min ETA',
-          icon: <WorkOutlineIcon sx={{ fontSize: 24 }} />,
-          color: s.colorHex || '#0284C7',
-          bg: '#F0F9FF',
-          accent: '#BAE6FD'
-        };
+  const CORE_SERVICES = [
+    {
+      id: 'ac',
+      name: 'AC Repair & Service',
+      visitFee: 99,
+      image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=600&q=80',
+      imageAlt: 'Certified technician servicing residential split air conditioner',
+      ribbon: 'Customer favourite',
+      status: 'Quick arrival',
+      icon: <AcUnitIcon sx={{ fontSize: 20, color: '#0066CC' }} />,
+      desc: 'Jet cleaning, gas check & cooling repairs',
+      benefits: ['Verified pro', 'Warranty on work', 'Pay after completion']
+    },
+    {
+      id: 'electrician',
+      name: 'Electrician & Wiring',
+      visitFee: 99,
+      image: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?auto=format&fit=crop&w=600&q=80',
+      imageAlt: 'Licensed electrician troubleshooting distribution board and switchboard wiring',
+      ribbon: null,
+      status: 'Quick arrival',
+      icon: <ElectricBoltIcon sx={{ fontSize: 20, color: '#D97706' }} />,
+      desc: 'Short circuit repair, wiring & socket fitting',
+      benefits: ['Verified pro', 'Upfront pricing', 'Pay after completion']
+    },
+    {
+      id: 'plumber',
+      name: 'Plumber & Sanitary',
+      visitFee: 99,
+      image: 'https://images.unsplash.com/photo-1585704032915-c3400ca199e7?auto=format&fit=crop&w=600&q=80',
+      imageAlt: 'Skilled plumber repairing bathroom sink water pipeline and faucet fitting',
+      ribbon: null,
+      status: 'Popular this season',
+      icon: <PlumbingIcon sx={{ fontSize: 20, color: '#7C3AED' }} />,
+      desc: 'Tap leak fixing, pipe fitting & drainage clearing',
+      benefits: ['Verified pro', 'Genuine spare parts', 'Pay after completion']
+    },
+    {
+      id: 'cleaning',
+      name: 'Home & Bath Cleaning',
+      visitFee: 99,
+      image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=600&q=80',
+      imageAlt: 'Professional deep cleaning specialist sanitizing bathroom surfaces and tiles',
+      ribbon: null,
+      status: 'Book for tomorrow',
+      icon: <CleaningServicesIcon sx={{ fontSize: 20, color: '#16A34A' }} />,
+      desc: 'Deep bathroom descaling, disinfection & degreasing',
+      benefits: ['Trained team', 'Eco-safe supplies', 'Pay after completion']
     }
+  ];
+
+  const getServiceMetadata = (s) => {
+    const matched = CORE_SERVICES.find(c => c.id === s.id);
+    if (matched) {
+      return {
+        ...matched,
+        name: s.name || matched.name,
+        visitFee: s.visitFee || matched.visitFee
+      };
+    }
+    return {
+      id: s.id,
+      name: s.name || s.name_en || s.title || 'Home Service',
+      visitFee: s.visitFee || 99,
+      image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=600&q=80',
+      imageAlt: s.name || 'Professional home service technician',
+      ribbon: null,
+      status: 'Quick arrival',
+      icon: <WorkOutlineIcon sx={{ fontSize: 20, color: '#0066CC' }} />,
+      desc: s.desc || s.category || 'Doorstep inspection, diagnostics & certified repair',
+      benefits: ['Verified pro', 'Warranty on work', 'Pay after completion']
+    };
   };
 
-  const activeServicesList = services || [];
+  const activeServicesList = (services && services.length > 0)
+    ? CORE_SERVICES.map(core => {
+        const found = services.find(s => s.id === core.id);
+        return found ? { ...core, ...found, visitFee: found.visitFee || core.visitFee } : core;
+      })
+    : CORE_SERVICES;
 
   return (
-    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', pb: { xs: 8, md: 5 } }}>
-      <Container maxWidth={false} sx={{ maxWidth: '1380px', px: { xs: 1.5, sm: 2.5, md: 3 }, pt: { xs: 1.5, md: 2.5 } }}>
+    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', pb: { xs: 6, md: 4 } }}>
+      <Container maxWidth={false} sx={{ maxWidth: '1200px', mx: 'auto', px: { xs: 2, sm: 3 }, pt: { xs: 2, md: 3 } }}>
         
         {/* Unified Top Context Deck: Location Bar & User Account Status */}
         <Paper
@@ -750,160 +779,356 @@ export default function CustomerHomePage() {
         </Card>
 
         {/* Section Header: Available Services in Salem */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mb: 2, flexWrap: 'wrap', gap: 1 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mb: 2.5, flexWrap: 'wrap', gap: 1 }}>
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 900, color: '#0F172A', fontSize: '17px', letterSpacing: '-0.3px', lineHeight: 1.2 }}>
+            <Typography variant="h6" sx={{ fontWeight: 900, color: '#0F172A', fontSize: '18px', letterSpacing: '-0.3px', lineHeight: 1.2 }}>
               Available Services in Salem
             </Typography>
-            <Typography variant="caption" sx={{ color: '#64748B', fontSize: '12px' }}>
+            <Typography variant="caption" sx={{ color: '#64748B', fontSize: '12.5px' }}>
               Standardized doorstep inspection with transparent digital pricing
             </Typography>
           </Box>
           <Chip
-            label="Doorstep Service: 25-35 Mins"
+            label="Salem Citywide Coverage"
             size="small"
             sx={{
               bgcolor: '#F1F5F9',
               color: '#475569',
               fontWeight: 700,
-              fontSize: '10.5px',
-              height: 22
+              fontSize: '11px',
+              height: 24,
+              border: '1px solid #E2E8F0'
             }}
           />
         </Box>
 
-        {/* Responsive Services Grid (Dynamic DB Data - 2x2 on Mobile, 4 in a row on Desktop) */}
-        <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: 3.5 }}>
+        {/* Responsive Services Grid (4 equal-width cards in a grid, gap 20px, same height) */}
+        <Grid container spacing={2.5} sx={{ mb: 4.5, alignItems: 'stretch' }}>
           {isLoading ? (
             [1, 2, 3, 4].map((n) => (
-              <Grid item xs={6} sm={6} md={3} key={n}>
-                <Card elevation={0} sx={{ height: '100%', p: { xs: 1.5, sm: 2 }, borderRadius: '14px', border: '1px solid #E2E8F0' }}>
-                  <Skeleton variant="rounded" width={38} height={38} sx={{ mb: 1.2, borderRadius: '10px' }} />
-                  <Skeleton variant="text" width="75%" height={22} sx={{ mb: 0.5 }} />
-                  <Skeleton variant="text" width="95%" height={14} />
-                  <Skeleton variant="text" width="55%" height={14} />
+              <Grid item xs={12} sm={6} md={3} key={n}>
+                <Card elevation={0} sx={{ height: '100%', borderRadius: '16px', border: '1px solid #E2E8F0', overflow: 'hidden' }}>
+                  <Skeleton variant="rectangular" sx={{ width: '100%', aspectRatio: { xs: '16/9', sm: '3/2' } }} />
+                  <Box sx={{ p: '20px' }}>
+                    <Skeleton variant="text" width="65%" height={26} sx={{ mb: 1 }} />
+                    <Skeleton variant="text" width="95%" height={18} sx={{ mb: 2 }} />
+                    <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
+                      <Skeleton variant="rounded" width={80} height={28} sx={{ borderRadius: '999px' }} />
+                      <Skeleton variant="rounded" width={90} height={28} sx={{ borderRadius: '999px' }} />
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 2, borderTop: '1px solid #E2E8F0' }}>
+                      <Skeleton variant="text" width={50} height={32} />
+                      <Skeleton variant="rounded" width={95} height={40} sx={{ borderRadius: '10px' }} />
+                    </Box>
+                  </Box>
                 </Card>
               </Grid>
             ))
           ) : (
             activeServicesList.map((svc) => {
               const meta = getServiceMetadata(svc);
-              const avail = servicesAvailability[svc.id];
-              const isClosed = Boolean(avail && !avail.hasTechnicians);
 
               return (
-                <Grid item xs={6} sm={6} md={3} key={svc.id}>
+                <Grid item xs={12} sm={6} md={3} key={svc.id}>
                   <Card
                     elevation={0}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`Book ${meta.name}`}
                     onClick={() => navigate(`/book/${svc.id}`, { state: { service: svc } })}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        navigate(`/book/${svc.id}`, { state: { service: svc } });
+                      }
+                    }}
                     sx={{
                       height: '100%',
-                      borderRadius: '14px',
-                      bgcolor: '#FFFFFF',
-                      border: '1.5px solid #E2E8F0',
-                      p: { xs: 1.4, sm: 2 },
-                      cursor: 'pointer',
                       display: 'flex',
                       flexDirection: 'column',
-                      justifyContent: 'space-between',
-                      boxShadow: '0 2px 8px rgba(15, 23, 42, 0.03)',
-                      transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                      borderRadius: '16px',
+                      bgcolor: '#FFFFFF',
+                      border: '1px solid #E2E8F0',
+                      overflow: 'hidden',
+                      position: 'relative',
+                      cursor: 'pointer',
+                      boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
+                      transition: 'transform 240ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 240ms cubic-bezier(0.16, 1, 0.3, 1), border-color 240ms ease',
                       '&:hover': {
-                        borderColor: '#0284C7',
-                        boxShadow: '0 8px 24px rgba(2, 132, 199, 0.12)',
-                        transform: 'translateY(-3px)'
+                        transform: 'translateY(-4px)',
+                        borderColor: '#CBD5E1',
+                        boxShadow: '0 12px 28px -6px rgba(15, 23, 42, 0.12), 0 4px 10px -2px rgba(15, 23, 42, 0.04)',
+                        '& .service-card-photo': {
+                          transform: 'scale(1.05)'
+                        },
+                        '& .service-book-btn': {
+                          bgcolor: '#0052CC'
+                        }
+                      },
+                      '&:focus-visible': {
+                        outline: '2px solid #0066CC',
+                        outlineOffset: '2px'
                       }
                     }}
                   >
-                    <Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: { xs: 1, sm: 1.5 } }}>
-                        <Box
-                          sx={{
-                            width: { xs: 36, sm: 44 },
-                            height: { xs: 36, sm: 44 },
-                            borderRadius: '10px',
-                            bgcolor: meta.bg,
-                            color: meta.color,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            border: `1px solid ${meta.accent}`,
-                            '& svg': { fontSize: { xs: 20, sm: 24 } }
-                          }}
-                        >
-                          {meta.icon}
-                        </Box>
-                        <Chip
-                          label={isClosed ? 'Advance Booking' : meta.eta}
-                          size="small"
-                          sx={{
-                            bgcolor: isClosed ? '#FEF3C7' : '#F0FDF4',
-                            color: isClosed ? '#92400E' : '#166534',
-                            fontWeight: 800,
-                            fontSize: { xs: '8.5px', sm: '10px' },
-                            height: { xs: 19, sm: 22 },
-                            px: { xs: 0.2, sm: 0.6 },
-                            border: isClosed ? '1px solid #FDE68A' : '1px solid #BBF7D0'
-                          }}
-                        />
-                      </Box>
-
-                      <Typography
-                        variant="subtitle2"
-                        sx={{
-                          fontWeight: 800,
-                          color: '#0F172A',
-                          fontSize: { xs: '12.5px', sm: '14px' },
-                          mb: { xs: 0.3, sm: 0.5 },
-                          lineHeight: 1.3,
-                          minHeight: { xs: '34px', sm: '38px' },
-                          display: 'flex',
-                          alignItems: 'center'
-                        }}
-                      >
-                        {svc.name || svc.name_en || svc.title}
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          color: '#64748B',
-                          fontSize: { xs: '10.5px', sm: '11.5px' },
-                          lineHeight: 1.35,
-                          mb: { xs: 1, sm: 1.5 },
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
-                          minHeight: { xs: '28px', sm: '32px' }
-                        }}
-                      >
-                        {isClosed ? 'Reserve advance slot dispatched by Central Ops' : meta.desc}
-                      </Typography>
-                    </Box>
-
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 1, borderTop: '1px solid #F1F5F9' }}>
-                      <Box>
-                        <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: { xs: '9px', sm: '10px' }, display: 'block' }}>
-                          Inspection fee
-                        </Typography>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: { xs: '12px', sm: '13px' } }}>
-                          ₹{svc.visitFee || 99}
-                        </Typography>
-                      </Box>
+                    {/* 1. Photo Header (3:2 on desktop/tablet, 16:9 on mobile) */}
+                    <Box sx={{ position: 'relative', width: '100%' }}>
                       <Box
                         sx={{
-                          width: { xs: 24, sm: 28 },
-                          height: { xs: 24, sm: 28 },
-                          borderRadius: '50%',
+                          position: 'relative',
+                          width: '100%',
+                          aspectRatio: { xs: '16/9', sm: '3/2' },
+                          overflow: 'hidden',
                           bgcolor: '#F1F5F9',
+                          borderTopLeftRadius: '16px',
+                          borderTopRightRadius: '16px'
+                        }}
+                      >
+                        <Box
+                          component="img"
+                          className="service-card-photo"
+                          src={meta.image}
+                          alt={meta.imageAlt}
+                          loading="lazy"
+                          sx={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            display: 'block',
+                            transition: 'transform 300ms ease'
+                          }}
+                        />
+
+                        {/* Soft gradient overlay at bottom of photo */}
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            inset: 0,
+                            background: 'linear-gradient(to top, rgba(15, 23, 42, 0.45) 0%, rgba(15, 23, 42, 0.1) 40%, transparent 70%)',
+                            pointerEvents: 'none'
+                          }}
+                        />
+
+                        {/* Optional ribbon: Customer favourite tag */}
+                        {meta.ribbon && (
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              top: 12,
+                              left: 12,
+                              bgcolor: '#0066CC',
+                              color: '#FFFFFF',
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              px: 1.2,
+                              py: 0.4,
+                              borderRadius: '6px',
+                              boxShadow: '0 2px 6px rgba(0, 102, 204, 0.35)',
+                              letterSpacing: '0.02em',
+                              lineHeight: 1.2
+                            }}
+                          >
+                            {meta.ribbon}
+                          </Box>
+                        )}
+
+                        {/* Status badge in top-right corner */}
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: 12,
+                            right: 12,
+                            bgcolor: 'rgba(255, 255, 255, 0.95)',
+                            backdropFilter: 'blur(6px)',
+                            color: '#0F172A',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            px: 1.2,
+                            py: 0.4,
+                            borderRadius: '999px',
+                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
+                            border: '1px solid rgba(255, 255, 255, 0.8)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 0.6
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              width: 6,
+                              height: 6,
+                              borderRadius: '50%',
+                              bgcolor: meta.status === 'Book for tomorrow' ? '#0284C7' : '#16A34A'
+                            }}
+                          />
+                          {meta.status}
+                        </Box>
+                      </Box>
+
+                      {/* Small service icon in rounded square overlapping bottom-left edge */}
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          bottom: '-18px',
+                          left: '20px',
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: '10px',
+                          bgcolor: '#FFFFFF',
+                          border: '1px solid #E2E8F0',
+                          boxShadow: '0 4px 12px rgba(15, 23, 42, 0.08)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          transition: 'all 0.15s ease',
-                          '&:hover': { bgcolor: '#0066CC', color: '#FFFFFF' }
+                          zIndex: 3
                         }}
                       >
-                        <ArrowForwardIcon sx={{ fontSize: { xs: 12, sm: 14 } }} />
+                        {meta.icon}
+                      </Box>
+                    </Box>
+
+                    {/* 2. Content Area (20px padding) */}
+                    <Box
+                      sx={{
+                        pt: '26px',
+                        px: '20px',
+                        pb: '20px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        flex: 1
+                      }}
+                    >
+                      {/* Title: 18px, bold, dark */}
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          fontSize: '18px',
+                          fontWeight: 800,
+                          color: '#0F172A',
+                          letterSpacing: '-0.3px',
+                          lineHeight: 1.25,
+                          mb: 0.8
+                        }}
+                      >
+                        {meta.name}
+                      </Typography>
+
+                      {/* Description: 14-15px slate-600, one short line */}
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontSize: '14px',
+                          color: '#475569',
+                          lineHeight: 1.45,
+                          mb: 2,
+                          minHeight: '40px'
+                        }}
+                      >
+                        {meta.desc}
+                      </Typography>
+
+                      {/* Row of 2-3 small benefit chips: 28px tall, fully rounded, light tinted */}
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          flexWrap: 'wrap',
+                          mb: 2.5
+                        }}
+                      >
+                        {meta.benefits.map((benefit, i) => (
+                          <Box
+                            key={i}
+                            sx={{
+                              height: '28px',
+                              px: '10px',
+                              borderRadius: '999px',
+                              bgcolor: '#F8FAFC',
+                              border: '1px solid #E2E8F0',
+                              color: '#475569',
+                              fontSize: '11.5px',
+                              fontWeight: 600,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              lineHeight: 1,
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            {benefit}
+                          </Box>
+                        ))}
+                      </Box>
+
+                      {/* 3. Footer Row, separated by a 1px top border (pinned to bottom) */}
+                      <Box
+                        sx={{
+                          mt: 'auto',
+                          pt: '16px',
+                          borderTop: '1px solid #E2E8F0',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: 1.5
+                        }}
+                      >
+                        {/* Left side: small Starting at label with bold ₹99 */}
+                        <Box>
+                          <Typography
+                            sx={{
+                              fontSize: '11px',
+                              fontWeight: 600,
+                              color: '#64748B',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.04em',
+                              lineHeight: 1.1,
+                              mb: 0.3
+                            }}
+                          >
+                            Starting at
+                          </Typography>
+                          <Typography
+                            sx={{
+                              fontSize: '20px',
+                              fontWeight: 900,
+                              color: '#0F172A',
+                              letterSpacing: '-0.3px',
+                              lineHeight: 1
+                            }}
+                          >
+                            ₹{svc.visitFee || 99}
+                          </Typography>
+                        </Box>
+
+                        {/* Right side: clear Book Now button */}
+                        <Button
+                          variant="contained"
+                          className="service-book-btn"
+                          size="small"
+                          endIcon={<ArrowForwardIcon sx={{ fontSize: '15px !important' }} />}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/book/${svc.id}`, { state: { service: svc } });
+                          }}
+                          sx={{
+                            bgcolor: '#0066CC',
+                            color: '#FFFFFF',
+                            height: '40px',
+                            px: 2,
+                            borderRadius: '10px',
+                            fontSize: '13.5px',
+                            fontWeight: 700,
+                            textTransform: 'none',
+                            boxShadow: 'none',
+                            transition: 'background-color 200ms ease',
+                            '&:hover': {
+                              bgcolor: '#0052CC',
+                              boxShadow: 'none'
+                            }
+                          }}
+                        >
+                          Book Now
+                        </Button>
                       </Box>
                     </Box>
                   </Card>
@@ -1210,72 +1435,72 @@ export default function CustomerHomePage() {
           elevation={0}
           sx={{
             p: { xs: 2, sm: 2.5 },
-            borderRadius: '16px',
+            borderRadius: '12px',
             bgcolor: '#FFFFFF',
-            border: '1.5px solid #E2E8F0',
-            boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)',
-            mb: 3.5
+            border: '1px solid #E2E8F0',
+            boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
+            mb: 0
           }}
         >
           <Grid container spacing={2}>
-            <Grid item xs={6} md={3}>
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.2 }}>
-                <Box sx={{ width: 36, height: 36, borderRadius: '10px', bgcolor: '#ECFDF5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid #A7F3D0' }}>
-                  <VerifiedUserIcon sx={{ fontSize: 20 }} />
+            <Grid item xs={12} sm={6} md={3}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '16px', height: '100%' }}>
+                <Box sx={{ width: 40, height: 40, borderRadius: '10px', bgcolor: '#ECFDF5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid #A7F3D0' }}>
+                  <VerifiedUserIcon sx={{ fontSize: 22 }} />
                 </Box>
-                <Box>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '12.5px', lineHeight: 1.2 }}>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography sx={{ fontWeight: 700, color: '#0F172A', fontSize: '14px', lineHeight: 1.25 }}>
                     KYC & Police Verified
                   </Typography>
-                  <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11px', display: 'block', mt: 0.2 }}>
+                  <Typography sx={{ color: '#64748B', fontSize: '12px', mt: 0.3, lineHeight: 1.4 }}>
                     Aadhaar checked doorstep professionals
                   </Typography>
                 </Box>
               </Box>
             </Grid>
 
-            <Grid item xs={6} md={3}>
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.2 }}>
-                <Box sx={{ width: 36, height: 36, borderRadius: '10px', bgcolor: '#EFF6FF', color: '#0066CC', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid #BFDBFE' }}>
-                  <SecurityIcon sx={{ fontSize: 20 }} />
+            <Grid item xs={12} sm={6} md={3}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '16px', height: '100%' }}>
+                <Box sx={{ width: 40, height: 40, borderRadius: '10px', bgcolor: '#EFF6FF', color: '#0066CC', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid #BFDBFE' }}>
+                  <SecurityIcon sx={{ fontSize: 22 }} />
                 </Box>
-                <Box>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '12.5px', lineHeight: 1.2 }}>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography sx={{ fontWeight: 700, color: '#0F172A', fontSize: '14px', lineHeight: 1.25 }}>
                     100% Escrow Protected
                   </Typography>
-                  <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11px', display: 'block', mt: 0.2 }}>
+                  <Typography sx={{ color: '#64748B', fontSize: '12px', mt: 0.3, lineHeight: 1.4 }}>
                     Payment released only after job completion
                   </Typography>
                 </Box>
               </Box>
             </Grid>
 
-            <Grid item xs={6} md={3}>
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.2 }}>
-                <Box sx={{ width: 36, height: 36, borderRadius: '10px', bgcolor: '#FFFBEB', color: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid #FDE68A' }}>
-                  <ShieldIcon sx={{ fontSize: 20 }} />
+            <Grid item xs={12} sm={6} md={3}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '16px', height: '100%' }}>
+                <Box sx={{ width: 40, height: 40, borderRadius: '10px', bgcolor: '#FFFBEB', color: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid #FDE68A' }}>
+                  <ShieldIcon sx={{ fontSize: 22 }} />
                 </Box>
-                <Box>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '12.5px', lineHeight: 1.2 }}>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography sx={{ fontWeight: 700, color: '#0F172A', fontSize: '14px', lineHeight: 1.25 }}>
                     30-Day Rework Warranty
                   </Typography>
-                  <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11px', display: 'block', mt: 0.2 }}>
+                  <Typography sx={{ color: '#64748B', fontSize: '12px', mt: 0.3, lineHeight: 1.4 }}>
                     Free revisit guarantee on all services
                   </Typography>
                 </Box>
               </Box>
             </Grid>
 
-            <Grid item xs={6} md={3}>
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.2 }}>
-                <Box sx={{ width: 36, height: 36, borderRadius: '10px', bgcolor: '#FAF5FF', color: '#7C3AED', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid #DDD6FE' }}>
-                  <MonetizationOnIcon sx={{ fontSize: 20 }} />
+            <Grid item xs={12} sm={6} md={3}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '16px', height: '100%' }}>
+                <Box sx={{ width: 40, height: 40, borderRadius: '10px', bgcolor: '#FAF5FF', color: '#7C3AED', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid #DDD6FE' }}>
+                  <MonetizationOnIcon sx={{ fontSize: 22 }} />
                 </Box>
-                <Box>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '12.5px', lineHeight: 1.2 }}>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography sx={{ fontWeight: 700, color: '#0F172A', fontSize: '14px', lineHeight: 1.25 }}>
                     Upfront Transparent Rates
                   </Typography>
-                  <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11px', display: 'block', mt: 0.2 }}>
+                  <Typography sx={{ color: '#64748B', fontSize: '12px', mt: 0.3, lineHeight: 1.4 }}>
                     Standard visit fee, no hidden charges
                   </Typography>
                 </Box>
@@ -1283,8 +1508,6 @@ export default function CustomerHomePage() {
             </Grid>
           </Grid>
         </Paper>
-
-        <Box sx={{ mb: 2 }} />
 
       </Container>
 

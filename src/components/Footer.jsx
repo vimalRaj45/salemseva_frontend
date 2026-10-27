@@ -93,188 +93,199 @@ export default function Footer() {
         zIndex: 10
       }}
     >
-      {/* ── 1. Top Reassurance / Trust Strip (Soft Tinted Surface) ── */}
+      {/* ── 1. Top Feature Cards Row (4 Cards, 48px vertical spacing, 16px gap, 20px padding) ── */}
       <Box
         sx={{
           borderBottom: '1px solid #E2E8F0',
-          py: 3,
+          py: '48px',
           bgcolor: '#F8FAFC'
         }}
       >
-        <Container maxWidth={false} sx={{ maxWidth: '1380px', px: { xs: 2, sm: 3 } }}>
-          <Grid container spacing={2.5}>
+        <Container maxWidth={false} sx={{ maxWidth: '1200px', mx: 'auto', px: { xs: 2, sm: 3 } }}>
+          <Grid container spacing={2}>
+            {/* Card 1: 100% Verified Pros */}
             <Grid item xs={12} sm={6} md={3}>
               <Box
                 sx={{
                   display: 'flex',
+                  flexDirection: 'column',
                   alignItems: 'flex-start',
-                  gap: 1.5,
-                  p: 1.5,
+                  justifyContent: 'flex-start',
+                  p: '20px',
                   borderRadius: '12px',
                   bgcolor: '#FFFFFF',
                   border: '1px solid #E2E8F0',
-                  height: '100%'
+                  height: '100%',
+                  boxSizing: 'border-box'
                 }}
               >
                 <Box
                   sx={{
-                    p: 1,
+                    width: 40,
+                    height: 40,
                     borderRadius: '10px',
                     bgcolor: '#EFF6FF',
                     color: '#0284C7',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    flexShrink: 0
+                    flexShrink: 0,
+                    mb: '12px'
                   }}
                 >
                   <ShieldCheck size={20} />
                 </Box>
-                <Box>
-                  <Typography sx={{ fontWeight: 700, fontSize: '13.5px', color: '#0D3B66' }}>
-                    100% Verified Pros
-                  </Typography>
-                  <Typography sx={{ fontSize: '11.5px', color: '#64748B', mt: 0.2, lineHeight: 1.4 }}>
-                    Police background checked & Aadhaar verified technicians.
-                  </Typography>
-                </Box>
+                <Typography sx={{ fontWeight: 700, fontSize: '15px', color: '#0F172A', mb: '6px', textAlign: 'left' }}>
+                  100% Verified Pros
+                </Typography>
+                <Typography sx={{ fontSize: '13px', color: '#64748B', lineHeight: 1.5, textAlign: 'left' }}>
+                  Police background checked & Aadhaar verified technicians.
+                </Typography>
               </Box>
             </Grid>
 
+            {/* Card 2: Upfront Fair Pricing */}
             <Grid item xs={12} sm={6} md={3}>
               <Box
                 sx={{
                   display: 'flex',
+                  flexDirection: 'column',
                   alignItems: 'flex-start',
-                  gap: 1.5,
-                  p: 1.5,
+                  justifyContent: 'flex-start',
+                  p: '20px',
                   borderRadius: '12px',
                   bgcolor: '#FFFFFF',
                   border: '1px solid #E2E8F0',
-                  height: '100%'
+                  height: '100%',
+                  boxSizing: 'border-box'
                 }}
               >
                 <Box
                   sx={{
-                    p: 1,
+                    width: 40,
+                    height: 40,
                     borderRadius: '10px',
                     bgcolor: '#F0FDF4',
                     color: '#16A34A',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    flexShrink: 0
+                    flexShrink: 0,
+                    mb: '12px'
                   }}
                 >
                   <CheckCircle2 size={20} />
                 </Box>
-                <Box>
-                  <Typography sx={{ fontWeight: 700, fontSize: '13.5px', color: '#0D3B66' }}>
-                    Upfront Fair Pricing
-                  </Typography>
-                  <Typography sx={{ fontSize: '11.5px', color: '#64748B', mt: 0.2, lineHeight: 1.4 }}>
-                    Standard visitation rates with digital itemized approval.
-                  </Typography>
-                </Box>
+                <Typography sx={{ fontWeight: 700, fontSize: '15px', color: '#0F172A', mb: '6px', textAlign: 'left' }}>
+                  Upfront Fair Pricing
+                </Typography>
+                <Typography sx={{ fontSize: '13px', color: '#64748B', lineHeight: 1.5, textAlign: 'left' }}>
+                  Standard visitation rates with digital itemized approval.
+                </Typography>
               </Box>
             </Grid>
 
+            {/* Card 3: 98% Partner Payout */}
             <Grid item xs={12} sm={6} md={3}>
               <Box
                 sx={{
                   display: 'flex',
+                  flexDirection: 'column',
                   alignItems: 'flex-start',
-                  gap: 1.5,
-                  p: 1.5,
+                  justifyContent: 'flex-start',
+                  p: '20px',
                   borderRadius: '12px',
                   bgcolor: '#FFFFFF',
                   border: '1px solid #E2E8F0',
-                  height: '100%'
+                  height: '100%',
+                  boxSizing: 'border-box'
                 }}
               >
                 <Box
                   sx={{
-                    p: 1,
+                    width: 40,
+                    height: 40,
                     borderRadius: '10px',
                     bgcolor: '#FEF3C7',
                     color: '#D97706',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    flexShrink: 0
+                    flexShrink: 0,
+                    mb: '12px'
                   }}
                 >
                   <Sparkles size={20} />
                 </Box>
-                <Box>
-                  <Typography sx={{ fontWeight: 700, fontSize: '13.5px', color: '#0D3B66' }}>
-                    98% Partner Payout
-                  </Typography>
-                  <Typography sx={{ fontSize: '11.5px', color: '#64748B', mt: 0.2, lineHeight: 1.4 }}>
-                    Direct escrow settlement empowering local Salem tradesmen.
-                  </Typography>
-                </Box>
+                <Typography sx={{ fontWeight: 700, fontSize: '15px', color: '#0F172A', mb: '6px', textAlign: 'left' }}>
+                  98% Partner Payout
+                </Typography>
+                <Typography sx={{ fontSize: '13px', color: '#64748B', lineHeight: 1.5, textAlign: 'left' }}>
+                  Direct escrow settlement empowering local Salem tradesmen.
+                </Typography>
               </Box>
             </Grid>
 
+            {/* Card 4: Salem Fast Dispatch */}
             <Grid item xs={12} sm={6} md={3}>
               <Box
                 sx={{
                   display: 'flex',
+                  flexDirection: 'column',
                   alignItems: 'flex-start',
-                  gap: 1.5,
-                  p: 1.5,
+                  justifyContent: 'flex-start',
+                  p: '20px',
                   borderRadius: '12px',
                   bgcolor: '#FFFFFF',
                   border: '1px solid #E2E8F0',
-                  height: '100%'
+                  height: '100%',
+                  boxSizing: 'border-box'
                 }}
               >
                 <Box
                   sx={{
-                    p: 1,
+                    width: 40,
+                    height: 40,
                     borderRadius: '10px',
                     bgcolor: '#F3E8FF',
                     color: '#9333EA',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    flexShrink: 0
+                    flexShrink: 0,
+                    mb: '12px'
                   }}
                 >
                   <Clock size={20} />
                 </Box>
-                <Box>
-                  <Typography sx={{ fontWeight: 700, fontSize: '13.5px', color: '#0D3B66' }}>
-                    Salem Fast Dispatch
-                  </Typography>
-                  <Typography sx={{ fontSize: '11.5px', color: '#64748B', mt: 0.2, lineHeight: 1.4 }}>
-                    Live GPS matching for 30-min urgent or planned home slots.
-                  </Typography>
-                </Box>
+                <Typography sx={{ fontWeight: 700, fontSize: '15px', color: '#0F172A', mb: '6px', textAlign: 'left' }}>
+                  Salem Fast Dispatch
+                </Typography>
+                <Typography sx={{ fontSize: '13px', color: '#64748B', lineHeight: 1.5, textAlign: 'left' }}>
+                  Live GPS matching for 30-min urgent or planned home slots.
+                </Typography>
               </Box>
             </Grid>
           </Grid>
         </Container>
       </Box>
 
-      {/* ── 2. Main Navigation Columns (Crisp White Background) ── */}
-      <Container maxWidth={false} sx={{ maxWidth: '1380px', px: { xs: 2, sm: 3 }, py: 5 }}>
-        <Grid container spacing={4}>
-          {/* Brand & Overview Column */}
-          <Grid item xs={12} md={4}>
-            <Box sx={{ pr: { md: 2 } }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, mb: 1.5 }}>
+      {/* ── 2. Main Navigation Columns (12-Column Grid: 4 / 3 / 2.5 / 2.5) ── */}
+      <Container maxWidth={false} sx={{ maxWidth: '1200px', mx: 'auto', px: { xs: 2, sm: 3 }, py: '48px' }}>
+        <Grid container spacing={4} alignItems="flex-start">
+          
+          {/* Column 1: Brand & Overview (4 cols) */}
+          <Grid item xs={12} lg={4}>
+            <Box sx={{ pr: { lg: 3 } }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: '16px' }}>
                 <Box
                   component="img"
-                  src="/logo.svg"
+                  src="/logo-mark.svg"
+                  onError={(e) => { e.currentTarget.src = '/logo-mark.png'; }}
                   alt="Shazu One"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
                   sx={{
-                    width: 36,
-                    height: 36,
+                    width: 40,
+                    height: 40,
                     borderRadius: '8px',
                     objectFit: 'contain'
                   }}
@@ -284,42 +295,46 @@ export default function Footer() {
                     sx={{
                       fontFamily: '"Poppins", sans-serif',
                       fontWeight: 800,
-                      fontSize: '20px',
-                      color: '#0D3B66',
+                      fontSize: '22px',
+                      color: '#0066CC',
                       letterSpacing: '-0.3px',
                       lineHeight: 1.1
                     }}
                   >
-                    Shazu <Box component="span" sx={{ color: '#2E7D32' }}>One</Box>
+                    Shazu <Box component="span" sx={{ color: '#16A34A' }}>One</Box>
                   </Typography>
-                  <Typography sx={{ fontSize: '10.5px', color: '#64748B', fontWeight: 600, letterSpacing: '0.4px', textTransform: 'uppercase' }}>
+                  <Typography sx={{ fontSize: '11px', color: '#64748B', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', mt: 0.2 }}>
                     All Your Home Services. One Platform.
                   </Typography>
                 </Box>
               </Box>
 
-              <Typography sx={{ fontSize: '13px', color: '#475569', lineHeight: 1.65, mb: 2.5 }}>
+              <Typography sx={{ fontSize: '14px', color: '#475569', lineHeight: 1.6, mb: '24px' }}>
                 Salem's trusted home service ecosystem. Connecting homeowners across Salem district with verified electrical, plumbing, carpentry, cleaning, and appliance repair professionals.
               </Typography>
 
               {/* Salem Coverage Summary */}
               <Box>
-                <Typography sx={{ fontSize: '11px', fontWeight: 700, color: '#0D3B66', textTransform: 'uppercase', letterSpacing: '0.5px', mb: 1, display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                  <MapPin size={13} color="#0284C7" /> Active Service Localities
+                <Typography sx={{ fontSize: '14px', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em', mb: '16px', color: '#0D3B66', display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <MapPin size={15} color="#0284C7" /> Active Service Localities
                 </Typography>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.6 }}>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                   {serviceAreas.map((area) => (
                     <Box
                       key={area}
                       sx={{
-                        fontSize: '11px',
-                        px: 1,
-                        py: 0.25,
-                        borderRadius: '6px',
+                        fontSize: '12px',
+                        height: '28px',
+                        px: '12px',
+                        borderRadius: '999px',
                         bgcolor: '#F1F5F9',
                         border: '1px solid #E2E8F0',
                         color: '#475569',
-                        fontWeight: 500
+                        fontWeight: 500,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        whiteSpace: 'nowrap'
                       }}
                     >
                       {area}
@@ -330,32 +345,30 @@ export default function Footer() {
             </Box>
           </Grid>
 
-          {/* Quick Services Column */}
-          <Grid item xs={12} sm={6} md={2.8}>
-            <Typography sx={{ fontSize: '12.5px', fontWeight: 800, color: '#0D3B66', textTransform: 'uppercase', letterSpacing: '0.6px', mb: 2, display: 'flex', alignItems: 'center', gap: 0.8 }}>
-              <Wrench size={14} color="#0284C7" /> Core Services
+          {/* Column 2: Core Services (3 cols) */}
+          <Grid item xs={12} sm={6} md={3} lg={3}>
+            <Typography sx={{ fontSize: '14px', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em', mb: '20px', color: '#0D3B66', display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Wrench size={15} color="#0284C7" /> Core Services
             </Typography>
-            <Box component="ul" sx={{ listStyle: 'none', p: 0, m: 0, display: 'flex', flexDirection: 'column', gap: 1.2 }}>
+            <Box component="ul" sx={{ listStyle: 'none', p: 0, m: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {services.map((item) => (
                 <Box component="li" key={item.name}>
                   <ButtonBase
                     onClick={() => handleNav(item.path)}
                     sx={{
-                      fontSize: '13px',
+                      fontSize: '15px',
                       color: '#475569',
                       textAlign: 'left',
                       justifyContent: 'flex-start',
                       width: '100%',
-                      py: 0.2,
+                      py: 0,
                       fontWeight: 500,
-                      transition: 'all 0.15s ease',
+                      transition: 'color 0.15s ease',
                       '&:hover': {
-                        color: '#0284C7',
-                        transform: 'translateX(3px)'
+                        color: '#0284C7'
                       }
                     }}
                   >
-                    <ChevronRight size={13} style={{ marginRight: 6, flexShrink: 0, color: '#94A3B8' }} />
                     {item.name}
                   </ButtonBase>
                 </Box>
@@ -363,84 +376,86 @@ export default function Footer() {
             </Box>
           </Grid>
 
-          {/* Platform & Trust Hub */}
-          <Grid item xs={12} sm={6} md={2.4}>
-            <Typography sx={{ fontSize: '12.5px', fontWeight: 800, color: '#0D3B66', textTransform: 'uppercase', letterSpacing: '0.6px', mb: 2, display: 'flex', alignItems: 'center', gap: 0.8 }}>
-              <Sparkles size={14} color="#0284C7" /> Quick Links
+          {/* Column 3: Quick Links & Compliance (2.5 cols) */}
+          <Grid item xs={12} sm={6} md={2.5} lg={2.5}>
+            <Typography sx={{ fontSize: '14px', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em', mb: '20px', color: '#0D3B66', display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Sparkles size={15} color="#0284C7" /> Quick Links
             </Typography>
-            <Box component="ul" sx={{ listStyle: 'none', p: 0, m: 0, display: 'flex', flexDirection: 'column', gap: 1.2 }}>
+            <Box component="ul" sx={{ listStyle: 'none', p: 0, m: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {quickLinks.map((item) => (
                 <Box component="li" key={item.name}>
                   <ButtonBase
                     onClick={() => handleNav(item.path)}
                     sx={{
-                      fontSize: '13px',
+                      fontSize: '15px',
                       color: '#475569',
                       textAlign: 'left',
                       justifyContent: 'flex-start',
                       width: '100%',
-                      py: 0.2,
+                      py: 0,
                       fontWeight: 500,
-                      transition: 'all 0.15s ease',
+                      transition: 'color 0.15s ease',
                       '&:hover': {
-                        color: '#0284C7',
-                        transform: 'translateX(3px)'
+                        color: '#0284C7'
                       }
                     }}
                   >
-                    <ChevronRight size={13} style={{ marginRight: 6, flexShrink: 0, color: '#94A3B8' }} />
                     {item.name}
                   </ButtonBase>
                 </Box>
               ))}
             </Box>
 
-            <Box sx={{ mt: 3 }}>
-              <Typography sx={{ fontSize: '12.5px', fontWeight: 800, color: '#0D3B66', textTransform: 'uppercase', letterSpacing: '0.6px', mb: 1.2, display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                <Lock size={13} color="#0284C7" /> Compliance
-              </Typography>
-              <Box component="ul" sx={{ listStyle: 'none', p: 0, m: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                {legalLinks.map((item) => (
-                  <Box component="li" key={item.name}>
-                    <ButtonBase
-                      onClick={() => handleNav(item.path)}
-                      sx={{
-                        fontSize: '12.5px',
-                        color: '#64748B',
-                        textAlign: 'left',
-                        justifyContent: 'flex-start',
-                        width: '100%',
-                        py: 0.2,
-                        transition: 'all 0.15s ease',
-                        '&:hover': {
-                          color: '#0D3B66'
-                        }
-                      }}
-                    >
-                      {item.name}
-                    </ButtonBase>
-                  </Box>
-                ))}
-              </Box>
+            {/* Compliance Section */}
+            <Typography sx={{ fontSize: '14px', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em', mb: '20px', mt: '32px', color: '#0D3B66', display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Lock size={14} color="#0284C7" /> Compliance
+            </Typography>
+            <Box component="ul" sx={{ listStyle: 'none', p: 0, m: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {legalLinks.map((item) => (
+                <Box component="li" key={item.name}>
+                  <ButtonBase
+                    onClick={() => handleNav(item.path)}
+                    sx={{
+                      fontSize: '15px',
+                      color: '#475569',
+                      textAlign: 'left',
+                      justifyContent: 'flex-start',
+                      width: '100%',
+                      py: 0,
+                      fontWeight: 500,
+                      transition: 'color 0.15s ease',
+                      '&:hover': {
+                        color: '#0284C7'
+                      }
+                    }}
+                  >
+                    {item.name}
+                  </ButtonBase>
+                </Box>
+              ))}
             </Box>
           </Grid>
 
-          {/* Salem Helpdesk & Operations */}
-          <Grid item xs={12} md={2.8}>
-            <Typography sx={{ fontSize: '12.5px', fontWeight: 800, color: '#0D3B66', textTransform: 'uppercase', letterSpacing: '0.6px', mb: 2, display: 'flex', alignItems: 'center', gap: 0.8 }}>
-              <Headphones size={14} color="#0284C7" /> Salem Helpdesk
+          {/* Column 4: Salem Helpdesk & Operations (2.5 cols) */}
+          <Grid item xs={12} md={2.5} lg={2.5}>
+            <Typography sx={{ fontSize: '14px', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em', mb: '20px', color: '#0D3B66', display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Headphones size={15} color="#0284C7" /> Salem Helpdesk
             </Typography>
 
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {/* Customer Helpline Card */}
               <Box
                 sx={{
-                  p: 2,
+                  p: '16px',
                   borderRadius: '12px',
                   bgcolor: '#F0F9FF',
-                  border: '1px solid #BAE6FD'
+                  border: '1px solid #BAE6FD',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px'
                 }}
               >
-                <Typography sx={{ fontSize: '11px', color: '#0369A1', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700 }}>
+                <Typography sx={{ fontSize: '11px', color: '#0369A1', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>
                   Customer Helpline (Mon - Sun)
                 </Typography>
                 <Box
@@ -449,33 +464,34 @@ export default function Footer() {
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 0.8,
+                    gap: 1,
                     color: '#0D3B66',
                     textDecoration: 'none',
                     fontWeight: 800,
-                    fontSize: '16px',
-                    mt: 0.4,
+                    fontSize: '18px',
                     '&:hover': { color: '#0284C7' }
                   }}
                 >
-                  <Phone size={16} color="#0284C7" /> 0427-2445566
+                  <Phone size={18} color="#0284C7" /> 0427-2445566
                 </Box>
-                <Typography sx={{ fontSize: '11px', color: '#0C4A6E', mt: 0.3 }}>
+                <Typography sx={{ fontSize: '11.5px', color: '#0C4A6E' }}>
                   Dispatch Hours: 7:00 AM – 10:00 PM
                 </Typography>
               </Box>
 
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.2 }}>
-                <Mail size={15} color="#0284C7" style={{ marginTop: 2, flexShrink: 0 }} />
-                <Box>
-                  <Typography sx={{ fontSize: '11px', color: '#64748B' }}>Support Email</Typography>
+              {/* Support Email Row */}
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                <Mail size={16} color="#0284C7" style={{ marginTop: '3px', flexShrink: 0 }} />
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography sx={{ fontSize: '12px', color: '#64748B' }}>Support Email</Typography>
                   <Link
                     href="mailto:support@shazuone.com"
                     sx={{
                       color: '#0D3B66',
-                      fontSize: '12.5px',
+                      fontSize: '14px',
                       fontWeight: 600,
                       textDecoration: 'none',
+                      wordBreak: 'break-all',
                       '&:hover': { color: '#0284C7', textDecoration: 'underline' }
                     }}
                   >
@@ -484,11 +500,12 @@ export default function Footer() {
                 </Box>
               </Box>
 
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.2 }}>
-                <MapPin size={15} color="#0284C7" style={{ marginTop: 2, flexShrink: 0 }} />
-                <Box>
-                  <Typography sx={{ fontSize: '11px', color: '#64748B' }}>Salem Operations Hub</Typography>
-                  <Typography sx={{ fontSize: '12px', color: '#334155', lineHeight: 1.4 }}>
+              {/* Salem Operations Hub Row */}
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                <MapPin size={16} color="#0284C7" style={{ marginTop: '3px', flexShrink: 0 }} />
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography sx={{ fontSize: '12px', color: '#64748B' }}>Salem Operations Hub</Typography>
+                  <Typography sx={{ fontSize: '13px', color: '#334155', lineHeight: 1.5, mt: '2px' }}>
                     Fairlands Main Road, Opp. Reliance Mart, Salem — 636016, Tamil Nadu.
                   </Typography>
                 </Box>
@@ -498,96 +515,61 @@ export default function Footer() {
         </Grid>
       </Container>
 
-      {/* ── 3. Bottom Legal, Payment Badges & Developer Attribution (Pleasant Neutral Tray) ── */}
+      {/* ── 3. Bottom Bar (3-Part Flex Row, 24px vertical padding, Top Border) ── */}
       <Box
         sx={{
           borderTop: '1px solid #E2E8F0',
-          pt: 2.5,
-          pb: { xs: '84px', md: 2.5 },
+          py: '24px',
           bgcolor: '#F8FAFC'
         }}
       >
-        <Container maxWidth={false} sx={{ maxWidth: '1380px', px: { xs: 2, sm: 3 } }}>
+        <Container maxWidth={false} sx={{ maxWidth: '1200px', mx: 'auto', px: { xs: 2, sm: 3 } }}>
           <Box
             sx={{
               display: 'flex',
               flexDirection: { xs: 'column', md: 'row' },
               alignItems: 'center',
               justifyContent: 'space-between',
-              gap: 2
+              gap: '20px',
+              textAlign: { xs: 'center', md: 'left' }
             }}
           >
-            {/* Copyright & Quality Standards */}
+            {/* Part 1: Copyright & ISO Standards */}
             <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
-              <Typography sx={{ fontSize: '12px', color: '#475569' }}>
+              <Typography sx={{ fontSize: '13px', color: '#475569' }}>
                 © 2026 <Box component="span" sx={{ color: '#0D3B66', fontWeight: 700 }}>Shazu One</Box>. All rights reserved.
               </Typography>
-              <Typography sx={{ fontSize: '11px', color: '#64748B', mt: 0.3 }}>
+              <Typography sx={{ fontSize: '11px', color: '#64748B', mt: '4px' }}>
                 ISO 9001:2015 Service Quality Benchmark • 256-Bit SSL Encrypted Escrow Transactions
               </Typography>
             </Box>
 
-            {/* Payment & Security Method Badges (Clean White Chips) */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
-              <Box
-                sx={{
-                  px: 1.2,
-                  py: 0.35,
-                  borderRadius: '6px',
-                  bgcolor: '#FFFFFF',
-                  border: '1px solid #CBD5E1',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  color: '#475569'
-                }}
-              >
-                UPI / GPay / PhonePe
-              </Box>
-              <Box
-                sx={{
-                  px: 1.2,
-                  py: 0.35,
-                  borderRadius: '6px',
-                  bgcolor: '#FFFFFF',
-                  border: '1px solid #CBD5E1',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  color: '#475569'
-                }}
-              >
-                Razorpay Verified
-              </Box>
-              <Box
-                sx={{
-                  px: 1.2,
-                  py: 0.35,
-                  borderRadius: '6px',
-                  bgcolor: '#FFFFFF',
-                  border: '1px solid #CBD5E1',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  color: '#475569'
-                }}
-              >
-                RuPay & Visa
-              </Box>
-              <Box
-                sx={{
-                  px: 1.2,
-                  py: 0.35,
-                  borderRadius: '6px',
-                  bgcolor: '#FFFFFF',
-                  border: '1px solid #CBD5E1',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  color: '#475569'
-                }}
-              >
-                Cash on Completion
-              </Box>
+            {/* Part 2: Payment Chips (Equal 32px height, wrapped or single row) */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
+              {['UPI / GPay / PhonePe', 'Razorpay Verified', 'RuPay & Visa', 'Cash on Completion'].map((badge) => (
+                <Box
+                  key={badge}
+                  sx={{
+                    height: '32px',
+                    px: '14px',
+                    borderRadius: '999px',
+                    bgcolor: '#FFFFFF',
+                    border: '1px solid #CBD5E1',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    color: '#475569',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  {badge}
+                </Box>
+              ))}
             </Box>
 
-            {/* Developer Credit (Shazu Soft Technologies Pill) */}
+            {/* Part 3: Developer Credit */}
             <Box
               component="a"
               href="https://shazusofttechnologies.org/"
@@ -596,12 +578,12 @@ export default function Footer() {
               sx={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: 1,
+                gap: '8px',
                 textDecoration: 'none',
                 bgcolor: '#FFFFFF',
-                py: 0.6,
-                px: 1.8,
-                borderRadius: '30px',
+                height: '36px',
+                px: '16px',
+                borderRadius: '999px',
                 border: '1px solid #E2E8F0',
                 boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
                 transition: 'all 0.2s ease',
@@ -626,7 +608,7 @@ export default function Footer() {
                   objectFit: 'contain'
                 }}
               />
-              <Typography sx={{ color: '#0D3B66', fontSize: '11px', fontWeight: 600 }}>
+              <Typography sx={{ color: '#0D3B66', fontSize: '12px', fontWeight: 600 }}>
                 Crafted by{' '}
                 <Box component="span" sx={{ color: '#0D3B66', fontWeight: 800 }}>
                   Shazu Soft Technologies

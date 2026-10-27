@@ -282,7 +282,7 @@ function MainLayout({ walletBalance, currentBooking, setCurrentBooking }) {
         {/* Real Production URL Routes */}
         <Box sx={{ 
           flex: 1, 
-          pt: isFullScreenPage ? 0 : { xs: '54px', md: '64px' },
+          pt: isFullScreenPage ? 0 : { xs: '56px', lg: '72px' },
           pb: isFullScreenPage ? 0 : { xs: '58px', md: 0 }
         }}>
           <Routes>
