@@ -385,13 +385,29 @@ div:has(> [data-hot-toast]),
   display: inline-block;
 }
 
+@keyframes activePulseRing {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.85;
+  }
+  70% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .brand-logo-shine::after,
   .brand-title-shazu,
   .brand-title-one,
   .brand-title-partner,
   .brand-title-ops,
-  .btn-shimmer::after {
+  .btn-shimmer::after,
+  .active-pulse-dot::before {
     animation: none !important;
   }
 }

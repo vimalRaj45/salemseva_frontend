@@ -920,29 +920,57 @@ export default function CustomerHomePage() {
                           }}
                         />
 
-                        {/* Optional ribbon: Customer favourite tag (hidden on mobile to prevent overlap with status) */}
-                        {meta.ribbon && (
+                        {/* Active Green Light Indicator (Top-Left Corner) */}
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: { xs: 8, sm: 12 },
+                            left: { xs: 8, sm: 12 },
+                            bgcolor: 'rgba(255, 255, 255, 0.95)',
+                            backdropFilter: 'blur(6px)',
+                            border: '1px solid rgba(255, 255, 255, 0.9)',
+                            borderRadius: '999px',
+                            px: { xs: 0.8, sm: 1.1 },
+                            py: { xs: 0.25, sm: 0.35 },
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: { xs: 0.45, sm: 0.6 },
+                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
+                            zIndex: 2,
+                            pointerEvents: 'none'
+                          }}
+                        >
                           <Box
+                            className="active-pulse-dot"
                             sx={{
-                              position: 'absolute',
-                              top: { xs: 8, sm: 12 },
-                              left: { xs: 8, sm: 12 },
-                              bgcolor: '#0066CC',
-                              color: '#FFFFFF',
-                              fontSize: { xs: '9px', sm: '11px' },
-                              fontWeight: 700,
-                              px: { xs: 0.8, sm: 1.2 },
-                              py: { xs: 0.25, sm: 0.4 },
-                              borderRadius: '6px',
-                              boxShadow: '0 2px 6px rgba(0, 102, 204, 0.35)',
+                              width: { xs: 6, sm: 7.5 },
+                              height: { xs: 6, sm: 7.5 },
+                              borderRadius: '50%',
+                              bgcolor: '#16A34A',
+                              boxShadow: '0 0 6px rgba(34, 197, 94, 0.85)',
+                              position: 'relative',
+                              '&::before': {
+                                content: '""',
+                                position: 'absolute',
+                                inset: '-2.5px',
+                                borderRadius: '50%',
+                                bgcolor: 'rgba(34, 197, 94, 0.45)',
+                                animation: 'activePulseRing 2s cubic-bezier(0.4, 0, 0.2, 1) infinite'
+                              }
+                            }}
+                          />
+                          <Typography
+                            sx={{
+                              color: '#15803D',
+                              fontSize: { xs: '9px', sm: '10.5px' },
+                              fontWeight: 800,
                               letterSpacing: '0.02em',
-                              lineHeight: 1.2,
-                              display: { xs: 'none', sm: 'block' }
+                              lineHeight: 1
                             }}
                           >
-                            {meta.ribbon}
-                          </Box>
-                        )}
+                            Active
+                          </Typography>
+                        </Box>
 
                         {/* Status badge in top-right corner */}
                         <Box
