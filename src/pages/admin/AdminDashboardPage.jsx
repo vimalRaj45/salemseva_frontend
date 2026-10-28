@@ -2369,7 +2369,7 @@ export default function AdminDashboardPage() {
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4 }}>
                               <StarIcon sx={{ fontSize: 14, color: '#F59E0B' }} />
                               <Typography variant="caption" sx={{ fontWeight: 900, color: '#0F172A', fontSize: '11.5px' }}>
-                                {Number(tech.jobs_completed_count) > 0 && Number(tech.rating_avg) > 0 ? tech.rating_avg : 'New'}
+                                {Number(tech.rating_avg) > 0 ? Number(tech.rating_avg).toFixed(1) : (Number(tech.jobs_completed_count) > 0 ? '5.0' : 'New')}
                               </Typography>
                               <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '10px' }}>
                                 ({Number(tech.rating_count) || 0})
@@ -3079,7 +3079,7 @@ export default function AdminDashboardPage() {
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.4, mb: 0.3 }}>
                         <StarIcon sx={{ fontSize: 14, color: '#F59E0B' }} />
                         <Typography variant="body2" sx={{ fontWeight: 900, color: '#0F172A' }}>
-                          {Number(tech.jobs_completed_count) > 0 && Number(tech.rating_avg) > 0 ? tech.rating_avg : 'New'}
+                          {Number(tech.rating_avg) > 0 ? Number(tech.rating_avg).toFixed(1) : (Number(tech.jobs_completed_count) > 0 ? '5.0' : 'New')}
                         </Typography>
                       </Box>
                       <Chip

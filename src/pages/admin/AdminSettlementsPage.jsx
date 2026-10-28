@@ -86,7 +86,7 @@ export default function AdminSettlementsPage() {
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
-          setFinancialData(data.data);
+          setFinancialData(data.data || data);
         } else {
           setFinancialData(null);
         }
