@@ -446,6 +446,29 @@ export default function TrackingPage() {
   const techArrived = ['arrived', 'inspecting', 'quote_presented', 'quote_approved', 'completed'].includes(bookingStatus);
   const hasQuote = ['quote_presented', 'quote_approved'].includes(bookingStatus);
 
+  const getLiveDistanceAndEta = () => {
+    const custLat = parseFloat(trackData?.booking?.customer_lat) || 11.6643;
+    const custLng = parseFloat(trackData?.booking?.customer_lng) || 78.1460;
+    const techLat = parseFloat(tech?.lat) || 11.6780;
+    const techLng = parseFloat(tech?.lng) || 78.1580;
+
+    const dLat = (custLat - techLat) * (Math.PI / 180);
+    const dLon = (custLng - techLng) * (Math.PI / 180);
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(techLat * (Math.PI / 180)) * Math.cos(custLat * (Math.PI / 180)) * 
+              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const dist = Math.max(0.3, parseFloat((6371 * c * 1.3).toFixed(1)));
+    const etaMins = Math.max(2, Math.round((dist / 25) * 60));
+
+    return {
+      distanceText: tech?.distanceKm || `${dist} km`,
+      etaText: tech?.eta || `${etaMins} mins`,
+      distanceNumber: dist,
+      etaMinutes: etaMins
+    };
+  };
+
   const getSlotLabel = (slot) => {
     if (!slot) return 'Standard Scheduled Window';
     if (slot.includes('•') || slot.includes(',') || slot.includes(':') || slot.includes('-')) {
@@ -884,52 +907,49 @@ export default function TrackingPage() {
               </Card>
             )}
 
-            {/* Central Dispatch Radar Map */}
+            {/* Central Dispatch Operations Telemetry Card */}
             <Card
               elevation={0}
               sx={{
                 bgcolor: '#FFFFFF',
-                border: '1px solid #E2E8F0',
-                borderRadius: '20px',
-                overflow: 'hidden',
+                border: '1.5px solid #E2E8F0',
+                borderRadius: '16px',
+                p: 2.5,
                 mb: 2.5,
                 boxShadow: '0 2px 10px rgba(15, 23, 42, 0.04)'
               }}
             >
-              <Box sx={{ position: 'relative', height: 230 }}>
-                <iframe
-                  title="Shazu One Central Ops Google Maps"
-                  width="100%"
-                  height="230"
-                  frameBorder="0"
-                  style={{ border: 0 }}
-                  src="https://maps.google.com/maps?q=11.6643,78.1460&hl=en&z=14&output=embed"
-                  allowFullScreen
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ p: 1, bgcolor: '#0F172A', color: '#38BDF8', borderRadius: '10px', display: 'flex' }}>
+                    <HubIcon sx={{ fontSize: 22 }} />
+                  </Box>
+                  <Box>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '14px', lineHeight: 1.2 }}>
+                      Shazu One Central Ops Desk
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#0284C7', fontWeight: 700, fontSize: '11px' }}>
+                      Salem Central District Routing & Priority Dispatch
+                    </Typography>
+                  </Box>
+                </Box>
+                <Chip
+                  label="GPS Ready"
+                  size="small"
+                  sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 800, fontSize: '10.5px' }}
                 />
-                <Paper
-                  elevation={3}
-                  sx={{
-                    position: 'absolute',
-                    top: 16,
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    bgcolor: '#0F172A',
-                    color: '#FFFFFF',
-                    px: 2,
-                    py: 0.8,
-                    borderRadius: '20px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 0.8,
-                    zIndex: 800,
-                    boxShadow: '0 4px 14px rgba(0,0,0,0.3)'
-                  }}
-                >
-                  <HubIcon sx={{ color: '#38BDF8', fontSize: 18 }} />
-                  <Typography variant="caption" sx={{ fontWeight: 900, fontSize: '12px' }}>
-                    Shazu One Central Ops • Priority Allocation Active
+              </Box>
+
+              <Box sx={{ p: 1.5, bgcolor: '#F8FAFC', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.5 }}>
+                  <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#10B981', animation: 'pulse 1.5s infinite' }} />
+                  <Typography variant="caption" sx={{ color: '#334155', fontWeight: 700, fontSize: '11.5px' }}>
+                    Live GPS Telemetry Service Active
                   </Typography>
-                </Paper>
+                </Box>
+                <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11px', display: 'block' }}>
+                  Doorstep address registered for Salem dispatch. Once technician departs, real-time distance and transit ETA will stream directly to your screen.
+                </Typography>
               </Box>
             </Card>
 
@@ -1385,117 +1405,161 @@ export default function TrackingPage() {
               </Box>
             )}
 
-            {/* 1. Map Card with Live Route, Google Maps Integration & Dynamic ETA */}
-            <Card
-              elevation={0}
-              sx={{
-                bgcolor: '#FFFFFF',
-                border: '1.5px solid #E2E8F0',
-                borderRadius: '12px',
-                overflow: 'hidden',
-                mb: 2,
-                boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
-              }}
-            >
-              <Box sx={{ position: 'relative', height: 260 }}>
-                {/* Google Maps Live Real-Time Embed (100% Free, Zero API Key) */}
-                <iframe
-                  title="Google Maps Live Location"
-                  width="100%"
-                  height="260"
-                  frameBorder="0"
-                  style={{ border: 0 }}
-                  src={`https://maps.google.com/maps?q=${tech?.lat || 11.6780},${tech?.lng || 78.1580}&hl=en&z=16&output=embed`}
-                  allowFullScreen
-                />
-
-                <Paper
+            {/* 1. Live GPS & ETA Telemetry Card (Replaces embedded iframe map) */}
+            {(() => {
+              const liveMetrics = getLiveDistanceAndEta();
+              return (
+                <Card
                   elevation={0}
                   sx={{
-                    position: 'absolute',
-                    top: 10,
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    bgcolor: (bookingStatus === 'inspecting' || bookingStatus === 'arrived') 
-                      ? '#D97706' 
-                      : (bookingStatus === 'quote_presented' || bookingStatus === 'quote_approved' 
-                          ? '#16A34A' 
-                          : (bookingStatus === 'en_route' ? '#0284C7' : '#0F172A')),
-                    color: '#FFFFFF',
-                    px: 1.5,
-                    py: 0.5,
-                    borderRadius: '6px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 0.8,
-                    zIndex: 800,
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    boxShadow: '0 2px 6px rgba(0,0,0,0.3)'
-                  }}
-                >
-                  {bookingStatus === 'en_route' ? (
-                    <TwoWheelerIcon sx={{ color: '#FFFFFF', fontSize: 16 }} />
-                  ) : (
-                    <CheckCircleIcon sx={{ color: '#4ADE80', fontSize: 16 }} />
-                  )}
-                  <Typography variant="caption" sx={{ fontWeight: 700, fontSize: '11.5px' }}>
-                    {bookingStatus === 'inspecting'
-                      ? 'Technician at doorstep • Diagnostic inspection'
-                      : bookingStatus === 'arrived'
-                        ? 'Technician arrived at doorstep • Awaiting PIN verification'
-                        : (bookingStatus === 'quote_presented' 
-                            ? 'Digital quote ready for customer review' 
-                            : (bookingStatus === 'en_route'
-                                ? `${tech.name} • On the way (${tech.eta || '8 mins'} • ${tech.distanceKm || '1.8 km'})`
-                                : `${tech.name} • Accepted & Preparing Departure`))}
-                  </Typography>
-                </Paper>
-              </Box>
-
-              {/* One-Tap Open in Google Maps App Button */}
-              <Box sx={{ p: 1.5, bgcolor: '#F8FAFC', borderTop: '1px solid #E2E8F0', display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'stretch', sm: 'center' }, gap: 1.2 }}>
-                <Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
-                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#10B981' }} />
-                    <Typography variant="caption" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '12px' }}>
-                      Google Maps Live GPS Tracking
-                    </Typography>
-                  </Box>
-                  <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11px', display: 'block' }}>
-                    Tech Coordinates: {tech?.lat || 11.6780}, {tech?.lng || 78.1580} (Salem City)
-                  </Typography>
-                </Box>
-
-                <Button
-                  variant="contained"
-                  size="small"
-                  startIcon={<LocationOnIcon sx={{ fontSize: 18, color: '#EF4444' }} />}
-                  onClick={() => {
-                    const techLat = tech?.lat || 11.6780;
-                    const techLng = tech?.lng || 78.1580;
-                    const custLat = parseFloat(trackData?.booking?.customer_lat) || 11.6643;
-                    const custLng = parseFloat(trackData?.booking?.customer_lng) || 78.1460;
-                    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${techLat},${techLng}&destination=${custLat},${custLng}&travelmode=two_wheeler`;
-                    window.open(googleMapsUrl, '_blank');
-                  }}
-                  sx={{
                     bgcolor: '#FFFFFF',
-                    color: '#0F172A',
-                    border: '1.5px solid #2563EB',
-                    borderRadius: '8px',
-                    py: 0.8,
-                    px: 1.6,
-                    fontWeight: 800,
-                    fontSize: '12px',
-                    textTransform: 'none',
-                    boxShadow: '0 2px 6px rgba(37, 99, 235, 0.12)',
-                    '&:hover': { bgcolor: '#EFF6FF', borderColor: '#1D4ED8' }
+                    border: '1.5px solid #E2E8F0',
+                    borderRadius: '14px',
+                    p: 2.2,
+                    mb: 2,
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
                   }}
                 >
-                  Open Tech Location in Google Maps
-                </Button>
-              </Box>
-            </Card>
+                  {/* Top Bar: Telemetry Status */}
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#16A34A', animation: 'pulse 1.5s infinite' }} />
+                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '13px' }}>
+                        Live GPS Telemetry
+                      </Typography>
+                    </Box>
+
+                    <Chip
+                      label={
+                        bookingStatus === 'inspecting'
+                          ? 'At Doorstep • Inspecting'
+                          : bookingStatus === 'arrived'
+                            ? 'At Doorstep • PIN Verification'
+                            : 'Technician En Route'
+                      }
+                      size="small"
+                      sx={{
+                        bgcolor: (bookingStatus === 'inspecting' || bookingStatus === 'arrived') ? '#FEF3C7' : '#DCFCE7',
+                        color: (bookingStatus === 'inspecting' || bookingStatus === 'arrived') ? '#92400E' : '#166534',
+                        fontWeight: 800,
+                        fontSize: '11px'
+                      }}
+                    />
+                  </Box>
+
+                  {/* 2 Big Stat Cards: Distance & Estimated Time */}
+                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, mb: 2 }}>
+                    {/* Distance Card */}
+                    <Box
+                      sx={{
+                        p: 1.8,
+                        bgcolor: '#EFF6FF',
+                        border: '1.5px solid #BFDBFE',
+                        borderRadius: '10px',
+                        textAlign: 'center'
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.6, mb: 0.5 }}>
+                        <NavigationIcon sx={{ color: '#2563EB', fontSize: 16 }} />
+                        <Typography variant="caption" sx={{ color: '#1D4ED8', fontWeight: 800, fontSize: '10.5px', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                          Live Distance
+                        </Typography>
+                      </Box>
+                      <Typography variant="h5" sx={{ fontWeight: 900, color: '#1E3A8A', fontSize: { xs: '20px', sm: '24px' }, lineHeight: 1.1 }}>
+                        {bookingStatus === 'arrived' || bookingStatus === 'inspecting' ? '0.0 km' : liveMetrics.distanceText}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: '#64748B', fontSize: '10px', display: 'block', mt: 0.3 }}>
+                        {bookingStatus === 'arrived' || bookingStatus === 'inspecting' ? 'Arrived at your door' : 'Distance to doorstep'}
+                      </Typography>
+                    </Box>
+
+                    {/* ETA Card */}
+                    <Box
+                      sx={{
+                        p: 1.8,
+                        bgcolor: '#F0FDF4',
+                        border: '1.5px solid #BBF7D0',
+                        borderRadius: '10px',
+                        textAlign: 'center'
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.6, mb: 0.5 }}>
+                        <ScheduleIcon sx={{ color: '#16A34A', fontSize: 16 }} />
+                        <Typography variant="caption" sx={{ color: '#166534', fontWeight: 800, fontSize: '10.5px', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                          Estimated Time
+                        </Typography>
+                      </Box>
+                      <Typography variant="h5" sx={{ fontWeight: 900, color: '#14532D', fontSize: { xs: '20px', sm: '24px' }, lineHeight: 1.1 }}>
+                        {bookingStatus === 'arrived' || bookingStatus === 'inspecting' ? 'At Door' : liveMetrics.etaText}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: '#64748B', fontSize: '10px', display: 'block', mt: 0.3 }}>
+                        {bookingStatus === 'arrived' || bookingStatus === 'inspecting' ? 'Standing outside door' : 'Estimated arrival'}
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  {/* Route Overview: Tech Location -> Customer Doorstep */}
+                  <Paper elevation={0} sx={{ p: 1.5, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px', mb: 1.5 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.2, mb: 1.2 }}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 0.3 }}>
+                        <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#2563EB', border: '2px solid #BFDBFE' }} />
+                        <Box sx={{ width: 2, height: 20, bgcolor: '#CBD5E1', my: 0.3 }} />
+                      </Box>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700, fontSize: '10px', textTransform: 'uppercase', display: 'block' }}>
+                          Technician Location:
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '12px' }}>
+                          {tech?.name || 'Technician'} • Live GPS Active ({tech?.lat ? Number(tech.lat).toFixed(4) : '11.6780'}, {tech?.lng ? Number(tech.lng).toFixed(4) : '78.1580'})
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.2 }}>
+                      <Box sx={{ mt: 0.2 }}>
+                        <LocationOnIcon sx={{ color: '#EA580C', fontSize: 16 }} />
+                      </Box>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="caption" sx={{ color: '#EA580C', fontWeight: 800, fontSize: '10px', textTransform: 'uppercase', display: 'block' }}>
+                          Customer Doorstep:
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '12px' }}>
+                          {trackData?.booking?.service_address || trackData?.booking?.address || trackData?.booking?.locality || 'Fairlands, Salem'}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Paper>
+
+                  {/* External Google Maps Button */}
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    size="small"
+                    startIcon={<LocationOnIcon sx={{ fontSize: 16, color: '#2563EB' }} />}
+                    onClick={() => {
+                      const techLat = tech?.lat || 11.6780;
+                      const techLng = tech?.lng || 78.1580;
+                      const custLat = parseFloat(trackData?.booking?.customer_lat) || 11.6643;
+                      const custLng = parseFloat(trackData?.booking?.customer_lng) || 78.1460;
+                      const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${techLat},${techLng}&destination=${custLat},${custLng}&travelmode=two_wheeler`;
+                      window.open(googleMapsUrl, '_blank');
+                    }}
+                    sx={{
+                      borderColor: '#CBD5E1',
+                      color: '#334155',
+                      fontWeight: 700,
+                      fontSize: '11.5px',
+                      textTransform: 'none',
+                      borderRadius: '8px',
+                      py: 0.8,
+                      '&:hover': { bgcolor: '#F1F5F9', borderColor: '#94A3B8' }
+                    }}
+                  >
+                    Open Directions in Google Maps ↗
+                  </Button>
+                </Card>
+              );
+            })()}
 
             {/* Diagnostic Inspection Active Notice (when tech is inspecting) */}
             {bookingStatus === 'inspecting' && (
