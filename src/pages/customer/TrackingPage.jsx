@@ -8,8 +8,6 @@ import {
   Button,
   Chip,
   Paper,
-  BottomNavigation,
-  BottomNavigationAction,
   Fab,
   Avatar,
   Alert,
@@ -34,10 +32,8 @@ import HeadsetIcon from '@mui/icons-material/Headset';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import StarIcon from '@mui/icons-material/Star';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import GraphicEqIcon from '@mui/icons-material/GraphicEq';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import MicIcon from '@mui/icons-material/Mic';
 import BuildIcon from '@mui/icons-material/Build';
 import EngineeringIcon from '@mui/icons-material/Engineering';
@@ -451,7 +447,7 @@ export default function TrackingPage() {
     const visitFee = trackData?.booking?.visit_fee || trackData?.booking?.visitFee || 49;
 
     return (
-      <Box sx={{ bgcolor: '#0F172A', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: { xs: 2, sm: 3 } }}>
+      <Box sx={{ bgcolor: '#0F172A', minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: { xs: 2, sm: 3 } }}>
         <Container maxWidth="xs" sx={{ p: 0 }}>
           <Card
             elevation={0}
@@ -622,7 +618,7 @@ export default function TrackingPage() {
   }
 
   return (
-    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', pb: 12 }}>
+    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100dvh', pb: 12 }}>
       <Container maxWidth="sm" sx={{ px: 2, pt: 2 }}>
         
         {/* Technician Reschedule Proposal Alert Banner */}
@@ -2095,14 +2091,7 @@ export default function TrackingPage() {
         currentBooking={trackData?.booking}
       />
 
-      {/* Bottom Navigation */}
-      <Paper elevation={8} sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, bgcolor: '#FFFFFF', borderTop: '1px solid #E2E8F0', zIndex: 1000, display: { xs: 'block', md: 'none' } }}>
-        <BottomNavigation showLabels value={0} sx={{ height: 54, '& .Mui-selected': { color: '#0284C7', fontWeight: 700 } }}>
-          <BottomNavigationAction label="Services" icon={<WorkOutlineIcon sx={{ fontSize: 20 }} />} sx={{ color: '#0284C7' }} onClick={() => navigate('/')} />
-          <BottomNavigationAction label="Bookings" icon={<ReceiptLongIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/history')} />
-          <BottomNavigationAction label="Wallet" icon={<AccountCircleIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/wallet')} />
-        </BottomNavigation>
-      </Paper>
+      {/* Navigation lives in the global CustomerTabBar rendered by App.jsx. */}
 
     </Box>
   );

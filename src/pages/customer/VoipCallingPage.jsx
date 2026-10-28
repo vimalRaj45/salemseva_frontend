@@ -464,7 +464,7 @@ export default function VoipCallingPage() {
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        height: '100vh',
+        height: '100dvh',
         bgcolor: '#0F172A',
         color: '#FFFFFF',
         position: 'relative',

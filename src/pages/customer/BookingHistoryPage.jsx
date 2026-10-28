@@ -9,8 +9,6 @@ import {
   Button,
   Paper,
   Divider,
-  BottomNavigation,
-  BottomNavigationAction,
   Skeleton,
   IconButton,
   Collapse,
@@ -37,8 +35,6 @@ import StarIcon from '@mui/icons-material/Star';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ReplayIcon from '@mui/icons-material/Replay';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
-import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import MicIcon from '@mui/icons-material/Mic';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import BuildIcon from '@mui/icons-material/Build';
@@ -189,7 +185,7 @@ export default function BookingHistoryPage() {
   });
 
   return (
-    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', pb: { xs: 18, md: 8 } }}>
+    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100dvh', pb: { xs: 18, md: 8 } }}>
       <Container maxWidth="md" sx={{ px: { xs: 1, sm: 2, md: 3 }, pt: { xs: 1, md: 2 } }}>
         
         {/* Page Header */}
@@ -668,28 +664,7 @@ export default function BookingHistoryPage() {
 
       </Container>
 
-      {/* Bottom Navigation */}
-      <Paper 
-        elevation={4} 
-        sx={{ 
-          position: 'fixed', 
-          bottom: 0, 
-          left: 0, 
-          right: 0, 
-          bgcolor: '#FFFFFF', 
-          borderTop: '1px solid #E2E8F0', 
-          zIndex: 1000, 
-          display: { xs: 'block', md: 'none' }
-        }}
-      >
-        <Box sx={{ maxWidth: 'sm', mx: 'auto' }}>
-          <BottomNavigation showLabels value={1} sx={{ height: 56, '& .Mui-selected': { color: '#0066CC', fontWeight: 800 } }}>
-            <BottomNavigationAction label="Services" icon={<WorkOutlineIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/')} />
-            <BottomNavigationAction label="Bookings" icon={<ReceiptLongIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/history')} />
-            <BottomNavigationAction label="Wallet" icon={<AccountCircleIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/wallet')} />
-          </BottomNavigation>
-        </Box>
-      </Paper>
+      {/* Navigation lives in the global CustomerTabBar rendered by App.jsx. */}
     </Box>
   );
 }

@@ -8,10 +8,7 @@ import {
   Radio,
   Button,
   Chip,
-  Paper,
   Divider,
-  BottomNavigation,
-  BottomNavigationAction,
   Skeleton,
   TextField,
   Collapse
@@ -23,9 +20,6 @@ import MemoryIcon from '@mui/icons-material/Memory';
 import BuildIcon from '@mui/icons-material/Build';
 import SpeedIcon from '@mui/icons-material/Speed';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
-import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import MicIcon from '@mui/icons-material/Mic';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import ScheduleIcon from '@mui/icons-material/Schedule';
@@ -115,7 +109,7 @@ export default function QuoteReviewPage() {
   };
 
   return (
-    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', pb: 12 }}>
+    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100dvh', pb: 12 }}>
       <Container maxWidth="sm" sx={{ px: 2, pt: 2 }}>
         
         {/* 1. Diagnosis Completed Header Card */}
@@ -358,14 +352,7 @@ export default function QuoteReviewPage() {
 
       </Container>
 
-      {/* Bottom Navigation */}
-      <Paper elevation={0} sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, bgcolor: '#FFFFFF', borderTop: '1px solid #E2E8F0', zIndex: 1000, display: { xs: 'block', md: 'none' } }}>
-        <BottomNavigation showLabels value={0} sx={{ height: 54, '& .Mui-selected': { color: '#2563EB', fontWeight: 600 } }}>
-          <BottomNavigationAction label="Services" icon={<WorkOutlineIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/')} />
-          <BottomNavigationAction label="Bookings" icon={<ReceiptLongIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/history')} />
-          <BottomNavigationAction label="Wallet" icon={<AccountCircleIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/wallet')} />
-        </BottomNavigation>
-      </Paper>
+      {/* Navigation lives in the global CustomerTabBar; this flow keeps only its own CTA. */}
 
       {/* Processing Loader */}
       <ProcessingBackdrop

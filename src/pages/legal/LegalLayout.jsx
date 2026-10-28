@@ -61,7 +61,7 @@ export default function LegalLayout({
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#F8FAFC', color: '#0F172A' }}>
+    <div style={{ minHeight: '100dvh', backgroundColor: '#F8FAFC', color: '#0F172A' }}>
       {/* Top Header Bar */}
       <header
         style={{

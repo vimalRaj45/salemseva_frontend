@@ -186,7 +186,7 @@ export default function PartnerQuoteBuilderPage() {
   };
 
   return (
-    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', py: 4 }}>
+    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100dvh', py: 4 }}>
       <Container maxWidth="md">
         <Button 
           startIcon={<ArrowBackIcon />} 

@@ -44,7 +44,7 @@ export default function CustomerRescheduleDrawer({
       PaperProps={{
         sx: {
           width: isMobile ? '100%' : '520px',
-          maxHeight: isMobile ? '90vh' : '100vh',
+          maxHeight: isMobile ? '90vh' : '100dvh',
           height: isMobile ? 'auto' : '100%',
           borderTopLeftRadius: isMobile ? '20px' : 0,
           borderTopRightRadius: isMobile ? '20px' : 0,

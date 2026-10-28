@@ -1209,7 +1209,7 @@ export default function AdminDashboardPage() {
 
   if (!user) {
     return (
-      <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', p: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100dvh', p: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Container maxWidth="xs" sx={{ textAlign: 'center' }}>
           <Paper elevation={0} sx={{ p: 4, borderRadius: '16px', border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
             <Box sx={{ width: 56, height: 56, borderRadius: '16px', bgcolor: '#FEF3C7', color: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 2 }}>
@@ -1244,7 +1244,7 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}>
+    <Box sx={{ display: 'flex', minHeight: '100dvh', bgcolor: 'background.default', color: 'text.primary' }}>
       {/* Enterprise Collapsible Left Sidebar */}
       <AdminSidebar
         collapsed={sidebarCollapsed}

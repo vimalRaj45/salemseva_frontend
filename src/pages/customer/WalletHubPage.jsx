@@ -10,8 +10,6 @@ import {
   Chip,
   Paper,
   Divider,
-  BottomNavigation,
-  BottomNavigationAction,
   Fab,
   IconButton,
   Snackbar,
@@ -26,9 +24,7 @@ import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
 import GroupAddIcon from '@mui/icons-material/GroupAdd';
 import CampaignIcon from '@mui/icons-material/Campaign';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import GraphicEqIcon from '@mui/icons-material/GraphicEq';
-import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import MicIcon from '@mui/icons-material/Mic';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
@@ -166,7 +162,7 @@ export default function WalletHubPage() {
   };
 
   return (
-    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', pb: { xs: 10, md: 4 } }}>
+    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100dvh', pb: { xs: 10, md: 4 } }}>
       <Container maxWidth="md" sx={{ px: { xs: 1, sm: 2, md: 3 }, pt: { xs: 1, md: 2 } }}>
         
         {/* Top Header with Back Navigation */}
@@ -735,14 +731,7 @@ export default function WalletHubPage() {
 
       </Container>
 
-      {/* Mobile-Only Bottom Navigation (Hidden on desktop/tablet >= 900px) */}
-      <Paper elevation={3} sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, bgcolor: '#FFFFFF', borderTop: '1px solid #E2E8F0', zIndex: 1000, display: { xs: 'block', md: 'none' } }}>
-        <BottomNavigation showLabels value={2} sx={{ height: 56, '& .Mui-selected': { color: '#0066CC', fontWeight: 700 } }}>
-          <BottomNavigationAction label="Services" icon={<WorkOutlineIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/')} />
-          <BottomNavigationAction label="Bookings" icon={<ReceiptLongIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/history')} />
-          <BottomNavigationAction label="Wallet" icon={<AccountCircleIcon sx={{ fontSize: 20 }} />} sx={{ color: '#0066CC' }} />
-        </BottomNavigation>
-      </Paper>
+      {/* Navigation lives in the global CustomerTabBar rendered by App.jsx. */}
 
     </Box>
   );

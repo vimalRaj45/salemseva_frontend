@@ -5,6 +5,7 @@ import { Box } from '@mui/material';
 
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import CustomerTabBar from './components/customer/CustomerTabBar';
 
 // Customer & Global Action Pages (Migrated from Modals)
 import LanguageSelectionPage from './pages/customer/LanguageSelectionPage';
@@ -284,18 +285,34 @@ function MainLayout({ walletBalance, currentBooking, setCurrentBooking }) {
     location.pathname === '/login/help' ||
     location.pathname === '/auth/help';
 
+  // Focused flows keep their own sticky CTA at the bottom, so a second bar would compete
+  // with it. Live tracking keeps the tab bar: the customer still needs a way to reach the
+  // wallet or support while a job is running. Partner and admin surfaces are desktop
+  // workstations and have their own shells.
+  const isFocusedFlow = ['/matching', '/quote', '/checkout', '/rate', '/onboarding']
+    .some((path) => location.pathname === path);
+  const showTabBar = !isFullScreenPage &&
+    !isFocusedFlow &&
+    !location.pathname.startsWith('/partner') &&
+    !location.pathname.startsWith('/admin');
+
   return (
     <CustomerActiveJobGuard>
-      <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', bgcolor: '#F8FAFC' }}>
+      <Box sx={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', bgcolor: '#F8FAFC' }}>
+        <a className="cz-skip-link" href="#main-content">Skip to content</a>
         {/* Production Top Navbar - hidden on full-screen auth / how-it-works / welcome pages */}
         {!isFullScreenPage && <Navbar walletBalance={walletBalance} />}
 
         {/* Real Production URL Routes */}
-        <Box sx={{ 
-          flex: 1, 
-          pt: isFullScreenPage ? 0 : { xs: '56px', lg: '72px' },
-          pb: isFullScreenPage ? 0 : { xs: '58px', md: 0 }
-        }}>
+        <Box
+          id="main-content"
+          component="main"
+          sx={{
+            flex: 1,
+            pt: isFullScreenPage ? 0 : { xs: '56px', lg: '72px' },
+            scrollMarginTop: '84px'
+          }}
+        >
           <Routes>
             {/* Dedicated Action Pages (Migrated from Modals) */}
             <Route path="/language" element={<LanguageSelectionPage />} />
@@ -379,6 +396,15 @@ function MainLayout({ walletBalance, currentBooking, setCurrentBooking }) {
 
         {/* Professional Enterprise Footer */}
         <Footer />
+
+        {/* The tab bar is fixed, so the page needs a spacer of its own height to scroll past it */}
+        {showTabBar && (
+          <Box
+            aria-hidden="true"
+            sx={{ height: 'calc(62px + env(safe-area-inset-bottom, 0px))', display: { xs: 'block', md: 'none' } }}
+          />
+        )}
+        {showTabBar && <CustomerTabBar />}
       </Box>
     </CustomerActiveJobGuard>
   );

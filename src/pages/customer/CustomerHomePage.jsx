@@ -26,8 +26,6 @@ import CleaningServicesIcon from '@mui/icons-material/CleaningServices';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
-import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import SecurityIcon from '@mui/icons-material/Security';
 import ShieldIcon from '@mui/icons-material/Shield';
@@ -47,7 +45,6 @@ import { useAuth } from '../../context/AuthContext';
 export default function CustomerHomePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [navValue, setNavValue] = useState(0);
   const [onlineTechnicians, setOnlineTechnicians] = useState([]);
   const [techTradeFilter, setTechTradeFilter] = useState('all');
   const [services, setServices] = useState([]);
@@ -290,7 +287,7 @@ export default function CustomerHomePage() {
     : CORE_SERVICES;
 
   return (
-    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', pb: { xs: 6, md: 4 } }}>
+    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100dvh', pb: { xs: 6, md: 4 } }}>
       <Container maxWidth={false} sx={{ maxWidth: '1200px', mx: 'auto', px: { xs: 2, sm: 3 }, pt: { xs: 2, md: 3 } }}>
         
         {/* Unified Top Context Deck: Location Bar & User Account Status */}
@@ -638,12 +635,12 @@ export default function CustomerHomePage() {
         <Card
           elevation={0}
           sx={{
-            borderRadius: '16px',
-            background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+            borderRadius: '20px',
+            background: 'linear-gradient(150deg, #0B1220 0%, #14263D 58%, #0E3B63 100%)',
             color: '#FFFFFF',
             border: '1px solid rgba(255, 255, 255, 0.08)',
-            boxShadow: '0 10px 30px rgba(15, 23, 42, 0.12)',
-            mb: 3,
+            boxShadow: '0 24px 48px -24px rgba(11, 18, 32, 0.45)',
+            mb: 3.5,
             overflow: 'hidden',
             position: 'relative'
           }}
@@ -662,8 +659,8 @@ export default function CustomerHomePage() {
             }}
           />
 
-          <CardContent sx={{ p: { xs: 2, sm: 2.5 }, '&:last-child': { pb: { xs: 2, sm: 2.5 } }, position: 'relative', zIndex: 1 }}>
-            <Grid container spacing={2} alignItems="center">
+          <CardContent sx={{ p: { xs: 2.25, sm: 3 }, '&:last-child': { pb: { xs: 2.25, sm: 3 } }, position: 'relative', zIndex: 1 }}>
+            <Grid container spacing={{ xs: 2, sm: 3 }} alignItems="center">
               <Grid item xs={12} sm={8}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                   <Chip
@@ -684,24 +681,21 @@ export default function CustomerHomePage() {
                 </Box>
 
                 <Typography
-                  variant="h5"
+                  variant="h2"
                   sx={{
-                    fontWeight: 900,
-                    fontSize: { xs: '18px', sm: '21px' },
                     color: '#FFFFFF',
-                    letterSpacing: '-0.3px',
-                    mb: 0.6,
-                    lineHeight: 1.25
+                    mb: 1,
+                    maxWidth: '18ch'
                   }}
                 >
                   ₹100 off your first home service
                 </Typography>
 
-                <Typography variant="body2" sx={{ color: '#CBD5E1', fontSize: '12px', mb: 1.8, maxWidth: '520px', lineHeight: 1.5 }}>
+                <Typography variant="body2" sx={{ color: '#CBD5E1', fontSize: { xs: '13px', sm: '13.5px' }, mb: 2.25, maxWidth: '48ch', lineHeight: 1.6 }}>
                   Apply code <Box component="span" sx={{ bgcolor: 'rgba(255,255,255,0.12)', px: 0.8, py: 0.2, borderRadius: '4px', fontWeight: 800, color: '#FFFFFF', letterSpacing: '0.5px' }}>SALEM100</Box> at checkout. Includes complete 30-day rework warranty and background-checked technicians.
                 </Typography>
 
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, flexWrap: 'wrap' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, flexWrap: 'wrap' }}>
                   <Button
                     size="small"
                     variant="contained"
@@ -711,16 +705,16 @@ export default function CustomerHomePage() {
                       navigate('/book/ac', { state: { service: acService } });
                     }}
                     sx={{
-                      bgcolor: '#0066CC',
+                      bgcolor: '#2E90FA',
                       color: '#FFFFFF',
-                      borderRadius: '8px',
-                      height: '36px',
-                      px: 2.2,
-                      fontSize: '12.5px',
+                      borderRadius: '10px',
+                      height: '44px',
+                      px: 2.5,
+                      fontSize: '13.5px',
                       fontWeight: 700,
                       textTransform: 'none',
                       boxShadow: 'none',
-                      '&:hover': { bgcolor: '#0052CC' }
+                      '&:hover': { bgcolor: '#1570CD' }
                     }}
                   >
                     Book AC Service
@@ -735,14 +729,14 @@ export default function CustomerHomePage() {
                     }}
                     sx={{
                       color: '#E2E8F0',
-                      borderColor: 'rgba(255, 255, 255, 0.2)',
-                      borderRadius: '8px',
-                      height: '36px',
-                      px: 1.8,
-                      fontSize: '12px',
+                      borderColor: 'rgba(255, 255, 255, 0.28)',
+                      borderRadius: '10px',
+                      height: '44px',
+                      px: 2,
+                      fontSize: '13px',
                       fontWeight: 600,
                       textTransform: 'none',
-                      '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.06)', borderColor: '#FFFFFF' }
+                      '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.08)', borderColor: '#FFFFFF' }
                     }}
                   >
                     Book Electrician
@@ -790,12 +784,12 @@ export default function CustomerHomePage() {
         </Card>
 
         {/* Section Header: Available Services in Salem */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mb: 2.5, flexWrap: 'wrap', gap: 1 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mb: 2.5, flexWrap: 'wrap', gap: 1.5 }}>
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 900, color: '#0F172A', fontSize: '18px', letterSpacing: '-0.3px', lineHeight: 1.2 }}>
-              Available Services in Salem
+            <Typography variant="h4" sx={{ color: '#0B1220', mb: 0.5 }}>
+              Available services in Salem
             </Typography>
-            <Typography variant="caption" sx={{ color: '#64748B', fontSize: '12.5px' }}>
+            <Typography variant="body2" sx={{ color: '#64748B' }}>
               Standardized doorstep inspection with transparent digital pricing
             </Typography>
           </Box>
@@ -1540,101 +1534,7 @@ export default function CustomerHomePage() {
 
       </Container>
 
-      {/* Floating Bottom Navigation for Mobile Devices (<900px) */}
-      {/* Floating Bottom Navigation for Mobile Devices (<900px) */}
-      <Box
-        component="nav"
-        aria-label="Mobile Navigation"
-        sx={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          bgcolor: '#FFFFFF',
-          borderTop: '1px solid #E2E8F0',
-          boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.05)',
-          zIndex: 1000,
-          display: { xs: 'block', md: 'none' }
-        }}
-      >
-        <Box
-          sx={{
-            maxWidth: 'sm',
-            mx: 'auto',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-around',
-            height: 56,
-            px: 1
-          }}
-        >
-          {[
-            {
-              id: 0,
-              label: 'Services',
-              icon: <WorkOutlineIcon sx={{ fontSize: 20 }} />,
-              onClick: () => { setNavValue(0); navigate('/'); }
-            },
-            {
-              id: 1,
-              label: 'Bookings',
-              icon: <ReceiptLongIcon sx={{ fontSize: 20 }} />,
-              onClick: () => {
-                setNavValue(1);
-                if (!user) navigate('/login');
-                else navigate('/history');
-              }
-            },
-            {
-              id: 2,
-              label: user ? 'Wallet' : 'Sign In',
-              icon: <AccountCircleIcon sx={{ fontSize: 20 }} />,
-              onClick: () => {
-                setNavValue(2);
-                if (!user) navigate('/login');
-                else navigate('/wallet');
-              }
-            }
-          ].map((item) => {
-            const isSelected = navValue === item.id;
-            return (
-              <Box
-                key={item.label}
-                component="button"
-                onClick={item.onClick}
-                sx={{
-                  flex: 1,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  py: 0.5,
-                  color: isSelected ? '#0066CC' : '#64748B',
-                  transition: 'color 0.15s ease',
-                  '&:focus-visible': { outline: '2px solid #0066CC', outlineOffset: -2 }
-                }}
-              >
-                {item.icon}
-                <Typography
-                  variant="caption"
-                  sx={{
-                    fontSize: '11px',
-                    fontWeight: isSelected ? 700 : 500,
-                    mt: 0.3,
-                    color: 'inherit',
-                    lineHeight: 1
-                  }}
-                >
-                  {item.label}
-                </Typography>
-              </Box>
-            );
-          })}
-        </Box>
-      </Box>
+      {/* Navigation lives in the global CustomerTabBar rendered by App.jsx. */}
     </Box>
   );
 }

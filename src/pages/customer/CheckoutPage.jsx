@@ -12,8 +12,6 @@ import {
   Chip,
   Paper,
   Divider,
-  BottomNavigation,
-  BottomNavigationAction,
   Fab,
   CircularProgress
 } from '@mui/material';
@@ -25,10 +23,7 @@ import LockIcon from '@mui/icons-material/Lock';
 import QrCodeIcon from '@mui/icons-material/QrCode';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import GraphicEqIcon from '@mui/icons-material/GraphicEq';
-import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import MicIcon from '@mui/icons-material/Mic';
 import SecurityIcon from '@mui/icons-material/Security';
 import PhoneIcon from '@mui/icons-material/Phone';
@@ -295,7 +290,7 @@ export default function CheckoutPage() {
   };
 
   return (
-    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', pb: 10 }}>
+    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100dvh', pb: 10 }}>
       <Container maxWidth="sm" sx={{ px: 2, pt: 2 }}>
         
         {/* 1. Job Diagnosis Authorized Top Card */}
@@ -616,14 +611,7 @@ export default function CheckoutPage() {
 
       </Container>
 
-      {/* Bottom Navigation */}
-      <Paper elevation={8} sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, bgcolor: '#FFFFFF', borderTop: '1px solid #E2E8F0', zIndex: 1000, display: { xs: 'block', md: 'none' } }}>
-        <BottomNavigation showLabels value={0} sx={{ height: 54, '& .Mui-selected': { color: '#0284C7', fontWeight: 700 } }}>
-          <BottomNavigationAction label="Services" icon={<WorkOutlineIcon sx={{ fontSize: 20 }} />} sx={{ color: '#0284C7' }} onClick={() => navigate('/')} />
-          <BottomNavigationAction label="Bookings" icon={<ReceiptLongIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/history')} />
-          <BottomNavigationAction label="Wallet" icon={<AccountCircleIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/wallet')} />
-        </BottomNavigation>
-      </Paper>
+      {/* Navigation lives in the global CustomerTabBar; this flow keeps only its own CTA. */}
 
       {/* Processing Loader */}
       <ProcessingBackdrop

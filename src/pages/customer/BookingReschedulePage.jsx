@@ -115,7 +115,7 @@ export default function BookingReschedulePage() {
   return (
     <Box
       sx={{
-        minHeight: '100vh',
+        minHeight: '100dvh',
         bgcolor: '#F8FAFC',
         display: 'flex',
         flexDirection: 'column'

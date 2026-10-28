@@ -104,7 +104,7 @@ export default function PartnerSettlementSlipPage() {
 
   if (loading) {
     return (
-      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#F8FAFC' }}>
+      <Box sx={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#F8FAFC' }}>
         <CircularProgress size={36} sx={{ color: '#0A66C2' }} />
       </Box>
     );
@@ -117,7 +117,7 @@ export default function PartnerSettlementSlipPage() {
   const netPayout = job?.techPayout || (laborShare + visitFee);
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#F8FAFC', display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{ minHeight: '100dvh', bgcolor: '#F8FAFC', display: 'flex', flexDirection: 'column' }}>
       {/* Top Header Bar */}
       <Box
         sx={{

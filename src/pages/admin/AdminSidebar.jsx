@@ -557,7 +557,7 @@ export default function AdminSidebar({
           borderColor: 'divider',
           display: { xs: 'none', md: 'flex' },
           flexDirection: 'column',
-          height: '100vh',
+          height: '100dvh',
           position: 'sticky',
           top: 0,
           transition: 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1)',

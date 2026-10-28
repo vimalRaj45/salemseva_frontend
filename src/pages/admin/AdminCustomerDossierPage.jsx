@@ -99,7 +99,7 @@ export default function AdminCustomerDossierPage() {
   }
 
   return (
-    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', pb: 10 }}>
+    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100dvh', pb: 10 }}>
       {/* Top Banner & Breadcrumb */}
       <Box sx={{ bgcolor: '#0F172A', color: '#FFFFFF', pt: 3, pb: 4, px: 3, borderBottom: '1px solid #334155' }}>
         <Container maxWidth="xl" sx={{ p: 0 }}>

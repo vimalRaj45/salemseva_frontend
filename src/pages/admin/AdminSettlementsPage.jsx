@@ -301,7 +301,7 @@ export default function AdminSettlementsPage() {
   );
 
   return (
-    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', py: { xs: 2.5, sm: 4 } }}>
+    <Box sx={{ bgcolor: 'background.default', minHeight: '100dvh', py: { xs: 2.5, sm: 4 } }}>
       <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3 } }}>
         <PageHeader
           title="Financial Intelligence & Settlement Ledger"

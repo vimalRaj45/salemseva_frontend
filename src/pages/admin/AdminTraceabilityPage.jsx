@@ -35,7 +35,7 @@ export default function AdminTraceabilityPage() {
   }, []);
 
   return (
-    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', py: { xs: 2.5, sm: 4 } }}>
+    <Box sx={{ bgcolor: 'background.default', minHeight: '100dvh', py: { xs: 2.5, sm: 4 } }}>
       <Container maxWidth="md" sx={{ px: { xs: 2, sm: 3 } }}>
         <PageHeader
           title="Forensic Audit & Traceability Matrix"

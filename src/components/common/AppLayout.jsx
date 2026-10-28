@@ -189,7 +189,7 @@ export default function AppLayout({
   );
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
+    <Box sx={{ display: 'flex', minHeight: '100dvh', bgcolor: 'background.default' }}>
       {/* Desktop Persistent Sidebar */}
       {!isMobile && navigationItems.length > 0 && (
         <Box

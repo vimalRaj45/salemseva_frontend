@@ -129,7 +129,7 @@ export default function PartnerLoginPage() {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#0B1120', py: { xs: 3, md: 6 }, px: 2, display: 'flex', alignItems: 'center' }}>
+    <Box sx={{ minHeight: '100dvh', bgcolor: '#0B1120', py: { xs: 3, md: 6 }, px: 2, display: 'flex', alignItems: 'center' }}>
       <Container maxWidth="xs">
         {/* Header Badge */}
         <Box sx={{ textAlign: 'center', mb: 3 }}>
@@ -233,11 +233,11 @@ export default function PartnerLoginPage() {
 
             <TextField
               fullWidth
-              label="Password (Optional for Demo)"
+              label="Password"
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="salem123"
+              placeholder="Enter your account password"
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">

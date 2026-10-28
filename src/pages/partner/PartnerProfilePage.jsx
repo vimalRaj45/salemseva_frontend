@@ -134,7 +134,7 @@ export default function PartnerProfilePage() {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#F8FAFC', display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{ minHeight: '100dvh', bgcolor: '#F8FAFC', display: 'flex', flexDirection: 'column' }}>
       {/* Top Header Bar */}
       <Box
         sx={{

@@ -11,8 +11,6 @@ import {
   Chip,
   Paper,
   Avatar,
-  BottomNavigation,
-  BottomNavigationAction,
   Fab,
   Skeleton,
   TextField,
@@ -42,7 +40,6 @@ import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import MicIcon from '@mui/icons-material/Mic';
 import StarIcon from '@mui/icons-material/Star';
 import CloseIcon from '@mui/icons-material/Close';
@@ -629,7 +626,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
   );
 
   return (
-    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', pb: { xs: 16, md: 10 } }}>
+    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100dvh', pb: { xs: 16, md: 10 } }}>
       <Container maxWidth="md" sx={{ px: { xs: 2, sm: 3, md: 4 }, pt: { xs: 2, md: 3 } }}>
         
         {/* Location selector bar */}
@@ -1681,16 +1678,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
         </Container>
       </Paper>
 
-      {/* Mobile-Only Bottom Navigation */}
-      <Paper elevation={3} sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, bgcolor: '#FFFFFF', borderTop: '1px solid #E2E8F0', zIndex: 1000, display: { xs: 'block', md: 'none' } }}>
-        <Box sx={{ maxWidth: 'sm', mx: 'auto' }}>
-          <BottomNavigation showLabels value={0} sx={{ height: 56, '& .Mui-selected': { color: '#0066CC', fontWeight: 700 } }}>
-            <BottomNavigationAction label="Services" icon={<WorkOutlineIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/')} />
-            <BottomNavigationAction label="Bookings" icon={<ReceiptLongIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/history')} />
-            <BottomNavigationAction label="Wallet" icon={<AccountCircleIcon sx={{ fontSize: 20 }} />} onClick={() => navigate('/wallet')} />
-          </BottomNavigation>
-        </Box>
-      </Paper>
+      {/* Navigation lives in the global CustomerTabBar; this page keeps only its booking CTA. */}
 
       {/* Processing Loader */}
       <ProcessingBackdrop

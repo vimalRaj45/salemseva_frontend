@@ -1597,7 +1597,7 @@ export default function PartnerDutyPage() {
 
   if (!activeTech) {
     return (
-      <Box sx={{ bgcolor: '#0B1120', minHeight: '100vh', p: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Box sx={{ bgcolor: '#0B1120', minHeight: '100dvh', p: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Container maxWidth="xs" sx={{ textAlign: 'center' }}>
           <Paper elevation={0} sx={{ p: 4, borderRadius: '16px', border: '1px solid #334155', bgcolor: '#1E293B' }}>
             <Box sx={{ width: 56, height: 56, borderRadius: '16px', bgcolor: 'rgba(2, 132, 199, 0.15)', color: '#38BDF8', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 2 }}>
@@ -1632,7 +1632,7 @@ export default function PartnerDutyPage() {
   }
 
   return (
-    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', pb: 10 }}>
+    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100dvh', pb: 10 }}>
       <Container maxWidth={false} sx={{ maxWidth: '1200px', px: { xs: 1.5, sm: 2.5, md: 3 }, pt: { xs: 2, sm: 3 } }}>
         
         {/* Top Header Mode Toggle */}

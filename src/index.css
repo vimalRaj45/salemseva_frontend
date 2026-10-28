@@ -36,9 +36,10 @@ html, body {
   max-width: 100%;
   overflow-x: hidden;
   position: relative;
-  font-family: 'Poppins', 'Montserrat', 'Noto Sans Tamil', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  /* Inter carries the UI; Noto Sans Tamil keeps every Tamil glyph on the same baseline. */
+  font-family: 'Inter', 'Noto Sans Tamil', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background-color: #F8FAFC;
-  color: #0F172A;
+  color: #0B1220;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
@@ -64,6 +65,7 @@ html.dark, html.dark body, body.dark {
   width: 100%;
   max-width: 100%;
   min-height: 100vh;
+  min-height: 100dvh; /* Avoids the layout jump when a mobile browser hides its address bar */
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
@@ -409,6 +411,264 @@ div:has(> [data-hot-toast]),
   .btn-shimmer::after,
   .active-pulse-dot::before {
     animation: none !important;
+  }
+}
+
+/* ==========================================================================
+   CONSUMER EXPERIENCE LAYER
+   --------------------------------------------------------------------------
+   One place for the tokens the customer surfaces read from, plus the small
+   utilities the shell needs (safe areas, the mobile tab bar, entrance motion).
+   Colour decisions live here, not in per-page inline styles.
+   ========================================================================== */
+:root {
+  /* Ink: off-black on warm white, never #000 on #FFF */
+  --cz-ink: #0B1220;
+  --cz-ink-2: #334155;
+  --cz-muted: #64748B;
+  --cz-line: #E3E8EF;
+  --cz-line-strong: #CBD5E1;
+  --cz-canvas: #F8FAFC;
+  --cz-surface: #FFFFFF;
+
+  /* Brand: one accent carries the weight, neutrals do the rest */
+  --cz-brand: #0A5CC4;
+  --cz-brand-ink: #08407F;
+  --cz-brand-soft: #EFF5FF;
+  --cz-brand-line: #CFE0FB;
+
+  --cz-radius-sm: 10px;
+  --cz-radius-md: 14px;
+  --cz-radius-lg: 18px;
+  --cz-radius-pill: 999px;
+
+  /* Depth is a response to interaction, not decoration */
+  --cz-shadow-1: 0 1px 2px rgba(11, 18, 32, 0.04), 0 1px 3px rgba(11, 18, 32, 0.05);
+  --cz-shadow-2: 0 10px 24px -14px rgba(11, 18, 32, 0.22), 0 2px 6px rgba(11, 18, 32, 0.04);
+  --cz-shadow-3: 0 28px 56px -28px rgba(11, 18, 32, 0.32);
+
+  --cz-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --cz-dur-fast: 140ms;
+  --cz-dur: 220ms;
+
+  --cz-tabbar-h: 62px;
+  --cz-tabbar-space: calc(var(--cz-tabbar-h) + var(--sab));
+}
+
+/* The fixed navbar is ~56px on phones and 72px on desktop; anchored links and
+   in-page jumps must land below it rather than underneath it. */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 84px;
+}
+
+/* Keyboard users get a visible ring everywhere, including plain divs acting as buttons */
+:where(a, button, [role="button"], [role="tab"], [tabindex]):focus-visible {
+  outline: 2px solid var(--cz-brand);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.cz-skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 4000;
+  transform: translateY(-160%);
+  transition: transform var(--cz-dur-fast) var(--cz-ease);
+  background: var(--cz-ink);
+  color: #FFFFFF;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 10px 16px;
+  border-radius: var(--cz-radius-sm);
+  text-decoration: none;
+  box-shadow: var(--cz-shadow-3);
+}
+
+.cz-skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+/* ---------- Mobile tab bar ------------------------------------------------ */
+.cz-tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: stretch;
+  height: var(--cz-tabbar-space);
+  padding: 0 4px var(--sab);
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.96);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
+  backdrop-filter: saturate(180%) blur(14px);
+  border-top: 1px solid var(--cz-line);
+}
+
+.cz-tabbar__item {
+  flex: 1 1 0;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 0;
+  background: transparent;
+  color: var(--cz-muted);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  padding: 6px 2px 8px;
+  transition: color var(--cz-dur-fast) var(--cz-ease);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cz-tabbar__item:hover {
+  color: var(--cz-ink-2);
+}
+
+.cz-tabbar__item[aria-current="page"] {
+  color: var(--cz-brand);
+}
+
+/* The active marker is a soft pill behind the icon, not a coloured edge */
+.cz-tabbar__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 26px;
+  border-radius: var(--cz-radius-pill);
+  transition: background-color var(--cz-dur-fast) var(--cz-ease);
+}
+
+.cz-tabbar__item[aria-current="page"] .cz-tabbar__icon {
+  background: var(--cz-brand-soft);
+}
+
+.cz-tabbar__item:active .cz-tabbar__icon {
+  background: var(--cz-line);
+}
+
+.cz-tabbar__dot {
+  position: absolute;
+  top: 1px;
+  right: 6px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #DC2626;
+  box-shadow: 0 0 0 2px #FFFFFF;
+}
+
+@media (min-width: 900px) {
+  .cz-tabbar {
+    display: none;
+  }
+}
+
+/* ---------- Reusable surface + motion utilities --------------------------- */
+.cz-surface {
+  background: var(--cz-surface);
+  border: 1px solid var(--cz-line);
+  border-radius: var(--cz-radius-lg);
+  box-shadow: var(--cz-shadow-1);
+}
+
+.cz-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cz-brand);
+}
+
+/* Horizontal rails (category chips, card carousels) snap instead of drifting */
+.cz-rail {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.cz-rail::-webkit-scrollbar {
+  display: none;
+}
+
+.cz-rail > * {
+  scroll-snap-align: start;
+  flex: 0 0 auto;
+}
+
+/* Content arriving, not content looping */
+@keyframes czRise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.cz-rise {
+  animation: czRise 420ms var(--cz-ease) both;
+}
+
+.cz-rise-2 {
+  animation: czRise 420ms var(--cz-ease) 80ms both;
+}
+
+.cz-rise-3 {
+  animation: czRise 420ms var(--cz-ease) 160ms both;
+}
+
+/* ---------- Touch targets ------------------------------------------------- */
+/* Only on touch-sized viewports, so dense desktop tables keep their density. */
+@media (pointer: coarse) and (max-width: 899px) {
+  .MuiButton-root {
+    min-height: 44px;
+  }
+
+  .MuiOutlinedInput-root,
+  .MuiInputBase-root.MuiOutlinedInput-root {
+    min-height: 48px;
+  }
+
+  /* iOS zooms the whole page when a focused input is under 16px, so it is 16px here */
+  .MuiInputBase-input,
+  .MuiSelect-select {
+    font-size: 16px !important;
+  }
+
+  .MuiTouchRipple-root {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .cz-rise,
+  .cz-rise-2,
+  .cz-rise-3 {
+    animation: none;
   }
 }
 
