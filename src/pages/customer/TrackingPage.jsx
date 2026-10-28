@@ -135,8 +135,8 @@ export default function TrackingPage() {
   useEffect(() => {
     let isMounted = true;
     const resolveTechAddress = async () => {
-      const lat = parseFloat(tech?.lat);
-      const lng = parseFloat(tech?.lng);
+      const lat = parseFloat(trackData?.technician?.lat);
+      const lng = parseFloat(trackData?.technician?.lng);
       if (!lat || !lng) return;
       try {
         const res = await reverseGeocodeNominatim(lat, lng);
@@ -149,7 +149,7 @@ export default function TrackingPage() {
     };
     resolveTechAddress();
     return () => { isMounted = false; };
-  }, [tech?.lat, tech?.lng]);
+  }, [trackData?.technician?.lat, trackData?.technician?.lng]);
 
   const handleVerifyTechnicianOtp = async () => {
     if (!enteredTechOtp || enteredTechOtp.trim().length !== 4) {

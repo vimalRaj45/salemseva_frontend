@@ -79,12 +79,22 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(req)
         .then((networkRes) => {
-          const resClone = networkRes.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(req, resClone));
+          if (networkRes && networkRes.status === 200) {
+            const resClone = networkRes.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(req, resClone));
+          }
           return networkRes;
         })
-        .catch(() => {
-          return caches.match('/index.html').then((cached) => cached || caches.match('/'));
+        .catch(async () => {
+          const cached = (await caches.match('/index.html')) || (await caches.match('/'));
+          if (cached) return cached;
+          return new Response(
+            '<!DOCTYPE html><html><head><title>Offline - Shazu One</title></head><body><h2>Offline</h2><p>Please check your internet connection and refresh.</p></body></html>',
+            {
+              status: 200,
+              headers: new Headers({ 'Content-Type': 'text/html' })
+            }
+          );
         })
     );
     return;
@@ -101,7 +111,7 @@ self.addEventListener('fetch', (event) => {
           }
           return networkRes;
         })
-        .catch(() => cachedRes);
+        .catch(() => cachedRes || new Response('', { status: 408, statusText: 'Request Timeout' }));
 
       return cachedRes || fetchPromise;
     })
