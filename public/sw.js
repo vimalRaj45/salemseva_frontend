@@ -1,5 +1,5 @@
-// Shazu One Progressive Web App Service Worker (v1.0.0)
-const CACHE_NAME = 'Shazu One-core-v1';
+// Shazu One Progressive Web App Service Worker (v2.0.0)
+const CACHE_NAME = 'shazuone-core-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

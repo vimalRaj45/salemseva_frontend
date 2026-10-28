@@ -604,27 +604,6 @@ export default function CheckoutPage() {
         >
           {isProcessing ? <CircularProgress size={24} sx={{ color: '#FFF' }} /> : `Pay ₹${netPayable.toFixed(2)} Securely (Protected Advance) →`}
         </Button>
-
-        {isOverrideActive && (
-          <Button
-            fullWidth
-            variant="outlined"
-            onClick={() => setOverrideModalOpen(true)}
-            sx={{
-              mt: 2,
-              borderColor: '#D97706',
-              color: '#B45309',
-              fontWeight: 800,
-              borderRadius: '12px',
-              py: 1,
-              textTransform: 'none',
-              '&:hover': { bgcolor: '#FEF3C7', borderColor: '#B45309' }
-            }}
-          >
-            Direct Cash / Offline Payment Confirmation
-          </Button>
-        )}
-
       </Container>
 
       {/* Navigation lives in the global CustomerTabBar; this flow keeps only its own CTA. */}
