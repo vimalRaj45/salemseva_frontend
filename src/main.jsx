@@ -30,8 +30,13 @@ if (typeof Node === 'function' && Node.prototype && !window.__domPatched__) {
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { AppThemeProvider } from './context/ThemeContext';
+import { installApiAuth } from './services/apiAuth';
 import './index.css';
 import App from './App';
+
+// Installed before the first render so no screen can fire a request without the session
+// token the backend now requires.
+installApiAuth();
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

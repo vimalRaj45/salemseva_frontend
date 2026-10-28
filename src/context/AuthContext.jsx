@@ -157,6 +157,20 @@ export function AuthProvider({ children }) {
     };
   }, [user]);
 
+  // The API layer clears the stored token and fires this event when the server rejects it:
+  // a restart, an expiry, or a revoked session. Without a listener every screen would keep
+  // failing its requests while the app still believed somebody was signed in.
+  useEffect(() => {
+    const onSessionExpired = () => {
+      sessionTokenRef.current = '';
+      setUser(null);
+      localStorage.removeItem('shazuone_user');
+      toast.error('Your session ended. Please sign in again.');
+    };
+    window.addEventListener('shazuone:session-expired', onSessionExpired);
+    return () => window.removeEventListener('shazuone:session-expired', onSessionExpired);
+  }, []);
+
   // Fetch live technicians list from Neon PostgreSQL DB
   useEffect(() => {
     async function loadDbTechnicians() {
