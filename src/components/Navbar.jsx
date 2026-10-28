@@ -57,18 +57,23 @@ export default function Navbar({
     updateUser
   } = useAuth();
 
-  // Role detection
-  const isTechnician = Boolean(
-    techUser ||
-    user?.role === 'technician' ||
-    user?.role === 'partner' ||
-    localStorage.getItem('shazuone_tech_user') ||
-    currentPath.startsWith('/partner')
-  );
+  // Role detection with strict route-context isolation
+  const isOnAdminRoute = currentPath.startsWith('/admin');
+  const isOnPartnerRoute = currentPath.startsWith('/partner');
 
   const isAdmin = Boolean(
-    user?.role === 'admin' ||
-    currentPath.startsWith('/admin')
+    isOnAdminRoute ||
+    (!isOnPartnerRoute && user?.role === 'admin')
+  );
+
+  const isTechnician = Boolean(
+    !isOnAdminRoute && (
+      isOnPartnerRoute ||
+      techUser ||
+      user?.role === 'technician' ||
+      user?.role === 'partner' ||
+      localStorage.getItem('shazuone_tech_user')
+    )
   );
 
   const isCustomer = Boolean(!isTechnician && !isAdmin && user);
@@ -658,19 +663,20 @@ export default function Navbar({
 
               {/* --- CASE C: ADMIN: Live Dispatch Status --- */}
               {isAdmin && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', flex: 1 }}>
                   <div
                     style={{
-                      display: 'flex',
+                      display: 'inline-flex',
                       alignItems: 'center',
                       gap: '8px',
-                      padding: '6px 12px',
+                      padding: '6px 14px',
                       borderRadius: '8px',
                       fontSize: '12px',
                       fontWeight: 700,
                       backgroundColor: '#FEF3C7',
                       color: '#92400E',
-                      border: '1px solid #FCD34D'
+                      border: '1px solid #FCD34D',
+                      whiteSpace: 'nowrap'
                     }}
                   >
                     <Activity size={14} color="#D97706" />

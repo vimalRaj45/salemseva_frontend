@@ -2604,7 +2604,7 @@ export default function AdminDashboardPage() {
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3 }}>
                                 <StarIcon sx={{ fontSize: 12, color: '#F59E0B' }} />
                                 <Typography variant="caption" sx={{ color: '#059669', fontWeight: 700 }}>
-                                  {job.technician_rating && Number(job.technician_rating) > 0 ? `${job.technician_rating} / 5.0 (Verified)` : 'New Partner'}
+                                  {job.technician_rating && Number(job.technician_rating) > 0 ? `${Number(job.technician_rating).toFixed(1)} Verified` : 'New Partner'}
                                 </Typography>
                               </Box>
                             </Box>
