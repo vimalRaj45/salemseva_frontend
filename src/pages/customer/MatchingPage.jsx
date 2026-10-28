@@ -261,6 +261,7 @@ export default function MatchingPage() {
           });
 
           if (rzpResult && rzpResult.success) {
+            setIsProcessing(true);
             await finalizePayment(
               rzpResult.razorpay_payment_id || `pay_${Date.now()}`,
               rzpResult.razorpay_order_id || orderId,
@@ -270,6 +271,7 @@ export default function MatchingPage() {
           }
         } catch (rzpErr) {
           console.warn('Razorpay checkout cancelled or failed:', rzpErr);
+          setIsProcessing(false);
           setIsPayingFee(false);
           return;
         }
@@ -280,11 +282,13 @@ export default function MatchingPage() {
 
     } catch (err) {
       console.error('Payment error:', err);
+      setIsProcessing(false);
       setIsPayingFee(false);
     }
   };
 
   const finalizePayment = async (paymentId, orderId, signature) => {
+    setIsProcessing(true);
     try {
       // 1. Record Part 1 Payment in Neon Payments Escrow Ledger
       await fetch(`${API_V1_URL}/payments/verify`, {
@@ -311,10 +315,10 @@ export default function MatchingPage() {
       });
 
       // 3. Transition directly to live GPS tracking
-      navigate(`/track?bookingId=${bookingId}`);
+      navigate(`/track?bookingId=${bookingId}&paid=1`);
     } catch (e) {
       console.error('Finalize payment fallback:', e);
-      navigate(`/track?bookingId=${bookingId}`);
+      navigate(`/track?bookingId=${bookingId}&paid=1`);
     } finally {
       setIsPayingFee(false);
     }
@@ -1125,9 +1129,10 @@ export default function MatchingPage() {
       {/* Processing Loader */}
       <ProcessingBackdrop
         open={isProcessing}
-        title="Syncing booking with Shazu One Central Ops..."
-        subtitle="Real-time dispatch pipeline updating state"
-        badge="Ops Dispatch"
+        mode="payment"
+        title="Your payment is processing..."
+        subtitle="Verifying Razorpay transaction & connecting to live GPS tracking..."
+        badge="100% Safe Escrow Payment"
       />
 
       {/* Navigation lives in the global CustomerTabBar rendered by App.jsx. */}

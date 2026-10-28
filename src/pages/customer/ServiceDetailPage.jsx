@@ -115,6 +115,8 @@ export default function ServiceDetailPage({ onStartBooking }) {
   );
   const [isLoadingIssues, setIsLoadingIssues] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [processingTitle, setProcessingTitle] = useState('Your payment is processing...');
+  const [processingSubtitle, setProcessingSubtitle] = useState('Verifying Razorpay transaction & confirming your doorstep booking...');
 
   // Domain Technician Availability & Date Capacity Status
   const [domainAvailability, setDomainAvailability] = useState({
@@ -458,6 +460,9 @@ export default function ServiceDetailPage({ onStartBooking }) {
     const payableNow = Math.max(0, visitFeeAmount - discount);
 
     const completeScheduledBookingCreation = async (paymentDetails = {}) => {
+      setIsProcessing(true);
+      setProcessingTitle('Your payment is processing...');
+      setProcessingSubtitle('Confirming booking and preparing live tracking...');
       try {
         const res = await fetch(`${API_V1_URL}/bookings/create`, {
           method: 'POST',
@@ -502,9 +507,10 @@ export default function ServiceDetailPage({ onStartBooking }) {
         setIsPayingScheduled(false);
         setConfirmedBooking({ ...bObj, id: bId, scheduled_slot: finalSlot });
         toast.success('Scheduled booking successfully reserved!');
-        navigate(`/track?bookingId=${bId}`);
+        navigate(`/track?bookingId=${bId}&paid=1`);
       } catch (e) {
         console.error('Scheduled booking creation error:', e);
+        setIsProcessing(false);
         setIsPayingScheduled(false);
         toast.error('Unable to reserve scheduled visit: ' + (e.message || 'Please retry.'));
       }
@@ -592,6 +598,10 @@ export default function ServiceDetailPage({ onStartBooking }) {
         });
 
         if (rzpResult && rzpResult.success) {
+          setIsProcessing(true);
+          setProcessingTitle('Your payment is processing...');
+          setProcessingSubtitle('Verifying Razorpay transaction & confirming your doorstep booking...');
+
           try {
             await fetch(`${API_V1_URL}/payments/verify`, {
               method: 'POST',
@@ -616,12 +626,14 @@ export default function ServiceDetailPage({ onStartBooking }) {
         }
       } catch (payErr) {
         console.warn('Razorpay payment cancelled or failed:', payErr);
+        setIsProcessing(false);
         setIsPayingScheduled(false);
         toast.error(payErr.message || 'Payment was cancelled or could not be processed.');
         return;
       }
     } catch (err) {
       console.error('Payment gateway error:', err);
+      setIsProcessing(false);
       setIsPayingScheduled(false);
       toast.error('Payment processing error: ' + (err.message || 'Please check your connection and retry.'));
     }
@@ -1696,9 +1708,10 @@ export default function ServiceDetailPage({ onStartBooking }) {
       {/* Processing Loader */}
       <ProcessingBackdrop
         open={isProcessing}
-        title="Registering scheduled appointment..."
-        subtitle="Submitting slot to Shazu One Central Operations Desk"
-        badge="Central Ops Queue"
+        mode="payment"
+        title={processingTitle}
+        subtitle={processingSubtitle}
+        badge="100% Safe Escrow Payment"
       />
 
     </Box>
