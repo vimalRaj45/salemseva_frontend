@@ -1025,14 +1025,15 @@ export default function PartnerDutyPage() {
             setStep(1);
             localStorage.removeItem('shazuone_partner_step');
             localStorage.removeItem('shazuone_partner_active_job');
-          } else if (data.technician?.is_online === false) {
-            setActiveJob(null);
+            localStorage.removeItem(`shazuone_partner_arrived_${data.cancelNotice.bookingId}`);
           } else if (data.activeJob) {
             const techLocs = (data.technician && (data.technician.assigned_localities || data.technician.assignedLocalities)) || activeTechLocalities;
             const st = data.activeJob.status;
             // Unassigned matching broadcast leads must strictly match technician's chosen operational areas
             const isMatchLocality = (st !== 'matching') || isLeadInTechnicianLocalities(data.activeJob, techLocs);
-            if (!isMatchLocality) {
+            // Technician must be online for unassigned matching broadcast leads
+            const isOfflineMatching = (data.technician?.is_online === false && st === 'matching');
+            if (!isMatchLocality || isOfflineMatching) {
               setActiveJob(null);
               setStep(1);
               localStorage.removeItem('shazuone_partner_step');
@@ -1040,16 +1041,24 @@ export default function PartnerDutyPage() {
             } else {
               setActiveJob(data.activeJob);
               localStorage.setItem('shazuone_partner_active_job', data.activeJob.id);
+              if (data.activeJob.customer_otp || data.activeJob.customerOtp) {
+                localStorage.setItem(`shazuone_otp_${data.activeJob.id}`, String(data.activeJob.customer_otp || data.activeJob.customerOtp));
+              }
               // Lock session into corresponding stage based on actual journey status
               const isScheduled = data.activeJob.bookingType === 'scheduled' || Boolean(data.activeJob.scheduledSlot);
               if (st === 'matching') {
                 setStep(1);
-              } else if (st === 'en_route' || st === 'arrived') {
+              } else if (st === 'en_route') {
                 setStep(2);
                 localStorage.setItem('shazuone_partner_step', '2');
+              } else if (st === 'arrived') {
+                setStep(2);
+                localStorage.setItem('shazuone_partner_step', '2');
+                localStorage.setItem(`shazuone_partner_arrived_${data.activeJob.id}`, 'true');
               } else if (['inspecting', 'quote_presented', 'quote_approved', 'in_progress'].includes(st)) {
                 setStep(3);
                 localStorage.setItem('shazuone_partner_step', '3');
+                localStorage.removeItem(`shazuone_partner_arrived_${data.activeJob.id}`);
               } else if (st === 'accepted' || st === 'preparing') {
                 // Scheduled appointments stay on Step 1 (Schedule Dashboard) until transit is started
                 if (isScheduled) {
@@ -1069,7 +1078,33 @@ export default function PartnerDutyPage() {
                 setStep(1);
                 localStorage.removeItem('shazuone_partner_step');
                 localStorage.removeItem('shazuone_partner_active_job');
+                localStorage.removeItem(`shazuone_partner_arrived_${data.activeJob.id}`);
               }
+            }
+          } else if (data.technician?.is_online === false) {
+            // Check if there is an in-transit or on-site job in myScheduledJobs first before clearing
+            const scheduledInTransit = (data.myScheduledJobs || []).find(j => 
+              ['en_route', 'arrived', 'inspecting', 'quote_presented', 'quote_approved', 'in_progress'].includes(j.status)
+            );
+            if (scheduledInTransit) {
+              setActiveJob(scheduledInTransit);
+              localStorage.setItem('shazuone_partner_active_job', scheduledInTransit.id);
+              if (scheduledInTransit.customer_otp || scheduledInTransit.customerOtp) {
+                localStorage.setItem(`shazuone_otp_${scheduledInTransit.id}`, String(scheduledInTransit.customer_otp || scheduledInTransit.customerOtp));
+              }
+              if (scheduledInTransit.status === 'en_route' || scheduledInTransit.status === 'arrived') {
+                setStep(2);
+                localStorage.setItem('shazuone_partner_step', '2');
+                if (scheduledInTransit.status === 'arrived') {
+                  localStorage.setItem(`shazuone_partner_arrived_${scheduledInTransit.id}`, 'true');
+                }
+              } else if (['inspecting', 'quote_presented', 'quote_approved', 'in_progress'].includes(scheduledInTransit.status)) {
+                setStep(3);
+                localStorage.setItem('shazuone_partner_step', '3');
+                localStorage.removeItem(`shazuone_partner_arrived_${scheduledInTransit.id}`);
+              }
+            } else {
+              setActiveJob(null);
             }
           } else {
             // Check if there is an in-transit or on-site job in myScheduledJobs
@@ -1079,12 +1114,19 @@ export default function PartnerDutyPage() {
             if (scheduledInTransit) {
               setActiveJob(scheduledInTransit);
               localStorage.setItem('shazuone_partner_active_job', scheduledInTransit.id);
+              if (scheduledInTransit.customer_otp || scheduledInTransit.customerOtp) {
+                localStorage.setItem(`shazuone_otp_${scheduledInTransit.id}`, String(scheduledInTransit.customer_otp || scheduledInTransit.customerOtp));
+              }
               if (scheduledInTransit.status === 'en_route' || scheduledInTransit.status === 'arrived') {
                 setStep(2);
                 localStorage.setItem('shazuone_partner_step', '2');
+                if (scheduledInTransit.status === 'arrived') {
+                  localStorage.setItem(`shazuone_partner_arrived_${scheduledInTransit.id}`, 'true');
+                }
               } else if (['inspecting', 'quote_presented', 'quote_approved', 'in_progress'].includes(scheduledInTransit.status)) {
                 setStep(3);
                 localStorage.setItem('shazuone_partner_step', '3');
+                localStorage.removeItem(`shazuone_partner_arrived_${scheduledInTransit.id}`);
               } else {
                 setStep(1);
               }
@@ -1295,9 +1337,28 @@ export default function PartnerDutyPage() {
       }
       const updatedB = data.booking || {};
       const otp = updatedB.customer_otp || updatedB.customerOtp || activeJob?.customer_otp || activeJob?.customerOtp;
+      
+      // Store arrival state and OTP persistently in localStorage so state never flickers or resets
+      localStorage.setItem(`shazuone_partner_arrived_${jobId}`, 'true');
+      localStorage.setItem('shazuone_partner_step', '2');
+      localStorage.setItem('shazuone_partner_active_job', jobId);
+      if (otp) {
+        localStorage.setItem(`shazuone_otp_${jobId}`, String(otp));
+      }
+
+      // Ensure technician duty is active in backend so polling keeps state synchronized
+      if (techPhone) {
+        fetch(`${API_V1_URL}/partner/duty/toggle`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ isOnline: true, phone: techPhone })
+        }).catch(() => {});
+      }
+
       setActiveJob(prev => ({
         ...prev,
         ...updatedB,
+        id: jobId,
         status: 'arrived',
         customer_otp: otp || prev?.customer_otp,
         customerOtp: otp || prev?.customerOtp
@@ -4693,7 +4754,7 @@ export default function PartnerDutyPage() {
                     </Box>
 
                     {/* Doorstep Arrival / Safety Verification PIN Section */}
-                    {activeJob?.status !== 'arrived' ? (
+                    {!(activeJob?.status === 'arrived' || (activeJob?.id && localStorage.getItem(`shazuone_partner_arrived_${activeJob.id}`) === 'true') || (activeBookingId && localStorage.getItem(`shazuone_partner_arrived_${activeBookingId}`) === 'true')) ? (
                       /* Tech Arrived Button */
                       <Box sx={{ mt: 1.5 }}>
                         <Button
@@ -4759,7 +4820,7 @@ export default function PartnerDutyPage() {
 
                           {/* Prominent 4-Digit Display for Tech */}
                           <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, my: 1.5 }}>
-                            {String(activeJob?.customerOtp || activeJob?.customer_otp || '----').split('').map((digit, idx) => (
+                            {String(activeJob?.customerOtp || activeJob?.customer_otp || localStorage.getItem(`shazuone_otp_${activeJob?.id}`) || localStorage.getItem(`shazuone_otp_${activeBookingId}`) || '----').slice(0, 4).padEnd(4, '-').split('').map((digit, idx) => (
                               <Box
                                 key={idx}
                                 sx={{
