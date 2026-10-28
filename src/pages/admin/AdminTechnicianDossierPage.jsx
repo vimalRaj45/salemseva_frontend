@@ -238,9 +238,16 @@ export default function AdminTechnicianDossierPage() {
                 <Button
                   variant="outlined"
                   size="small"
-                  color="error"
                   onClick={() => handleToggleBlock(true)}
-                  sx={{ textTransform: 'none', fontWeight: 800, borderRadius: '8px', fontSize: '12px' }}
+                  sx={{
+                    textTransform: 'none',
+                    fontWeight: 800,
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                    color: '#F87171',
+                    borderColor: '#EF4444',
+                    '&:hover': { borderColor: '#F87171', bgcolor: 'rgba(239, 68, 68, 0.15)' }
+                  }}
                 >
                   Suspend Partner
                 </Button>
@@ -437,7 +444,9 @@ export default function AdminTechnicianDossierPage() {
               <Grid item xs={6} sm={3}>
                 <Paper elevation={0} sx={{ p: 2, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px' }}>
                   <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700, fontSize: '10.5px', textTransform: 'uppercase' }}>Completed Jobs</Typography>
-                  <Typography variant="h5" sx={{ fontWeight: 900, color: '#0F172A', mt: 0.5 }}>{jobsHistory.length}</Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 900, color: '#0F172A', mt: 0.5 }}>
+                    {jobsHistory.filter(j => j.status === 'completed').length || Number(tech.jobs_completed_count) || 0}
+                  </Typography>
                 </Paper>
               </Grid>
               <Grid item xs={6} sm={3}>
@@ -445,7 +454,7 @@ export default function AdminTechnicianDossierPage() {
                   <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700, fontSize: '10.5px', textTransform: 'uppercase' }}>Rating Average</Typography>
                   <Typography variant="h5" sx={{ fontWeight: 900, color: '#F59E0B', mt: 0.5, display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     <StarIcon sx={{ fontSize: 22 }} />
-                    {tech.rating_avg || '5.0'}
+                    {Number(tech.rating_avg) > 0 ? Number(tech.rating_avg).toFixed(1) : (Number(tech.jobs_completed_count) > 0 || jobsHistory.some(j => j.status === 'completed') ? '5.0' : 'New')}
                   </Typography>
                 </Paper>
               </Grid>
@@ -474,7 +483,7 @@ export default function AdminTechnicianDossierPage() {
                     Showing all historical bookings dispatched and serviced across Salem city zones
                   </Typography>
                 </Box>
-                <Chip label={`${jobsHistory.length} Total Records`} size="small" sx={{ bgcolor: '#EFF6FF', color: '#0284C7', fontWeight: 800 }} />
+                <Chip label={`${jobsHistory.length} Total Bookings`} size="small" sx={{ bgcolor: '#EFF6FF', color: '#0284C7', fontWeight: 800 }} />
               </Box>
 
               {jobsHistory.length === 0 ? (
@@ -501,11 +510,15 @@ export default function AdminTechnicianDossierPage() {
                           <TableCell sx={{ fontWeight: 800, color: '#0284C7' }}>#{job.id}</TableCell>
                           <TableCell sx={{ fontWeight: 700, color: '#0F172A' }}>{job.customer_name || 'Customer'}</TableCell>
                           <TableCell sx={{ color: '#64748B', fontSize: '12px' }}>{job.locality || 'Salem Central'}</TableCell>
-                          <TableCell sx={{ fontWeight: 700, color: '#0F172A' }}>{job.service_id?.toUpperCase()}</TableCell>
+                          <TableCell sx={{ fontWeight: 700, color: '#0F172A' }}>{(job.service_id || 'service').toUpperCase()}</TableCell>
                           <TableCell sx={{ color: '#64748B', fontSize: '12px' }}>{new Date(job.created_at).toLocaleDateString()}</TableCell>
                           <TableCell align="center">{getStatusChip(job.status)}</TableCell>
                           <TableCell align="right" sx={{ fontWeight: 900, color: '#059669' }}>
-                            ₹{job.tech_payout_amount || (parseFloat(job.final_amount || 0) * 0.98).toFixed(0)}
+                            ₹{parseFloat(job.tech_payout_amount) > 0 
+                                ? parseFloat(job.tech_payout_amount).toFixed(0) 
+                                : (job.status === 'completed' 
+                                    ? (parseFloat(job.final_amount || 0) * 0.95).toFixed(0) 
+                                    : (parseFloat(job.final_amount || job.visit_fee || 0)).toFixed(0))}
                           </TableCell>
                         </TableRow>
                       ))}

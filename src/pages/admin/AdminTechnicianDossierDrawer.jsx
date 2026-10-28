@@ -425,7 +425,11 @@ export default function AdminTechnicianDossierDrawer({
                         <TableCell sx={{ color: '#64748B', fontSize: '11.5px' }}>{new Date(job.created_at).toLocaleDateString()}</TableCell>
                         <TableCell align="center">{getStatusChip(job.status)}</TableCell>
                         <TableCell align="right" sx={{ fontWeight: 900, color: '#059669', fontSize: '12.5px' }}>
-                          ₹{job.tech_payout_amount || (parseFloat(job.final_amount || 0) * 0.98).toFixed(0)}
+                          ₹{parseFloat(job.tech_payout_amount) > 0 
+                              ? parseFloat(job.tech_payout_amount).toFixed(0) 
+                              : (job.status === 'completed' 
+                                  ? (parseFloat(job.final_amount || 0) * 0.95).toFixed(0) 
+                                  : (parseFloat(job.final_amount || job.visit_fee || 0)).toFixed(0))}
                         </TableCell>
                       </TableRow>
                     ))}
