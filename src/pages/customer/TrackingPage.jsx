@@ -59,6 +59,7 @@ import CustomerRescheduleDrawer from './CustomerRescheduleDrawer';
 import SalemLottie from '../../components/SalemLottie';
 import SalemSeamlessLoader from '../../components/SalemSeamlessLoader';
 import { NativeNotifier } from '../../services/nativeNotify';
+import { reverseGeocodeNominatim } from '../../utils/osmGeoLocation';
 import toast from 'react-hot-toast';
 
 export default function TrackingPage() {
@@ -127,6 +128,28 @@ export default function TrackingPage() {
   const [techOtpError, setTechOtpError] = useState('');
   const [isVerifyingTechOtp, setIsVerifyingTechOtp] = useState(false);
   const [techOtpSuccess, setTechOtpSuccess] = useState(false);
+
+  // Live Technician Street Address resolved via OpenStreetMap Nominatim
+  const [techAddress, setTechAddress] = useState('');
+
+  useEffect(() => {
+    let isMounted = true;
+    const resolveTechAddress = async () => {
+      const lat = parseFloat(tech?.lat);
+      const lng = parseFloat(tech?.lng);
+      if (!lat || !lng) return;
+      try {
+        const res = await reverseGeocodeNominatim(lat, lng);
+        if (isMounted && res && res.shortLabel) {
+          setTechAddress(res.shortLabel);
+        }
+      } catch (e) {
+        // Silent fallback
+      }
+    };
+    resolveTechAddress();
+    return () => { isMounted = false; };
+  }, [tech?.lat, tech?.lng]);
 
   const handleVerifyTechnicianOtp = async () => {
     if (!enteredTechOtp || enteredTechOtp.trim().length !== 4) {
@@ -1510,7 +1533,10 @@ export default function TrackingPage() {
                           Technician Location:
                         </Typography>
                         <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '12px' }}>
-                          {tech?.name || 'Technician'} • Live GPS Active ({tech?.lat ? Number(tech.lat).toFixed(4) : '11.6780'}, {tech?.lng ? Number(tech.lng).toFixed(4) : '78.1580'})
+                          {tech?.name || 'Technician'} • {techAddress || 'Saradha College Rd, Hasthampatti, Salem'}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '10px' }}>
+                          Live GPS: {tech?.lat ? Number(tech.lat).toFixed(4) : '11.6780'}, {tech?.lng ? Number(tech.lng).toFixed(4) : '78.1580'}
                         </Typography>
                       </Box>
                     </Box>
@@ -1557,6 +1583,21 @@ export default function TrackingPage() {
                   >
                     Open Directions in Google Maps ↗
                   </Button>
+
+                  {/* OpenStreetMap Contributors Legal Attribution */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5, mt: 1.5, pt: 1, borderTop: '1px dashed #E2E8F0' }}>
+                    <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '10.5px' }}>
+                      Location & address data (c){' '}
+                      <a
+                        href="https://www.openstreetmap.org/copyright"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: '#64748B', textDecoration: 'underline' }}
+                      >
+                        OpenStreetMap contributors
+                      </a>
+                    </Typography>
+                  </Box>
                 </Card>
               );
             })()}

@@ -93,69 +93,62 @@ export async function reverseGeocodeCoords(lat, lng) {
   let resolvedPincode = '';
   let fullDisplay = '';
 
-  // 1. Primary: BigDataCloud Client Reverse Geocode API (CORS friendly, fast, accurate city/taluk)
+  // 1. Primary: OpenStreetMap Nominatim with zoom 18 (doorstep / building level precision)
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 4000);
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-    const bdcRes = await fetch(
-      `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`,
-      { signal: controller.signal }
+    const nomRes = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}&zoom=18&addressdetails=1`,
+      {
+        headers: { 'Accept': 'application/json' },
+        signal: controller.signal
+      }
     );
     clearTimeout(timeoutId);
 
-    if (bdcRes.ok) {
-      const data = await bdcRes.json();
-      resolvedCity = data.city || data.locality || '';
-      resolvedState = data.principalSubdivision || 'Tamil Nadu';
-      resolvedPincode = data.postcode || '';
-
-      if (data.localityInfo && Array.isArray(data.localityInfo.administrative)) {
-        const adminList = data.localityInfo.administrative;
-        const distObj = adminList.find(a => /district/i.test(a.description || a.name || ''));
-        if (distObj) resolvedDistrict = distObj.name;
-        const talukObj = adminList.find(a => /taluk/i.test(a.name || ''));
-        if (talukObj) resolvedSuburb = talukObj.name.replace(/taluk/i, '').trim();
-      }
+    if (nomRes.ok) {
+      const data = await nomRes.json();
+      const addr = data.address || {};
+      resolvedCity = addr.city || addr.town || addr.village || addr.municipality || 'Salem';
+      resolvedDistrict = addr.state_district || addr.county || 'Salem District';
+      resolvedSuburb = addr.suburb || addr.neighbourhood || addr.residential || addr.road || '';
+      resolvedPincode = addr.postcode || '';
+      resolvedState = addr.state || 'Tamil Nadu';
+      fullDisplay = data.display_name || '';
     }
   } catch (err) {
-    // BigDataCloud fallback - continue to Nominatim
+    // OpenStreetMap timeout or rate limit - fallback to BigDataCloud
   }
 
-  // 2. Secondary: OpenStreetMap Nominatim with zoom 16 (neighborhood level)
+  // 2. Secondary fallback: BigDataCloud Client Reverse Geocode API
   if (!resolvedCity || !resolvedSuburb) {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 4000);
 
-      const nomRes = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=16&addressdetails=1`,
-        {
-          headers: { 'Accept': 'application/json' },
-          signal: controller.signal
-        }
+      const bdcRes = await fetch(
+        `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`,
+        { signal: controller.signal }
       );
       clearTimeout(timeoutId);
 
-      if (nomRes.ok) {
-        const data = await nomRes.json();
-        const addr = data.address || {};
-        if (!resolvedCity) {
-          resolvedCity = addr.city || addr.town || addr.village || addr.municipality || '';
+      if (bdcRes.ok) {
+        const data = await bdcRes.json();
+        if (!resolvedCity) resolvedCity = data.city || data.locality || '';
+        if (!resolvedState) resolvedState = data.principalSubdivision || 'Tamil Nadu';
+        if (!resolvedPincode) resolvedPincode = data.postcode || '';
+
+        if (data.localityInfo && Array.isArray(data.localityInfo.administrative)) {
+          const adminList = data.localityInfo.administrative;
+          const distObj = adminList.find(a => /district/i.test(a.description || a.name || ''));
+          if (distObj && !resolvedDistrict) resolvedDistrict = distObj.name;
+          const talukObj = adminList.find(a => /taluk/i.test(a.name || ''));
+          if (talukObj && !resolvedSuburb) resolvedSuburb = talukObj.name.replace(/taluk/i, '').trim();
         }
-        if (!resolvedDistrict) {
-          resolvedDistrict = addr.state_district || addr.county || resolvedCity;
-        }
-        if (!resolvedSuburb) {
-          resolvedSuburb = addr.suburb || addr.neighbourhood || addr.residential || addr.road || '';
-        }
-        if (!resolvedPincode) {
-          resolvedPincode = addr.postcode || '';
-        }
-        fullDisplay = data.display_name || '';
       }
     } catch (err) {
-      // Nominatim timeout or error handled by fallbacks below
+      // Fallback completed
     }
   }
 

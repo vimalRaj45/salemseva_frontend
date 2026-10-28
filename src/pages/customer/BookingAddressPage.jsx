@@ -343,8 +343,26 @@ export default function BookingAddressPage() {
                   </Typography>
                 </Box>
                 <Typography sx={{ fontSize: '12px', color: '#0C4A6E' }}>
-                  Coordinates: {detectedGpsData.lat?.toFixed(5)} N, {detectedGpsData.lng?.toFixed(5)} E (Accuracy ±{detectedGpsData.accuracyMeters || 15}m)
+                  Coordinates: {detectedGpsData.lat?.toFixed(5)} N, {detectedGpsData.lng?.toFixed(5)} E (Accuracy +/-{detectedGpsData.accuracyMeters || 15}m)
                 </Typography>
+                {detectedGpsData.fullAddress && (
+                  <Typography sx={{ fontSize: '11.5px', color: '#0369A1', lineHeight: 1.35 }}>
+                    Address: {detectedGpsData.fullAddress}
+                  </Typography>
+                )}
+                <Box sx={{ pt: 0.5, borderTop: '1px dashed #BAE6FD', display: 'flex', justifyContent: 'flex-end' }}>
+                  <Typography sx={{ fontSize: '10px', color: '#64748B' }}>
+                    Location data (c){' '}
+                    <a
+                      href="https://www.openstreetmap.org/copyright"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: '#0A66C2', textDecoration: 'underline' }}
+                    >
+                      OpenStreetMap contributors
+                    </a>
+                  </Typography>
+                </Box>
               </Paper>
             )}
 

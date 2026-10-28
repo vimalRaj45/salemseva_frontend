@@ -215,20 +215,33 @@ export default function LocationPickerPage() {
         </Button>
 
         {geoStatus && (
-          <Typography
-            sx={{
-              fontSize: '12.5px',
-              color: isOutOfRegion ? '#DC2626' : '#0369A1',
-              bgcolor: isOutOfRegion ? '#FEF2F2' : '#F0F9FF',
-              p: 1.5,
-              borderRadius: '10px',
-              border: isOutOfRegion ? '1px solid #FECACA' : '1px solid #BAE6FD',
-              textAlign: 'center',
-              fontWeight: 600
-            }}
-          >
-            {geoStatus}
-          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.8 }}>
+            <Typography
+              sx={{
+                fontSize: '12.5px',
+                color: isOutOfRegion ? '#DC2626' : '#0369A1',
+                bgcolor: isOutOfRegion ? '#FEF2F2' : '#F0F9FF',
+                p: 1.5,
+                borderRadius: '10px',
+                border: isOutOfRegion ? '1px solid #FECACA' : '1px solid #BAE6FD',
+                textAlign: 'center',
+                fontWeight: 600
+              }}
+            >
+              {geoStatus}
+            </Typography>
+            <Typography sx={{ fontSize: '10px', color: '#64748B', textAlign: 'center' }}>
+              Address lookup (c){' '}
+              <a
+                href="https://www.openstreetmap.org/copyright"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: '#0A66C2', textDecoration: 'underline' }}
+              >
+                OpenStreetMap contributors
+              </a>
+            </Typography>
+          </Box>
         )}
 
         {isOutOfRegion && (
