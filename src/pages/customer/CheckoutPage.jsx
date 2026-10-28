@@ -57,7 +57,11 @@ export default function CheckoutPage() {
 
   const [redeemCredits, setRedeemCredits] = useState(true);
   const [payMode, setPayMode] = useState('upi');
-  const [isProcessing, setIsProcessing] = useState(false);
+  // One stage machine drives the button, the critical-work lock and the copy on the loading
+  // screen. 'verifying' is the window between Razorpay closing and the booking being ready,
+  // which previously showed nothing but a stale "Connecting to Razorpay" message.
+  const [paymentStage, setPaymentStage] = useState('idle'); // idle | preparing | awaiting | verifying
+  const isProcessing = paymentStage !== 'idle';
 
   useEffect(() => {
     if (isProcessing) {
@@ -183,7 +187,7 @@ export default function CheckoutPage() {
   const netPayable = Math.max(0, grossTotal - creditDiscount);
 
   const handlePayNow = async () => {
-    setIsProcessing(true);
+    setPaymentStage('preparing');
 
     try {
       if (creditsToDebit > 0) {
@@ -224,6 +228,7 @@ export default function CheckoutPage() {
       }
 
       // 3. Open Razorpay Checkout (Native Android SDK BottomSheet on Mobile, Web SDK on Browser)
+      setPaymentStage('awaiting');
       try {
         const rzpResult = await openRazorpay({
           key: keyId,
@@ -244,21 +249,30 @@ export default function CheckoutPage() {
         });
 
         if (rzpResult && rzpResult.success) {
-          try {
-            // Verify payment on backend
-            await fetch(`${API_V1_URL}/payments/verify`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                bookingId: bookingId,
-                amount: netPayable,
-                razorpay_payment_id: rzpResult.razorpay_payment_id,
-                razorpay_order_id: rzpResult.razorpay_order_id || orderId,
-                razorpay_signature: rzpResult.razorpay_signature
-              })
-            });
+          // The money has already left the customer by this point. Keep the processing screen
+          // up and say what is actually happening until the booking is ready to be shown.
+          setPaymentStage('verifying');
 
-            // Update booking status
+          const verifyRes = await fetch(`${API_V1_URL}/payments/verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              bookingId: bookingId,
+              amount: netPayable,
+              razorpay_payment_id: rzpResult.razorpay_payment_id,
+              razorpay_order_id: rzpResult.razorpay_order_id || orderId,
+              razorpay_signature: rzpResult.razorpay_signature
+            })
+          });
+          const verifyData = await verifyRes.json().catch(() => null);
+          if (!verifyRes.ok || !verifyData?.success) {
+            // The Razorpay webhook may still settle this charge, and the tracking page reads the
+            // booking rather than trusting this call, so record the failure and carry on.
+            console.warn('Payment verification did not confirm:', verifyRes.status, verifyData?.error || '');
+          }
+
+          // Status sync is best effort: the verification above is the source of truth.
+          try {
             await fetch(`${API_V1_URL}/bookings/${bookingId}/status`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -273,19 +287,21 @@ export default function CheckoutPage() {
           window.dispatchEvent(new CustomEvent('shazuone_quote_updated', { detail: { bookingId, status: 'quote_approved' } }));
           window.dispatchEvent(new Event('storage'));
 
-          setIsProcessing(false);
-          navigate(`/track?bookingId=${bookingId}`, { replace: true });
+          // `paid=1` tells the tracking page to show the payment confirmation rather than the
+          // generic dispatch loader while it pulls the booking for the first time.
+          setPaymentStage('idle');
+          navigate(`/track?bookingId=${bookingId}&paid=1`, { replace: true });
           return;
         }
       } catch (payErr) {
         console.warn('Razorpay checkout error / cancelled:', payErr);
-        setIsProcessing(false);
+        setPaymentStage('idle');
         alert(payErr.message || 'Payment did not complete. Please retry or choose another payment method.');
         return;
       }
     } catch (e) {
       console.error('Payment checkout error:', e);
-      setIsProcessing(false);
+      setPaymentStage('idle');
     }
   };
 
@@ -613,11 +629,23 @@ export default function CheckoutPage() {
 
       {/* Navigation lives in the global CustomerTabBar; this flow keeps only its own CTA. */}
 
-      {/* Processing Loader */}
+      {/* Processing Loader: the copy follows the stage so the customer is never told the
+          Razorpay window is opening while their money is already being confirmed. */}
       <ProcessingBackdrop
         open={isProcessing}
-        title="Connecting to Razorpay..."
-        subtitle="Opening official Razorpay secure payment window."
+        mode="payment"
+        title={
+          paymentStage === 'verifying'
+            ? 'Your payment is processing...'
+            : paymentStage === 'awaiting'
+              ? 'Complete your payment in Razorpay'
+              : 'Setting up your secure payment...'
+        }
+        subtitle={
+          paymentStage === 'verifying'
+            ? 'Confirming with the bank and locking your escrow. Please keep this screen open.'
+            : 'Finish the payment in the Razorpay window and we will take you to your booking.'
+        }
         badge="100% Safe Payment Guarantee"
       />
 

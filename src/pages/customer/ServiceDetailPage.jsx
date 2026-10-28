@@ -88,7 +88,10 @@ export default function ServiceDetailPage({ onStartBooking }) {
   const { setCriticalWork } = useCriticalWork();
   const { serviceId = 'ac' } = useParams();
   const requestedTechnician = location.state?.requestedTechnician || null;
-  const [selectedIssue, setSelectedIssue] = useState('not_cooling');
+  // The chosen fault is written into a foreign key, so it starts empty and is filled from the
+  // loaded list. It used to default to a hardcoded slug that no longer exists in service_issues,
+  // so any submit that landed before the list resolved failed inside the database.
+  const [selectedIssue, setSelectedIssue] = useState('');
   const [customDescription, setCustomDescription] = useState('');
   const [voiceNoteAudio, setVoiceNoteAudio] = useState(null);
   
@@ -439,6 +442,12 @@ export default function ServiceDetailPage({ onStartBooking }) {
     if (!user) {
       toast.error('Please sign in to proceed with your booking.');
       navigate(`/login?redirect=${encodeURIComponent(location.pathname + location.search)}`);
+      return;
+    }
+
+    // Nothing to send if the fault list never arrived; stop before opening a payment.
+    if (!selectedIssue) {
+      toast.error('Please choose the problem you are facing so we can assign the right specialist.');
       return;
     }
 
@@ -1078,6 +1087,10 @@ export default function ServiceDetailPage({ onStartBooking }) {
                 <Skeleton variant="text" width="40%" height={16} />
               </Card>
             ))
+          ) : displayIssues.length === 0 ? (
+            <Alert severity="warning" sx={{ borderRadius: '8px' }}>
+              We could not load the fault list for this service. Please refresh the page to try again.
+            </Alert>
           ) : (
             displayIssues.map((item) => {
               const isSelected = selectedIssue === item.id;

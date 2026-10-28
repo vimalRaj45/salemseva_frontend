@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
   Button,
   Typography,
@@ -97,79 +97,8 @@ export function AuthProvider({ children }) {
     fetchRewardSettings();
   }, []);
 
-  const sessionTokenRef = useRef(localStorage.getItem('shazuone_session_token') || '');
-
-  // Register session with backend
-  const registerSessionWithBackend = async (phone, role, name, trade) => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, role, name, trade })
-      });
-      const data = await res.json();
-      if (data.success && data.sessionToken) {
-        sessionTokenRef.current = data.sessionToken;
-        localStorage.setItem('shazuone_session_token', data.sessionToken);
-      }
-    } catch (err) {
-      console.warn('Session registration note:', err);
-    }
-  };
-
-  // Concurrent Session Heartbeat Poller: Detect if logged in on another device
-  useEffect(() => {
-    if (!user || !user.phone) return;
-
-    let isMounted = true;
-    const checkSession = async () => {
-      try {
-        const token = sessionTokenRef.current || localStorage.getItem('shazuone_session_token');
-        if (!token) return;
-
-        const res = await fetch(`${API_BASE_URL}/api/v1/auth/session/verify`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            phone: user.phone,
-            sessionToken: token,
-            role: user.role
-          })
-        });
-        const data = await res.json();
-
-        if (isMounted && data.code === 'SESSION_TERMINATED') {
-          // Logged out because account logged in on another device!
-          setUser(null);
-          localStorage.removeItem('shazuone_user');
-          localStorage.removeItem('shazuone_session_token');
-          sessionTokenRef.current = '';
-          toast.error('Session ended: Your account was accessed from another device.');
-          window.location.href = '/login?session_expired=true';
-        }
-      } catch (e) {}
-    };
-
-    const interval = setInterval(checkSession, 3000);
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-    };
-  }, [user]);
-
-  // The API layer clears the stored token and fires this event when the server rejects it:
-  // a restart, an expiry, or a revoked session. Without a listener every screen would keep
-  // failing its requests while the app still believed somebody was signed in.
-  useEffect(() => {
-    const onSessionExpired = () => {
-      sessionTokenRef.current = '';
-      setUser(null);
-      localStorage.removeItem('shazuone_user');
-      toast.error('Your session ended. Please sign in again.');
-    };
-    window.addEventListener('shazuone:session-expired', onSessionExpired);
-    return () => window.removeEventListener('shazuone:session-expired', onSessionExpired);
-  }, []);
+  // Sign-in state is local to the client: the backend no longer issues or checks session
+  // tokens, so there is nothing to register, poll or invalidate here.
 
   // Fetch live technicians list from Neon PostgreSQL DB
   useEffect(() => {
@@ -335,10 +264,6 @@ export function AuthProvider({ children }) {
 
       setUser(data.user);
       localStorage.setItem('shazuone_user', JSON.stringify(data.user));
-      if (data.sessionToken) {
-        sessionTokenRef.current = data.sessionToken;
-        localStorage.setItem('shazuone_session_token', data.sessionToken);
-      }
       setAuthModalOpen(false);
       return data.user;
     } catch (err) {
@@ -361,10 +286,6 @@ export function AuthProvider({ children }) {
       }
       setUser(data.user);
       localStorage.setItem('shazuone_user', JSON.stringify(data.user));
-      if (data.sessionToken) {
-        localStorage.setItem('shazuone_session_token', data.sessionToken);
-        sessionTokenRef.current = data.sessionToken;
-      }
       setAuthModalOpen(false);
       return data.user;
     } catch (err) {
@@ -413,10 +334,6 @@ export function AuthProvider({ children }) {
         if (data.user.role === 'technician') {
           setTechUser(data.user);
           localStorage.setItem('shazuone_tech_user', JSON.stringify(data.user));
-        }
-        if (data.sessionToken) {
-          sessionTokenRef.current = data.sessionToken;
-          localStorage.setItem('shazuone_session_token', data.sessionToken);
         }
         setAuthModalOpen(false);
       }
@@ -521,10 +438,6 @@ export function AuthProvider({ children }) {
       if (verifyData.user.role === 'technician') {
         setTechUser(verifyData.user);
         localStorage.setItem('shazuone_tech_user', JSON.stringify(verifyData.user));
-      }
-      if (verifyData.sessionToken) {
-        sessionTokenRef.current = verifyData.sessionToken;
-        localStorage.setItem('shazuone_session_token', verifyData.sessionToken);
       }
       setAuthModalOpen(false);
       return verifyData.user;
@@ -636,10 +549,6 @@ export function AuthProvider({ children }) {
       }
       setUser(data.user);
       localStorage.setItem('shazuone_user', JSON.stringify(data.user));
-      if (data.sessionToken) {
-        localStorage.setItem('shazuone_session_token', data.sessionToken);
-        sessionTokenRef.current = data.sessionToken;
-      }
       setAuthModalOpen(false);
       return data.user;
     } catch (err) {
@@ -725,42 +634,21 @@ export function AuthProvider({ children }) {
     localStorage.setItem('shazuone_user', JSON.stringify(tech));
     localStorage.setItem('shazuone_tech_user', JSON.stringify(tech));
     setAuthModalOpen(false);
-    registerSessionWithBackend(tech.phone, 'technician', tech.name, tech.trade);
   };
 
-  // Dedicated Technician Login (Independent Session & Storage)
-  const loginTech = async (technicianData, sessionToken) => {
+  // Dedicated Technician Login (Independent Storage)
+  const loginTech = async (technicianData) => {
     if (!technicianData) return;
     setTechUser(technicianData);
     setUser(technicianData);
     localStorage.setItem('shazuone_tech_user', JSON.stringify(technicianData));
     localStorage.setItem('shazuone_user', JSON.stringify(technicianData));
-    if (sessionToken) {
-      sessionTokenRef.current = sessionToken;
-      localStorage.setItem('shazuone_tech_session_token', sessionToken);
-      localStorage.setItem('shazuone_session_token', sessionToken);
-    }
-    if (technicianData.phone) {
-      await registerSessionWithBackend(technicianData.phone, 'technician', technicianData.name, technicianData.trade);
-    }
   };
 
   // Dedicated Technician Logout
   const logoutTech = async () => {
-    try {
-      const activePhone = techUser?.phone || user?.phone;
-      if (activePhone) {
-        fetch(`${API_BASE_URL}/api/v1/auth/logout`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phone: activePhone })
-        }).catch(() => {});
-      }
-    } catch (e) {}
-
     setTechUser(null);
     localStorage.removeItem('shazuone_tech_user');
-    localStorage.removeItem('shazuone_tech_session_token');
     localStorage.removeItem('shazuone_partner_phone');
     localStorage.removeItem('shazuone_partner_token');
     localStorage.removeItem('shazuone_partner_is_online');
@@ -808,23 +696,10 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    try {
-      const activePhone = user?.phone || techUser?.phone;
-      if (activePhone) {
-        fetch(`${API_BASE_URL}/api/v1/auth/logout`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phone: activePhone })
-        }).catch(() => {});
-      }
-    } catch (e) {}
-
     setUser(null);
     setTechUser(null);
     localStorage.removeItem('shazuone_user');
     localStorage.removeItem('shazuone_tech_user');
-    localStorage.removeItem('shazuone_session_token');
-    localStorage.removeItem('shazuone_tech_session_token');
     localStorage.removeItem('shazuone_partner_phone');
     localStorage.removeItem('shazuone_partner_token');
     localStorage.removeItem('shazuone_partner_is_online');
@@ -832,7 +707,6 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('shazuone_partner_active_job');
     localStorage.removeItem('shazuone_is_guest');
     setIsGuest(false);
-    sessionTokenRef.current = '';
   };
 
   // Wallet & Incentives state management

@@ -45,6 +45,7 @@ import {
 import { FormHelperText, Chip } from '@mui/material';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
+import { API_V1_URL } from '../../config';
 
 const SALEM_LOCALITIES = [
   'Fairlands, Salem',
@@ -139,6 +140,8 @@ export default function AuthPage({ initialMode = 'login' }) {
   const [partnerLocalities, setPartnerLocalities] = useState([...SALEM_LOCALITIES]);
   const [aadhaarNumber, setAadhaarNumber] = useState('');
   const [aadhaarDocName, setAadhaarDocName] = useState('');
+  const [aadhaarDocUrl, setAadhaarDocUrl] = useState('');
+  const [aadhaarUploading, setAadhaarUploading] = useState(false);
   const [upiId, setUpiId] = useState('');
   const [userPreferences, setUserPreferences] = useState(['ac', 'electrician']);
   const [notificationChannel, setNotificationChannel] = useState('whatsapp');
@@ -167,6 +170,7 @@ export default function AuthPage({ initialMode = 'login' }) {
         }
         if (draft.aadhaarNumber) setAadhaarNumber(draft.aadhaarNumber);
         if (draft.aadhaarDocName) setAadhaarDocName(draft.aadhaarDocName);
+        if (draft.aadhaarDocUrl) setAadhaarDocUrl(draft.aadhaarDocUrl);
         if (draft.upiId) setUpiId(draft.upiId);
         if (draft.userPreferences && Array.isArray(draft.userPreferences)) {
           setUserPreferences(draft.userPreferences);
@@ -189,6 +193,7 @@ export default function AuthPage({ initialMode = 'login' }) {
         partnerLocalities,
         aadhaarNumber,
         aadhaarDocName,
+        aadhaarDocUrl,
         upiId,
         userPreferences,
         notificationChannel,
@@ -491,6 +496,68 @@ export default function AuthPage({ initialMode = 'login' }) {
     }
   };
 
+  // The scan is uploaded the moment it is chosen, so the URL exists before the account does.
+  // Registration then stores that URL, which is what the admin KYC screen reads.
+  const AADHAAR_DOC_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf'];
+  const AADHAAR_DOC_MAX_BYTES = 5 * 1024 * 1024;
+
+  const handleAadhaarFileSelected = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const fileType = (file.type || '').toLowerCase();
+    if (!AADHAAR_DOC_TYPES.includes(fileType)) {
+      toast.error('Choose a JPEG, PNG, WEBP image or a PDF.');
+      event.target.value = '';
+      return;
+    }
+    if (file.size > AADHAAR_DOC_MAX_BYTES) {
+      toast.error(`That file is ${(file.size / (1024 * 1024)).toFixed(2)} MB. The limit is 5 MB.`);
+      event.target.value = '';
+      return;
+    }
+
+    setAadhaarUploading(true);
+    setErrorMessage('');
+    try {
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ''));
+        reader.onerror = () => reject(new Error('Could not read that file.'));
+        reader.readAsDataURL(file);
+      });
+
+      const res = await fetch(`${API_V1_URL}/partner/aadhaar/upload`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fileData: dataUrl,
+          mimeType: fileType,
+          phone: (phone || '').replace(/[^0-9]/g, '').slice(-10),
+          fileName: file.name
+        })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success || !data.aadhaarCardUrl) {
+        throw new Error(data.error || 'Upload failed. Please try again.');
+      }
+
+      setAadhaarDocUrl(data.aadhaarCardUrl);
+      setAadhaarDocName(file.name);
+      saveDraft(3, { aadhaarDocName: file.name, aadhaarDocUrl: data.aadhaarCardUrl });
+      toast.success(`${file.name} uploaded`);
+    } catch (err) {
+      setAadhaarDocUrl('');
+      setAadhaarDocName('');
+      const msg = err.message || 'Could not upload the Aadhaar document.';
+      setErrorMessage(msg);
+      toast.error(msg);
+    } finally {
+      setAadhaarUploading(false);
+      event.target.value = '';
+    }
+  };
+
   // Step 3 Partner Submit -> Step 4 Done (Aadhaar is Mandatory)
   const handleCompletePartnerRegistration = async () => {
     setErrorMessage('');
@@ -499,7 +566,7 @@ export default function AuthPage({ initialMode = 'login' }) {
       setErrorMessage('A valid 12-digit Aadhaar number is mandatory for partner onboarding');
       return;
     }
-    if (!aadhaarDocName) {
+    if (!aadhaarDocUrl) {
       setErrorMessage('Aadhaar document upload is mandatory for partner onboarding');
       return;
     }
@@ -517,7 +584,7 @@ export default function AuthPage({ initialMode = 'login' }) {
         trade,
         locality: (partnerLocalities && partnerLocalities[0]) || 'Fairlands, Salem',
         aadhaar: cleanAadhaar,
-        aadhaarDocument: aadhaarDocName,
+        aadhaarCardUrl: aadhaarDocUrl,
         upiId: upiId.trim(),
         experienceYears: yearsExperience,
         assignedLocalities: partnerLocalities
@@ -1950,14 +2017,8 @@ export default function AuthPage({ initialMode = 'login' }) {
                             accept="image/*,application/pdf"
                             id="aadhaar-doc-upload"
                             style={{ display: 'none' }}
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                setAadhaarDocName(file.name);
-                                saveDraft(3, { aadhaarDocName: file.name });
-                                toast.success(`Attached ${file.name}`);
-                              }
-                            }}
+                            disabled={aadhaarUploading}
+                            onChange={handleAadhaarFileSelected}
                           />
                           <label htmlFor="aadhaar-doc-upload" style={{ cursor: 'pointer', display: 'block' }}>
                             <Paper
@@ -1975,13 +2036,17 @@ export default function AuthPage({ initialMode = 'login' }) {
                               }}
                             >
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                {aadhaarDocName ? <FileCheck size={18} color="#0A5CC4" /> : <Upload size={18} color="#64748B" />}
+                                {aadhaarUploading
+                                  ? <CircularProgress size={16} sx={{ color: '#0A5CC4' }} />
+                                  : (aadhaarDocName ? <FileCheck size={18} color="#0A5CC4" /> : <Upload size={18} color="#64748B" />)}
                                 <Box>
                                   <Typography sx={{ fontSize: '12px', fontWeight: 700, color: aadhaarDocName ? 'primary.main' : 'text.primary' }}>
-                                    {aadhaarDocName ? aadhaarDocName : 'Upload Aadhaar Card (Image or PDF)'}
+                                    {aadhaarUploading ? 'Uploading document...' : (aadhaarDocName || 'Upload Aadhaar Card (Image or PDF)')}
                                   </Typography>
                                   <Typography sx={{ fontSize: '10.5px', color: 'text.secondary' }}>
-                                    {aadhaarDocName ? 'Document attached' : 'Front & back ID proof (Mandatory)'}
+                                    {aadhaarUploading
+                                      ? 'Sending to secure storage, please wait'
+                                      : (aadhaarDocName ? 'Saved to secure storage' : 'Front & back ID proof (Mandatory, max 5 MB)')}
                                   </Typography>
                                 </Box>
                               </Box>
@@ -1999,7 +2064,7 @@ export default function AuthPage({ initialMode = 'login' }) {
                                   color: 'text.primary'
                                 }}
                               >
-                                {aadhaarDocName ? 'Change' : 'Upload'}
+                                {aadhaarUploading ? 'Uploading' : (aadhaarDocName ? 'Change' : 'Upload')}
                               </Button>
                             </Paper>
                           </label>
@@ -2051,7 +2116,7 @@ export default function AuthPage({ initialMode = 'login' }) {
                             type="button"
                             fullWidth
                             variant="contained"
-                            disabled={isLoading || aadhaarNumber.replace(/[^0-9]/g, '').length !== 12 || !aadhaarDocName}
+                            disabled={isLoading || aadhaarUploading || aadhaarNumber.replace(/[^0-9]/g, '').length !== 12 || !aadhaarDocUrl}
                             onClick={handleCompletePartnerRegistration}
                             sx={{
                               bgcolor: brandPrimary,

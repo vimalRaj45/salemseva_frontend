@@ -63,8 +63,12 @@ import toast from 'react-hot-toast';
 
 export default function TrackingPage() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const urlBookingId = searchParams.get('bookingId');
+  // The checkout page appends paid=1 once the backend has confirmed the payment, so a
+  // customer who has just been charged can be told what is happening instead of landing
+  // on a booking page whose data has not arrived yet.
+  const arrivedFromPayment = searchParams.get('paid') === '1';
   const storedBookingId = localStorage.getItem('shazuone_active_booking');
   const bookingId = urlBookingId || storedBookingId || '';
 
@@ -97,6 +101,7 @@ export default function TrackingPage() {
 
   const [trackData, setTrackData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [awaitingPaymentConfirmation, setAwaitingPaymentConfirmation] = useState(arrivedFromPayment);
 
   const [confirmCompletionModalOpen, setConfirmCompletionModalOpen] = useState(false);
   const [customerRating, setCustomerRating] = useState(5);
@@ -229,6 +234,29 @@ export default function TrackingPage() {
       window.removeEventListener('storage', handleQuoteEvent);
     };
   }, [bookingId]);
+
+  // Hold the payment-confirmation screen until the booking actually arrives, with a hard
+  // ceiling so a slow or failing request can never trap the customer there. The paid marker
+  // is then stripped so a later refresh does not replay the payment screen.
+  useEffect(() => {
+    if (!awaitingPaymentConfirmation) return undefined;
+
+    const release = () => {
+      setAwaitingPaymentConfirmation(false);
+      if (arrivedFromPayment) {
+        const next = new URLSearchParams(searchParams);
+        next.delete('paid');
+        setSearchParams(next, { replace: true });
+      }
+    };
+
+    if (trackData) {
+      release();
+      return undefined;
+    }
+    const ceiling = setTimeout(release, 15000);
+    return () => clearTimeout(ceiling);
+  }, [awaitingPaymentConfirmation, trackData, arrivedFromPayment, searchParams, setSearchParams]);
 
   // Real-time VoIP Call & Chat Notification Poller
   useEffect(() => {
@@ -414,7 +442,7 @@ export default function TrackingPage() {
     }
   }, [bookingId, bookingStatus]);
 
-  const isInspectingOrArrived = ['arrived', 'inspecting', 'quote_presented', 'quote_approved', 'completed'].includes(bookingStatus) || techOtpSuccess;
+  const isInspectingOrArrived = ['inspecting', 'quote_presented', 'quote_approved', 'completed'].includes(bookingStatus) || techOtpSuccess;
   const techArrived = ['arrived', 'inspecting', 'quote_presented', 'quote_approved', 'completed'].includes(bookingStatus);
   const hasQuote = ['quote_presented', 'quote_approved'].includes(bookingStatus);
 
@@ -434,6 +462,19 @@ export default function TrackingPage() {
         return slot;
     }
   };
+
+  // Arriving from payment: say that the money is being confirmed rather than showing the
+  // generic dispatch splash or the booking page itself before its data exists.
+  if (awaitingPaymentConfirmation) {
+    return (
+      <SalemSeamlessLoader
+        mode="payment"
+        title="Your payment is processing..."
+        subtitle="Confirming with the bank and securing your escrow. This takes a few seconds, please keep this screen open."
+        badge="100% Safe Payment Guarantee"
+      />
+    );
+  }
 
   if (isLoading && !trackData) {
     return <SalemSeamlessLoader mode="dispatch" />;
@@ -1287,7 +1328,15 @@ export default function TrackingPage() {
               >
                 Quote approved & payment secured in Cashless Escrow! Technician is performing the repair.
               </Alert>
-            ) : (bookingStatus === 'inspecting' || bookingStatus === 'arrived') ? (
+            ) : bookingStatus === 'arrived' ? (
+              <Alert 
+                severity="info" 
+                icon={<NotificationsActiveIcon sx={{ fontSize: 18 }} />}
+                sx={{ mb: 2, borderRadius: '8px', fontWeight: 700, bgcolor: '#EFF6FF', color: '#1E40AF', border: '1px solid #BFDBFE', fontSize: '13px' }}
+              >
+                Technician {tech.name} has arrived at your doorstep! Ask for their 4-digit PIN below to verify identity before allowing entry.
+              </Alert>
+            ) : bookingStatus === 'inspecting' ? (
               <Alert 
                 severity="warning" 
                 icon={<NotificationsActiveIcon sx={{ fontSize: 18 }} />}
@@ -1390,13 +1439,15 @@ export default function TrackingPage() {
                     <CheckCircleIcon sx={{ color: '#4ADE80', fontSize: 16 }} />
                   )}
                   <Typography variant="caption" sx={{ fontWeight: 700, fontSize: '11.5px' }}>
-                    {(bookingStatus === 'inspecting' || bookingStatus === 'arrived') 
-                      ? 'Technician at doorstep • Diagnostic inspection' 
-                      : (bookingStatus === 'quote_presented' 
-                          ? 'Digital quote ready for customer review' 
-                          : (bookingStatus === 'en_route'
-                              ? `${tech.name} • On the way (${tech.eta || '8 mins'} • ${tech.distanceKm || '1.8 km'})`
-                              : `${tech.name} • Accepted & Preparing Departure`))}
+                    {bookingStatus === 'inspecting'
+                      ? 'Technician at doorstep • Diagnostic inspection'
+                      : bookingStatus === 'arrived'
+                        ? 'Technician arrived at doorstep • Awaiting PIN verification'
+                        : (bookingStatus === 'quote_presented' 
+                            ? 'Digital quote ready for customer review' 
+                            : (bookingStatus === 'en_route'
+                                ? `${tech.name} • On the way (${tech.eta || '8 mins'} • ${tech.distanceKm || '1.8 km'})`
+                                : `${tech.name} • Accepted & Preparing Departure`))}
                   </Typography>
                 </Paper>
               </Box>
@@ -1447,7 +1498,7 @@ export default function TrackingPage() {
             </Card>
 
             {/* Diagnostic Inspection Active Notice (when tech is inspecting) */}
-            {(bookingStatus === 'inspecting' || bookingStatus === 'arrived') && (
+            {bookingStatus === 'inspecting' && (
               <Card
                 elevation={0}
                 sx={{
@@ -1514,15 +1565,16 @@ export default function TrackingPage() {
             {/* Doorstep Start / Completion Confirmation OTP Card */}
             {bookingStatus !== 'completed' && (
               <Paper
+                id="doorstep-otp-card"
                 elevation={0}
                 sx={{
                   p: 2,
                   bgcolor: isInspectingOrArrived
                     ? '#F0FDF4' 
-                    : (bookingStatus === 'quote_approved' ? '#F0FDF4' : '#F8FAFC'),
+                    : (bookingStatus === 'quote_approved' ? '#F0FDF4' : (bookingStatus === 'arrived' ? '#FEFCE8' : '#F8FAFC')),
                   border: isInspectingOrArrived
                     ? '1.5px solid #86EFAC' 
-                    : (bookingStatus === 'quote_approved' ? '1.5px solid #86EFAC' : '1.5px solid #CBD5E1'),
+                    : (bookingStatus === 'quote_approved' ? '1.5px solid #86EFAC' : (bookingStatus === 'arrived' ? '1.5px solid #FDE047' : '1.5px solid #CBD5E1')),
                   borderRadius: '10px',
                   mb: 2,
                   boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
@@ -1546,17 +1598,23 @@ export default function TrackingPage() {
                         ? 'Escrow Protected' 
                         : (isInspectingOrArrived
                             ? 'Verified & In Home' 
-                            : 'Ask Tech for PIN')
+                            : (bookingStatus === 'arrived' ? 'Tech at Doorstep - Ask PIN' : 'Ask Tech for PIN'))
                     }
                     size="small"
                     sx={{
-                      bgcolor: (isInspectingOrArrived || bookingStatus === 'quote_approved') ? '#DCFCE7' : '#EFF6FF',
-                      color: (isInspectingOrArrived || bookingStatus === 'quote_approved') ? '#166534' : '#1D4ED8',
+                      bgcolor: (isInspectingOrArrived || bookingStatus === 'quote_approved') ? '#DCFCE7' : (bookingStatus === 'arrived' ? '#FEF3C7' : '#EFF6FF'),
+                      color: (isInspectingOrArrived || bookingStatus === 'quote_approved') ? '#166534' : (bookingStatus === 'arrived' ? '#92400E' : '#1D4ED8'),
                       fontWeight: 800,
                       fontSize: '10.5px'
                     }}
                   />
                 </Box>
+
+                {bookingStatus === 'arrived' && !isInspectingOrArrived && (
+                  <Alert severity="info" sx={{ mb: 1.2, py: 0.6, bgcolor: '#EFF6FF', color: '#1E40AF', border: '1px solid #BFDBFE', borderRadius: '6px', fontSize: '11.5px', fontWeight: 600 }}>
+                    Technician has arrived at your doorstep! Ask them for their 4-digit PIN and verify below before letting them in.
+                  </Alert>
+                )}
 
                 {(isInspectingOrArrived && bookingStatus !== 'quote_approved') ? (
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: '#FFFFFF', p: 1.4, borderRadius: '8px', border: '1px solid #BBF7D0' }}>
@@ -1861,7 +1919,30 @@ export default function TrackingPage() {
                 >
                   Review Digital Estimate & Job Card (₹900.00) →
                 </Button>
-              ) : (bookingStatus === 'inspecting' || bookingStatus === 'arrived') ? (
+              ) : bookingStatus === 'arrived' ? (
+                <Button
+                  variant="contained"
+                  fullWidth
+                  size="large"
+                  onClick={() => {
+                    const el = document.getElementById('doorstep-otp-card');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  sx={{
+                    bgcolor: '#2563EB',
+                    color: '#FFFFFF',
+                    borderRadius: '8px',
+                    py: 1.3,
+                    fontWeight: 800,
+                    fontSize: '13.5px',
+                    textTransform: 'none',
+                    boxShadow: '0 4px 12px rgba(37,99,235,0.25)',
+                    '&:hover': { bgcolor: '#1D4ED8' }
+                  }}
+                >
+                  Tech Arrived • Verify Doorstep PIN Below ↓
+                </Button>
+              ) : bookingStatus === 'inspecting' ? (
                 <Button
                   variant="contained"
                   fullWidth

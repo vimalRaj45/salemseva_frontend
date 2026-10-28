@@ -91,7 +91,7 @@ export default function PartnerLoginPage() {
         return;
       }
 
-      await loginTech(data.user, data.sessionToken);
+      await loginTech(data.user);
       toast.success(`Welcome back Partner ${data.user.name || ''}!`);
       navigate('/partner/duty', { replace: true });
     } catch (err) {

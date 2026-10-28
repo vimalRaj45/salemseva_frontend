@@ -435,6 +435,7 @@ export default function PartnerDutyPage() {
   const [arrivalOtp, setArrivalOtp] = useState('');
   const [arrivalOtpVerified, setArrivalOtpVerified] = useState(false);
   const [isArrivalOtpOpen, setIsArrivalOtpOpen] = useState(false);
+  const [isMarkingArrived, setIsMarkingArrived] = useState(false);
   const [quoteSent, setQuoteSent] = useState(false);
 
   // Scheduled Leads & Direct Acceptance State
@@ -1043,10 +1044,10 @@ export default function PartnerDutyPage() {
               const isScheduled = data.activeJob.bookingType === 'scheduled' || Boolean(data.activeJob.scheduledSlot);
               if (st === 'matching') {
                 setStep(1);
-              } else if (st === 'en_route') {
+              } else if (st === 'en_route' || st === 'arrived') {
                 setStep(2);
                 localStorage.setItem('shazuone_partner_step', '2');
-              } else if (['arrived', 'inspecting', 'quote_presented', 'quote_approved', 'in_progress'].includes(st)) {
+              } else if (['inspecting', 'quote_presented', 'quote_approved', 'in_progress'].includes(st)) {
                 setStep(3);
                 localStorage.setItem('shazuone_partner_step', '3');
               } else if (st === 'accepted' || st === 'preparing') {
@@ -1078,10 +1079,10 @@ export default function PartnerDutyPage() {
             if (scheduledInTransit) {
               setActiveJob(scheduledInTransit);
               localStorage.setItem('shazuone_partner_active_job', scheduledInTransit.id);
-              if (scheduledInTransit.status === 'en_route') {
+              if (scheduledInTransit.status === 'en_route' || scheduledInTransit.status === 'arrived') {
                 setStep(2);
                 localStorage.setItem('shazuone_partner_step', '2');
-              } else if (['arrived', 'inspecting', 'quote_presented', 'quote_approved', 'in_progress'].includes(scheduledInTransit.status)) {
+              } else if (['inspecting', 'quote_presented', 'quote_approved', 'in_progress'].includes(scheduledInTransit.status)) {
                 setStep(3);
                 localStorage.setItem('shazuone_partner_step', '3');
               } else {
@@ -1263,6 +1264,52 @@ export default function PartnerDutyPage() {
       setTechToast('Network error while starting transit');
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  // Mark arrival at customer doorstep (Tech Arrives flow)
+  const handleTechArrived = async () => {
+    const jobId = activeJob?.id || activeBookingId;
+    if (!jobId) return;
+    setIsMarkingArrived(true);
+    setLoadingMsg({
+      title: 'வந்தடைந்ததாக குறிக்கப்படுகிறது...',
+      subtitle: 'Marking arrival at customer doorstep'
+    });
+    try {
+      const techId = activeTech?.id || user?.id;
+      const techPhone = activeTech?.phone || user?.phone;
+      const res = await fetch(`${API_V1_URL}/bookings/${jobId}/status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: 'arrived',
+          technicianId: techId,
+          technicianPhone: techPhone
+        })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setTechToast(data.error || 'Failed to update arrival status');
+        return;
+      }
+      const updatedB = data.booking || {};
+      const otp = updatedB.customer_otp || updatedB.customerOtp || activeJob?.customer_otp || activeJob?.customerOtp;
+      setActiveJob(prev => ({
+        ...prev,
+        ...updatedB,
+        status: 'arrived',
+        customer_otp: otp || prev?.customer_otp,
+        customerOtp: otp || prev?.customerOtp
+      }));
+      setTechToast('வாடிக்கையாளர் வாசலை அடைந்துவிட்டீர்கள்! 4 இலக்க PIN-ஐ வாடிக்கையாளரிடம் கூறவும் (Tech Arrived! Share PIN with customer).');
+      window.dispatchEvent(new CustomEvent('shazuone_status_updated', { detail: { bookingId: jobId, status: 'arrived' } }));
+      window.dispatchEvent(new Event('storage'));
+    } catch (err) {
+      console.error('Error marking arrival:', err);
+      setTechToast('Network error while marking arrival. Please try again.');
+    } finally {
+      setIsMarkingArrived(false);
     }
   };
 
@@ -1948,7 +1995,7 @@ export default function PartnerDutyPage() {
                 1. Orders & Schedule
               </Button>
               <Button
-                disabled={step !== 2 && !(activeJob && (activeJob.status === 'accepted' || activeJob.status === 'en_route'))}
+                disabled={step !== 2 && !(activeJob && (activeJob.status === 'accepted' || activeJob.status === 'en_route' || activeJob.status === 'arrived'))}
                 onClick={() => {
                   setStep(2);
                   localStorage.setItem('shazuone_partner_step', '2');
@@ -1964,7 +2011,7 @@ export default function PartnerDutyPage() {
                   border: step === 2 ? '1px solid #E2E8F0' : 'none',
                   boxShadow: step === 2 ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
                   textTransform: 'none',
-                  cursor: (step === 2 || (activeJob && (activeJob.status === 'accepted' || activeJob.status === 'en_route'))) ? 'pointer' : 'not-allowed',
+                  cursor: (step === 2 || (activeJob && (activeJob.status === 'accepted' || activeJob.status === 'en_route' || activeJob.status === 'arrived'))) ? 'pointer' : 'not-allowed',
                   '&.Mui-disabled': {
                     color: '#94A3B8',
                     cursor: 'not-allowed',
@@ -4645,63 +4692,105 @@ export default function PartnerDutyPage() {
                       </Button>
                     </Box>
 
-                    {/* Doorstep Safety Security PIN Display for Technician */}
-                    <Paper
-                      elevation={0}
-                      sx={{
-                        p: 2,
-                        bgcolor: '#EFF6FF',
-                        border: '1.5px solid #93C5FD',
-                        borderRadius: '8px',
-                        mt: 1.5
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                          <VerifiedUserIcon sx={{ color: '#2563EB', fontSize: 18 }} />
-                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1E3A8A', fontSize: '12.5px' }}>
-                            Your Doorstep Verification PIN (வாடிக்கையாளருக்கு கூற வேண்டிய PIN)
-                          </Typography>
-                        </Box>
-                        <Chip label="Tell to Customer" size="small" sx={{ bgcolor: '#DBEAFE', color: '#1D4ED8', fontWeight: 800, fontSize: '10px' }} />
-                      </Box>
-
-                      <Typography variant="caption" sx={{ color: '#1E40AF', fontSize: '11.5px', display: 'block', mb: 1.5, lineHeight: 1.4 }}>
-                        When you reach the customer's house, the customer will ask you: <em>"What is your Shazu One PIN?"</em>. Tell them the 4 digits below so they can verify your identity on their screen and let you inside.
-                      </Typography>
-
-                      {/* Prominent 4-Digit Display for Tech */}
-                      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, my: 1.5 }}>
-                        {String(activeJob?.customerOtp || activeJob?.customer_otp || '----').split('').map((digit, idx) => (
-                          <Box
-                            key={idx}
-                            sx={{
-                              width: 44,
-                              height: 50,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              bgcolor: '#FFFFFF',
-                              border: '2px solid #2563EB',
-                              borderRadius: '8px',
-                              fontWeight: 900,
-                              fontSize: '22px',
-                              color: '#0F172A',
-                              boxShadow: '0 2px 6px rgba(37, 99, 235, 0.2)'
-                            }}
-                          >
-                            {digit}
-                          </Box>
-                        ))}
-                      </Box>
-
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, bgcolor: '#FFFFFF', p: 1, borderRadius: '6px', border: '1px solid #BFDBFE' }}>
-                        <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#22C55E', animation: 'pulse 1.5s infinite' }} />
-                        <Typography variant="caption" sx={{ color: '#475569', fontSize: '11px', fontWeight: 600 }}>
-                          Awaiting customer doorstep confirmation... Once customer verifies your PIN, inspection mode will unlock automatically.
+                    {/* Doorstep Arrival / Safety Verification PIN Section */}
+                    {activeJob?.status !== 'arrived' ? (
+                      /* Tech Arrived Button */
+                      <Box sx={{ mt: 1.5 }}>
+                        <Button
+                          variant="contained"
+                          fullWidth
+                          size="large"
+                          startIcon={<LocationOnIcon sx={{ fontSize: 20 }} />}
+                          onClick={handleTechArrived}
+                          disabled={isMarkingArrived}
+                          sx={{
+                            bgcolor: '#16A34A',
+                            color: '#FFFFFF',
+                            fontWeight: 800,
+                            fontSize: '14px',
+                            py: 1.4,
+                            borderRadius: '8px',
+                            boxShadow: '0 4px 14px rgba(22, 163, 74, 0.35)',
+                            textTransform: 'none',
+                            '&:hover': { bgcolor: '#15803D' }
+                          }}
+                        >
+                          {isMarkingArrived ? 'Marking Arrival...' : 'Tech Arrived (நான் வந்துவிட்டேன்)'}
+                        </Button>
+                        <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', color: '#64748B', mt: 0.8, fontSize: '11px' }}>
+                          Click when you reach customer's doorstep to view your verification PIN
                         </Typography>
                       </Box>
-                    </Paper>
+                    ) : (
+                      /* Doorstep Safety Security PIN Display for Technician */
+                      <Box sx={{ mt: 1.5 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '8px', px: 1.5, py: 0.8, mb: 1.2 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                            <CheckCircleIcon sx={{ color: '#16A34A', fontSize: 18 }} />
+                            <Typography variant="body2" sx={{ fontWeight: 800, color: '#14532D', fontSize: '12px' }}>
+                              Arrived at Doorstep (வந்து சேர்ந்தார்)
+                            </Typography>
+                          </Box>
+                          <Chip label="ARRIVED" size="small" sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 900, fontSize: '10px', height: 20 }} />
+                        </Box>
+
+                        <Paper
+                          elevation={0}
+                          sx={{
+                            p: 2,
+                            bgcolor: '#EFF6FF',
+                            border: '1.5px solid #93C5FD',
+                            borderRadius: '8px'
+                          }}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                              <VerifiedUserIcon sx={{ color: '#2563EB', fontSize: 18 }} />
+                              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1E3A8A', fontSize: '12.5px' }}>
+                                Your Doorstep Verification PIN (வாடிக்கையாளருக்கு கூற வேண்டிய PIN)
+                              </Typography>
+                            </Box>
+                            <Chip label="Tell to Customer" size="small" sx={{ bgcolor: '#DBEAFE', color: '#1D4ED8', fontWeight: 800, fontSize: '10px' }} />
+                          </Box>
+
+                          <Typography variant="caption" sx={{ color: '#1E40AF', fontSize: '11.5px', display: 'block', mb: 1.5, lineHeight: 1.4 }}>
+                            When you reach the customer's house, the customer will ask you: <em>"What is your Shazu One PIN?"</em>. Tell them the 4 digits below so they can verify your identity on their screen and let you inside.
+                          </Typography>
+
+                          {/* Prominent 4-Digit Display for Tech */}
+                          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, my: 1.5 }}>
+                            {String(activeJob?.customerOtp || activeJob?.customer_otp || '----').split('').map((digit, idx) => (
+                              <Box
+                                key={idx}
+                                sx={{
+                                  width: 44,
+                                  height: 50,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  bgcolor: '#FFFFFF',
+                                  border: '2px solid #2563EB',
+                                  borderRadius: '8px',
+                                  fontWeight: 900,
+                                  fontSize: '22px',
+                                  color: '#0F172A',
+                                  boxShadow: '0 2px 6px rgba(37, 99, 235, 0.2)'
+                                }}
+                              >
+                                {digit}
+                              </Box>
+                            ))}
+                          </Box>
+
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, bgcolor: '#FFFFFF', p: 1, borderRadius: '6px', border: '1px solid #BFDBFE' }}>
+                            <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#22C55E', animation: 'pulse 1.5s infinite' }} />
+                            <Typography variant="caption" sx={{ color: '#475569', fontSize: '11px', fontWeight: 600 }}>
+                              Awaiting customer doorstep confirmation... Once customer verifies your PIN, inspection mode will unlock automatically.
+                            </Typography>
+                          </Box>
+                        </Paper>
+                      </Box>
+                    )}
                   </Box>
                 </Card>
               </Box>
