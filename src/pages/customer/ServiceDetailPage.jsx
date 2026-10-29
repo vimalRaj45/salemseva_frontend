@@ -666,8 +666,8 @@ export default function ServiceDetailPage({ onStartBooking }) {
               elevation={0}
               onClick={() => navigate('/booking/address', { state: { returnTo: location.pathname + location.search } })}
               sx={{
-                p: 1.2,
-                mb: 1.5,
+                p: { xs: 1, sm: 1.2 },
+                mb: 1.2,
                 borderRadius: '8px',
                 bgcolor: isBadPin ? '#FEF2F2' : '#FFFFFF',
                 border: isBadPin ? '1.5px solid #EF4444' : '1px solid #E2E8F0',
@@ -678,22 +678,22 @@ export default function ServiceDetailPage({ onStartBooking }) {
                 '&:hover': { borderColor: isBadPin ? '#DC2626' : '#CBD5E1' }
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, minWidth: 0 }}>
-                <LocationOnIcon sx={{ fontSize: 22, color: isBadPin ? '#DC2626' : '#2563EB', flexShrink: 0 }} />
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+                <LocationOnIcon sx={{ fontSize: { xs: 20, sm: 22 }, color: isBadPin ? '#DC2626' : '#2563EB', flexShrink: 0 }} />
                 <Box sx={{ minWidth: 0 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: isBadPin ? '#991B1B' : '#0F172A', fontSize: { xs: '14px', sm: '15px' } }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: isBadPin ? '#991B1B' : '#0F172A', fontSize: { xs: '13.5px', sm: '14.5px' }, lineHeight: 1.2 }}>
                       {userLocation.locality || 'Fairlands, Salem'}
                     </Typography>
                     {isBadPin && (
-                      <Chip label="Outside Salem (Not Accepted)" size="small" sx={{ height: 20, fontSize: '11px', fontWeight: 800, bgcolor: '#EF4444', color: '#FFF' }} />
+                      <Chip label="Outside Salem" size="small" sx={{ height: 18, fontSize: '10px', fontWeight: 800, bgcolor: '#EF4444', color: '#FFF' }} />
                     )}
                   </Box>
                   <Typography
                     variant="caption"
                     sx={{
                       color: isBadPin ? '#B91C1C' : '#64748B',
-                      fontSize: { xs: '12.5px', sm: '13.5px' },
+                      fontSize: { xs: '11.5px', sm: '12.5px' },
                       display: 'block',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
@@ -707,13 +707,15 @@ export default function ServiceDetailPage({ onStartBooking }) {
 
               <Button
                 size="small"
-                endIcon={<KeyboardArrowDownIcon sx={{ fontSize: 18 }} />}
+                endIcon={<KeyboardArrowDownIcon sx={{ fontSize: 16 }} />}
                 sx={{
                   color: isBadPin ? '#DC2626' : '#2563EB',
                   fontWeight: 700,
-                  fontSize: { xs: '13px', sm: '14px' },
+                  fontSize: { xs: '12px', sm: '13px' },
                   textTransform: 'none',
-                  flexShrink: 0
+                  flexShrink: 0,
+                  p: { xs: '2px 6px', sm: '4px 8px' },
+                  minWidth: 0
                 }}
               >
                 Change
@@ -795,15 +797,15 @@ export default function ServiceDetailPage({ onStartBooking }) {
             bgcolor: '#FFFFFF',
             border: '1px solid #E2E8F0',
             borderRadius: '8px',
-            p: { xs: 1.5, sm: 2 },
-            mb: 1.5
+            p: { xs: 1.2, sm: 1.6 },
+            mb: 1.2
           }}
         >
-          <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', gap: 1.2, alignItems: 'center' }}>
             <Box
               sx={{
-                width: 48,
-                height: 48,
+                width: { xs: 40, sm: 46 },
+                height: { xs: 40, sm: 46 },
                 borderRadius: '8px',
                 bgcolor: '#EFF6FF',
                 color: serviceInfo?.colorHex || '#2563EB',
@@ -816,19 +818,28 @@ export default function ServiceDetailPage({ onStartBooking }) {
               {getServiceIcon()}
             </Box>
 
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A', fontSize: { xs: '16px', sm: '18.5px' }, lineHeight: 1.25 }}>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A', fontSize: { xs: '15px', sm: '18px' }, lineHeight: 1.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {currentServiceName}
               </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mt: 0.4 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3 }}>
-                  <StarIcon sx={{ color: '#D97706', fontSize: 16 }} />
-                  <Typography variant="caption" sx={{ fontWeight: 700, color: '#0F172A', fontSize: { xs: '12.5px', sm: '13.5px' } }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, mt: 0.3, flexWrap: 'nowrap', overflow: 'hidden' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3, flexShrink: 0 }}>
+                  <StarIcon sx={{ color: '#D97706', fontSize: 14 }} />
+                  <Typography variant="caption" sx={{ fontWeight: 800, color: '#0F172A', fontSize: { xs: '11.5px', sm: '13px' } }}>
                     4.9
                   </Typography>
                 </Box>
-                <Typography variant="caption" sx={{ color: '#64748B', fontSize: { xs: '12.5px', sm: '13.5px' } }}>
-                  • Verified Salem Technicians • 15-25 min ETA
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: '#64748B',
+                    fontSize: { xs: '11.5px', sm: '13px' },
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
+                >
+                  • Verified Salem Specialists • 15-25m ETA
                 </Typography>
               </Box>
             </Box>
@@ -904,27 +915,31 @@ export default function ServiceDetailPage({ onStartBooking }) {
         <Paper
           elevation={0}
           sx={{
-            p: 1.5,
-            mb: 2,
+            py: 1.2,
+            px: { xs: 0.5, sm: 1.5 },
+            mb: 1.2,
             bgcolor: '#FFFFFF',
             border: '1px solid #E2E8F0',
-            borderRadius: '12px'
+            borderRadius: '8px'
           }}
         >
           <Stepper activeStep={selectedIssue ? 1 : 0} alternativeLabel>
-            {['1. Select Fault', '2. Pick Time Window', '3. Verified Arrival'].map((label) => (
+            {['1. Select Issue', '2. Pick Time Slot', '3. Pro Arrival'].map((label) => (
               <Step key={label}>
                 <StepLabel
                   sx={{
                     '& .MuiStepLabel-label': {
-                      fontSize: { xs: '12.5px', sm: '13.5px' },
+                      fontSize: { xs: '11px', sm: '12.5px' },
                       fontWeight: 700,
                       color: '#475569',
+                      whiteSpace: 'nowrap',
+                      lineHeight: 1.2,
+                      mt: 0.4,
                       '&.Mui-active': { color: '#0066CC', fontWeight: 800 },
                       '&.Mui-completed': { color: '#16A34A', fontWeight: 700 }
                     },
                     '& .MuiStepIcon-root': {
-                      fontSize: { xs: '22px', sm: '24px' },
+                      fontSize: { xs: '18px', sm: '22px' },
                       '&.Mui-active': { color: '#0066CC' },
                       '&.Mui-completed': { color: '#16A34A' }
                     }
@@ -942,38 +957,50 @@ export default function ServiceDetailPage({ onStartBooking }) {
           <Paper
             elevation={0}
             sx={{
-              p: 1.5,
+              p: { xs: 1, sm: 1.4 },
               bgcolor: '#F0FDF4',
               border: '1px solid #BBF7D0',
               borderRadius: '8px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              mb: 1.5
+              mb: 1.2,
+              gap: 1
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <LocalOfferIcon sx={{ color: '#16A34A', fontSize: 20 }} />
-              <Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#166534', fontSize: { xs: '13.5px', sm: '14.5px' } }}>
-                    ₹{couponDiscount} discount applied ({couponCode})
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0, flex: 1 }}>
+              <LocalOfferIcon sx={{ color: '#16A34A', fontSize: { xs: 18, sm: 20 }, flexShrink: 0 }} />
+              <Box sx={{ minWidth: 0, flex: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, flexWrap: 'nowrap' }}>
+                  <Typography
+                    variant="subtitle2"
+                    sx={{
+                      fontWeight: 800,
+                      color: '#166534',
+                      fontSize: { xs: '12.5px', sm: '14px' },
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    ₹{couponDiscount} applied ({couponCode})
                   </Typography>
                   <Box
                     key={`badge-anim-${couponCode}`}
                     sx={{
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: 0.6,
+                      gap: 0.5,
                       bgcolor: '#DCFCE7',
-                      px: 0.8,
-                      py: 0.2,
-                      borderRadius: '6px',
+                      px: 0.7,
+                      py: 0.15,
+                      borderRadius: '5px',
                       border: '1px solid #86EFAC',
+                      flexShrink: 0,
                       animation: 'discountBadgeShine 1.5s ease-out'
                     }}
                   >
-                    <Box component="span" sx={{ position: 'relative', display: 'inline-block', color: '#64748B', fontWeight: 600, fontSize: '11.5px' }}>
+                    <Box component="span" sx={{ position: 'relative', display: 'inline-block', color: '#64748B', fontWeight: 600, fontSize: '11px' }}>
                       ₹{inspectionFeeNumber}
                       <Box
                         component="span"
@@ -989,22 +1016,42 @@ export default function ServiceDetailPage({ onStartBooking }) {
                         }}
                       />
                     </Box>
-                    <Typography component="span" sx={{ fontWeight: 900, color: '#15803D', fontSize: '12.5px', animation: 'pricePop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.3s backwards' }}>
+                    <Typography component="span" sx={{ fontWeight: 900, color: '#15803D', fontSize: '12px', animation: 'pricePop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.3s backwards' }}>
                       ₹{discountedFee}
                     </Typography>
                   </Box>
                 </Box>
-                <Typography variant="caption" sx={{ color: '#15803D', fontSize: { xs: '12px', sm: '13px' } }}>
-                  Promotional credit applied to inspection & repair bill
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: '#15803D',
+                    fontSize: { xs: '11px', sm: '12px' },
+                    display: 'block',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    mt: 0.2
+                  }}
+                >
+                  Promotional credit applied to inspection fee
                 </Typography>
               </Box>
             </Box>
 
             <Button
               size="small"
-              startIcon={<CloseIcon sx={{ fontSize: 15 }} />}
+              startIcon={<CloseIcon sx={{ fontSize: 14 }} />}
               onClick={handleRemoveCoupon}
-              sx={{ color: '#475569', fontWeight: 600, fontSize: { xs: '12.5px', sm: '13.5px' }, textTransform: 'none', py: 0.4, '&:hover': { color: '#EF4444' } }}
+              sx={{
+                color: '#475569',
+                fontWeight: 700,
+                fontSize: { xs: '11.5px', sm: '12.5px' },
+                textTransform: 'none',
+                p: { xs: '2px 8px', sm: '4px 10px' },
+                minWidth: 0,
+                flexShrink: 0,
+                '&:hover': { color: '#EF4444' }
+              }}
             >
               Remove
             </Button>
@@ -1013,11 +1060,11 @@ export default function ServiceDetailPage({ onStartBooking }) {
           <Paper
             elevation={0}
             sx={{
-              p: { xs: 1.5, sm: 2 },
+              p: { xs: 1.2, sm: 1.6 },
               bgcolor: '#FFFFFF',
               border: '1px solid #E2E8F0',
               borderRadius: '8px',
-              mb: 1.5
+              mb: 1.2
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 1 }}>
