@@ -103,6 +103,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
   const [couponError, setCouponError] = useState('');
   const [couponLoading, setCouponLoading] = useState(false);
   const [availableCoupons, setAvailableCoupons] = useState([]);
+  const [showCelebrationModal, setShowCelebrationModal] = useState(false);
 
   const [serviceInfo, setServiceInfo] = useState(() => location.state?.service || null);
   const [issuesList, setIssuesList] = useState([]);
@@ -317,10 +318,13 @@ export default function ServiceDetailPage({ onStartBooking }) {
         setCouponApplied(true);
         setCouponInput('');
         setCouponError('');
+        setShowCelebrationModal(true);
+        toast.success(`Coupon ${data.code} applied! ₹${data.discountAmount} saved.`);
       } else {
         setCouponError(data.error || 'Invalid or expired coupon code');
         setCouponApplied(false);
         setCouponDiscount(0);
+        setShowCelebrationModal(false);
       }
     } catch (err) {
       setCouponError('Could not validate coupon. Please check connection.');
@@ -334,6 +338,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
     setCouponCode('');
     setCouponDiscount(0);
     setCouponError('');
+    setShowCelebrationModal(false);
   };
 
   const getFormattedDateString = () => {
@@ -1684,31 +1689,32 @@ export default function ServiceDetailPage({ onStartBooking }) {
           right: 0,
           bgcolor: '#FFFFFF',
           borderTop: '1px solid #E2E8F0',
-          py: 1.4,
-          px: { xs: 2, md: 3 },
+          py: { xs: 1, sm: 1.3 },
+          px: { xs: 1.5, md: 3 },
           zIndex: 995,
           boxShadow: '0 -4px 16px rgba(15, 23, 42, 0.08)'
         }}
       >
-        <Container maxWidth="md" disableGutters sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Box>
-            <Typography
-              variant="subtitle2"
-              sx={{
-                fontWeight: 800,
-                fontSize: { xs: '15px', sm: '17px' },
-                color: '#0F172A',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 0.8
-              }}
-            >
-              <span>Inspection fee:</span>
+        <Container maxWidth="md" disableGutters sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ minWidth: 0, flex: 1, pr: 0.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 0.8 }, flexWrap: 'nowrap' }}>
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  fontWeight: 800,
+                  fontSize: { xs: '13px', sm: '15.5px' },
+                  color: '#0F172A',
+                  whiteSpace: 'nowrap',
+                  lineHeight: 1.2
+                }}
+              >
+                Inspection fee:
+              </Typography>
               {couponApplied ? (
                 <Box
                   key={`bottom-anim-${couponCode}-${couponDiscount}`}
                   component="span"
-                  sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.8 }}
+                  sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, flexWrap: 'nowrap' }}
                 >
                   <Box
                     component="span"
@@ -1716,8 +1722,9 @@ export default function ServiceDetailPage({ onStartBooking }) {
                       position: 'relative',
                       display: 'inline-block',
                       color: '#94A3B8',
-                      fontWeight: 600,
-                      fontSize: { xs: '14px', sm: '16px' }
+                      fontWeight: 700,
+                      fontSize: { xs: '12.5px', sm: '14.5px' },
+                      whiteSpace: 'nowrap'
                     }}
                   >
                     ₹{inspectionFeeNumber}
@@ -1728,7 +1735,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
                         left: 0,
                         top: '50%',
                         width: '100%',
-                        height: '2px',
+                        height: '1.5px',
                         bgcolor: '#DC2626',
                         animation: 'strikeThrough 0.45s ease-out forwards',
                         transform: 'translateY(-50%)'
@@ -1741,7 +1748,9 @@ export default function ServiceDetailPage({ onStartBooking }) {
                       display: 'inline-block',
                       color: discountedFee === 0 ? '#16A34A' : '#0F172A',
                       fontWeight: 900,
-                      fontSize: { xs: '17px', sm: '19px' },
+                      fontSize: { xs: '15.5px', sm: '18px' },
+                      lineHeight: 1,
+                      whiteSpace: 'nowrap',
                       animation: 'pricePop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.3s backwards'
                     }}
                   >
@@ -1752,14 +1761,16 @@ export default function ServiceDetailPage({ onStartBooking }) {
                       component="span"
                       sx={{
                         display: 'inline-block',
-                        fontSize: '10.5px',
+                        fontSize: '9.5px',
                         fontWeight: 800,
                         color: '#15803D',
                         bgcolor: '#DCFCE7',
                         border: '1px solid #86EFAC',
-                        px: 0.8,
-                        py: 0.2,
+                        px: 0.6,
+                        py: 0.1,
                         borderRadius: '4px',
+                        lineHeight: 1.2,
+                        whiteSpace: 'nowrap',
                         animation: 'pricePop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.45s backwards'
                       }}
                     >
@@ -1768,10 +1779,23 @@ export default function ServiceDetailPage({ onStartBooking }) {
                   )}
                 </Box>
               ) : (
-                <span>₹{inspectionFeeNumber}</span>
+                <Typography sx={{ fontWeight: 800, fontSize: { xs: '13.5px', sm: '16px' }, color: '#0F172A', whiteSpace: 'nowrap' }}>
+                  ₹{inspectionFeeNumber}
+                </Typography>
               )}
-            </Typography>
-            <Typography variant="caption" sx={{ color: bookingMode === 'scheduled' ? '#0066CC' : couponApplied ? '#16A34A' : '#64748B', fontSize: { xs: '12.5px', sm: '13.5px' }, fontWeight: 600 }}>
+            </Box>
+            <Typography
+              variant="caption"
+              sx={{
+                color: bookingMode === 'scheduled' ? '#0066CC' : couponApplied ? '#16A34A' : '#64748B',
+                fontSize: { xs: '11px', sm: '12.5px' },
+                fontWeight: 600,
+                display: 'block',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+              }}
+            >
               {bookingMode === 'scheduled'
                 ? `${getFormattedDateString()} • ${getEffectiveSlot().split('-')[0].trim()}`
                 : couponApplied ? `₹${couponDiscount} discount applied` : `Service in ${userLocation.locality || 'Fairlands, Salem'}`}
@@ -1783,7 +1807,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
             className="btn-shimmer"
             disabled={isDomainTemporarilyClosed || isSelectedDateFull}
             onClick={handleProceed}
-            endIcon={!isDomainTemporarilyClosed && !isSelectedDateFull ? <ArrowForwardIcon sx={{ fontSize: 20 }} /> : undefined}
+            endIcon={!isDomainTemporarilyClosed && !isSelectedDateFull ? <ArrowForwardIcon sx={{ fontSize: { xs: 16, sm: 18 } }} /> : undefined}
             sx={{
               bgcolor: isDomainTemporarilyClosed 
                 ? '#94A3B8' 
@@ -1791,13 +1815,17 @@ export default function ServiceDetailPage({ onStartBooking }) {
                 ? '#DC2626' 
                 : '#0284C7',
               color: '#FFFFFF',
-              borderRadius: '10px',
+              borderRadius: '8px',
               fontWeight: 800,
-              px: { xs: 2.2, sm: 3.5 },
-              py: 1.1,
-              fontSize: { xs: '13px', sm: '15px' },
+              px: { xs: 1.8, sm: 2.8 },
+              py: { xs: 0.8, sm: 1 },
+              minHeight: { xs: '38px', sm: '42px' },
+              height: { xs: '38px', sm: '42px' },
+              fontSize: { xs: '12.5px', sm: '14px' },
               textTransform: 'none',
-              boxShadow: isDomainTemporarilyClosed || isSelectedDateFull ? 'none' : '0 4px 14px rgba(2, 132, 199, 0.25)',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+              boxShadow: isDomainTemporarilyClosed || isSelectedDateFull ? 'none' : '0 2px 8px rgba(2, 132, 199, 0.25)',
               '&:hover': {
                 bgcolor: isDomainTemporarilyClosed ? '#94A3B8' : isSelectedDateFull ? '#B91C1C' : '#0369A1'
               },
@@ -1808,13 +1836,186 @@ export default function ServiceDetailPage({ onStartBooking }) {
             }}
           >
             {isDomainTemporarilyClosed
-              ? 'Service Temporarily Closed in Salem'
+              ? 'Closed'
               : isSelectedDateFull
-              ? 'Date Fully Booked • Select Another Date'
-              : `Pay ₹${Math.max(0, inspectionFeeNumber - (couponApplied ? couponDiscount : 0))} & Reserve Slot`}
+              ? 'Full'
+              : `Pay ₹${discountedFee} & Book`}
           </Button>
         </Container>
       </Paper>
+
+      {/* Celebratory Discount Shower Pop-up */}
+      {showCelebrationModal && (
+        <Box
+          onClick={() => setShowCelebrationModal(false)}
+          sx={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 10000,
+            bgcolor: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            p: 2,
+            overflow: 'hidden'
+          }}
+        >
+          {/* Confetti Shower Stream */}
+          <Box sx={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+            {Array.from({ length: 42 }).map((_, i) => {
+              const colors = ['#22C55E', '#10B981', '#0EA5E9', '#F59E0B', '#EC4899', '#8B5CF6'];
+              const color = colors[i % colors.length];
+              const left = ((i * 2.3 + (i % 5) * 1.7) * 9.7) % 98;
+              const delay = ((i * 0.07) % 1.4).toFixed(2);
+              const duration = (1.5 + ((i * 0.11) % 1.1)).toFixed(2);
+              const width = i % 2 === 0 ? '8px' : '11px';
+              const height = i % 2 === 0 ? '13px' : '7px';
+              return (
+                <Box
+                  key={i}
+                  sx={{
+                    position: 'absolute',
+                    top: '-20px',
+                    left: `${left}%`,
+                    width,
+                    height,
+                    bgcolor: color,
+                    borderRadius: i % 3 === 0 ? '50%' : '2px',
+                    opacity: 0.9,
+                    animation: `confettiFall ${duration}s ease-in ${delay}s infinite`
+                  }}
+                />
+              );
+            })}
+          </Box>
+
+          {/* Celebratory Modal Card */}
+          <Paper
+            elevation={12}
+            onClick={(e) => e.stopPropagation()}
+            sx={{
+              position: 'relative',
+              zIndex: 2,
+              width: '100%',
+              maxWidth: '360px',
+              borderRadius: '20px',
+              bgcolor: '#FFFFFF',
+              p: { xs: 2.8, sm: 3.5 },
+              textAlign: 'center',
+              boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.35)',
+              animation: 'popShowerModal 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards'
+            }}
+          >
+            {/* Green Badge */}
+            <Box
+              sx={{
+                width: 60,
+                height: 60,
+                borderRadius: '50%',
+                bgcolor: '#DCFCE7',
+                border: '2px solid #86EFAC',
+                color: '#16A34A',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mx: 'auto',
+                mb: 1.5,
+                boxShadow: '0 0 0 8px rgba(34, 197, 94, 0.15)'
+              }}
+            >
+              <CheckCircleIcon sx={{ fontSize: 34 }} />
+            </Box>
+
+            <Typography sx={{ fontSize: '11px', fontWeight: 800, color: '#16A34A', letterSpacing: '0.08em', textTransform: 'uppercase', mb: 0.5 }}>
+              Discount Applied!
+            </Typography>
+
+            <Typography sx={{ fontSize: { xs: '19px', sm: '21px' }, fontWeight: 900, color: '#0F172A', lineHeight: 1.2, mb: 0.8 }}>
+              ₹{couponDiscount} Saved on Booking
+            </Typography>
+
+            <Typography sx={{ fontSize: '12.5px', color: '#64748B', lineHeight: 1.4, mb: 2 }}>
+              Coupon <strong>{couponCode}</strong> applied successfully to your inspection bill.
+            </Typography>
+
+            {/* Price Transition Highlight */}
+            <Box
+              sx={{
+                bgcolor: '#F8FAFC',
+                border: '1.5px dashed #CBD5E1',
+                borderRadius: '12px',
+                p: 1.4,
+                mb: 2.2,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-around'
+              }}
+            >
+              <Box>
+                <Typography sx={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
+                  Standard Fee
+                </Typography>
+                <Box
+                  component="span"
+                  sx={{
+                    position: 'relative',
+                    display: 'inline-block',
+                    fontSize: '16px',
+                    fontWeight: 700,
+                    color: '#94A3B8'
+                  }}
+                >
+                  ₹{inspectionFeeNumber}
+                  <Box
+                    component="span"
+                    sx={{
+                      position: 'absolute',
+                      left: 0,
+                      top: '50%',
+                      width: '100%',
+                      height: '2px',
+                      bgcolor: '#DC2626',
+                      animation: 'strikeThrough 0.45s ease-out forwards',
+                      transform: 'translateY(-50%)'
+                    }}
+                  />
+                </Box>
+              </Box>
+
+              <ArrowForwardIcon sx={{ color: '#0A66C2', fontSize: 18 }} />
+
+              <Box>
+                <Typography sx={{ fontSize: '11px', color: '#16A34A', fontWeight: 700 }}>
+                  Payable Now
+                </Typography>
+                <Typography sx={{ fontSize: '20px', fontWeight: 900, color: '#16A34A', lineHeight: 1 }}>
+                  ₹{discountedFee} {discountedFee === 0 && <span style={{ fontSize: '11px', color: '#15803D', background: '#DCFCE7', padding: '1px 5px', borderRadius: '4px', verticalAlign: 'middle', fontWeight: 800 }}>FREE</span>}
+                </Typography>
+              </Box>
+            </Box>
+
+            <Button
+              fullWidth
+              variant="contained"
+              onClick={() => setShowCelebrationModal(false)}
+              sx={{
+                bgcolor: '#0A66C2',
+                color: '#FFFFFF',
+                borderRadius: '10px',
+                fontWeight: 800,
+                fontSize: '14px',
+                py: 1.1,
+                textTransform: 'none',
+                boxShadow: '0 4px 14px rgba(10, 102, 194, 0.25)',
+                '&:hover': { bgcolor: '#084E96' }
+              }}
+            >
+              Great, Continue!
+            </Button>
+          </Paper>
+        </Box>
+      )}
 
       {/* Navigation lives in the global CustomerTabBar; this page keeps only its booking CTA. */}
 

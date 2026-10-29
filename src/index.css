@@ -402,6 +402,31 @@ div:has(> [data-hot-toast]),
   }
 }
 
+@keyframes confettiFall {
+  0% {
+    transform: translateY(-20px) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(105vh) rotate(720deg);
+    opacity: 0.15;
+  }
+}
+
+@keyframes popShowerModal {
+  0% {
+    transform: scale(0.6) translateY(25px);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.04) translateY(-4px);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .brand-logo-shine::after,
   .brand-title-shazu,
@@ -692,6 +717,31 @@ html {
   }
   100% {
     box-shadow: 0 0 0 0 rgba(22, 163, 74, 0);
+  }
+}
+
+@keyframes confettiFall {
+  0% {
+    transform: translateY(-20px) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(105vh) rotate(720deg);
+    opacity: 0.15;
+  }
+}
+
+@keyframes popShowerModal {
+  0% {
+    transform: scale(0.6) translateY(25px);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.04) translateY(-4px);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
   }
 }
 
