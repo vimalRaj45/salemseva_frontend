@@ -113,6 +113,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
     serviceInfo?.visit_fee ??
     (serviceId === 'ac' || serviceId === 'electrician' ? 149 : 99)
   );
+  const discountedFee = Math.max(0, inspectionFeeNumber - (couponApplied ? couponDiscount : 0));
   const [isLoadingIssues, setIsLoadingIssues] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingTitle, setProcessingTitle] = useState('Your payment is processing...');
@@ -947,11 +948,47 @@ export default function ServiceDetailPage({ onStartBooking }) {
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <LocalOfferIcon sx={{ color: '#16A34A', fontSize: 18 }} />
+              <LocalOfferIcon sx={{ color: '#16A34A', fontSize: 20 }} />
               <Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#166534', fontSize: { xs: '13.5px', sm: '14.5px' } }}>
-                  ₹{couponDiscount} discount applied ({couponCode})
-                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#166534', fontSize: { xs: '13.5px', sm: '14.5px' } }}>
+                    ₹{couponDiscount} discount applied ({couponCode})
+                  </Typography>
+                  <Box
+                    key={`badge-anim-${couponCode}`}
+                    sx={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 0.6,
+                      bgcolor: '#DCFCE7',
+                      px: 0.8,
+                      py: 0.2,
+                      borderRadius: '6px',
+                      border: '1px solid #86EFAC',
+                      animation: 'discountBadgeShine 1.5s ease-out'
+                    }}
+                  >
+                    <Box component="span" sx={{ position: 'relative', display: 'inline-block', color: '#64748B', fontWeight: 600, fontSize: '11.5px' }}>
+                      ₹{inspectionFeeNumber}
+                      <Box
+                        component="span"
+                        sx={{
+                          position: 'absolute',
+                          left: 0,
+                          top: '50%',
+                          width: '100%',
+                          height: '1.5px',
+                          bgcolor: '#DC2626',
+                          animation: 'strikeThrough 0.45s ease-out forwards',
+                          transform: 'translateY(-50%)'
+                        }}
+                      />
+                    </Box>
+                    <Typography component="span" sx={{ fontWeight: 900, color: '#15803D', fontSize: '12.5px', animation: 'pricePop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.3s backwards' }}>
+                      ₹{discountedFee}
+                    </Typography>
+                  </Box>
+                </Box>
                 <Typography variant="caption" sx={{ color: '#15803D', fontSize: { xs: '12px', sm: '13px' } }}>
                   Promotional credit applied to inspection & repair bill
                 </Typography>
@@ -1655,8 +1692,84 @@ export default function ServiceDetailPage({ onStartBooking }) {
       >
         <Container maxWidth="md" disableGutters sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box>
-            <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: { xs: '15px', sm: '17px' }, color: '#0F172A' }}>
-              Inspection fee: ₹{inspectionFeeNumber}
+            <Typography
+              variant="subtitle2"
+              sx={{
+                fontWeight: 800,
+                fontSize: { xs: '15px', sm: '17px' },
+                color: '#0F172A',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.8
+              }}
+            >
+              <span>Inspection fee:</span>
+              {couponApplied ? (
+                <Box
+                  key={`bottom-anim-${couponCode}-${couponDiscount}`}
+                  component="span"
+                  sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.8 }}
+                >
+                  <Box
+                    component="span"
+                    sx={{
+                      position: 'relative',
+                      display: 'inline-block',
+                      color: '#94A3B8',
+                      fontWeight: 600,
+                      fontSize: { xs: '14px', sm: '16px' }
+                    }}
+                  >
+                    ₹{inspectionFeeNumber}
+                    <Box
+                      component="span"
+                      sx={{
+                        position: 'absolute',
+                        left: 0,
+                        top: '50%',
+                        width: '100%',
+                        height: '2px',
+                        bgcolor: '#DC2626',
+                        animation: 'strikeThrough 0.45s ease-out forwards',
+                        transform: 'translateY(-50%)'
+                      }}
+                    />
+                  </Box>
+                  <Box
+                    component="span"
+                    sx={{
+                      display: 'inline-block',
+                      color: discountedFee === 0 ? '#16A34A' : '#0F172A',
+                      fontWeight: 900,
+                      fontSize: { xs: '17px', sm: '19px' },
+                      animation: 'pricePop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.3s backwards'
+                    }}
+                  >
+                    ₹{discountedFee}
+                  </Box>
+                  {discountedFee === 0 && (
+                    <Box
+                      component="span"
+                      sx={{
+                        display: 'inline-block',
+                        fontSize: '10.5px',
+                        fontWeight: 800,
+                        color: '#15803D',
+                        bgcolor: '#DCFCE7',
+                        border: '1px solid #86EFAC',
+                        px: 0.8,
+                        py: 0.2,
+                        borderRadius: '4px',
+                        animation: 'pricePop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.45s backwards'
+                      }}
+                    >
+                      FREE
+                    </Box>
+                  )}
+                </Box>
+              ) : (
+                <span>₹{inspectionFeeNumber}</span>
+              )}
             </Typography>
             <Typography variant="caption" sx={{ color: bookingMode === 'scheduled' ? '#0066CC' : couponApplied ? '#16A34A' : '#64748B', fontSize: { xs: '12.5px', sm: '13.5px' }, fontWeight: 600 }}>
               {bookingMode === 'scheduled'
