@@ -52,7 +52,9 @@ export default function LocationPickerPage() {
   const activePin = pinInAddress ? pinInAddress[1] : customPin;
   const isOutOfRegion = Boolean(
     detectedOutsideRegion ||
-    (activePin && activePin.length === 6 && !activePin.startsWith('636'))
+    !activePin ||
+    String(activePin).trim().length !== 6 ||
+    !String(activePin).trim().startsWith('636')
   );
 
   const handleDismiss = () => {
@@ -72,7 +74,10 @@ export default function LocationPickerPage() {
       setIsDetecting(false);
       setDetectedCoords({ lat: geo.lat, lng: geo.lng });
 
-      if (geo.isSalem) {
+      const pin = geo.pincode || (geo.fullAddress || '').match(/\b(\d{6})\b/)?.[1] || '';
+      const isInside = Boolean(geo.isSalem && pin && pin.startsWith('636'));
+
+      if (isInside) {
         setDetectedOutsideRegion(false);
         setDetectedPlaceInfo(null);
         setGeoStatus(`GPS locked: ${geo.lat.toFixed(4)} N, ${geo.lng.toFixed(4)} E`);
@@ -84,7 +89,7 @@ export default function LocationPickerPage() {
         }, SALEM_LOCALITIES[0]);
 
         setSelectedLocality(closest.name);
-        setCustomPin(geo.pincode && geo.pincode.startsWith('636') ? geo.pincode : closest.pin);
+        setCustomPin(pin);
         const resolvedAddr = geo.fullAddress && geo.fullAddress.length > 15
           ? geo.fullAddress
           : `Live GPS Doorstep (${geo.lat.toFixed(4)}, ${geo.lng.toFixed(4)}), ${closest.name}, Salem - ${closest.pin}`;
@@ -94,9 +99,9 @@ export default function LocationPickerPage() {
         setDetectedPlaceInfo({
           name: geo.localityName || geo.city || 'Outside Salem',
           distanceKm: geo.distanceKmFromCenter || 0,
-          pincode: geo.pincode || ''
+          pincode: pin || geo.pincode || ''
         });
-        setGeoStatus('Current device location is outside Salem operational boundary');
+        setGeoStatus(`Current location (PIN: ${pin || 'outside'}) is outside Salem service zone (636xxx). Cannot proceed.`);
       }
     } catch (err) {
       console.warn('GPS detection failed:', err);

@@ -60,6 +60,20 @@ export default function BookingAddressPage() {
   const [manualPincode, setManualPincode] = useState(savedLoc?.pincode || SALEM_LOCALITIES[0].pin);
   const [manualError, setManualError] = useState('');
 
+  const gpsPin = detectedGpsData?.pincode || (detectedGpsData?.fullAddress || '').match(/\b(\d{6})\b/)?.[1] || '';
+  const isGpsPinInService = Boolean(
+    detectedGpsData &&
+    detectedGpsData.isSalem &&
+    gpsPin &&
+    gpsPin.startsWith('636')
+  );
+
+  const isManualPinInService = Boolean(
+    manualPincode &&
+    String(manualPincode).trim().startsWith('636') &&
+    String(manualPincode).trim().length === 6
+  );
+
   const handleDismiss = () => {
     if (location.state?.returnTo) {
       navigate(location.state.returnTo, { replace: true });
@@ -85,9 +99,12 @@ export default function BookingAddressPage() {
       const geo = await getLiveAccurateLocation();
       setDetectedGpsData(geo);
 
-      if (!geo.isSalem) {
+      const pin = geo.pincode || (geo.fullAddress || '').match(/\b(\d{6})\b/)?.[1] || '';
+      const isInside = Boolean(geo.isSalem && pin && pin.startsWith('636'));
+
+      if (!isInside) {
         setGpsError(
-          `Detected location (${geo.city || geo.district || 'Outside Area'}) is outside the Salem service zone. You can use manual entry to select your Salem address.`
+          `Detected location (${geo.city || geo.district || 'Outside Area'}, PIN: ${pin || 'unknown'}) is outside our Salem service zone (636xxx). Service is unavailable here and you cannot proceed with this location.`
         );
       }
     } catch (err) {
@@ -109,15 +126,25 @@ export default function BookingAddressPage() {
       setGpsError('Please tap "Detect Live Location" first.');
       return;
     }
+
+    const pin = detectedGpsData.pincode || (detectedGpsData.fullAddress || '').match(/\b(\d{6})\b/)?.[1] || '';
+    const isInside = Boolean(detectedGpsData.isSalem && pin && pin.startsWith('636'));
+
+    if (!isInside) {
+      setGpsError(
+        `Service unavailable: Detected location (PIN ${pin || 'outside'}) is outside our Salem service zone (636xxx). You cannot proceed.`
+      );
+      toast.error('Service is unavailable outside Salem (636xxx). Cannot proceed.');
+      return;
+    }
+
     if (!gpsDoorNo.trim()) {
       setGpsError('Please enter your House / Flat / Door Number for technician doorstep arrival.');
       return;
     }
 
     const localityPart = detectedGpsData.localityName || 'Salem Central';
-    const pinPart = (detectedGpsData.pincode && detectedGpsData.pincode.startsWith('636'))
-      ? detectedGpsData.pincode
-      : '636016';
+    const pinPart = pin;
 
     const fullAddress = `${gpsDoorNo.trim()}, ${gpsLandmark.trim() ? gpsLandmark.trim() + ', ' : ''}${localityPart}, Salem - ${pinPart}`;
 
@@ -150,6 +177,11 @@ export default function BookingAddressPage() {
     }
     if (!manualLocality) {
       setManualError('Please choose your Salem locality.');
+      return;
+    }
+    if (!isManualPinInService) {
+      setManualError(`PIN ${manualPincode || ''} is outside our Salem service zone (636xxx). You cannot proceed.`);
+      toast.error('PIN code must be inside Salem (636xxx). Cannot proceed.');
       return;
     }
 
@@ -385,23 +417,32 @@ export default function BookingAddressPage() {
               InputProps={{ sx: { borderRadius: '12px', bgcolor: '#FFFFFF' } }}
             />
 
+            {detectedGpsData && !isGpsPinInService && (
+              <Alert severity="error" icon={<AlertCircle size={18} />} sx={{ borderRadius: '12px', fontWeight: 600 }}>
+                Outside Salem Service Zone (PIN: {detectedGpsData.pincode || 'Non-636'}). Doorstep service is unavailable and booking cannot proceed with this location.
+              </Alert>
+            )}
+
             <Box sx={{ mt: 2, pb: 4 }}>
               <Button
                 fullWidth
                 variant="contained"
                 onClick={handleConfirmGps}
-                disabled={!detectedGpsData || !gpsDoorNo.trim()}
+                disabled={!detectedGpsData || !gpsDoorNo.trim() || !isGpsPinInService}
                 sx={{
                   minHeight: 50,
                   borderRadius: '12px',
-                  bgcolor: '#0A66C2',
+                  bgcolor: (!detectedGpsData || !isGpsPinInService) ? '#94A3B8' : '#0A66C2',
                   fontWeight: 800,
                   fontSize: '15px',
                   textTransform: 'none',
-                  '&:hover': { bgcolor: '#084E96' }
+                  '&:hover': { bgcolor: (!detectedGpsData || !isGpsPinInService) ? '#94A3B8' : '#084E96' },
+                  '&.Mui-disabled': { bgcolor: '#E2E8F0', color: '#94A3B8' }
                 }}
               >
-                Confirm Doorstep Address
+                {detectedGpsData && !isGpsPinInService
+                  ? 'Outside Salem Service Zone (Cannot Proceed)'
+                  : 'Confirm Doorstep Address'}
               </Button>
             </Box>
           </Box>
@@ -488,17 +529,21 @@ export default function BookingAddressPage() {
                 fullWidth
                 variant="contained"
                 onClick={handleConfirmManual}
+                disabled={!manualHouseNo.trim() || !manualStreet.trim() || !isManualPinInService}
                 sx={{
                   minHeight: 50,
                   borderRadius: '12px',
-                  bgcolor: '#0A66C2',
+                  bgcolor: !isManualPinInService ? '#94A3B8' : '#0A66C2',
                   fontWeight: 800,
                   fontSize: '15px',
                   textTransform: 'none',
-                  '&:hover': { bgcolor: '#084E96' }
+                  '&:hover': { bgcolor: !isManualPinInService ? '#94A3B8' : '#084E96' },
+                  '&.Mui-disabled': { bgcolor: '#E2E8F0', color: '#94A3B8' }
                 }}
               >
-                Confirm Doorstep Address
+                {!isManualPinInService && manualPincode
+                  ? 'PIN Outside Service Area (Salem 636xxx only)'
+                  : 'Confirm Doorstep Address'}
               </Button>
             </Box>
           </Box>
