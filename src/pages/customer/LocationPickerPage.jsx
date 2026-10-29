@@ -11,11 +11,31 @@ import {
   Container,
   Paper,
   IconButton,
-  Alert
+  Alert,
+  MenuItem
 } from '@mui/material';
 import { MapPin, Navigation, Search, CheckCircle, ArrowLeft, ShieldAlert } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { SALEM_LOCALITIES, getLiveAccurateLocation } from '../../utils/geoUtils';
+
+const SALEM_PINCODES = [
+  { pin: '636001', area: 'Salem Fort / City HO' },
+  { pin: '636002', area: 'Shevapet' },
+  { pin: '636003', area: 'Ammapet' },
+  { pin: '636004', area: 'Alagapuram / Meyyanur' },
+  { pin: '636005', area: 'Suramangalam / Junction' },
+  { pin: '636006', area: 'Gugai' },
+  { pin: '636007', area: 'Hasthampatti' },
+  { pin: '636008', area: 'Gorimedu / Kannankurichi' },
+  { pin: '636009', area: 'Dadagapatty' },
+  { pin: '636010', area: 'Kondalampatti' },
+  { pin: '636011', area: 'Jagir Ammapalayam' },
+  { pin: '636012', area: 'Kandampatty' },
+  { pin: '636013', area: 'Steel Plant Area' },
+  { pin: '636014', area: 'Seelanaickenpatti' },
+  { pin: '636015', area: 'Ponnammapet' },
+  { pin: '636016', area: 'Fairlands' }
+];
 
 export default function LocationPickerPage() {
   const navigate = useNavigate();
@@ -331,13 +351,27 @@ export default function LocationPickerPage() {
           />
 
           <TextField
+            select
             fullWidth
-            label="Salem postal PIN code"
-            value={customPin}
+            label="Salem postal PIN code *"
+            value={customPin || '636016'}
             onChange={(e) => setCustomPin(e.target.value)}
             InputProps={{ sx: { borderRadius: '12px', bgcolor: '#FFFFFF' } }}
-            helperText="Must be a valid Salem postal PIN (636xxx)"
-          />
+            helperText="Select from active Salem service PIN codes (636xxx only)"
+          >
+            {SALEM_PINCODES.map((item) => (
+              <MenuItem key={item.pin} value={item.pin}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                  <Typography sx={{ fontWeight: 700, fontSize: '13.5px', color: '#0F172A' }}>
+                    {item.pin}
+                  </Typography>
+                  <Typography sx={{ color: '#64748B', fontSize: '12px' }}>
+                    {item.area}
+                  </Typography>
+                </Box>
+              </MenuItem>
+            ))}
+          </TextField>
         </Box>
 
         {/* Action Button */}
