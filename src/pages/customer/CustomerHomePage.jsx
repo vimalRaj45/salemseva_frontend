@@ -158,11 +158,12 @@ export default function CustomerHomePage() {
     async function loadReviews() {
       try {
         const [revData, statData] = await Promise.all([
-          ApiService.fetchReviews({ limit: 4 }),
+          ApiService.fetchReviews({ limit: 10 }),
           ApiService.fetchReviewStats()
         ]);
         if (revData?.success && Array.isArray(revData.reviews)) {
-          setRealReviews(revData.reviews);
+          const validReviews = revData.reviews.filter(r => (r.comment || r.feedback)?.trim());
+          setRealReviews(validReviews);
         }
         if (statData?.success && statData.stats) {
           setReviewStats(statData.stats);
@@ -1296,7 +1297,7 @@ export default function CustomerHomePage() {
                           <Box sx={{ display: 'flex', gap: 0.8, alignItems: 'center', mb: 1.5, flexWrap: 'wrap' }}>
                             <Chip
                               icon={<StarIcon sx={{ fontSize: '11px !important', color: '#D97706 !important' }} />}
-                              label={`${tech.ratingAvg || 4.9} (${tech.jobsCompleted || 80}+ jobs)`}
+                              label={`${(Number(tech.ratingAvg) > 0 ? Number(tech.ratingAvg).toFixed(1) : '5.0')} (${tech.jobsCompleted || 0} jobs)`}
                               size="small"
                               sx={{ bgcolor: '#FEF3C7', color: '#92400E', fontWeight: 800, fontSize: '10px', height: 20 }}
                             />
@@ -1388,7 +1389,7 @@ export default function CustomerHomePage() {
                               {rev.customer_name || 'Verified Homeowner'}
                             </Typography>
                             <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11px' }}>
-                              {rev.locality || 'Salem'} • {rev.service_name || 'Home Service'}
+                              {rev.locality || 'Salem'} • {rev.service_name || (rev.service_id === 'ac' ? 'AC Repair & Service' : rev.service_id === 'electrician' ? 'Electrician & Wiring' : rev.service_id === 'plumber' ? 'Plumber & Sanitary' : rev.service_id === 'cleaning' ? 'Home & Bath Cleaning' : 'Home Service')}
                             </Typography>
                           </Box>
                         </Box>
@@ -1396,7 +1397,7 @@ export default function CustomerHomePage() {
                       </Box>
 
                       <Typography variant="body2" sx={{ color: '#334155', fontSize: '12px', lineHeight: 1.5, mb: 1.2, fontStyle: 'italic' }}>
-                        "{rev.feedback}"
+                        "{rev.comment || rev.feedback}"
                       </Typography>
                     </Box>
 
@@ -1408,7 +1409,7 @@ export default function CustomerHomePage() {
                         </Typography>
                       </Box>
                       <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '11px', fontWeight: 600 }}>
-                        Specialist: {rev.technician_name}
+                        Specialist: {rev.technician_name || 'Salem Certified Specialist'}
                       </Typography>
                     </Box>
                   </Card>
