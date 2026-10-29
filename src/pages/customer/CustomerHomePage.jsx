@@ -290,216 +290,102 @@ export default function CustomerHomePage() {
     <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100dvh', pb: { xs: 6, md: 4 } }}>
       <Container maxWidth={false} sx={{ maxWidth: '1200px', mx: 'auto', px: { xs: 2, sm: 3 }, pt: { xs: 2, md: 3 } }}>
         
-        {/* Unified Top Context Deck: Location Bar & User Account Status */}
-        <Paper
-          elevation={0}
-          sx={{
-            mb: 2,
-            p: { xs: 1.2, sm: 1.5 },
-            borderRadius: '14px',
-            bgcolor: '#FFFFFF',
-            border: '1px solid #E2E8F0',
-            boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
-            display: 'flex',
-            flexDirection: { xs: 'column', md: 'row' },
-            alignItems: { xs: 'stretch', md: 'center' },
-            justifyContent: 'space-between',
-            gap: 1.5
-          }}
-        >
-          {/* Location Area Selector */}
-          <Box
-            onClick={() => navigate('/location', { state: { returnTo: '/', currentLocation: userLocation } })}
+        {/* Top Context Deck: User Account / Guest Status */}
+        {!user ? (
+          <Paper
+            elevation={0}
             sx={{
+              mb: 2,
+              p: { xs: 1.2, sm: 1.5 },
+              borderRadius: '14px',
+              bgcolor: '#FFFFFF',
+              border: '1px solid #E2E8F0',
+              boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              cursor: 'pointer',
-              p: 0.8,
-              borderRadius: '10px',
-              transition: 'background-color 0.15s ease',
-              flex: 1,
-              minWidth: 0,
-              '&:hover': { bgcolor: '#F8FAFC' }
+              gap: 1.5
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, minWidth: 0 }}>
-              <Box
-                sx={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: '10px',
-                  bgcolor: '#EFF6FF',
-                  color: '#0066CC',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                  border: '1px solid #DBEAFE'
-                }}
-              >
-                <LocationOnIcon sx={{ fontSize: 20 }} />
-              </Box>
-              <Box sx={{ minWidth: 0 }}>
-                {(() => {
-                  const pinMatch = String(userLocation.pincode || userLocation.address || '').match(/\b(\d{6})\b/);
-                  const p = pinMatch ? pinMatch[1] : (userLocation.pincode || '');
-                  const isBadPin = Boolean(p && !p.startsWith('636'));
-                  return (
-                    <>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, flexWrap: 'wrap' }}>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: isBadPin ? '#991B1B' : '#0F172A', fontSize: '13.5px' }}>
-                          {userLocation.locality || 'Fairlands, Salem'}
-                        </Typography>
-                        <Chip
-                          label={isBadPin ? 'Outside Salem Region' : 'Salem Service Zone'}
-                          size="small"
-                          sx={{
-                            bgcolor: isBadPin ? '#FEF2F2' : '#EFF6FF',
-                            color: isBadPin ? '#DC2626' : '#0284C7',
-                            border: isBadPin ? '1px solid #FCA5A5' : '1px solid #BFDBFE',
-                            fontWeight: 700,
-                            fontSize: '10px',
-                            height: 18,
-                            px: 0.2
-                          }}
-                        />
-                      </Box>
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          color: isBadPin ? '#DC2626' : '#64748B',
-                          fontSize: '11px',
-                          display: 'block',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis'
-                        }}
-                      >
-                        {isBadPin ? `PIN ${p} not accepted. Only Salem 636xxx serviced.` : (userLocation.address || 'Doorstep service in 25-35 mins')}
-                      </Typography>
-                    </>
-                  );
-                })()}
-              </Box>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0369A1', fontSize: '13px', lineHeight: 1.2 }}>
+                Guest Mode (விருந்தினர் பார்வை)
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#0284C7', fontSize: '11.5px', display: 'block' }}>
+                Sign in to claim ₹100 Welcome credits & book doorstep services
+              </Typography>
             </Box>
-
             <Button
+              variant="contained"
               size="small"
-              endIcon={<KeyboardArrowDownIcon sx={{ fontSize: 16 }} />}
+              onClick={() => navigate('/login')}
               sx={{
-                color: '#0066CC',
+                bgcolor: '#0066CC',
+                color: '#FFFFFF',
+                textTransform: 'none',
                 fontWeight: 700,
                 fontSize: '12px',
                 height: '32px',
-                textTransform: 'none',
-                flexShrink: 0,
-                px: 1.4,
+                px: 2,
                 borderRadius: '8px',
-                bgcolor: '#EFF6FF',
-                ml: 1,
-                '&:hover': { bgcolor: '#DBEAFE' }
+                boxShadow: 'none',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+                '&:hover': { bgcolor: '#0052CC' }
               }}
             >
-              Change
+              Sign In
             </Button>
-          </Box>
-
-          {/* Right Status Module: Guest Banner OR Logged-in User Wallet Strip */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
-            {!user ? (
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 1.5,
-                  p: { xs: 1, sm: 1.2 },
-                  borderRadius: '10px',
-                  bgcolor: '#F0F9FF',
-                  border: '1px solid #BAE6FD',
-                  width: { xs: '100%', md: 'auto' }
-                }}
-              >
-                <Box sx={{ minWidth: 0 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0369A1', fontSize: '12.5px', lineHeight: 1.2 }}>
-                    Guest Mode (விருந்தினர் பார்வை)
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: '#0284C7', fontSize: '11px', display: 'block' }}>
-                    Sign in to claim ₹100 Welcome credits & live GPS
-                  </Typography>
-                </Box>
-                <Button
-                  variant="contained"
-                  size="small"
-                  onClick={() => navigate('/login')}
-                  sx={{
-                    bgcolor: '#0066CC',
-                    color: '#FFFFFF',
-                    textTransform: 'none',
-                    fontWeight: 700,
-                    fontSize: '12px',
-                    height: '32px',
-                    px: 2,
-                    borderRadius: '8px',
-                    boxShadow: 'none',
-                    whiteSpace: 'nowrap',
-                    flexShrink: 0,
-                    '&:hover': { bgcolor: '#0052CC' }
-                  }}
-                >
-                  Sign In
-                </Button>
+          </Paper>
+        ) : (
+          <Paper
+            elevation={0}
+            sx={{
+              mb: 2,
+              p: { xs: 1, sm: 1.2 },
+              borderRadius: '14px',
+              bgcolor: '#FFFFFF',
+              border: '1px solid #E2E8F0',
+              boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 1.5
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+              <Avatar sx={{ width: 34, height: 34, bgcolor: '#0066CC', color: '#FFF', fontSize: '13px', fontWeight: 700 }}>
+                {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+              </Avatar>
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '13px', lineHeight: 1.2 }}>
+                  Welcome back, {user.name}
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11px', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <StarsIcon sx={{ color: '#D97706', fontSize: 13 }} /> {user.walletBalance ?? 150} Credits (₹{(((user.walletBalance ?? 150) / 10)).toFixed(0)})
+                </Typography>
               </Box>
-            ) : (
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1.5,
-                  p: { xs: 0.8, sm: 1 },
-                  borderRadius: '10px',
-                  bgcolor: '#F8FAFC',
-                  border: '1px solid #E2E8F0',
-                  width: { xs: '100%', md: 'auto' },
-                  justifyContent: 'space-between'
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Avatar sx={{ width: 32, height: 32, bgcolor: '#0066CC', color: '#FFF', fontSize: '13px', fontWeight: 700 }}>
-                    {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
-                  </Avatar>
-                  <Box>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '12.5px', lineHeight: 1.2 }}>
-                      {user.name}
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11px', display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      <StarsIcon sx={{ color: '#D97706', fontSize: 13 }} /> {user.walletBalance ?? 150} Credits (₹{(((user.walletBalance ?? 150) / 10)).toFixed(0)})
-                    </Typography>
-                  </Box>
-                </Box>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  onClick={() => navigate('/wallet')}
-                  sx={{
-                    borderColor: '#CBD5E1',
-                    color: '#334155',
-                    fontWeight: 700,
-                    fontSize: '11.5px',
-                    borderRadius: '8px',
-                    height: '30px',
-                    textTransform: 'none',
-                    px: 1.5,
-                    '&:hover': { bgcolor: '#FFFFFF', borderColor: '#94A3B8' }
-                  }}
-                >
-                  Wallet
-                </Button>
-              </Box>
-            )}
-          </Box>
-        </Paper>
+            </Box>
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={() => navigate('/wallet')}
+              sx={{
+                borderColor: '#CBD5E1',
+                color: '#334155',
+                fontWeight: 700,
+                fontSize: '12px',
+                borderRadius: '8px',
+                height: '32px',
+                textTransform: 'none',
+                px: 1.8,
+                '&:hover': { bgcolor: '#F8FAFC', borderColor: '#94A3B8' }
+              }}
+            >
+              Wallet
+            </Button>
+          </Paper>
+        )}
 
         {/* Dynamic & Animated Salem Live Trust Strip */}
         <DynamicTrustTicker locality={user?.locality || 'Fairlands, Salem'} />

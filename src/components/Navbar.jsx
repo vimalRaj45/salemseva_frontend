@@ -406,7 +406,7 @@ export default function Navbar({
               {/* --- CASE A: CUSTOMER OR GUEST: Locality Pill + Search --- */}
               {(!isTechnician && !isAdmin) && (
                 <>
-                  {/* Salem Locality Dropdown Pill */}
+                  {/* Salem Working Areas Informational Pill */}
                   <div style={{ position: 'relative', flexShrink: 0 }} ref={locationRef}>
                     <button
                       type="button"
@@ -431,15 +431,16 @@ export default function Navbar({
                         cursor: 'pointer',
                         transition: 'all 0.15s ease'
                       }}
+                      title="View working areas in Salem"
                     >
                       <MapPin size={14} color="#0A5CC4" />
-                      <span style={{ maxWidth: '120px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {selectedLocation.split(',')[0]}
+                      <span style={{ maxWidth: '145px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        Salem Working Areas
                       </span>
                       <ChevronDown size={14} color="#64748B" />
                     </button>
 
-                    {/* Locality Popover Dropdown */}
+                    {/* Working Areas Popover Modal */}
                     {isLocationOpen && (
                       <div
                         className="nav-dropdown-menu"
@@ -466,9 +467,14 @@ export default function Navbar({
                             marginBottom: '6px'
                           }}
                         >
-                          <span style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>
-                            Salem Municipal Localities
-                          </span>
+                          <div>
+                            <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F172A', display: 'block', textTransform: 'uppercase' }}>
+                              Salem Working Areas
+                            </span>
+                            <span style={{ fontSize: '10px', color: '#64748B' }}>
+                              Operational Coverage (636xxx)
+                            </span>
+                          </div>
                           <span
                             style={{
                               fontSize: '10px',
@@ -479,65 +485,52 @@ export default function Navbar({
                               borderRadius: '4px'
                             }}
                           >
-                            15-Min Arrival
+                            Active
                           </span>
                         </div>
 
-                        <button
-                          type="button"
-                          onClick={handleUseCurrentLocation}
+                        <div style={{ maxHeight: '220px', overflowY: 'auto' }}>
+                          {salemLocalities.map((loc) => (
+                            <div
+                              key={loc.name}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                padding: '7px 10px',
+                                borderRadius: '6px',
+                                fontSize: '12px',
+                                fontWeight: 500,
+                                color: '#334155',
+                                backgroundColor: '#F8FAFC',
+                                marginBottom: '4px'
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <MapPin size={12} color="#0A5CC4" />
+                                <span>{loc.name}</span>
+                              </div>
+                              <span style={{ fontSize: '10.5px', color: '#64748B', fontFamily: 'monospace' }}>
+                                {loc.pincode}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div
                           style={{
-                            width: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
+                            marginTop: '6px',
                             padding: '7px 10px',
                             borderRadius: '6px',
-                            fontSize: '12px',
-                            fontWeight: 700,
-                            color: '#0A5CC4',
                             backgroundColor: '#EFF6FF',
                             border: '1px solid #BFDBFE',
-                            cursor: 'pointer',
-                            textAlign: 'left',
-                            marginBottom: '6px'
+                            fontSize: '11px',
+                            color: '#0A5CC4',
+                            fontWeight: 600,
+                            textAlign: 'center'
                           }}
                         >
-                          <Navigation size={13} color="#0A5CC4" />
-                          <span>Detect Accurate Live GPS</span>
-                        </button>
-
-                        <div style={{ maxHeight: '220px', overflowY: 'auto' }}>
-                          {salemLocalities.map((loc) => {
-                            const isSelected = selectedLocation.startsWith(loc.name.split(',')[0]);
-                            return (
-                              <div
-                                key={loc.name}
-                                onClick={() => handleSelectArea(loc.name)}
-                                style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'space-between',
-                                  padding: '7px 10px',
-                                  borderRadius: '6px',
-                                  fontSize: '12px',
-                                  fontWeight: isSelected ? 800 : 500,
-                                  color: isSelected ? '#0A5CC4' : '#334155',
-                                  backgroundColor: isSelected ? '#EFF6FF' : 'transparent',
-                                  cursor: 'pointer',
-                                  transition: 'background-color 0.12s ease'
-                                }}
-                              >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                  <MapPin size={12} color={isSelected ? '#0A5CC4' : '#94A3B8'} />
-                                  <span>{loc.name}</span>
-                                </div>
-                                <span style={{ fontSize: '10.5px', color: '#94A3B8', fontFamily: 'monospace' }}>
-                                  {loc.pincode}
-                                </span>
-                              </div>
-                            );
-                          })}
+                          Exact service location is selected during booking
                         </div>
                       </div>
                     )}
