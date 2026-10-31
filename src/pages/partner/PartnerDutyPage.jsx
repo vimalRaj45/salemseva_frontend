@@ -3254,7 +3254,7 @@ export default function PartnerDutyPage() {
 
                               <Chip
                                 icon={<CheckCircleIcon sx={{ color: '#34D399 !important', fontSize: 13 }} />}
-                                label={`Online • Radar Active in ${activeTechLocalities.length > 0 ? (activeTechLocalities.length > 2 ? `${activeTechLocalities.slice(0, 2).join(', ')} +${activeTechLocalities.length - 2}` : activeTechLocalities.join(', ')) : 'Salem'}`}
+                                label={`Online • Radar Active across ${activeTechLocalities.length > 0 ? (activeTechLocalities.length >= 12 ? `All ${activeTechLocalities.length} Salem Localities` : `${activeTechLocalities.length} Localities (${activeTechLocalities.join(', ')})`) : 'Salem'}`}
                                 size="small"
                                 sx={{ bgcolor: '#1E293B', color: '#34D399', fontWeight: 700, fontSize: '11px', mb: 1.5 }}
                               />

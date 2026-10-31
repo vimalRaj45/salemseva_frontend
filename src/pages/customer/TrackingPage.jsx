@@ -1042,7 +1042,7 @@ export default function TrackingPage() {
                         <Chip label="COMPLETED" size="small" sx={{ bgcolor: '#ECFDF5', color: '#065F46', fontWeight: 800, fontSize: '9.5px', height: 18 }} />
                       </Box>
                       <Typography variant="caption" sx={{ color: '#64748B', display: 'block', pl: 3.2, fontSize: '11px', lineHeight: 1.4 }}>
-                        கோரிக்கை பதிவு செய்யப்பட்டது. வாடிக்கையாளர் ₹{Number(trackData?.booking?.final_amount || trackData?.booking?.visit_fee || 99).toFixed(2)} கட்டணம் Razorpay Escrow முறையில் பாதுகாப்பாக வைக்கப்பட்டுள்ளது.
+                        கோரிக்கை பதிவு செய்யப்பட்டது. வாடிக்கையாளர் ₹{Number(trackData?.booking?.final_amount ?? trackData?.booking?.visit_fee ?? 99).toFixed(2)} கட்டணம் Razorpay Escrow முறையில் பாதுகாப்பாக வைக்கப்பட்டுள்ளது.
                       </Typography>
                     </Paper>
 

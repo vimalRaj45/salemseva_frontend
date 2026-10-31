@@ -99,6 +99,14 @@ const navSections = [
         badgeKey: 'newFeedbackCount',
         badgeColor: '#DC2626',
         badgeBg: '#FEE2E2'
+      },
+      {
+        id: 'tickets',
+        label: 'Support Tickets Desk',
+        icon: SupportAgentIcon,
+        badgeKey: 'openTicketsCount',
+        badgeColor: '#EA580C',
+        badgeBg: '#FFF7ED'
       }
     ]
   },

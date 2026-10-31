@@ -97,7 +97,11 @@ export default function BookingReceiptPage() {
 
   const isCompleted = booking?.status === 'completed';
   const isCancelled = booking?.status === 'cancelled';
-  const grossPaid = parseFloat(booking?.final_amount || booking?.gross_paid_amount || booking?.visit_fee || 99.0);
+  const grossPaid = booking?.final_amount != null
+    ? parseFloat(booking.final_amount)
+    : (booking?.gross_paid_amount != null
+        ? parseFloat(booking.gross_paid_amount)
+        : parseFloat(booking?.visit_fee || 99.0));
   const refundAmount = parseFloat(booking?.refund_amount || 0);
   const platformFeeRetained = parseFloat(booking?.refund_platform_fee || 0);
   const gatewayFeeRetained = parseFloat(booking?.refund_gateway_fee || 0);

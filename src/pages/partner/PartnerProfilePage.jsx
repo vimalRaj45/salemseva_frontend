@@ -28,6 +28,21 @@ import { API_V1_URL, PARTNER_PAYOUT_PERCENT } from '../../config';
 import DocumentUploadControl from '../../components/DocumentUploadControl';
 import toast from 'react-hot-toast';
 
+const SALEM_LOCALITIES_LIST = [
+  'Fairlands, Salem',
+  'Hasthampatti, Salem',
+  'Alagapuram, Salem',
+  'Suramangalam, Salem',
+  'Meyyanur, Salem',
+  'Ammapet, Salem',
+  'Shevapet, Salem',
+  'Gugai, Salem',
+  'Kondalampatti, Salem',
+  'Kannankurichi, Salem',
+  'Gorimedu, Salem',
+  'Steel Plant Area, Salem'
+];
+
 export default function PartnerProfilePage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -58,7 +73,33 @@ export default function PartnerProfilePage() {
   const [profileDailyCapacity, setProfileDailyCapacity] = useState(
     activeTech?.daily_job_capacity || parseInt(localStorage.getItem('shazuone_partner_daily_capacity'), 10) || 4
   );
+  const [profileLocalities, setProfileLocalities] = useState(() => {
+    try {
+      const savedLocs = activeTech?.assigned_localities || activeTech?.assignedLocalities;
+      if (Array.isArray(savedLocs) && savedLocs.length > 0) return savedLocs;
+      const raw = localStorage.getItem('shazuone_partner_localities');
+      return raw ? JSON.parse(raw) : SALEM_LOCALITIES_LIST;
+    } catch {
+      return SALEM_LOCALITIES_LIST;
+    }
+  });
   const [isSaving, setIsSaving] = useState(false);
+
+  const toggleProfileLocality = (loc) => {
+    setProfileLocalities((prev) =>
+      prev.includes(loc)
+        ? (prev.length > 1 ? prev.filter((l) => l !== loc) : prev)
+        : [...prev, loc]
+    );
+  };
+
+  const handleSelectAllLocalities = () => {
+    if (profileLocalities.length === SALEM_LOCALITIES_LIST.length) {
+      setProfileLocalities([SALEM_LOCALITIES_LIST[0]]);
+    } else {
+      setProfileLocalities([...SALEM_LOCALITIES_LIST]);
+    }
+  };
 
   const handleDismiss = () => {
     if (location.state?.returnTo) {
@@ -96,30 +137,42 @@ export default function PartnerProfilePage() {
     const profileData = {
       name: profileName.trim(),
       full_name: profileName.trim(),
+      fullName: profileName.trim(),
       primary_trade: profileTrade,
+      trade: profileTrade,
       secondary_trades: updatedTrades,
+      secondaryTrades: updatedTrades,
       payout_phone: profilePayoutPhone,
+      payoutPhone: profilePayoutPhone,
       aadhaar_card_url: profileAadhaarUrl,
+      aadhaarCardUrl: profileAadhaarUrl,
       daily_job_capacity: clampedCapacity,
-      dailyJobCapacity: clampedCapacity
+      dailyJobCapacity: clampedCapacity,
+      assigned_localities: profileLocalities,
+      assignedLocalities: profileLocalities
     };
 
     localStorage.setItem('shazuone_partner_name', profileName.trim());
     localStorage.setItem('shazuone_partner_trade', profileTrade);
     localStorage.setItem('shazuone_partner_secondary_trades', JSON.stringify(updatedTrades));
     localStorage.setItem('shazuone_partner_daily_capacity', String(clampedCapacity));
+    localStorage.setItem('shazuone_partner_localities', JSON.stringify(profileLocalities));
     if (profilePayoutPhone) localStorage.setItem('shazuone_partner_payout_phone', profilePayoutPhone);
     if (profileAadhaarUrl) localStorage.setItem('shazuone_partner_aadhaar_url', profileAadhaarUrl);
 
     try {
       const techId = activeTech?.id || activeTech?.technician_id || localStorage.getItem('shazuone_partner_id');
-      if (techId) {
-        await fetch(`${API_V1_URL}/technicians/${techId}/profile`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(profileData)
-        });
-      }
+      const payload = {
+        ...profileData,
+        phone: activeTech?.phone || profilePayoutPhone,
+        technicianId: techId
+      };
+
+      await fetch(`${API_V1_URL}/partner/profile/update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
 
       if (updateUser) {
         updateUser(profileData);
@@ -359,6 +412,57 @@ export default function PartnerProfilePage() {
                       color: isSelected ? '#FFFFFF' : '#334155',
                       border: isSelected ? '1px solid #0284C7' : '1px solid #CBD5E1',
                       '&:hover': { bgcolor: isSelected ? '#0369A1' : '#F0F9FF' }
+                    }}
+                  />
+                );
+              })}
+            </Box>
+          </Paper>
+
+          {/* Service Coverage Areas (Localities) */}
+          <Paper elevation={0} sx={{ p: 2.5, borderRadius: '14px', border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+              <Typography sx={{ fontSize: '13px', fontWeight: 700, color: '#334155' }}>
+                பணிபுரியும் பகுதிகள் (Service Coverage Areas)
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                <Chip
+                  size="small"
+                  label={`${profileLocalities.length}/${SALEM_LOCALITIES_LIST.length} Areas`}
+                  sx={{ bgcolor: '#F0FDF4', color: '#166534', fontWeight: 800, fontSize: '11px', height: 22 }}
+                />
+                <Button
+                  size="small"
+                  onClick={handleSelectAllLocalities}
+                  sx={{ fontSize: '11px', fontWeight: 700, textTransform: 'none', py: 0 }}
+                >
+                  {profileLocalities.length === SALEM_LOCALITIES_LIST.length ? 'Clear to 1' : 'Select All'}
+                </Button>
+              </Box>
+            </Box>
+            <Typography sx={{ fontSize: '11.5px', color: '#64748B', mb: 1.5 }}>
+              You will receive dispatch requests from customers located in your selected Salem neighborhoods.
+            </Typography>
+
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.8 }}>
+              {SALEM_LOCALITIES_LIST.map((loc) => {
+                const isSelected = profileLocalities.includes(loc);
+                return (
+                  <Chip
+                    key={loc}
+                    label={loc.replace(', Salem', '')}
+                    clickable
+                    onClick={() => toggleProfileLocality(loc)}
+                    icon={isSelected ? <CheckCircle2 size={13} color="#FFFFFF" /> : undefined}
+                    sx={{
+                      fontWeight: isSelected ? 800 : 500,
+                      fontSize: '11.5px',
+                      borderRadius: '8px',
+                      py: 1.8,
+                      bgcolor: isSelected ? '#0A66C2' : '#FFFFFF',
+                      color: isSelected ? '#FFFFFF' : '#334155',
+                      border: isSelected ? '1px solid #0A66C2' : '1px solid #CBD5E1',
+                      '&:hover': { bgcolor: isSelected ? '#084E96' : '#F1F5F9' }
                     }}
                   />
                 );

@@ -186,6 +186,19 @@ export default function AdminDashboardPage() {
   const [feedbackStatusFilter, setFeedbackStatusFilter] = useState('all'); // 'all', 'new', 'resolved'
   const [feedbackSearch, setFeedbackSearch] = useState('');
 
+  // Support Tickets Desk States
+  const [ticketsList, setTicketsList] = useState([]);
+  const [ticketsLoading, setTicketsLoading] = useState(false);
+  const [ticketSearch, setTicketSearch] = useState('');
+  const [ticketStatusFilter, setTicketStatusFilter] = useState('all'); // 'all', 'open', 'in_progress', 'resolved', 'closed'
+  const [ticketPriorityFilter, setTicketPriorityFilter] = useState('all'); // 'all', 'urgent', 'high', 'normal', 'low'
+  const [ticketRoleFilter, setTicketRoleFilter] = useState('all'); // 'all', 'partner', 'customer', 'guest'
+  const [selectedTicketForModal, setSelectedTicketForModal] = useState(null);
+  const [ticketModalOpen, setTicketModalOpen] = useState(false);
+  const [ticketNewStatus, setTicketNewStatus] = useState('resolved');
+  const [ticketResolutionNote, setTicketResolutionNote] = useState('');
+  const [isUpdatingTicket, setIsUpdatingTicket] = useState(false);
+
   // Real Service Reviews & Ratings States (PostgreSQL)
   const [reviewsList, setReviewsList] = useState([]);
   const [reviewsStats, setReviewsStats] = useState(null);
@@ -431,6 +444,85 @@ export default function AdminDashboardPage() {
     });
   };
 
+  // Fetch Support Tickets from Backend
+  const fetchTickets = async () => {
+    try {
+      setTicketsLoading(true);
+      const res = await fetch(`${API_V1_URL}/admin/tickets`);
+      const data = await res.json();
+      if (data.success && Array.isArray(data.tickets)) {
+        setTicketsList(data.tickets);
+      }
+    } catch (e) {
+      console.warn('Tickets fetch note:', e);
+    } finally {
+      setTicketsLoading(false);
+    }
+  };
+
+  const handleOpenTicketModal = (ticket) => {
+    setSelectedTicketForModal(ticket);
+    setTicketNewStatus(ticket.status === 'open' ? 'in_progress' : ticket.status);
+    setTicketResolutionNote(ticket.resolution_summary || ticket.admin_notes || '');
+    setTicketModalOpen(true);
+  };
+
+  const handleUpdateTicketStatus = async () => {
+    if (!selectedTicketForModal) return;
+    try {
+      setIsUpdatingTicket(true);
+      const res = await fetch(`${API_V1_URL}/admin/tickets/${selectedTicketForModal.id}/resolve`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: ticketNewStatus,
+          resolutionSummary: ticketResolutionNote || 'Resolved by Central Operations Desk',
+          resolvedBy: user?.name || 'Salem Operations Admin'
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.ticket) {
+        setToast({ open: true, message: `Ticket ${data.ticket.ticket_number} updated to ${ticketNewStatus.toUpperCase()}`, severity: 'success' });
+        setTicketsList(prev => prev.map(t => t.id === data.ticket.id ? data.ticket : t));
+        setTicketModalOpen(false);
+        setSelectedTicketForModal(null);
+      } else {
+        setToast({ open: true, message: data.error || 'Failed to update ticket', severity: 'error' });
+      }
+    } catch (err) {
+      setToast({ open: true, message: err.message || 'Error updating ticket', severity: 'error' });
+    } finally {
+      setIsUpdatingTicket(false);
+    }
+  };
+
+  // Filtered Tickets Computation
+  const filteredTickets = useMemo(() => {
+    return ticketsList.filter(item => {
+      const status = (item.status || 'open').toLowerCase();
+      const priority = (item.priority || 'normal').toLowerCase();
+      const role = (item.creator_role || 'customer').toLowerCase();
+      const query = ticketSearch.trim().toLowerCase();
+
+      if (ticketStatusFilter !== 'all' && status !== ticketStatusFilter) return false;
+      if (ticketPriorityFilter !== 'all' && priority !== ticketPriorityFilter) return false;
+      if (ticketRoleFilter !== 'all' && role !== ticketRoleFilter) return false;
+
+      if (query) {
+        const tNum = (item.ticket_number || '').toLowerCase();
+        const cName = (item.creator_name || '').toLowerCase();
+        const cPhone = (item.creator_phone || '').toLowerCase();
+        const subj = (item.subject || '').toLowerCase();
+        const desc = (item.description || '').toLowerCase();
+        const bId = (item.booking_id || '').toLowerCase();
+        if (!tNum.includes(query) && !cName.includes(query) && !cPhone.includes(query) && !subj.includes(query) && !desc.includes(query) && !bId.includes(query)) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [ticketsList, ticketStatusFilter, ticketPriorityFilter, ticketRoleFilter, ticketSearch]);
+
   // Filtered Feedbacks Computation
   const filteredFeedbacks = useMemo(() => {
     return feedbacksList.filter(item => {
@@ -651,6 +743,7 @@ export default function AdminDashboardPage() {
     fetchAuditLogs();
     fetchRewardConfig();
     fetchCoupons();
+    fetchTickets();
     const interval = setInterval(() => {
       fetchOverview();
       if (activeMainTab === 'traceability') {
@@ -659,6 +752,9 @@ export default function AdminDashboardPage() {
       if (activeMainTab === 'rewards') {
         fetchRewardConfig();
         fetchCoupons();
+      }
+      if (activeMainTab === 'tickets') {
+        fetchTickets();
       }
     }, 10000); // 10-second background sync
     return () => clearInterval(interval);
@@ -1263,6 +1359,7 @@ export default function AdminDashboardPage() {
           techCount: technicians.length,
           customerCount: customersList.length,
           newFeedbackCount: feedbacksList.filter(f => f.status === 'new').length,
+          openTicketsCount: ticketsList.filter(t => t.status === 'open' || t.status === 'in_progress').length,
           couponsCount: couponsList.length,
           teamCount: teamList.length
         }}
@@ -1494,6 +1591,41 @@ export default function AdminDashboardPage() {
                         fontWeight: 900,
                         bgcolor: activeMainTab === 'feedback' ? '#FEE2E2' : '#FEE2E2',
                         color: '#991B1B'
+                      }}
+                    />
+                  )}
+                </Box>
+              }
+            />
+            <Tab
+              value="tickets"
+              icon={<SupportAgentIcon sx={{ fontSize: 17 }} />}
+              iconPosition="start"
+              label={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                  <span>Support Tickets</span>
+                  <Chip
+                    label={ticketsList.filter(t => t.status === 'open' || t.status === 'in_progress').length}
+                    size="small"
+                    sx={{
+                      height: 18,
+                      fontSize: '10px',
+                      fontWeight: 900,
+                      bgcolor: activeMainTab === 'tickets' ? 'rgba(255,255,255,0.25)' : '#FFF7ED',
+                      color: activeMainTab === 'tickets' ? '#FFFFFF' : '#EA580C'
+                    }}
+                  />
+                  {ticketsList.filter(t => t.priority === 'urgent' && t.status !== 'resolved' && t.status !== 'closed').length > 0 && (
+                    <Chip
+                      label={`${ticketsList.filter(t => t.priority === 'urgent' && t.status !== 'resolved' && t.status !== 'closed').length} URGENT`}
+                      size="small"
+                      sx={{
+                        height: 18,
+                        fontSize: '9.5px',
+                        fontWeight: 900,
+                        bgcolor: '#FEE2E2',
+                        color: '#DC2626',
+                        border: '1px solid #EF4444'
                       }}
                     />
                   )}
@@ -3694,6 +3826,617 @@ export default function AdminDashboardPage() {
             </Box>
           )}
           </Card>
+        )}
+
+        {/* ========================================================================= */}
+        {/*  TAB: CENTRAL SUPPORT TICKETS & HELPDESK TRACKING DESK */}
+        {/* ========================================================================= */}
+        {activeMainTab === 'tickets' && (
+          <Box sx={{ mb: 4 }}>
+            {/* 1. Header Toolbar */}
+            <Card elevation={0} sx={{ bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '16px', p: 2.5, mb: 3, boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <Avatar sx={{ bgcolor: '#0284C7', width: 44, height: 44 }}>
+                    <SupportAgentIcon sx={{ color: '#FFFFFF', fontSize: 26 }} />
+                  </Avatar>
+                  <Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography variant="h6" sx={{ fontWeight: 900, color: '#0F172A', fontSize: '18px' }}>
+                        Support Tickets & Helpdesk Operations
+                      </Typography>
+                      <Chip
+                        label={`${ticketsList.length} Total`}
+                        size="small"
+                        sx={{ bgcolor: '#F1F5F9', color: '#334155', fontWeight: 800, fontSize: '11px' }}
+                      />
+                    </Box>
+                    <Typography variant="body2" sx={{ color: '#64748B', fontSize: '13px' }}>
+                      Real-time ticketing queue for Salem citizen customer grievances and technician field escalations.
+                    </Typography>
+                  </Box>
+                </Box>
+                <Button
+                  variant="outlined"
+                  onClick={fetchTickets}
+                  disabled={ticketsLoading}
+                  startIcon={ticketsLoading ? <CircularProgress size={16} /> : <RefreshIcon />}
+                  sx={{
+                    textTransform: 'none',
+                    fontWeight: 700,
+                    borderRadius: '10px',
+                    borderColor: '#CBD5E1',
+                    color: '#334155',
+                    px: 2,
+                    '&:hover': { borderColor: '#94A3B8', bgcolor: '#F8FAFC' }
+                  }}
+                >
+                  Refresh Queue
+                </Button>
+              </Box>
+            </Card>
+
+            {/* 2. KPI Summary Cards */}
+            <Grid container spacing={2} sx={{ mb: 3 }}>
+              <Grid item xs={6} sm={3}>
+                <Paper elevation={0} sx={{ p: 2, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '14px' }}>
+                  <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    Total Tickets
+                  </Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 900, color: '#0F172A', mt: 0.5 }}>
+                    {ticketsList.length}
+                  </Typography>
+                </Paper>
+              </Grid>
+              <Grid item xs={6} sm={3}>
+                <Paper elevation={0} sx={{ p: 2, bgcolor: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '14px' }}>
+                  <Typography variant="caption" sx={{ color: '#991B1B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    Open / Action Required
+                  </Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 900, color: '#DC2626', mt: 0.5 }}>
+                    {ticketsList.filter(t => t.status === 'open').length}
+                  </Typography>
+                </Paper>
+              </Grid>
+              <Grid item xs={6} sm={3}>
+                <Paper elevation={0} sx={{ p: 2, bgcolor: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '14px' }}>
+                  <Typography variant="caption" sx={{ color: '#92400E', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    In Progress
+                  </Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 900, color: '#D97706', mt: 0.5 }}>
+                    {ticketsList.filter(t => t.status === 'in_progress').length}
+                  </Typography>
+                </Paper>
+              </Grid>
+              <Grid item xs={6} sm={3}>
+                <Paper elevation={0} sx={{ p: 2, bgcolor: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '14px' }}>
+                  <Typography variant="caption" sx={{ color: '#166534', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    Resolved / Closed
+                  </Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 900, color: '#16A34A', mt: 0.5 }}>
+                    {ticketsList.filter(t => t.status === 'resolved' || t.status === 'closed').length}
+                  </Typography>
+                </Paper>
+              </Grid>
+            </Grid>
+
+            {/* 3. Filter & Search Controls */}
+            <Card elevation={0} sx={{ bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '16px', p: 2, mb: 3 }}>
+              <Grid container spacing={2} alignItems="center">
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    placeholder="Search by ticket #, user, phone, subject..."
+                    value={ticketSearch}
+                    onChange={(e) => setTicketSearch(e.target.value)}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon sx={{ color: '#94A3B8', fontSize: 20 }} />
+                        </InputAdornment>
+                      )
+                    }}
+                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={4} md={3}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel id="ticket-status-label">Status</InputLabel>
+                    <Select
+                      labelId="ticket-status-label"
+                      value={ticketStatusFilter}
+                      label="Status"
+                      onChange={(e) => setTicketStatusFilter(e.target.value)}
+                      sx={{ borderRadius: '10px' }}
+                    >
+                      <MenuItem value="all">All Statuses ({ticketsList.length})</MenuItem>
+                      <MenuItem value="open">Open ({ticketsList.filter(t => t.status === 'open').length})</MenuItem>
+                      <MenuItem value="in_progress">In Progress ({ticketsList.filter(t => t.status === 'in_progress').length})</MenuItem>
+                      <MenuItem value="resolved">Resolved ({ticketsList.filter(t => t.status === 'resolved').length})</MenuItem>
+                      <MenuItem value="closed">Closed ({ticketsList.filter(t => t.status === 'closed').length})</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={6} sm={4} md={2.5}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel id="ticket-priority-label">Priority</InputLabel>
+                    <Select
+                      labelId="ticket-priority-label"
+                      value={ticketPriorityFilter}
+                      label="Priority"
+                      onChange={(e) => setTicketPriorityFilter(e.target.value)}
+                      sx={{ borderRadius: '10px' }}
+                    >
+                      <MenuItem value="all">All Priorities</MenuItem>
+                      <MenuItem value="urgent">Urgent</MenuItem>
+                      <MenuItem value="high">High</MenuItem>
+                      <MenuItem value="normal">Normal</MenuItem>
+                      <MenuItem value="low">Low</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={6} sm={4} md={2.5}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel id="ticket-role-label">Creator Role</InputLabel>
+                    <Select
+                      labelId="ticket-role-label"
+                      value={ticketRoleFilter}
+                      label="Creator Role"
+                      onChange={(e) => setTicketRoleFilter(e.target.value)}
+                      sx={{ borderRadius: '10px' }}
+                    >
+                      <MenuItem value="all">All Roles</MenuItem>
+                      <MenuItem value="customer">Customer</MenuItem>
+                      <MenuItem value="partner">Technician / Partner</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+              </Grid>
+            </Card>
+
+            {/* 4. Tickets Table */}
+            <Card elevation={0} sx={{ bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '16px', overflow: 'hidden' }}>
+              {ticketsLoading ? (
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 8 }}>
+                  <CircularProgress size={36} sx={{ color: '#0284C7', mb: 2 }} />
+                  <Typography variant="body2" sx={{ color: '#64748B', fontWeight: 600 }}>
+                    Loading support tickets queue...
+                  </Typography>
+                </Box>
+              ) : filteredTickets.length === 0 ? (
+                <Box sx={{ textAlign: 'center', py: 8, px: 2 }}>
+                  <ConfirmationNumberIcon sx={{ fontSize: 52, color: '#CBD5E1', mb: 1.5 }} />
+                  <Typography variant="h6" sx={{ fontWeight: 800, color: '#334155' }}>
+                    No Support Tickets Found
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#64748B', mt: 0.5 }}>
+                    No tickets match the current filter criteria or search query.
+                  </Typography>
+                  {(ticketSearch || ticketStatusFilter !== 'all' || ticketPriorityFilter !== 'all' || ticketRoleFilter !== 'all') && (
+                    <Button
+                      variant="text"
+                      onClick={() => {
+                        setTicketSearch('');
+                        setTicketStatusFilter('all');
+                        setTicketPriorityFilter('all');
+                        setTicketRoleFilter('all');
+                      }}
+                      sx={{ mt: 2, textTransform: 'none', fontWeight: 700, color: '#0284C7' }}
+                    >
+                      Reset All Filters
+                    </Button>
+                  )}
+                </Box>
+              ) : (
+                <Box sx={{ overflowX: 'auto' }}>
+                  <Table sx={{ minWidth: 900 }}>
+                    <TableHead sx={{ bgcolor: '#F8FAFC' }}>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 800, color: '#475569', fontSize: '12px', py: 1.5 }}>TICKET ID & DATE</TableCell>
+                        <TableCell sx={{ fontWeight: 800, color: '#475569', fontSize: '12px', py: 1.5 }}>PRIORITY</TableCell>
+                        <TableCell sx={{ fontWeight: 800, color: '#475569', fontSize: '12px', py: 1.5 }}>CREATOR</TableCell>
+                        <TableCell sx={{ fontWeight: 800, color: '#475569', fontSize: '12px', py: 1.5 }}>CATEGORY & BOOKING</TableCell>
+                        <TableCell sx={{ fontWeight: 800, color: '#475569', fontSize: '12px', py: 1.5 }}>SUBJECT & DETAILS</TableCell>
+                        <TableCell sx={{ fontWeight: 800, color: '#475569', fontSize: '12px', py: 1.5 }}>STATUS</TableCell>
+                        <TableCell align="center" sx={{ fontWeight: 800, color: '#475569', fontSize: '12px', py: 1.5 }}>ACTION</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {filteredTickets.map((ticket) => {
+                        const isPartner = (ticket.creator_role || '').toLowerCase() === 'partner' || (ticket.creator_role || '').toLowerCase() === 'technician';
+                        const priorityLower = (ticket.priority || 'normal').toLowerCase();
+                        const statusLower = (ticket.status || 'open').toLowerCase();
+
+                        // Priority badge styles
+                        let priorityStyle = { bgcolor: '#F0FDF4', color: '#166534', border: '1px solid #BBF7D0' };
+                        if (priorityLower === 'urgent') priorityStyle = { bgcolor: '#FEF2F2', color: '#991B1B', border: '1px solid #F87171' };
+                        else if (priorityLower === 'high') priorityStyle = { bgcolor: '#FFF7ED', color: '#9A3412', border: '1px solid #FDBA74' };
+                        else if (priorityLower === 'low') priorityStyle = { bgcolor: '#F8FAFC', color: '#475569', border: '1px solid #E2E8F0' };
+
+                        // Status badge styles
+                        let statusStyle = { bgcolor: '#EFF6FF', color: '#1D4ED8', border: '1px solid #93C5FD', label: 'OPEN' };
+                        if (statusLower === 'in_progress') statusStyle = { bgcolor: '#FFFBEB', color: '#B45309', border: '1px solid #FCD34D', label: 'IN PROGRESS' };
+                        else if (statusLower === 'resolved') statusStyle = { bgcolor: '#ECFDF5', color: '#047857', border: '1px solid #6EE7B7', label: 'RESOLVED' };
+                        else if (statusLower === 'closed') statusStyle = { bgcolor: '#F1F5F9', color: '#334155', border: '1px solid #CBD5E1', label: 'CLOSED' };
+
+                        const formattedDate = ticket.created_at ? new Date(ticket.created_at).toLocaleString() : 'Recent';
+
+                        return (
+                          <TableRow key={ticket.id} hover sx={{ '& td': { borderColor: '#E2E8F0', py: 1.8 } }}>
+                            {/* 1. Ticket Number & Date */}
+                            <TableCell>
+                              <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A', fontFamily: 'monospace' }}>
+                                {ticket.ticket_number || ticket.id}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontSize: '11px', mt: 0.3 }}>
+                                {formattedDate}
+                              </Typography>
+                            </TableCell>
+
+                            {/* 2. Priority */}
+                            <TableCell>
+                              <Chip
+                                label={priorityLower.toUpperCase()}
+                                size="small"
+                                sx={{
+                                  fontWeight: 800,
+                                  fontSize: '10px',
+                                  height: '22px',
+                                  ...priorityStyle
+                                }}
+                              />
+                            </TableCell>
+
+                            {/* 3. Creator */}
+                            <TableCell>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Avatar
+                                  sx={{
+                                    bgcolor: isPartner ? '#10B981' : '#2563EB',
+                                    width: 32,
+                                    height: 32,
+                                    fontSize: '12px',
+                                    fontWeight: 800
+                                  }}
+                                >
+                                  {(ticket.creator_name || 'U').charAt(0).toUpperCase()}
+                                </Avatar>
+                                <Box>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
+                                    <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '13px' }}>
+                                      {ticket.creator_name || 'Salem User'}
+                                    </Typography>
+                                    <Chip
+                                      label={isPartner ? 'Partner' : 'Customer'}
+                                      size="small"
+                                      sx={{
+                                        bgcolor: isPartner ? '#ECFDF5' : '#EFF6FF',
+                                        color: isPartner ? '#047857' : '#1E40AF',
+                                        fontWeight: 800,
+                                        fontSize: '9px',
+                                        height: '18px'
+                                      }}
+                                    />
+                                  </Box>
+                                  <Typography variant="caption" sx={{ color: '#64748B', display: 'flex', alignItems: 'center', gap: 0.4 }}>
+                                    <PhoneIcon sx={{ fontSize: 12, color: '#94A3B8' }} />
+                                    {ticket.creator_phone || '—'}
+                                  </Typography>
+                                </Box>
+                              </Box>
+                            </TableCell>
+
+                            {/* 4. Category & Booking */}
+                            <TableCell>
+                              <Chip
+                                label={(ticket.category || 'General').toUpperCase()}
+                                size="small"
+                                sx={{
+                                  bgcolor: '#F8FAFC',
+                                  color: '#334155',
+                                  border: '1px solid #E2E8F0',
+                                  fontWeight: 800,
+                                  fontSize: '10px',
+                                  height: '20px',
+                                  mb: 0.5,
+                                  display: 'inline-flex'
+                                }}
+                              />
+                              {ticket.booking_id ? (
+                                <Typography variant="caption" sx={{ color: '#0284C7', fontWeight: 700, display: 'block', fontSize: '11px' }}>
+                                  Booking #{ticket.booking_id}
+                                </Typography>
+                              ) : (
+                                <Typography variant="caption" sx={{ color: '#94A3B8', display: 'block', fontSize: '11px' }}>
+                                  General Platform
+                                </Typography>
+                              )}
+                            </TableCell>
+
+                            {/* 5. Subject & Details */}
+                            <TableCell sx={{ maxWidth: 320 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 700, color: '#1E293B', mb: 0.3 }}>
+                                {ticket.subject}
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  color: '#64748B',
+                                  display: '-webkit-box',
+                                  WebkitLineClamp: 2,
+                                  WebkitBoxOrient: 'vertical',
+                                  overflow: 'hidden',
+                                  lineHeight: 1.4
+                                }}
+                              >
+                                {ticket.description}
+                              </Typography>
+                              <Box sx={{ display: 'flex', gap: 1, mt: 0.6 }}>
+                                {ticket.voice_note_url && (
+                                  <Chip
+                                    icon={<VolumeUpIcon sx={{ fontSize: '13px !important' }} />}
+                                    label="Audio Note"
+                                    size="small"
+                                    sx={{ bgcolor: '#FEF3C7', color: '#92400E', fontWeight: 700, fontSize: '10px', height: '20px' }}
+                                  />
+                                )}
+                                {ticket.attachment_url && (
+                                  <Chip
+                                    icon={<OpenInNewIcon sx={{ fontSize: '13px !important' }} />}
+                                    label="Attachment"
+                                    size="small"
+                                    sx={{ bgcolor: '#F1F5F9', color: '#475569', fontWeight: 700, fontSize: '10px', height: '20px' }}
+                                  />
+                                )}
+                                {ticket.resolution_summary && (
+                                  <Chip
+                                    icon={<CheckCircleOutlineIcon sx={{ fontSize: '13px !important' }} />}
+                                    label="Resolution Added"
+                                    size="small"
+                                    sx={{ bgcolor: '#ECFDF5', color: '#065F46', fontWeight: 700, fontSize: '10px', height: '20px' }}
+                                  />
+                                )}
+                              </Box>
+                            </TableCell>
+
+                            {/* 6. Status */}
+                            <TableCell>
+                              <Chip
+                                label={statusStyle.label}
+                                size="small"
+                                sx={{
+                                  fontWeight: 800,
+                                  fontSize: '10px',
+                                  height: '22px',
+                                  bgcolor: statusStyle.bgcolor,
+                                  color: statusStyle.color,
+                                  border: statusStyle.border
+                                }}
+                              />
+                            </TableCell>
+
+                            {/* 7. Action Button */}
+                            <TableCell align="center">
+                              <Button
+                                variant="contained"
+                                size="small"
+                                onClick={() => handleOpenTicketModal(ticket)}
+                                startIcon={<TuneIcon sx={{ fontSize: 15 }} />}
+                                sx={{
+                                  bgcolor: '#0284C7',
+                                  color: '#FFFFFF',
+                                  textTransform: 'none',
+                                  fontWeight: 700,
+                                  fontSize: '11.5px',
+                                  borderRadius: '8px',
+                                  px: 1.5,
+                                  py: 0.6,
+                                  boxShadow: 'none',
+                                  '&:hover': { bgcolor: '#0369A1', boxShadow: 'none' }
+                                }}
+                              >
+                                Manage
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </Box>
+              )}
+            </Card>
+
+            {/* 5. Ticket Detail & Resolution Modal */}
+            <Dialog
+              open={ticketModalOpen}
+              onClose={() => !isUpdatingTicket && setTicketModalOpen(false)}
+              maxWidth="sm"
+              fullWidth
+              PaperProps={{
+                sx: { borderRadius: '16px', p: 1 }
+              }}
+            >
+              <DialogTitle sx={{ pb: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 900, color: '#0F172A', fontSize: '17px' }}>
+                    Ticket Dossier: {selectedTicketForModal?.ticket_number || selectedTicketForModal?.id}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#64748B' }}>
+                    Created: {selectedTicketForModal?.created_at ? new Date(selectedTicketForModal.created_at).toLocaleString() : 'N/A'}
+                  </Typography>
+                </Box>
+                <Chip
+                  label={(selectedTicketForModal?.status || 'OPEN').toUpperCase()}
+                  size="small"
+                  sx={{
+                    fontWeight: 800,
+                    fontSize: '10.5px',
+                    bgcolor: selectedTicketForModal?.status === 'resolved' ? '#ECFDF5' : selectedTicketForModal?.status === 'in_progress' ? '#FFFBEB' : '#EFF6FF',
+                    color: selectedTicketForModal?.status === 'resolved' ? '#047857' : selectedTicketForModal?.status === 'in_progress' ? '#B45309' : '#1D4ED8',
+                    border: '1px solid',
+                    borderColor: selectedTicketForModal?.status === 'resolved' ? '#6EE7B7' : selectedTicketForModal?.status === 'in_progress' ? '#FCD34D' : '#93C5FD'
+                  }}
+                />
+              </DialogTitle>
+
+              <DialogContent dividers sx={{ py: 2.5 }}>
+                {selectedTicketForModal && (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {/* User and Booking Metadata */}
+                    <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+                      <Grid container spacing={1.5}>
+                        <Grid item xs={6}>
+                          <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 600 }}>Requester</Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A' }}>
+                            {selectedTicketForModal.creator_name || 'Salem Citizen'}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: '#475569', display: 'block' }}>
+                            {selectedTicketForModal.creator_phone} ({selectedTicketForModal.creator_role || 'Customer'})
+                          </Typography>
+                        </Grid>
+                        <Grid item xs={6}>
+                          <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 600 }}>Category & Priority</Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A', textTransform: 'capitalize' }}>
+                            {selectedTicketForModal.category || 'General'}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: '#475569', display: 'block' }}>
+                            Priority: {(selectedTicketForModal.priority || 'Normal').toUpperCase()}
+                          </Typography>
+                        </Grid>
+                        {selectedTicketForModal.booking_id && (
+                          <Grid item xs={12}>
+                            <Divider sx={{ my: 0.5, borderColor: '#E2E8F0' }} />
+                            <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 600 }}>Linked Booking</Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 800, color: '#0284C7' }}>
+                              #{selectedTicketForModal.booking_id}
+                            </Typography>
+                          </Grid>
+                        )}
+                      </Grid>
+                    </Paper>
+
+                    {/* Subject & Description */}
+                    <Box>
+                      <Typography variant="caption" sx={{ color: '#475569', fontWeight: 700, textTransform: 'uppercase', fontSize: '11px' }}>
+                        Ticket Subject
+                      </Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 800, color: '#0F172A', mt: 0.3, mb: 1.5 }}>
+                        {selectedTicketForModal.subject}
+                      </Typography>
+
+                      <Typography variant="caption" sx={{ color: '#475569', fontWeight: 700, textTransform: 'uppercase', fontSize: '11px' }}>
+                        Issue Description
+                      </Typography>
+                      <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', borderRadius: '10px', border: '1px solid #E2E8F0', mt: 0.5 }}>
+                        <Typography variant="body2" sx={{ color: '#334155', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+                          {selectedTicketForModal.description}
+                        </Typography>
+                      </Paper>
+                    </Box>
+
+                    {/* Audio or Attachment if present */}
+                    {selectedTicketForModal.voice_note_url && (
+                      <Box>
+                        <Typography variant="caption" sx={{ color: '#475569', fontWeight: 700, textTransform: 'uppercase', fontSize: '11px' }}>
+                          Voice Recording
+                        </Typography>
+                        <Box sx={{ mt: 0.5 }}>
+                          <audio controls src={selectedTicketForModal.voice_note_url} style={{ width: '100%' }} />
+                        </Box>
+                      </Box>
+                    )}
+
+                    {selectedTicketForModal.attachment_url && (
+                      <Box>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          href={selectedTicketForModal.attachment_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          startIcon={<OpenInNewIcon />}
+                          sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '8px' }}
+                        >
+                          View Uploaded Proof / Attachment
+                        </Button>
+                      </Box>
+                    )}
+
+                    <Divider sx={{ borderColor: '#E2E8F0' }} />
+
+                    {/* Resolution Controls */}
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A' }}>
+                        Update Ticket Status & Log Resolution
+                      </Typography>
+
+                      <FormControl fullWidth size="small">
+                        <InputLabel id="modal-status-label">Ticket Status</InputLabel>
+                        <Select
+                          labelId="modal-status-label"
+                          value={ticketNewStatus}
+                          label="Ticket Status"
+                          onChange={(e) => setTicketNewStatus(e.target.value)}
+                          sx={{ borderRadius: '10px' }}
+                        >
+                          <MenuItem value="open">Open (Awaiting Central Desk)</MenuItem>
+                          <MenuItem value="in_progress">In Progress (Under Investigation)</MenuItem>
+                          <MenuItem value="resolved">Resolved (Solution Provided)</MenuItem>
+                          <MenuItem value="closed">Closed (Archived)</MenuItem>
+                        </Select>
+                      </FormControl>
+
+                      <TextField
+                        fullWidth
+                        multiline
+                        rows={3}
+                        label="Admin Resolution Summary / Actions Taken"
+                        placeholder="Detail the steps taken, customer conversation notes, or refund/dispatch adjustments..."
+                        value={ticketResolutionNote}
+                        onChange={(e) => setTicketResolutionNote(e.target.value)}
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+                      />
+
+                      {selectedTicketForModal.resolved_by && (
+                        <Typography variant="caption" sx={{ color: '#059669', fontWeight: 700 }}>
+                          Last resolved by: {selectedTicketForModal.resolved_by} {selectedTicketForModal.resolved_at ? `on ${new Date(selectedTicketForModal.resolved_at).toLocaleString()}` : ''}
+                        </Typography>
+                      )}
+                    </Box>
+                  </Box>
+                )}
+              </DialogContent>
+
+              <DialogActions sx={{ p: 2, gap: 1 }}>
+                <Button
+                  variant="outlined"
+                  onClick={() => setTicketModalOpen(false)}
+                  disabled={isUpdatingTicket}
+                  sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '8px', color: '#475569', borderColor: '#CBD5E1' }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="contained"
+                  onClick={handleUpdateTicketStatus}
+                  disabled={isUpdatingTicket}
+                  startIcon={isUpdatingTicket ? <CircularProgress size={16} color="inherit" /> : <SaveIcon />}
+                  sx={{
+                    bgcolor: '#0284C7',
+                    textTransform: 'none',
+                    fontWeight: 700,
+                    borderRadius: '8px',
+                    boxShadow: 'none',
+                    '&:hover': { bgcolor: '#0369A1', boxShadow: 'none' }
+                  }}
+                >
+                  {isUpdatingTicket ? 'Saving...' : 'Save Resolution'}
+                </Button>
+              </DialogActions>
+            </Dialog>
+          </Box>
         )}
 
         {/* ========================================================================= */}

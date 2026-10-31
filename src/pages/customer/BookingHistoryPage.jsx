@@ -308,7 +308,16 @@ export default function BookingHistoryPage() {
             const isExpanded = expandedBookingId === item.id;
             const statusConfig = getStatusColor(item.status);
             
-            const part1Amt = parseFloat(item.visit_fee || item.paymentSummary?.part1Fee || 99);
+            const originalVisitFee = parseFloat(item.visit_fee || item.paymentSummary?.originalVisitFee || 99.00);
+            const couponDiscountAmt = parseFloat(item.coupon_discount || item.paymentSummary?.couponDiscount || 0.00);
+            const couponCodeApplied = item.coupon_code || item.paymentSummary?.couponCode || null;
+
+            const part1Amt = item.final_amount != null
+              ? parseFloat(item.final_amount)
+              : (item.paymentSummary?.part1Fee != null
+                  ? parseFloat(item.paymentSummary.part1Fee)
+                  : Math.max(0, originalVisitFee - couponDiscountAmt));
+
             const rawQuoteSubtotal = parseFloat(item.quote_subtotal || item.paymentSummary?.part2Amount || 0);
             const displayedQuoteItems = item.quoteItems || [];
             
@@ -316,13 +325,15 @@ export default function BookingHistoryPage() {
             const part2Amt = rawQuoteSubtotal > 0 ? rawQuoteSubtotal : (item.status === 'completed' ? calculatedPartsTotal : 0);
             
             const isCancelled = item.status === 'cancelled';
-            const grossPaid = parseFloat(item.gross_paid_amount || item.final_amount || (isCancelled ? part1Amt : 0));
+            const grossPaid = item.final_amount != null
+              ? parseFloat(item.final_amount)
+              : (item.gross_paid_amount != null ? parseFloat(item.gross_paid_amount) : part1Amt);
             const refundAmt = parseFloat(item.refund_amount || 0);
             const platformFeeRetained = parseFloat(item.refund_platform_fee || 0);
             const gatewayFeeRetained = parseFloat(item.refund_gateway_fee || 0);
             const totalRetained = parseFloat((platformFeeRetained + gatewayFeeRetained).toFixed(2));
 
-            const part1Paid = ['en_route', 'arrived', 'inspecting', 'quote_presented', 'quote_approved', 'completed'].includes(item.status) || (isCancelled && grossPaid > 0);
+            const part1Paid = ['en_route', 'arrived', 'inspecting', 'quote_presented', 'quote_approved', 'completed'].includes(item.status) || (isCancelled && grossPaid >= 0);
             const totalPaid = item.status === 'completed' 
               ? (part1Amt + part2Amt) 
               : (isCancelled ? grossPaid : (part1Paid ? part1Amt : 0));
@@ -461,6 +472,18 @@ export default function BookingHistoryPage() {
                       ₹{part1Amt.toFixed(2)} • {isCancelled ? (refundAmt > 0 ? `Refunded (Net ₹${refundAmt.toFixed(2)})` : 'Cancelled') : (part1Paid ? 'PAID (100% to Tech)' : (item.status === 'accepted' ? 'Awaiting Payment' : 'Zero Charge'))}
                     </Typography>
                   </Box>
+
+                  {/* Coupon Discount Row if applied */}
+                  {couponDiscountAmt > 0 && (
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 0.3, px: 0.8, bgcolor: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '4px', my: 0.4 }}>
+                      <Typography variant="caption" sx={{ color: '#166534', fontWeight: 700, fontSize: '11px' }}>
+                        Coupon Applied ({couponCodeApplied || 'PROMO'}):
+                      </Typography>
+                      <Typography variant="caption" sx={{ fontWeight: 800, color: '#15803D', fontSize: '11.5px' }}>
+                        -₹{couponDiscountAmt.toFixed(2)} (Original Fee: ₹{originalVisitFee.toFixed(2)})
+                      </Typography>
+                    </Box>
+                  )}
 
                   {/* Part 2 Row */}
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 0.4 }}>

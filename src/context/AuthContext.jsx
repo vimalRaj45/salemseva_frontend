@@ -140,7 +140,7 @@ export function AuthProvider({ children }) {
               aadhaarCardUrl: t.aadhaar_card_url,
               aadhaarNumber: t.aadhaar_number,
               serviceArea: (t.assigned_localities && t.assigned_localities[0]) ? `${t.assigned_localities[0]}, Salem` : 'Fairlands, Salem',
-              assignedLocalities: t.assigned_localities || ['Fairlands', 'Hasthampatti']
+              assignedLocalities: Array.isArray(t.assigned_localities) && t.assigned_localities.length > 0 ? t.assigned_localities : (t.assignedLocalities || ['Fairlands'])
             };
           });
           setDbTechnicians(mapped);
