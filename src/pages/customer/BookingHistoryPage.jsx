@@ -315,10 +315,17 @@ export default function BookingHistoryPage() {
             const calculatedPartsTotal = displayedQuoteItems.reduce((s, qi) => s + (parseFloat(qi.price) * (qi.qty || 1)), 0);
             const part2Amt = rawQuoteSubtotal > 0 ? rawQuoteSubtotal : (item.status === 'completed' ? calculatedPartsTotal : 0);
             
-            const part1Paid = ['en_route', 'arrived', 'inspecting', 'quote_presented', 'quote_approved', 'completed'].includes(item.status) || (item.status === 'cancelled' && item.technician_id);
+            const isCancelled = item.status === 'cancelled';
+            const grossPaid = parseFloat(item.gross_paid_amount || item.final_amount || (isCancelled ? part1Amt : 0));
+            const refundAmt = parseFloat(item.refund_amount || 0);
+            const platformFeeRetained = parseFloat(item.refund_platform_fee || 0);
+            const gatewayFeeRetained = parseFloat(item.refund_gateway_fee || 0);
+            const totalRetained = parseFloat((platformFeeRetained + gatewayFeeRetained).toFixed(2));
+
+            const part1Paid = ['en_route', 'arrived', 'inspecting', 'quote_presented', 'quote_approved', 'completed'].includes(item.status) || (isCancelled && grossPaid > 0);
             const totalPaid = item.status === 'completed' 
               ? (part1Amt + part2Amt) 
-              : (part1Paid ? part1Amt : 0);
+              : (isCancelled ? grossPaid : (part1Paid ? part1Amt : 0));
 
             return (
               <Card
@@ -364,8 +371,13 @@ export default function BookingHistoryPage() {
 
                   <Box sx={{ textAlign: 'right' }}>
                     <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0F172A', fontSize: '16px' }}>
-                      ₹{totalPaid}
+                      ₹{isCancelled && refundAmt > 0 ? refundAmt.toFixed(2) : totalPaid.toFixed(2)}
                     </Typography>
+                    {isCancelled && refundAmt > 0 && (
+                      <Typography variant="caption" sx={{ color: '#16A34A', fontWeight: 700, fontSize: '10px', display: 'block' }}>
+                        Refund Initiated
+                      </Typography>
+                    )}
                     <Chip 
                       label={statusConfig.label} 
                       size="small" 
@@ -424,12 +436,12 @@ export default function BookingHistoryPage() {
                       2-Part Payment Summary
                     </Typography>
                     <Chip
-                      label={totalPaid > 0 ? `Total Paid: ₹${totalPaid}` : 'No Charges'}
+                      label={isCancelled ? (refundAmt > 0 ? `Net Refunded: ₹${refundAmt.toFixed(2)}` : 'Cancelled') : (totalPaid > 0 ? `Total Paid: ₹${totalPaid.toFixed(2)}` : 'No Charges')}
                       size="small"
                       sx={{ 
-                        bgcolor: totalPaid > 0 ? '#DCFCE7' : '#F1F5F9', 
-                        color: totalPaid > 0 ? '#166534' : '#334155', 
-                        border: `1px solid ${totalPaid > 0 ? '#86EFAC' : '#E2E8F0'}`,
+                        bgcolor: isCancelled ? '#EFF6FF' : (totalPaid > 0 ? '#DCFCE7' : '#F1F5F9'), 
+                        color: isCancelled ? '#0284C7' : (totalPaid > 0 ? '#166534' : '#334155'), 
+                        border: `1px solid ${isCancelled ? '#BAE6FD' : (totalPaid > 0 ? '#86EFAC' : '#E2E8F0')}`,
                         fontWeight: 800, 
                         fontSize: '10.5px', 
                         height: 20 
@@ -445,8 +457,8 @@ export default function BookingHistoryPage() {
                         Part 1 (Visit & Doorstep Fuel):
                       </Typography>
                     </Box>
-                    <Typography variant="caption" sx={{ fontWeight: 800, color: part1Paid ? '#15803D' : '#475569', fontSize: '12px' }}>
-                      ₹{part1Amt} • {part1Paid ? 'PAID (100% to Tech)' : (item.status === 'accepted' ? 'Awaiting Payment' : 'Zero Charge')}
+                    <Typography variant="caption" sx={{ fontWeight: 800, color: isCancelled ? '#0284C7' : (part1Paid ? '#15803D' : '#475569'), fontSize: '12px' }}>
+                      ₹{part1Amt.toFixed(2)} • {isCancelled ? (refundAmt > 0 ? `Refunded (Net ₹${refundAmt.toFixed(2)})` : 'Cancelled') : (part1Paid ? 'PAID (100% to Tech)' : (item.status === 'accepted' ? 'Awaiting Payment' : 'Zero Charge'))}
                     </Typography>
                   </Box>
 
@@ -459,9 +471,29 @@ export default function BookingHistoryPage() {
                       </Typography>
                     </Box>
                     <Typography variant="caption" sx={{ fontWeight: 800, color: item.status === 'completed' ? '#15803D' : (item.status === 'quote_approved' ? '#0066CC' : '#475569'), fontSize: '12px' }}>
-                      {item.status === 'completed' ? `₹${part2Amt} • PAID (Released on Completion)` : (item.status === 'quote_approved' ? `₹${part2Amt} • Approved` : 'Quoted on Inspection')}
+                      {item.status === 'completed' ? `₹${part2Amt.toFixed(2)} • PAID (Released on Completion)` : (item.status === 'quote_approved' ? `₹${part2Amt.toFixed(2)} • Approved` : 'Quoted on Inspection')}
                     </Typography>
                   </Box>
+
+                  {/* Transparent Cancellation & Refund Breakdown if cancelled */}
+                  {isCancelled && grossPaid > 0 && (
+                    <Box sx={{ mt: 1, p: 1.2, bgcolor: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '8px' }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', mb: 0.3 }}>
+                        <Typography sx={{ color: '#166534', fontWeight: 600 }}>Original Advance Paid:</Typography>
+                        <Typography sx={{ fontWeight: 700, color: '#166534' }}>₹{grossPaid.toFixed(2)}</Typography>
+                      </Box>
+                      {totalRetained > 0 && (
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', mb: 0.3 }}>
+                          <Typography sx={{ color: '#DC2626', fontWeight: 600 }}>Retained Fees (Platform + Gateway):</Typography>
+                          <Typography sx={{ fontWeight: 700, color: '#DC2626' }}>-₹{totalRetained.toFixed(2)}</Typography>
+                        </Box>
+                      )}
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '11.5px', pt: 0.4, borderTop: '1px dashed #86EFAC' }}>
+                        <Typography sx={{ fontWeight: 800, color: '#14532D' }}>Net Refund Initiated to Source:</Typography>
+                        <Typography sx={{ fontWeight: 900, color: '#15803D' }}>₹{refundAmt.toFixed(2)}</Typography>
+                      </Box>
+                    </Box>
+                  )}
 
                   {/* Prominent Labor Tasks Breakdown */}
                   {displayedQuoteItems.length > 0 && (
@@ -509,21 +541,33 @@ export default function BookingHistoryPage() {
                     </Typography>
 
                     {item.payments && item.payments.length > 0 ? (
-                      item.payments.map((p, pIdx) => (
-                        <Box key={p.id || pIdx} sx={{ bgcolor: '#FFFFFF', p: 1, borderRadius: '6px', border: '1px solid #E2E8F0', mb: 0.6 }}>
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <Typography variant="caption" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '11px' }}>
-                              Txn ID: {p.transaction_id || `TXN_${item.id}_${pIdx + 1}`}
+                      item.payments.map((p, pIdx) => {
+                        const isRefund = p.status === 'REFUNDED';
+                        const pAmount = Number(p.amount || 0);
+                        const pPgFee = Number(p.pg_fee || gatewayFeeRetained || 0);
+                        const pPlatformFee = Number(p.platform_fee || platformFeeRetained || 0);
+
+                        return (
+                          <Box key={p.id || pIdx} sx={{ bgcolor: '#FFFFFF', p: 1.2, borderRadius: '6px', border: '1px solid #E2E8F0', mb: 0.6 }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <Typography variant="caption" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '11px' }}>
+                                Txn ID: {p.transaction_id || `TXN_${item.id}_${pIdx + 1}`}
+                              </Typography>
+                              <Typography variant="caption" sx={{ fontWeight: 800, color: isRefund ? '#15803D' : '#16A34A', fontSize: '11.5px' }}>
+                                ₹{pAmount.toFixed(2)} ({isRefund ? 'NET REFUNDED' : (p.status || 'SETTLED')})
+                              </Typography>
+                            </Box>
+                            <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontSize: '10px', mt: 0.2 }}>
+                              Mode: {p.payment_method || 'UPI (Protected Payment)'} • {formatDateTime(p.created_at)}
                             </Typography>
-                            <Typography variant="caption" sx={{ fontWeight: 800, color: '#16A34A', fontSize: '11px' }}>
-                              ₹{p.amount} ({p.status || 'SETTLED'})
-                            </Typography>
+                            {isRefund && (pPgFee > 0 || pPlatformFee > 0) && (
+                              <Typography variant="caption" sx={{ color: '#0369A1', display: 'block', fontSize: '10px', mt: 0.3, bgcolor: '#F0F9FF', px: 0.8, py: 0.3, borderRadius: '4px' }}>
+                                Retained deductions: ₹{pPlatformFee.toFixed(2)} Platform fee + ₹{pPgFee.toFixed(2)} Razorpay gateway interchange
+                              </Typography>
+                            )}
                           </Box>
-                          <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontSize: '10px' }}>
-                            Mode: {p.payment_method || 'UPI (Protected Payment)'} • {formatDateTime(p.created_at)}
-                          </Typography>
-                        </Box>
-                      ))
+                        );
+                      })
                     ) : (
                       <>
                         <Box sx={{ bgcolor: '#FFFFFF', p: 1, borderRadius: '6px', border: '1px solid #E2E8F0', mb: 0.6 }}>

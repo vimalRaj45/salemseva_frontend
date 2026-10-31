@@ -261,10 +261,10 @@ export default function AdminOrderCancelPage() {
             >
               <Box>
                 <Typography sx={{ fontSize: '13px', fontWeight: 800, color: compensateTech ? '#166534' : '#0F172A' }}>
-                  Compensate Partner Travel Allowance (₹99.00)
+                  Compensate Partner Travel Allowance (₹{Number(booking?.visit_fee || 99).toFixed(2)})
                 </Typography>
                 <Typography sx={{ fontSize: '11.5px', color: compensateTech ? '#15803D' : '#64748B' }}>
-                  Disburse ₹99 to technician wallet so they do not bear travel loss for customer no-show.
+                  Disburse ₹{Number(booking?.visit_fee || 99).toFixed(2)} to technician wallet so they do not bear travel loss for customer no-show.
                 </Typography>
               </Box>
               <Switch

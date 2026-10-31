@@ -2660,7 +2660,12 @@ export default function AdminDashboardPage() {
                           )}
                         </TableCell>
                         <TableCell align="right" sx={{ fontWeight: 900, color: '#0F172A', fontSize: '14px' }}>
-                          ₹{job.final_amount || job.total_price || '299.00'}
+                          ₹{Number(job.final_amount || job.total_price || 299).toFixed(2)}
+                          {job.status === 'cancelled' && job.refund_amount > 0 && (
+                            <Typography variant="caption" sx={{ color: '#059669', display: 'block', fontSize: '10px', fontWeight: 700 }}>
+                              Refund: ₹{Number(job.refund_amount).toFixed(2)}
+                            </Typography>
+                          )}
                         </TableCell>
                         <TableCell align="center">
                           <Box sx={{ display: 'flex', gap: 0.8, alignItems: 'center', justifyContent: 'center' }}>

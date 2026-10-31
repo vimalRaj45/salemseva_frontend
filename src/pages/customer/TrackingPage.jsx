@@ -642,13 +642,26 @@ export default function TrackingPage() {
               >
                 <ShieldIcon sx={{ fontSize: 20 }} />
               </Box>
-              <Box>
-                <Typography sx={{ fontSize: '12.5px', fontWeight: 800, color: '#A7F3D0' }}>
-                  ₹{visitFee}.00 Escrow Refunded to Wallet
-                </Typography>
-                <Typography sx={{ fontSize: '11px', color: '#6EE7B7', lineHeight: 1.3 }}>
-                  Your advance visit payment has been released back to your account.
-                </Typography>
+              <Box sx={{ flex: 1 }}>
+                {(() => {
+                  const refundAmount = Number(trackData?.booking?.refund_amount || booking?.refund_amount || 0);
+                  const grossPaid = Number(trackData?.booking?.final_amount || booking?.final_amount || visitFee);
+                  const retainedFees = Number(Number(trackData?.booking?.refund_platform_fee || 0) + Number(trackData?.booking?.refund_gateway_fee || 0));
+                  const displayRefund = refundAmount > 0 ? refundAmount : grossPaid;
+
+                  return (
+                    <>
+                      <Typography sx={{ fontSize: '13px', fontWeight: 800, color: '#A7F3D0' }}>
+                        ₹{displayRefund.toFixed(2)} Refund Initiated to Source Account
+                      </Typography>
+                      <Typography sx={{ fontSize: '11px', color: '#6EE7B7', lineHeight: 1.35, mt: 0.2 }}>
+                        {retainedFees > 0 
+                          ? `Initial payment of ₹${grossPaid.toFixed(2)} refunded after ₹${retainedFees.toFixed(2)} platform & gateway processing retention (3-5 business days).` 
+                          : 'Your advance visit payment has been released back to your original source account.'}
+                      </Typography>
+                    </>
+                  );
+                })()}
               </Box>
             </Box>
 
@@ -1029,7 +1042,7 @@ export default function TrackingPage() {
                         <Chip label="COMPLETED" size="small" sx={{ bgcolor: '#ECFDF5', color: '#065F46', fontWeight: 800, fontSize: '9.5px', height: 18 }} />
                       </Box>
                       <Typography variant="caption" sx={{ color: '#64748B', display: 'block', pl: 3.2, fontSize: '11px', lineHeight: 1.4 }}>
-                        கோரிக்கை பதிவு செய்யப்பட்டது. வாடிக்கையாளர் ₹99.00 கட்டணம் Razorpay Escrow முறையில் பாதுகாப்பாக வைக்கப்பட்டுள்ளது.
+                        கோரிக்கை பதிவு செய்யப்பட்டது. வாடிக்கையாளர் ₹{Number(trackData?.booking?.final_amount || trackData?.booking?.visit_fee || 99).toFixed(2)} கட்டணம் Razorpay Escrow முறையில் பாதுகாப்பாக வைக்கப்பட்டுள்ளது.
                       </Typography>
                     </Paper>
 

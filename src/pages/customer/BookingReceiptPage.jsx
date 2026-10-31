@@ -96,9 +96,13 @@ export default function BookingReceiptPage() {
   }
 
   const isCompleted = booking?.status === 'completed';
-  const visitFee = 99.0;
-  const quoteLabor = parseFloat(booking?.quote_subtotal || booking?.final_amount || 0);
-  const totalAmount = isCompleted && quoteLabor > 0 ? (visitFee + quoteLabor) : visitFee;
+  const isCancelled = booking?.status === 'cancelled';
+  const grossPaid = parseFloat(booking?.final_amount || booking?.gross_paid_amount || booking?.visit_fee || 99.0);
+  const refundAmount = parseFloat(booking?.refund_amount || 0);
+  const platformFeeRetained = parseFloat(booking?.refund_platform_fee || 0);
+  const gatewayFeeRetained = parseFloat(booking?.refund_gateway_fee || 0);
+  const quoteLabor = parseFloat(booking?.quote_subtotal || 0);
+  const totalAmount = isCompleted && quoteLabor > 0 ? (grossPaid + quoteLabor) : (isCancelled ? refundAmount : grossPaid);
 
   return (
     <Box sx={{ minHeight: '100dvh', bgcolor: '#F8FAFC', display: 'flex', flexDirection: 'column' }}>
@@ -182,11 +186,12 @@ export default function BookingReceiptPage() {
               </Typography>
             </Box>
             <Chip
-              label={isCompleted ? 'PAID & SETTLED' : (booking?.status || 'CONFIRMED').toUpperCase()}
+              label={isCancelled ? 'CANCELLED & REFUNDED' : (isCompleted ? 'PAID & SETTLED' : (booking?.status || 'CONFIRMED').toUpperCase())}
               size="small"
               sx={{
-                bgcolor: isCompleted ? '#DCFCE7' : '#EFF6FF',
-                color: isCompleted ? '#15803D' : '#0284C7',
+                bgcolor: isCancelled ? '#FEF2F2' : (isCompleted ? '#DCFCE7' : '#EFF6FF'),
+                color: isCancelled ? '#DC2626' : (isCompleted ? '#15803D' : '#0284C7'),
+                border: isCancelled ? '1px solid #FECACA' : 'none',
                 fontWeight: 800,
                 fontSize: '11px',
                 height: 24
@@ -222,22 +227,54 @@ export default function BookingReceiptPage() {
 
           {/* Itemized Charges */}
           <Typography sx={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', mb: 1.5 }}>
-            Itemized Service Charges
+            {isCancelled ? 'Itemized Cancellation & Refund Ledger' : 'Itemized Service Charges'}
           </Typography>
 
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
             <Box>
               <Typography sx={{ fontSize: '13px', color: '#334155', fontWeight: 600 }}>
-                Part 1: Inspection & Doorstep Travel Fee
+                {isCancelled ? 'Initial Advance Booking Paid' : 'Part 1: Inspection & Doorstep Travel Fee'}
               </Typography>
               <Typography sx={{ fontSize: '11px', color: '#64748B' }}>
-                Guaranteed technician arrival & diagnostic inspection
+                {isCancelled ? 'Pre-service payment received at checkout' : 'Guaranteed technician arrival & diagnostic inspection'}
               </Typography>
             </Box>
             <Typography sx={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A' }}>
-              ₹{visitFee.toFixed(2)}
+              ₹{grossPaid.toFixed(2)}
             </Typography>
           </Box>
+
+          {isCancelled && platformFeeRetained > 0 && (
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Box>
+                <Typography sx={{ fontSize: '13px', color: '#DC2626', fontWeight: 600 }}>
+                  Platform Facilitation Retention (2%)
+                </Typography>
+                <Typography sx={{ fontSize: '11px', color: '#94A3B8' }}>
+                  Cloud dispatch & technician matching retention
+                </Typography>
+              </Box>
+              <Typography sx={{ fontSize: '13.5px', fontWeight: 700, color: '#DC2626' }}>
+                -₹{platformFeeRetained.toFixed(2)}
+              </Typography>
+            </Box>
+          )}
+
+          {isCancelled && gatewayFeeRetained > 0 && (
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Box>
+                <Typography sx={{ fontSize: '13px', color: '#DC2626', fontWeight: 600 }}>
+                  Payment Gateway Surcharge Retention (2%)
+                </Typography>
+                <Typography sx={{ fontSize: '11px', color: '#94A3B8' }}>
+                  Razorpay banking interchange processing charge
+                </Typography>
+              </Box>
+              <Typography sx={{ fontSize: '13.5px', fontWeight: 700, color: '#DC2626' }}>
+                -₹{gatewayFeeRetained.toFixed(2)}
+              </Typography>
+            </Box>
+          )}
 
           {isCompleted && quoteLabor > 0 && (
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, mt: 1.5 }}>
@@ -260,21 +297,21 @@ export default function BookingReceiptPage() {
           {/* Total Row */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2.5 }}>
             <Typography sx={{ fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>
-              Total Amount Settled
+              {isCancelled ? 'Net Refund Credited to Source' : 'Total Amount Settled'}
             </Typography>
-            <Typography sx={{ fontSize: '20px', fontWeight: 900, color: '#16A34A' }}>
+            <Typography sx={{ fontSize: '20px', fontWeight: 900, color: isCancelled ? '#059669' : '#16A34A' }}>
               ₹{totalAmount.toFixed(2)}
             </Typography>
           </Box>
 
-          {/* Warranty Guarantee Box */}
+          {/* Guarantee / Refund Box */}
           <Paper
             elevation={0}
             sx={{
               p: 2,
               borderRadius: '12px',
-              bgcolor: '#F0FDF4',
-              border: '1px solid #BBF7D0',
+              bgcolor: isCancelled ? '#F0F9FF' : '#F0FDF4',
+              border: isCancelled ? '1px solid #BAE6FD' : '1px solid #BBF7D0',
               display: 'flex',
               gap: 1.5,
               alignItems: 'center'
@@ -285,8 +322,8 @@ export default function BookingReceiptPage() {
                 width: 38,
                 height: 38,
                 borderRadius: '10px',
-                bgcolor: '#DCFCE7',
-                color: '#16A34A',
+                bgcolor: isCancelled ? '#E0F2FE' : '#DCFCE7',
+                color: isCancelled ? '#0284C7' : '#16A34A',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -296,11 +333,13 @@ export default function BookingReceiptPage() {
               <ShieldCheck size={22} />
             </Box>
             <Box>
-              <Typography sx={{ fontSize: '13px', fontWeight: 800, color: '#166534' }}>
-                30-Day Doorstep Warranty Protected
+              <Typography sx={{ fontSize: '13px', fontWeight: 800, color: isCancelled ? '#0369A1' : '#166534' }}>
+                {isCancelled ? 'Razorpay Escrow Refund Initiated' : '30-Day Doorstep Warranty Protected'}
               </Typography>
-              <Typography sx={{ fontSize: '11.5px', color: '#15803D', lineHeight: 1.4 }}>
-                Any recurring issues within 30 days will be resolved free of cost by SalemSeva technicians.
+              <Typography sx={{ fontSize: '11.5px', color: isCancelled ? '#0284C7' : '#15803D', lineHeight: 1.4 }}>
+                {isCancelled 
+                  ? 'Your net refund has been dispatched via automated banking route and will reflect in your source account within 3 to 5 business days.'
+                  : 'Any recurring issues within 30 days will be resolved free of cost by SalemSeva technicians.'}
               </Typography>
             </Box>
           </Paper>

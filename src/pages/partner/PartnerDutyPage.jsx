@@ -214,7 +214,7 @@ export default function PartnerDutyPage() {
     const derivedPayout = payPhone ? `${payPhone}@ybl` : 'partner.pay@ybl';
     await claimPartnerPayout(derivedPayout);
     setReferredTechsList(prev => prev.map(t => ({ ...t, payoutStatus: 'SETTLED_TO_PHONE', phoneRef: `PHONE-${Math.floor(1000000 + Math.random() * 9000000)}-SALEM` })));
-    setTechToast(`₹${amt}.00 successfully sent to your payout phone +91${payPhone}!`);
+    setTechToast(`₹${Number(amt || 0).toFixed(2)} successfully sent to your payout phone +91${payPhone}!`);
   };
 
   // Technician Biometric Passkey Management
@@ -2533,7 +2533,7 @@ export default function PartnerDutyPage() {
                                     TRAVEL & VISIT FEE:
                                   </Typography>
                                   <Typography variant="subtitle2" sx={{ color: '#34D399', fontWeight: 800, fontSize: '13px' }}>
-                                    ₹{offlineJobRequest.visitFee || 99}.00 (Guaranteed)
+                                    ₹{Number(offlineJobRequest.visitFee || 99).toFixed(2)} (Guaranteed)
                                   </Typography>
                                 </Box>
                                 <Box sx={{ bgcolor: '#0F172A', p: 1, borderRadius: '6px', border: '1px solid #334155' }}>
@@ -2846,7 +2846,7 @@ export default function PartnerDutyPage() {
                                   </Typography>
                                 </Box>
                                 <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#34D399', fontSize: '15px' }}>
-                                  ₹{activeJob.visit_fee || activeJob.visitFee || 99}.00
+                                  ₹{Number(activeJob.visit_fee || activeJob.visitFee || 99).toFixed(2)}
                                 </Typography>
                               </Box>
                               <Typography variant="body2" sx={{ color: '#CBD5E1', display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.8, fontSize: '13px' }}>
@@ -3408,7 +3408,7 @@ export default function PartnerDutyPage() {
 
                                   <Box sx={{ textAlign: 'right' }}>
                                     <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#34D399', fontSize: 'clamp(0.875rem, 1.8vw, 1rem)' }}>
-                                      ₹{lead.visitFee || 99}.00
+                                      ₹{Number(lead.visitFee || 99).toFixed(2)}
                                     </Typography>
                                     <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '10px' }}>
                                       Guaranteed Visit Fee
@@ -3617,7 +3617,7 @@ export default function PartnerDutyPage() {
 
                                   <Box sx={{ textAlign: 'right' }}>
                                     <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#34D399', fontSize: '15px' }}>
-                                      ₹{job.visitFee || 99}.00
+                                      ₹{Number(job.visitFee || 99).toFixed(2)}
                                     </Typography>
                                     <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '10px' }}>
                                       Visit Fee Paid
@@ -4725,7 +4725,7 @@ export default function PartnerDutyPage() {
                   )}
 
                   <Alert severity="success" sx={{ mb: 1.5, bgcolor: '#ECFDF5', color: '#065F46', border: '1px solid #A7F3D0', borderRadius: '8px', fontSize: '11.5px', py: 0.5 }}>
-                    <strong>₹{activeJob?.visit_fee || activeJob?.visitFee || 99}.00 Payment Confirmed via Razorpay Gateway:</strong> 100% credited to your wallet for Salem travel & fuel allowance. Call, Message, and GPS directions are now unlocked.
+                    <strong>₹{Number(activeJob?.visit_fee || activeJob?.visitFee || 99).toFixed(2)} Payment Confirmed via Razorpay Gateway:</strong> 100% credited to your wallet for Salem travel & fuel allowance. Call, Message, and GPS directions are now unlocked.
                   </Alert>
 
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -5298,7 +5298,7 @@ export default function PartnerDutyPage() {
                 }}
               >
                 {partnerIncentives?.availablePayout > 0 
-                  ? `Claim Instant ₹${partnerIncentives.availablePayout}.00 to Payout Phone`
+                  ? `Claim Instant ₹${Number(partnerIncentives.availablePayout).toFixed(2)} to Payout Phone`
                   : 'All Referral Incentives Settled'}
               </Button>
             </Card>
@@ -5506,7 +5506,7 @@ export default function PartnerDutyPage() {
 
                     <Box sx={{ textAlign: 'right' }}>
                       <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#16A34A', fontSize: '12.5px' }}>
-                        +₹{t.incentiveAmount}.00
+                        +₹{Number(t.incentiveAmount || 0).toFixed(2)}
                       </Typography>
                       <Chip
                         label={t.payoutStatus === 'SETTLED_TO_PHONE' || t.payoutStatus === 'SETTLED_TO_UPI' ? 'Paid to Phone' : 'Ready to Claim'}
@@ -6481,7 +6481,7 @@ export default function PartnerDutyPage() {
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: '#64748B' }}>Travel & fuel compensation:</span>
               <strong style={{ color: '#16A34A', fontSize: '13px' }}>
-                ₹{cancellationNotice?.technicianTravelDisbursal || 99}.00 (100%)
+                ₹{Number(cancellationNotice?.technicianTravelDisbursal || 99).toFixed(2)} (100%)
               </strong>
             </Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>

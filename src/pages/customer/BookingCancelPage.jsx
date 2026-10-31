@@ -213,49 +213,112 @@ export default function BookingCancelPage() {
               Your booking #{bookingId} has been successfully closed.
             </Typography>
 
-            <Paper
-              elevation={0}
-              sx={{
-                p: 2,
-                mb: 3,
-                bgcolor: '#F8FAFC',
-                border: '1px solid #E2E8F0',
-                borderRadius: '12px',
-                textAlign: 'left'
-              }}
-            >
-              <Typography sx={{ fontWeight: 700, fontSize: '13px', color: '#0F172A', mb: 1.5 }}>
-                Cancellation Ledger
-              </Typography>
+            {/* Cancellation Ledger */}
+            {(() => {
+              const originalPaid = Number(cancelResult.originalPaid || cancelResult.originalAmount || 0);
+              const platformFeeRetained = Number(cancelResult.platformFeeRetained || cancelResult.refundPlatformFee || 0);
+              const gatewayChargeRetained = Number(cancelResult.gatewayChargeRetained || cancelResult.refundGatewayFee || 0);
+              const techDisbursal = Number(cancelResult.technicianTravelDisbursal || 0);
+              const refundAmt = Number(cancelResult.refundAmount || Math.max(0, originalPaid - (platformFeeRetained + gatewayChargeRetained + techDisbursal)));
 
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1, fontSize: '13px' }}>
-                <Typography sx={{ color: '#64748B' }}>Search Stage Fee</Typography>
-                <Typography sx={{ fontWeight: 600, color: '#0F172A' }}>
-                  ₹{cancelResult.originalPaid || 0}.00
-                </Typography>
-              </Box>
+              return (
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 2.2,
+                    mb: 2.5,
+                    bgcolor: '#F8FAFC',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '12px',
+                    textAlign: 'left'
+                  }}
+                >
+                  <Typography sx={{ fontWeight: 800, fontSize: '13.5px', color: '#0F172A', mb: 1.5 }}>
+                    Cancellation & Refund Ledger
+                  </Typography>
 
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1, fontSize: '13px' }}>
-                <Typography sx={{ color: '#64748B' }}>Technician Disbursal</Typography>
-                <Typography sx={{ fontWeight: 600, color: '#0F172A' }}>
-                  ₹{cancelResult.technicianTravelDisbursal || 0}.00
-                </Typography>
-              </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1, fontSize: '13px' }}>
+                    <Typography sx={{ color: '#475569' }}>Initial Search Stage Fee Paid</Typography>
+                    <Typography sx={{ fontWeight: 700, color: '#0F172A' }}>
+                      ₹{originalPaid.toFixed(2)}
+                    </Typography>
+                  </Box>
 
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5, fontSize: '13px' }}>
-                <Typography sx={{ color: '#64748B' }}>Platform Fee</Typography>
-                <Typography sx={{ fontWeight: 600, color: '#0F172A' }}>₹0.00</Typography>
-              </Box>
+                  {platformFeeRetained > 0 && (
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.8, fontSize: '12.5px' }}>
+                      <Box>
+                        <Typography sx={{ color: '#DC2626', fontWeight: 600 }}>
+                          Platform Facilitation Retention (2%)
+                        </Typography>
+                        <Typography sx={{ color: '#94A3B8', fontSize: '10.5px' }}>
+                          Cloud matching & dispatch telemetry retention
+                        </Typography>
+                      </Box>
+                      <Typography sx={{ fontWeight: 700, color: '#DC2626' }}>
+                        -₹{platformFeeRetained.toFixed(2)}
+                      </Typography>
+                    </Box>
+                  )}
 
-              <Divider sx={{ my: 1 }} />
+                  {gatewayChargeRetained > 0 && (
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.8, fontSize: '12.5px' }}>
+                      <Box>
+                        <Typography sx={{ color: '#DC2626', fontWeight: 600 }}>
+                          Payment Gateway Surcharge Retention (2%)
+                        </Typography>
+                        <Typography sx={{ color: '#94A3B8', fontSize: '10.5px' }}>
+                          Razorpay bank interchange processing fee
+                        </Typography>
+                      </Box>
+                      <Typography sx={{ fontWeight: 700, color: '#DC2626' }}>
+                        -₹{gatewayChargeRetained.toFixed(2)}
+                      </Typography>
+                    </Box>
+                  )}
 
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
-                <Typography sx={{ fontWeight: 700, color: '#0F172A' }}>Refund to Source / Wallet</Typography>
-                <Typography sx={{ fontWeight: 800, color: '#059669' }}>
-                  ₹{cancelResult.refundAmount || 0}.00
-                </Typography>
-              </Box>
-            </Paper>
+                  {techDisbursal > 0 && (
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.8, fontSize: '12.5px' }}>
+                      <Box>
+                        <Typography sx={{ color: '#D97706', fontWeight: 600 }}>
+                          Technician Doorstep Travel Disbursal
+                        </Typography>
+                        <Typography sx={{ color: '#94A3B8', fontSize: '10.5px' }}>
+                          Compensated to assigned specialist for fuel
+                        </Typography>
+                      </Box>
+                      <Typography sx={{ fontWeight: 700, color: '#D97706' }}>
+                        -₹{techDisbursal.toFixed(2)}
+                      </Typography>
+                    </Box>
+                  )}
+
+                  <Divider sx={{ my: 1.2, borderColor: '#CBD5E1' }} />
+
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '14px' }}>
+                    <Box>
+                      <Typography sx={{ fontWeight: 800, color: '#0F172A', fontSize: '14px' }}>
+                        Net Refund to Source / UPI
+                      </Typography>
+                      <Typography sx={{ color: '#16A34A', fontSize: '11px', fontWeight: 600 }}>
+                        Initiated to your payment method (3-5 business days)
+                      </Typography>
+                    </Box>
+                    <Typography sx={{ fontWeight: 900, color: '#059669', fontSize: '18px' }}>
+                      ₹{refundAmt.toFixed(2)}
+                    </Typography>
+                  </Box>
+
+                  {/* Deduction Rationale Explanation */}
+                  {(platformFeeRetained > 0 || gatewayChargeRetained > 0) && (
+                    <Box sx={{ mt: 1.5, p: 1.2, bgcolor: '#F0F9FF', border: '1px solid #BAE6FD', borderRadius: '8px' }}>
+                      <Typography sx={{ fontSize: '11px', color: '#0369A1', lineHeight: 1.45 }}>
+                        <strong>Why was ₹{(platformFeeRetained + gatewayChargeRetained).toFixed(2)} retained?</strong> Under SalemSeva Fair Cancellation Policy, standard operational cloud dispatch fees and banking gateway interchange costs are non-refundable, while the entire balance is credited directly back to your account.
+                      </Typography>
+                    </Box>
+                  )}
+                </Paper>
+              );
+            })()}
 
             <Button
               variant="contained"
