@@ -14,7 +14,11 @@ export const slate = {
   600: '#475569',
   700: '#334155',
   800: '#1E293B',
-  900: '#0F172A'
+  900: '#0F172A',
+  main: '#475569',
+  light: '#94A3B8',
+  dark: '#1E293B',
+  contrastText: '#FFFFFF'
 };
 
 export const palette = {

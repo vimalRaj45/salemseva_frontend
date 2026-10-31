@@ -9,6 +9,8 @@ import { Card, Box, Typography, Switch } from '@mui/material';
 export default function FieldCard({
   label,
   helperText,
+  helper,
+  description,
   children,
   switchChecked,
   onSwitchChange,
@@ -17,6 +19,7 @@ export default function FieldCard({
   disabled = false,
   sx = {}
 }) {
+  const actualHelper = helperText || helper || description || '';
   const isDisabled = disabled || (hasSwitch && !switchChecked);
 
   return (
@@ -27,9 +30,9 @@ export default function FieldCard({
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        bgcolor: '#FFFFFF',
+        bgcolor: 'background.paper',
         border: '1px solid',
-        borderColor: 'slate.200',
+        borderColor: 'divider',
         borderRadius: '12px',
         opacity: isDisabled ? 0.6 : 1,
         transition: 'opacity 0.2s ease-in-out',
@@ -41,7 +44,7 @@ export default function FieldCard({
           variant="overline"
           sx={{
             fontWeight: 700,
-            color: 'slate.600',
+            color: 'text.secondary',
             letterSpacing: '0.08em',
             lineHeight: 1.2
           }}
@@ -52,7 +55,7 @@ export default function FieldCard({
         {hasSwitch && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             {switchLabel && (
-              <Typography variant="caption" sx={{ color: 'slate.500', fontSize: '11px' }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '11px' }}>
                 {switchLabel}
               </Typography>
             )}
@@ -70,7 +73,7 @@ export default function FieldCard({
       <Typography
         variant="caption"
         sx={{
-          color: 'slate.500',
+          color: 'text.secondary',
           fontSize: '12px',
           lineHeight: 1.4,
           minHeight: '34px',
@@ -81,7 +84,7 @@ export default function FieldCard({
           mb: 2
         }}
       >
-        {helperText}
+        {actualHelper}
       </Typography>
 
       {/* Input pinned to bottom */}
