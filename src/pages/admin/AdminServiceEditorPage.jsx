@@ -6,23 +6,18 @@ import {
   Button,
   TextField,
   FormControl,
-  InputLabel,
   Select,
   MenuItem,
   Paper,
   Container,
-  IconButton,
   CircularProgress,
-  Grid,
-  InputAdornment
+  Grid
 } from '@mui/material';
 import {
-  ArrowLeft,
   Wrench,
-  Save,
-  CheckCircle2,
-  DollarSign
+  Save
 } from 'lucide-react';
+import { PageHeader, AddonInput } from '../../components/ui';
 import { API_V1_URL } from '../../config';
 import toast from 'react-hot-toast';
 
@@ -143,57 +138,43 @@ export default function AdminServiceEditorPage() {
   }
 
   return (
-    <Box sx={{ minHeight: '100dvh', bgcolor: '#F8FAFC', pb: 10 }}>
-      {/* Top App Bar */}
-      <Box sx={{ bgcolor: '#0F172A', color: '#FFFFFF', px: { xs: 2, sm: 3 }, py: 2, borderBottom: '1px solid #1E293B', position: 'sticky', top: 0, zIndex: 110 }}>
-        <Container maxWidth="md" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <IconButton onClick={handleDismiss} sx={{ color: '#94A3B8', '&:hover': { color: '#FFFFFF', bgcolor: '#1E293B' } }}>
-              <ArrowLeft size={20} />
-            </IconButton>
-            <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 800, fontSize: { xs: '16px', sm: '18px' }, color: '#FFFFFF' }}>
-                {isEditMode ? `Edit Service: ${formData.name}` : 'Create Catalog Service'}
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '12px' }}>
-                Salem Seva Central Service Catalog & Diagnostic Fee Manager
-              </Typography>
-            </Box>
-          </Box>
-          <Button
-            variant="contained"
-            disabled={saving}
-            onClick={handleSave}
-            startIcon={saving ? <CircularProgress size={16} color="inherit" /> : <Save size={16} />}
-            sx={{
-              bgcolor: '#0A66C2',
-              color: '#FFFFFF',
-              fontWeight: 700,
-              borderRadius: '10px',
-              textTransform: 'none',
-              px: 2.5,
-              height: 40,
-              fontSize: '13px',
-              '&:hover': { bgcolor: '#084e96' }
-            }}
-          >
-            {saving ? 'Saving...' : 'Save Service'}
-          </Button>
-        </Container>
-      </Box>
+    <Box sx={{ minHeight: '100dvh', bgcolor: 'background.default', pb: 10 }}>
+      <Container maxWidth="md" sx={{ pt: 3, px: { xs: 2, sm: 3 } }}>
+        <PageHeader
+          title={isEditMode ? `Edit Service: ${formData.name}` : 'Create Catalog Service'}
+          subtitle="Salem Seva Central Service Catalog & Diagnostic Fee Manager"
+          backUrl={location.state?.returnTo || '/admin'}
+          backLabel="Back to Admin"
+          actions={
+            <Button
+              variant="contained"
+              disabled={saving}
+              onClick={handleSave}
+              startIcon={saving ? <CircularProgress size={16} color="inherit" /> : <Save size={16} />}
+              sx={{
+                fontWeight: 600,
+                borderRadius: '8px',
+                textTransform: 'none',
+                px: 2.5,
+                minHeight: 40
+              }}
+            >
+              {saving ? 'Saving...' : 'Save Service'}
+            </Button>
+          }
+        />
 
-      {/* Form Content */}
-      <Container maxWidth="md" sx={{ mt: 3, px: { xs: 2, sm: 3 } }}>
-        <Paper elevation={0} sx={{ p: { xs: 2.5, sm: 3.5 }, borderRadius: '16px', border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3, pb: 2, borderBottom: '1px solid #F1F5F9' }}>
-            <Box sx={{ p: 1, bgcolor: '#EFF6FF', borderRadius: '10px', color: '#0A66C2' }}>
+        {/* Form Content */}
+        <Paper elevation={0} sx={{ p: { xs: 2.5, sm: 3.5 }, borderRadius: '12px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', mt: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3, pb: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+            <Box sx={{ p: 1, bgcolor: 'primary.50', borderRadius: '8px', color: 'primary.main', display: 'flex' }}>
               <Wrench size={20} />
             </Box>
             <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '15px' }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary', fontSize: '15px' }}>
                 Service Information and Pricing Tiers
               </Typography>
-              <Typography variant="caption" sx={{ color: '#64748B', fontSize: '12px' }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '12px' }}>
                 Define doorstep inspection fee, base price, and technician labor tiers
               </Typography>
             </Box>
@@ -201,7 +182,7 @@ export default function AdminServiceEditorPage() {
 
           <Grid container spacing={2.5}>
             <Grid item xs={12}>
-              <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569', display: 'block', mb: 0.8, fontSize: '12.5px' }}>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.8, fontSize: '12px' }}>
                 SERVICE NAME
               </Typography>
               <TextField
@@ -211,19 +192,17 @@ export default function AdminServiceEditorPage() {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', bgcolor: '#F8FAFC' } }}
               />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569', display: 'block', mb: 0.8, fontSize: '12.5px' }}>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.8, fontSize: '12px' }}>
                 SERVICE CATEGORY
               </Typography>
               <FormControl fullWidth size="small">
                 <Select
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  sx={{ borderRadius: '10px', bgcolor: '#F8FAFC' }}
                 >
                   <MenuItem value="ac">AC Repair & HVAC</MenuItem>
                   <MenuItem value="electrical">Electrician & Wiring</MenuItem>
@@ -237,44 +216,33 @@ export default function AdminServiceEditorPage() {
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569', display: 'block', mb: 0.8, fontSize: '12.5px' }}>
-                BASE SERVICE PRICE (INR)
+              <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.8, fontSize: '12px' }}>
+                BASE SERVICE PRICE
               </Typography>
-              <TextField
-                fullWidth
-                size="small"
+              <AddonInput
                 type="number"
                 placeholder="299.00"
                 value={formData.base_price}
                 onChange={(e) => setFormData({ ...formData, base_price: e.target.value })}
-                InputProps={{
-                  startAdornment: <InputAdornment position="start">INR</InputAdornment>
-                }}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', bgcolor: '#F8FAFC' } }}
+                prefix="INR"
               />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569', display: 'block', mb: 0.8, fontSize: '12.5px' }}>
-                DOORSTEP INSPECTION & TRAVEL FEE (INR)
+              <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.8, fontSize: '12px' }}>
+                DOORSTEP INSPECTION & TRAVEL FEE
               </Typography>
-              <TextField
-                fullWidth
-                size="small"
+              <AddonInput
                 type="number"
                 placeholder="99.00"
                 value={formData.visit_fee}
                 onChange={(e) => setFormData({ ...formData, visit_fee: e.target.value })}
-                helperText="Pre-authorized diagnostic allowance collected upfront"
-                InputProps={{
-                  startAdornment: <InputAdornment position="start">INR</InputAdornment>
-                }}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', bgcolor: '#F8FAFC' } }}
+                prefix="INR"
               />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569', display: 'block', mb: 0.8, fontSize: '12.5px' }}>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.8, fontSize: '12px' }}>
                 DEFAULT DISPLAY RATING
               </Typography>
               <TextField
@@ -284,12 +252,11 @@ export default function AdminServiceEditorPage() {
                 value={formData.rating_avg}
                 onChange={(e) => setFormData({ ...formData, rating_avg: e.target.value })}
                 helperText="Customer satisfaction score displayed on service cards"
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', bgcolor: '#F8FAFC' } }}
               />
             </Grid>
 
             <Grid item xs={12}>
-              <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569', display: 'block', mb: 0.8, fontSize: '12.5px' }}>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.8, fontSize: '12px' }}>
                 DESCRIPTION & SCOPE OF WORK
               </Typography>
               <TextField
@@ -300,7 +267,6 @@ export default function AdminServiceEditorPage() {
                 placeholder="Details of inspection, inclusions, safety protocols, and warranty coverage..."
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', bgcolor: '#F8FAFC' } }}
               />
             </Grid>
           </Grid>

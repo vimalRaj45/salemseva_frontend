@@ -31,7 +31,8 @@ import {
   Users,
   CheckCircle2
 } from 'lucide-react';
-import { PageHeader, DataTable, StatusChip } from '../../components/common';
+import { PageHeader as CommonPageHeader, DataTable, StatusChip } from '../../components/common';
+import { KpiCard, StatusPill } from '../../components/ui';
 
 const SALEM_LOCALITIES = [
   'All Salem Regions',
@@ -216,7 +217,7 @@ export default function AdminSettlementsPage() {
         align: 'right',
         minWidth: 110,
         renderCell: (tx) => (
-          <Typography variant="body2" sx={{ fontWeight: 800 }}>
+          <Typography variant="body2" sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
             ₹{tx.grossAmount.toFixed(2)}
           </Typography>
         )
@@ -227,7 +228,7 @@ export default function AdminSettlementsPage() {
         align: 'right',
         minWidth: 110,
         renderCell: (tx) => (
-          <Typography variant="body2" sx={{ color: 'warning.main', fontWeight: 600 }}>
+          <Typography variant="body2" sx={{ color: 'warning.main', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
             ₹{tx.razorpayFee.toFixed(2)}
           </Typography>
         )
@@ -238,7 +239,7 @@ export default function AdminSettlementsPage() {
         align: 'right',
         minWidth: 110,
         renderCell: (tx) => (
-          <Typography variant="body2" sx={{ color: 'secondary.main', fontWeight: 700 }}>
+          <Typography variant="body2" sx={{ color: 'success.main', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
             ₹{tx.techPayout.toFixed(2)}
           </Typography>
         )
@@ -249,7 +250,7 @@ export default function AdminSettlementsPage() {
         align: 'right',
         minWidth: 110,
         renderCell: (tx) => (
-          <Typography variant="body2" sx={{ color: 'primary.main', fontWeight: 700 }}>
+          <Typography variant="body2" sx={{ color: 'primary.main', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
             ₹{tx.platformCut.toFixed(2)}
           </Typography>
         )
@@ -259,7 +260,7 @@ export default function AdminSettlementsPage() {
         headerName: 'Status',
         align: 'center',
         minWidth: 120,
-        renderCell: (tx) => <StatusChip status={tx.status} />
+        renderCell: (tx) => <StatusPill status={tx.status} />
       },
       {
         field: 'actions',
@@ -333,106 +334,66 @@ export default function AdminSettlementsPage() {
           }
         />
 
-        {/* 5 Glass KPI Metric Cards */}
+        {/* 5 KPI Metric Cards */}
         <Grid container spacing={2} sx={{ mb: 3 }}>
           {/* 1. Customer Gross Inflow */}
           <Grid item xs={12} sm={6} md={2.4}>
-            <Card elevation={0} sx={{ p: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>
-                  CUSTOMER GROSS
-                </Typography>
-                <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.light', color: 'primary.main' }}>
-                  <Coins size={16} />
-                </Avatar>
-              </Box>
-              <Typography variant="h5" sx={{ fontWeight: 800, color: 'text.primary', mb: 0.5 }}>
-                ₹{summary.totalGross.toLocaleString('en-IN')}
-              </Typography>
-              <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 600 }}>
-                {summary.totalTransactions} Total Transactions
-              </Typography>
-            </Card>
+            <KpiCard
+              title="CUSTOMER GROSS"
+              value={`₹${summary.totalGross.toLocaleString('en-IN')}`}
+              subtitle={`${summary.totalTransactions} Total Transactions`}
+              icon={Coins}
+              iconColor="#1D6FE5"
+              iconBg="#EFF6FF"
+            />
           </Grid>
 
           {/* 2. Razorpay Gateway Fees */}
           <Grid item xs={12} sm={6} md={2.4}>
-            <Card elevation={0} sx={{ p: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>
-                  RAZORPAY CHARGES
-                </Typography>
-                <Avatar sx={{ width: 32, height: 32, bgcolor: 'warning.light', color: 'warning.main' }}>
-                  <CreditCard size={16} />
-                </Avatar>
-              </Box>
-              <Typography variant="h5" sx={{ fontWeight: 800, color: 'warning.main', mb: 0.5 }}>
-                ₹{summary.totalRazorpayFee.toLocaleString('en-IN')}
-              </Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
-                2.36% Gateway MDR + GST
-              </Typography>
-            </Card>
+            <KpiCard
+              title="RAZORPAY CHARGES"
+              value={`₹${summary.totalRazorpayFee.toLocaleString('en-IN')}`}
+              subtitle="2.36% Gateway MDR + GST"
+              icon={CreditCard}
+              iconColor="#D97706"
+              iconBg="#FEF3C7"
+            />
           </Grid>
 
           {/* 3. Disbursed to Technicians */}
           <Grid item xs={12} sm={6} md={2.4}>
-            <Card elevation={0} sx={{ p: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>
-                  DISBURSED TO TECHS
-                </Typography>
-                <Avatar sx={{ width: 32, height: 32, bgcolor: 'secondary.light', color: 'secondary.dark' }}>
-                  <Users size={16} />
-                </Avatar>
-              </Box>
-              <Typography variant="h5" sx={{ fontWeight: 800, color: 'secondary.main', mb: 0.5 }}>
-                ₹{summary.totalTechPayout.toLocaleString('en-IN')}
-              </Typography>
-              <Typography variant="caption" sx={{ color: 'secondary.dark', fontWeight: 600 }}>
-                100% Travel + {PARTNER_PAYOUT_PERCENT}% Labor
-              </Typography>
-            </Card>
+            <KpiCard
+              title="DISBURSED TO TECHS"
+              value={`₹${summary.totalTechPayout.toLocaleString('en-IN')}`}
+              subtitle={`100% Travel + ${PARTNER_PAYOUT_PERCENT}% Labor`}
+              icon={Users}
+              iconColor="#059669"
+              iconBg="#ECFDF5"
+            />
           </Grid>
 
           {/* 4. Customer Refunds */}
           <Grid item xs={12} sm={6} md={2.4}>
-            <Card elevation={0} sx={{ p: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>
-                  CUSTOMER REFUNDS
-                </Typography>
-                <Avatar sx={{ width: 32, height: 32, bgcolor: 'error.light', color: 'error.main' }}>
-                  <RotateCcw size={16} />
-                </Avatar>
-              </Box>
-              <Typography variant="h5" sx={{ fontWeight: 800, color: 'error.main', mb: 0.5 }}>
-                ₹{summary.totalCustomerRefunds.toLocaleString('en-IN')}
-              </Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
-                Cancellation Returns
-              </Typography>
-            </Card>
+            <KpiCard
+              title="CUSTOMER REFUNDS"
+              value={`₹${summary.totalCustomerRefunds.toLocaleString('en-IN')}`}
+              subtitle="Cancellation Returns"
+              icon={RotateCcw}
+              iconColor="#DC2626"
+              iconBg="#FEF2F2"
+            />
           </Grid>
 
           {/* 5. Net Platform Revenue */}
           <Grid item xs={12} sm={6} md={2.4}>
-            <Card elevation={0} sx={{ p: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>
-                  NET PLATFORM CUT
-                </Typography>
-                <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.light', color: 'primary.dark' }}>
-                  <TrendingUp size={16} />
-                </Avatar>
-              </Box>
-              <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.main', mb: 0.5 }}>
-                ₹{summary.totalPlatformCut.toLocaleString('en-IN')}
-              </Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
-                {PARTNER_COMMISSION_PERCENT}% Commission on Work Done
-              </Typography>
-            </Card>
+            <KpiCard
+              title="NET PLATFORM CUT"
+              value={`₹${summary.totalPlatformCut.toLocaleString('en-IN')}`}
+              subtitle={`${PARTNER_COMMISSION_PERCENT}% Commission`}
+              icon={TrendingUp}
+              iconColor="#7C3AED"
+              iconBg="#F5F3FF"
+            />
           </Grid>
         </Grid>
 

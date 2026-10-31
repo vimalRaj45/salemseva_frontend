@@ -138,6 +138,21 @@ import AdminCustomerDossierDrawer from './AdminCustomerDossierDrawer';
 import LeadAudioPlayer from '../../components/LeadAudioPlayer';
 import { useAuth } from '../../context/AuthContext';
 
+import {
+  AddonInput,
+  FieldCard,
+  SectionHeader,
+  KpiCard,
+  PageHeader,
+  StickySaveBar,
+  StatusPill,
+  IconActionButton,
+  EmptyState,
+  SkeletonBlock,
+  ConfirmDialog,
+  DataTable
+} from '../../components/ui';
+
 import { API_V1_URL } from '../../config';
 import { resolveMediaUrl } from '../../utils/mediaUtils';
 
@@ -283,6 +298,8 @@ export default function AdminDashboardPage() {
   });
   const [rewardsLoading, setRewardsLoading] = useState(false);
   const [rewardsSaving, setRewardsSaving] = useState(false);
+  const [initialRewardConfig, setInitialRewardConfig] = useState(null);
+  const [couponToDelete, setCouponToDelete] = useState(null);
 
   // Coupons Engine State
   const [couponsList, setCouponsList] = useState([]);
@@ -628,6 +645,7 @@ export default function AdminDashboardPage() {
       const data = await res.json();
       if (data.success && data.settings) {
         setRewardConfig(data.settings);
+        setInitialRewardConfig(data.settings);
       }
     } catch (err) {
       console.warn('Reward settings fetch note:', err);
@@ -648,7 +666,10 @@ export default function AdminDashboardPage() {
       const data = await res.json();
       if (data.success) {
         setToast({ open: true, message: 'Reward & credit amounts updated successfully in database', severity: 'success' });
-        if (data.settings) setRewardConfig(data.settings);
+        if (data.settings) {
+          setRewardConfig(prev => ({ ...prev, ...data.settings }));
+          setInitialRewardConfig(prev => ({ ...prev, ...data.settings }));
+        }
       } else {
         setToast({ open: true, message: data.error || 'Failed to update reward settings', severity: 'error' });
       }
@@ -1745,81 +1766,50 @@ export default function AdminDashboardPage() {
         </Paper>
 
         {/* 4 KPI Stat Cards - 2x2 on mobile, 4-col on desktop */}
-        <Grid container spacing={{ xs: 1, sm: 1.5 }} sx={{ mb: 2.5 }}>
+        <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: 3 }}>
           <Grid item xs={6} sm={6} md={3}>
-            <Card elevation={0} sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', borderRadius: '12px', p: { xs: 1.25, md: 1.5 }, height: '100%' }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', fontSize: { xs: '11px', sm: '12px' } }}>
-                  Active bookings
-                </Typography>
-                <Avatar sx={{ bgcolor: 'primary.light', color: '#FFFFFF', width: { xs: 26, md: 28 }, height: { xs: 26, md: 28 } }}>
-                  <SpeedIcon sx={{ fontSize: { xs: 14, md: 16 } }} />
-                </Avatar>
-              </Box>
-              <Typography sx={{ fontWeight: 800, color: 'text.primary', my: 0.5, fontVariantNumeric: 'tabular-nums', fontSize: { xs: '1.3rem', sm: '1.6rem', md: '1.85rem' } }}>
-                {metrics.activeBookings || recentBookings.length || 0}
-              </Typography>
-              <Typography variant="caption" sx={{ color: 'success.main', fontWeight: 700, fontSize: { xs: '10px', sm: '11.5px' }, display: 'block' }}>
-                Live dispatch sync
-              </Typography>
-            </Card>
+            <KpiCard
+              title="ACTIVE BOOKINGS"
+              value={metrics.activeBookings || recentBookings.length || 0}
+              subtitle="Live dispatch sync"
+              icon={SpeedIcon}
+              iconColor="#1D6FE5"
+              iconBg="#EFF6FF"
+              onClick={() => setActiveMainTab('ops')}
+            />
           </Grid>
-
           <Grid item xs={6} sm={6} md={3}>
-            <Card elevation={0} sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', borderRadius: '12px', p: { xs: 1.25, md: 1.5 }, height: '100%' }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', fontSize: { xs: '11px', sm: '12px' } }}>
-                  Techs on duty
-                </Typography>
-                <Avatar sx={{ bgcolor: 'success.light', color: 'success.main', width: { xs: 26, md: 28 }, height: { xs: 26, md: 28 } }}>
-                  <EngineeringIcon sx={{ fontSize: { xs: 14, md: 16 } }} />
-                </Avatar>
-              </Box>
-              <Typography sx={{ fontWeight: 800, color: 'primary.main', my: 0.5, fontVariantNumeric: 'tabular-nums', fontSize: { xs: '1.3rem', sm: '1.6rem', md: '1.85rem' } }}>
-                {technicians.filter(t => t.is_online).length} <span style={{ fontSize: '0.6em', opacity: 0.7, fontWeight: 600 }}>/ {technicians.length}</span>
-              </Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '10px', sm: '11.5px' }, display: 'block' }}>
-                Salem coverage zones
-              </Typography>
-            </Card>
+            <KpiCard
+              title="TECHS ON DUTY"
+              value={`${technicians.filter(t => t.is_online).length} / ${technicians.length}`}
+              subtitle="Salem coverage zones"
+              icon={EngineeringIcon}
+              iconColor="#10B981"
+              iconBg="#ECFDF5"
+              onClick={() => setActiveMainTab('technicians')}
+            />
           </Grid>
-
           <Grid item xs={6} sm={6} md={3}>
-            <Card elevation={0} sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', borderRadius: '12px', p: { xs: 1.25, md: 1.5 }, height: '100%' }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', fontSize: { xs: '11px', sm: '12px' } }}>
-                  Registered clients
-                </Typography>
-                <Avatar sx={{ bgcolor: 'action.hover', color: 'text.secondary', width: { xs: 26, md: 28 }, height: { xs: 26, md: 28 } }}>
-                  <PeopleAltIcon sx={{ fontSize: { xs: 14, md: 16 } }} />
-                </Avatar>
-              </Box>
-              <Typography sx={{ fontWeight: 800, color: 'text.primary', my: 0.5, fontVariantNumeric: 'tabular-nums', fontSize: { xs: '1.3rem', sm: '1.6rem', md: '1.85rem' } }}>
-                {customersList.length}
-              </Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '10px', sm: '11.5px' }, display: 'block' }}>
-                Verified residents
-              </Typography>
-            </Card>
+            <KpiCard
+              title="REGISTERED CLIENTS"
+              value={customersList.length}
+              subtitle="Verified residents"
+              icon={PeopleAltIcon}
+              iconColor="#6366F1"
+              iconBg="#EEF2FF"
+              onClick={() => setActiveMainTab('customers')}
+            />
           </Grid>
-
           <Grid item xs={6} sm={6} md={3}>
-            <Card elevation={0} sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', borderRadius: '12px', p: { xs: 1.25, md: 1.5 }, height: '100%' }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', fontSize: { xs: '11px', sm: '12px' } }}>
-                  Today's volume
-                </Typography>
-                <Avatar sx={{ bgcolor: 'success.light', color: 'success.main', width: { xs: 26, md: 28 }, height: { xs: 26, md: 28 } }}>
-                  <AccountBalanceWalletIcon sx={{ fontSize: { xs: 14, md: 16 } }} />
-                </Avatar>
-              </Box>
-              <Typography sx={{ fontWeight: 800, color: 'success.main', my: 0.5, fontVariantNumeric: 'tabular-nums', fontSize: { xs: '1.3rem', sm: '1.6rem', md: '1.85rem' } }}>
-                ₹{Number(metrics.financials?.totalRevenue || 0).toLocaleString()}
-              </Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '10px', sm: '11.5px' }, display: 'block' }}>
-                Digital escrow settlements
-              </Typography>
-            </Card>
+            <KpiCard
+              title="TODAY'S VOLUME"
+              value={`₹${Number(metrics.financials?.totalRevenue || 0).toLocaleString()}`}
+              subtitle="Digital escrow settlements"
+              icon={AccountBalanceWalletIcon}
+              iconColor="#0D9488"
+              iconBg="#F0FDFA"
+              onClick={() => navigate('/admin/settlements')}
+            />
           </Grid>
         </Grid>
 
@@ -4702,328 +4692,284 @@ export default function AdminDashboardPage() {
         {/*  TAB 6: REWARDS & COUPONS MANAGEMENT (ADMIN CUSTOMIZABLE) */}
         {/* ========================================================================= */}
         {activeMainTab === 'rewards' && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-            {/* 1. Reward & Credit Pricing Configuration Card */}
-            <Card elevation={0} sx={{ bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px', p: 2.5, boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)' }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1.5 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
-                  <Avatar sx={{ bgcolor: '#FEF3C7', color: '#B45309', width: 36, height: 36 }}>
-                    <CardGiftcardIcon sx={{ fontSize: 20 }} />
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {/* 1. Platform Settings: Fees, Commissions & Rewards */}
+            <Card elevation={0} sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', borderRadius: '12px', p: { xs: 2, sm: 3 } }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <Avatar sx={{ bgcolor: 'amber.50', color: 'amber.700', width: 40, height: 40, borderRadius: '8px' }}>
+                    <CardGiftcardIcon sx={{ fontSize: 22 }} />
                   </Avatar>
                   <Box>
-                    <Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '16px' }}>
+                    <Typography variant="h3" sx={{ fontWeight: 700, color: 'text.primary', fontSize: '18px' }}>
                       Platform Settings: Fees, Commissions & Rewards
                     </Typography>
-                    <Typography variant="caption" sx={{ color: '#64748B' }}>
-                      Central source of truth in PostgreSQL (platform_settings). All values edited and saved here apply immediately across all bookings, splits, and user wallets.
+                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>
+                      Central source of truth in PostgreSQL (platform_settings). Values edited here apply immediately across all bookings, splits, and user wallets.
                     </Typography>
                   </Box>
                 </Box>
-                <Button
-                  variant="contained"
-                  startIcon={rewardsSaving ? <CircularProgress size={16} color="inherit" /> : <SaveIcon sx={{ fontSize: 18 }} />}
-                  disabled={rewardsSaving}
-                  onClick={handleSaveRewardConfig}
-                  sx={{
-                    bgcolor: '#0284C7',
-                    '&:hover': { bgcolor: '#0369A1' },
-                    textTransform: 'none',
-                    fontWeight: 800,
-                    borderRadius: '8px',
-                    px: 2.5
-                  }}
-                >
-                  {rewardsSaving ? 'Saving...' : 'Save All Settings'}
-                </Button>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  {initialRewardConfig && JSON.stringify(rewardConfig) !== JSON.stringify(initialRewardConfig) && (
+                    <Chip
+                      label="Unsaved changes"
+                      size="small"
+                      sx={{ bgcolor: 'warning.light', color: 'warning.dark', fontWeight: 700, fontSize: '11px', height: 26 }}
+                    />
+                  )}
+                  <Button
+                    variant="contained"
+                    startIcon={rewardsSaving ? <CircularProgress size={16} color="inherit" /> : <SaveIcon sx={{ fontSize: 18 }} />}
+                    disabled={rewardsSaving}
+                    onClick={handleSaveRewardConfig}
+                    sx={{
+                      minHeight: 40,
+                      px: 2.5,
+                      borderRadius: '8px',
+                      textTransform: 'none',
+                      fontWeight: 600
+                    }}
+                  >
+                    {rewardsSaving ? 'Saving...' : 'Save All Settings'}
+                  </Button>
+                </Box>
               </Box>
 
-              <Divider sx={{ mb: 2.5 }} />
+              {/* Section 1: Dual-Sided Commission & Fee Matrix */}
+              <SectionHeader
+                number="1"
+                title="Dual-Sided Commission & Platform Fee Matrix"
+                description="Central percentage cuts deducted from technician jobs and convenience fees charged at checkout."
+              />
 
-              {/* Section A: Platform Commission & Gateway Fee Matrix */}
-              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
-                <span>1. Dual-Sided Commission & Fee Matrix</span>
-                <Chip label="PostgreSQL Live" size="small" sx={{ bgcolor: '#EFF6FF', color: '#1E40AF', fontWeight: 700, fontSize: '10px' }} />
-              </Typography>
-
-              <Grid container spacing={2.5} sx={{ mb: 3 }}>
-                {/* Partner Commission */}
-                <Grid item xs={12} sm={6} md={3}>
-                  <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px' }}>
-                    <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569', display: 'block', mb: 0.5 }}>
-                      PARTNER COMMISSION (%)
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 1.5, fontSize: '11px' }}>
-                      Platform cut deducted from technician work total (e.g. 2% = 98% tech payout).
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      size="small"
+              <Grid container spacing={2} sx={{ mb: 3.5 }}>
+                <Grid item xs={12} sm={6} md={6} xl={3}>
+                  <FieldCard
+                    label="PARTNER COMMISSION"
+                    helper="Platform cut deducted from technician work total (e.g. 2% = 98% technician payout)."
+                  >
+                    <AddonInput
                       type="number"
-                      inputProps={{ step: '0.1', min: '0', max: '100' }}
+                      step="0.1"
+                      min="0"
+                      max="100"
+                      suffix="%"
                       value={rewardConfig.partner_commission_percent ?? 2.0}
                       onChange={(e) => setRewardConfig({ ...rewardConfig, partner_commission_percent: e.target.value })}
-                      InputProps={{
-                        endAdornment: <InputAdornment position="end">%</InputAdornment>
-                      }}
-                      sx={{ bgcolor: '#FFFFFF', borderRadius: '6px' }}
                     />
-                  </Paper>
+                  </FieldCard>
                 </Grid>
 
-                {/* Customer Convenience / Platform Fee */}
-                <Grid item xs={12} sm={6} md={3}>
-                  <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px' }}>
-                    <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569', display: 'block', mb: 0.5 }}>
-                      CUSTOMER PLATFORM FEE (%)
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 1.5, fontSize: '11px' }}>
-                      Customer convenience charge added to bill at checkout (e.g. 2.0%).
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      size="small"
+                <Grid item xs={12} sm={6} md={6} xl={3}>
+                  <FieldCard
+                    label="CUSTOMER PLATFORM FEE"
+                    helper="Customer convenience charge added to bill at checkout (e.g. 2.0%)."
+                  >
+                    <AddonInput
                       type="number"
-                      inputProps={{ step: '0.1', min: '0', max: '100' }}
+                      step="0.1"
+                      min="0"
+                      max="100"
+                      suffix="%"
                       value={rewardConfig.customer_platform_fee_percent ?? 2.0}
                       onChange={(e) => setRewardConfig({ ...rewardConfig, customer_platform_fee_percent: e.target.value })}
-                      InputProps={{
-                        endAdornment: <InputAdornment position="end">%</InputAdornment>
-                      }}
-                      sx={{ bgcolor: '#FFFFFF', borderRadius: '6px' }}
                     />
-                  </Paper>
+                  </FieldCard>
                 </Grid>
 
-                {/* Payment Gateway Fee */}
-                <Grid item xs={12} sm={6} md={3}>
-                  <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px' }}>
-                    <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569', display: 'block', mb: 0.5 }}>
-                      PAYMENT GATEWAY FEE (%)
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 1.5, fontSize: '11px' }}>
-                      Razorpay processing fee passed transparently to payment provider (e.g. 2.0%).
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      size="small"
+                <Grid item xs={12} sm={6} md={6} xl={3}>
+                  <FieldCard
+                    label="PAYMENT GATEWAY FEE"
+                    helper="Razorpay processing fee passed transparently to payment provider (e.g. 2.0%)."
+                  >
+                    <AddonInput
                       type="number"
-                      inputProps={{ step: '0.1', min: '0', max: '100' }}
+                      step="0.1"
+                      min="0"
+                      max="100"
+                      suffix="%"
                       value={rewardConfig.payment_gateway_fee_percent ?? 2.0}
                       onChange={(e) => setRewardConfig({ ...rewardConfig, payment_gateway_fee_percent: e.target.value })}
-                      InputProps={{
-                        endAdornment: <InputAdornment position="end">%</InputAdornment>
-                      }}
-                      sx={{ bgcolor: '#FFFFFF', borderRadius: '6px' }}
                     />
-                  </Paper>
+                  </FieldCard>
                 </Grid>
 
-                {/* Inspection Visit Fee */}
-                <Grid item xs={12} sm={6} md={3}>
-                  <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px' }}>
-                    <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569', display: 'block', mb: 0.5 }}>
-                      INSPECTION VISIT FEE (INR)
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 1.5, fontSize: '11px' }}>
-                      Upfront diagnostic visitation fee paid on booking confirmation.
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      size="small"
+                <Grid item xs={12} sm={6} md={6} xl={3}>
+                  <FieldCard
+                    label="INSPECTION VISIT FEE"
+                    helper="Upfront diagnostic visitation fee paid on booking confirmation."
+                  >
+                    <AddonInput
                       type="number"
+                      prefix="INR"
                       value={rewardConfig.inspection_visit_fee ?? 99}
                       onChange={(e) => setRewardConfig({ ...rewardConfig, inspection_visit_fee: e.target.value })}
-                      InputProps={{
-                        startAdornment: <InputAdornment position="start">INR</InputAdornment>
-                      }}
-                      sx={{ bgcolor: '#FFFFFF', borderRadius: '6px' }}
                     />
-                  </Paper>
+                  </FieldCard>
                 </Grid>
               </Grid>
 
-              {/* Section B: Customer Booking & Referral Rewards */}
-              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
-                <span>2. Customer Booking & Referral Rewards</span>
-              </Typography>
+              {/* Section 2: Customer Booking & Referral Rewards */}
+              <SectionHeader
+                number="2"
+                title="Customer Booking & Referral Rewards"
+                description="Incentivize organic customer referral loops and repeat booking completions."
+              />
 
-              <Grid container spacing={2.5} sx={{ mb: 3 }}>
-                {/* Customer Referral Credits */}
-                <Grid item xs={12} sm={6} md={3}>
-                  <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px' }}>
-                    <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569', display: 'block', mb: 0.5 }}>
-                      CUSTOMER REFERRER REWARD (CREDITS)
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 1.5, fontSize: '11px' }}>
-                      Credits given to customer when their referred friend completes their 1st service.
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      size="small"
+              <Grid container spacing={2} sx={{ mb: 3.5 }}>
+                <Grid item xs={12} sm={6} md={6} xl={3}>
+                  <FieldCard
+                    label="CUSTOMER REFERRER REWARD"
+                    helper="Credits given to customer when their referred friend completes their 1st service."
+                  >
+                    <AddonInput
                       type="number"
+                      suffix="Credits"
                       value={rewardConfig.customer_referral_credits}
                       onChange={(e) => setRewardConfig({ ...rewardConfig, customer_referral_credits: e.target.value })}
-                      InputProps={{
-                        endAdornment: <InputAdornment position="end">Credits</InputAdornment>
-                      }}
-                      sx={{ bgcolor: '#FFFFFF', borderRadius: '6px' }}
                     />
-                  </Paper>
+                  </FieldCard>
                 </Grid>
 
-                {/* Friend Referee Discount */}
-                <Grid item xs={12} sm={6} md={3}>
-                  <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px' }}>
-                    <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569', display: 'block', mb: 0.5 }}>
-                      FRIEND FIRST-SERVICE DISCOUNT (INR)
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 1.5, fontSize: '11px' }}>
-                      Instant INR discount applied to friend's 1st booking via referral code.
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      size="small"
+                <Grid item xs={12} sm={6} md={6} xl={3}>
+                  <FieldCard
+                    label="FRIEND 1ST SERVICE DISCOUNT"
+                    helper="Instant INR discount applied to friend's 1st booking via referral code."
+                  >
+                    <AddonInput
                       type="number"
+                      prefix="INR"
                       value={rewardConfig.referee_discount_amount}
                       onChange={(e) => setRewardConfig({ ...rewardConfig, referee_discount_amount: e.target.value })}
-                      InputProps={{
-                        startAdornment: <InputAdornment position="start">INR</InputAdornment>
-                      }}
-                      sx={{ bgcolor: '#FFFFFF', borderRadius: '6px' }}
                     />
-                  </Paper>
+                  </FieldCard>
                 </Grid>
 
-                {/* Completed Booking Cashback Reward */}
-                <Grid item xs={12} sm={6} md={3}>
-                  <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px' }}>
-                    <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569', display: 'block', mb: 0.5 }}>
-                      BOOKING COMPLETION CASHBACK (CREDITS)
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 1.5, fontSize: '11px' }}>
-                      Credits awarded to customer wallet upon completing a service booking.
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      size="small"
+                <Grid item xs={12} sm={6} md={6} xl={3}>
+                  <FieldCard
+                    label="BOOKING CASHBACK REWARD"
+                    helper="Credits awarded to customer wallet upon completing a service booking."
+                  >
+                    <AddonInput
                       type="number"
+                      suffix="Credits"
                       value={rewardConfig.review_reward_credits}
                       onChange={(e) => setRewardConfig({ ...rewardConfig, review_reward_credits: e.target.value })}
-                      InputProps={{
-                        endAdornment: <InputAdornment position="end">Credits</InputAdornment>
-                      }}
-                      sx={{ bgcolor: '#FFFFFF', borderRadius: '6px' }}
                     />
-                  </Paper>
+                  </FieldCard>
                 </Grid>
 
-                {/* Platform Feedback Reward */}
-                <Grid item xs={12} sm={6} md={3}>
-                  <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px' }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
-                      <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569' }}>
-                        FEEDBACK REWARD (CREDITS)
-                      </Typography>
-                      <Switch
-                        size="small"
-                        checked={rewardConfig.feedback_rewards_enabled}
-                        onChange={(e) => setRewardConfig({ ...rewardConfig, feedback_rewards_enabled: e.target.checked })}
-                      />
-                    </Box>
-                    <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 1.5, fontSize: '11px' }}>
-                      Credits given when submitting general app feedback (currently disabled).
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      size="small"
+                <Grid item xs={12} sm={6} md={6} xl={3}>
+                  <FieldCard
+                    label="FEEDBACK REWARD"
+                    helper="Credits given when submitting general app feedback (policy: disabled)."
+                    hasSwitch
+                    switchChecked={Boolean(rewardConfig.feedback_rewards_enabled)}
+                    onSwitchChange={(e) => setRewardConfig({ ...rewardConfig, feedback_rewards_enabled: e.target.checked })}
+                    disabled={!rewardConfig.feedback_rewards_enabled}
+                  >
+                    <AddonInput
                       type="number"
+                      suffix="Credits"
                       disabled={!rewardConfig.feedback_rewards_enabled}
                       value={rewardConfig.feedback_reward_credits}
                       onChange={(e) => setRewardConfig({ ...rewardConfig, feedback_reward_credits: e.target.value })}
-                      InputProps={{
-                        endAdornment: <InputAdornment position="end">Credits</InputAdornment>
-                      }}
-                      sx={{ bgcolor: '#FFFFFF', borderRadius: '6px' }}
                     />
-                  </Paper>
+                  </FieldCard>
                 </Grid>
               </Grid>
 
-              {/* Section C: Partner Fleet Referral & Incentive */}
-              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
-                <span>3. Partner Fleet Referral Incentives</span>
-              </Typography>
+              {/* Section 3: Partner Fleet Referral Incentives */}
+              <SectionHeader
+                number="3"
+                title="Partner Fleet Referral Incentives"
+                description="Encourage technician fleet recruitment and new partner onboarding."
+              />
 
-              <Grid container spacing={2.5}>
-                {/* Partner Referrer Incentive */}
+              <Grid container spacing={2} sx={{ mb: 3.5 }}>
                 <Grid item xs={12} sm={6} md={6}>
-                  <Paper elevation={0} sx={{ p: 2, bgcolor: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '10px' }}>
-                    <Typography variant="caption" sx={{ fontWeight: 700, color: '#166534', display: 'block', mb: 0.5 }}>
-                      PARTNER TECHNICIAN REFERRAL INCENTIVE (INR)
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: '#15803D', display: 'block', mb: 1.5, fontSize: '11px' }}>
-                      Incentive credited to technician wallet when referring a new partner to the fleet.
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      size="small"
+                  <FieldCard
+                    label="PARTNER REFERRAL INCENTIVE"
+                    helper="Incentive credited to technician wallet when referring a new partner to the fleet."
+                  >
+                    <AddonInput
                       type="number"
+                      prefix="INR"
                       value={rewardConfig.partner_referral_incentive}
                       onChange={(e) => setRewardConfig({ ...rewardConfig, partner_referral_incentive: e.target.value })}
-                      InputProps={{
-                        startAdornment: <InputAdornment position="start">INR</InputAdornment>
-                      }}
-                      sx={{ bgcolor: '#FFFFFF', borderRadius: '6px' }}
                     />
-                  </Paper>
+                  </FieldCard>
                 </Grid>
 
-                {/* Partner Welcome Tool Bonus */}
                 <Grid item xs={12} sm={6} md={6}>
-                  <Paper elevation={0} sx={{ p: 2, bgcolor: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '10px' }}>
-                    <Typography variant="caption" sx={{ fontWeight: 700, color: '#166534', display: 'block', mb: 0.5 }}>
-                      NEW PARTNER ONBOARDING BONUS (INR)
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: '#15803D', display: 'block', mb: 1.5, fontSize: '11px' }}>
-                      Welcome bonus for new technician signups (set to 0 for booking/referral only policy).
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      size="small"
+                  <FieldCard
+                    label="NEW PARTNER ONBOARDING BONUS"
+                    helper="Welcome bonus for new technician signups (set to 0 for booking/referral only policy)."
+                  >
+                    <AddonInput
                       type="number"
+                      prefix="INR"
                       value={rewardConfig.partner_welcome_bonus}
                       onChange={(e) => setRewardConfig({ ...rewardConfig, partner_welcome_bonus: e.target.value })}
-                      InputProps={{
-                        startAdornment: <InputAdornment position="start">INR</InputAdornment>
-                      }}
-                      sx={{ bgcolor: '#FFFFFF', borderRadius: '6px' }}
                     />
-                  </Paper>
+                  </FieldCard>
                 </Grid>
               </Grid>
 
-              {/* Live Preview Bar */}
-              <Box sx={{ mt: 2.5, p: 1.5, bgcolor: '#EFF6FF', borderRadius: '8px', border: '1px solid #BFDBFE', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
-                <Typography variant="caption" sx={{ color: '#1E40AF', fontWeight: 600 }}>
-                  Active Business Policy Preview: Partner Commission: {rewardConfig.partner_commission_percent}% | Customer Fee: {rewardConfig.customer_platform_fee_percent}% | Gateway Fee: {rewardConfig.payment_gateway_fee_percent}% | Booking Cashback: {rewardConfig.review_reward_credits} Credits | Customer Referral: {rewardConfig.customer_referral_credits} Credits
-                </Typography>
-                <Chip label="Real-time DB Sync" size="small" sx={{ bgcolor: '#DBEAFE', color: '#1E40AF', fontWeight: 800, fontSize: '10px' }} />
+              {/* Business Policy Preview Strip */}
+              <Box
+                sx={{
+                  p: 2,
+                  bgcolor: 'slate.50',
+                  borderRadius: '8px',
+                  border: '1px solid',
+                  borderColor: 'slate.200',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: 1.5
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 700, color: 'slate.700', mr: 0.5 }}>
+                    Active Business Policy:
+                  </Typography>
+                  <Chip size="small" variant="outlined" label={`Partner Commission: ${rewardConfig.partner_commission_percent}%`} sx={{ bgcolor: '#FFFFFF', borderColor: 'slate.300', fontWeight: 600, fontSize: '11px' }} />
+                  <Chip size="small" variant="outlined" label={`Customer Fee: ${rewardConfig.customer_platform_fee_percent}%`} sx={{ bgcolor: '#FFFFFF', borderColor: 'slate.300', fontWeight: 600, fontSize: '11px' }} />
+                  <Chip size="small" variant="outlined" label={`Gateway Fee: ${rewardConfig.payment_gateway_fee_percent}%`} sx={{ bgcolor: '#FFFFFF', borderColor: 'slate.300', fontWeight: 600, fontSize: '11px' }} />
+                  <Chip size="small" variant="outlined" label={`Booking Cashback: ${rewardConfig.review_reward_credits} Credits`} sx={{ bgcolor: '#FFFFFF', borderColor: 'slate.300', fontWeight: 600, fontSize: '11px' }} />
+                  <Chip size="small" variant="outlined" label={`Customer Referral: ${rewardConfig.customer_referral_credits} Credits`} sx={{ bgcolor: '#FFFFFF', borderColor: 'slate.300', fontWeight: 600, fontSize: '11px' }} />
+                </Box>
+                <Chip
+                  label="Real-time DB Sync"
+                  size="small"
+                  icon={<CheckCircleIcon sx={{ fontSize: '14px !important', color: 'primary.main !important' }} />}
+                  sx={{ bgcolor: 'primary.50', color: 'primary.main', fontWeight: 700, fontSize: '11px', border: '1px solid', borderColor: 'primary.200' }}
+                />
               </Box>
             </Card>
 
-            {/* 2. Promotional Coupon Code Manager Card */}
-            <Card elevation={0} sx={{ bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px', p: 2.5, boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)' }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1.5 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
-                  <Avatar sx={{ bgcolor: '#E0F2FE', color: '#0284C7', width: 36, height: 36 }}>
-                    <ConfirmationNumberIcon sx={{ fontSize: 20 }} />
+            {/* 2. Promotional Coupon Code Manager */}
+            <Card elevation={0} sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', borderRadius: '12px', p: { xs: 2, sm: 3 } }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2.5, flexWrap: 'wrap', gap: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <Avatar sx={{ bgcolor: 'primary.50', color: 'primary.main', width: 40, height: 40, borderRadius: '8px' }}>
+                    <ConfirmationNumberIcon sx={{ fontSize: 22 }} />
                   </Avatar>
                   <Box>
-                    <Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '16px' }}>
-                      Promotional Coupon Codes ({couponsList.length})
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: '#64748B' }}>
-                      Manage discount vouchers, order thresholds, percentage vs flat deductions, and campaign active toggles.
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography variant="h3" sx={{ fontWeight: 700, color: 'text.primary', fontSize: '18px' }}>
+                        Promotional Coupon Codes
+                      </Typography>
+                      <Chip
+                        label={couponsList.length}
+                        size="small"
+                        sx={{ bgcolor: 'slate.100', color: 'slate.700', fontWeight: 700, fontSize: '11px', height: 22 }}
+                      />
+                    </Box>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>
+                      Manage discount vouchers, order thresholds, percentage vs flat deductions, and campaign toggles.
                     </Typography>
                   </Box>
                 </Box>
@@ -5033,7 +4979,7 @@ export default function AdminDashboardPage() {
                     size="small"
                     startIcon={<RefreshIcon sx={{ fontSize: 16 }} />}
                     onClick={fetchCoupons}
-                    sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '8px' }}
+                    sx={{ textTransform: 'none', fontWeight: 600, borderRadius: '8px', minHeight: 36 }}
                   >
                     Refresh
                   </Button>
@@ -5043,10 +4989,9 @@ export default function AdminDashboardPage() {
                     startIcon={<AddIcon sx={{ fontSize: 18 }} />}
                     onClick={() => navigate('/admin/coupons/new', { state: { returnTo: location.pathname } })}
                     sx={{
-                      bgcolor: '#0284C7',
-                      '&:hover': { bgcolor: '#0369A1' },
+                      minHeight: 36,
                       textTransform: 'none',
-                      fontWeight: 800,
+                      fontWeight: 600,
                       borderRadius: '8px'
                     }}
                   >
@@ -5058,99 +5003,174 @@ export default function AdminDashboardPage() {
               <Divider sx={{ mb: 2 }} />
 
               {couponsLoading ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-                  <CircularProgress size={32} />
-                </Box>
+                <SkeletonBlock variant="card" height={160} />
               ) : couponsList.length === 0 ? (
-                <Box sx={{ textAlign: 'center', py: 4, bgcolor: '#F8FAFC', borderRadius: '8px', border: '1px dashed #CBD5E1' }}>
-                  <Typography variant="body2" sx={{ color: '#64748B', fontWeight: 600 }}>
-                    No promotional coupons registered yet. Click "Create Coupon Code" above to add your first voucher.
-                  </Typography>
-                </Box>
+                <EmptyState
+                  icon={ConfirmationNumberIcon}
+                  title="No Promotional Coupons Yet"
+                  description="Create discount vouchers and promotional campaign codes to drive customer engagement across Salem."
+                  actionLabel="Create Coupon Code"
+                  onAction={() => navigate('/admin/coupons/new', { state: { returnTo: location.pathname } })}
+                />
               ) : (
-                <Box sx={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: '12px', border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
-                  <Typography variant="caption" sx={{ display: { xs: 'block', md: 'none' }, color: '#94A3B8', px: 2, pt: 1, fontSize: '10.5px' }}>
-                    Swipe left/right to view full table details
-                  </Typography>
-                  <Table size="small" sx={{ minWidth: 640 }}>
-                  <TableHead>
-                    <TableRow sx={{ bgcolor: '#F8FAFC' }}>
-                      <TableCell sx={{ fontWeight: 800, color: '#475569', fontSize: '11px' }}>PROMO CODE</TableCell>
-                      <TableCell sx={{ fontWeight: 800, color: '#475569', fontSize: '11px' }}>DISCOUNT</TableCell>
-                      <TableCell sx={{ fontWeight: 800, color: '#475569', fontSize: '11px' }}>MIN ORDER</TableCell>
-                      <TableCell sx={{ fontWeight: 800, color: '#475569', fontSize: '11px' }}>DESCRIPTION</TableCell>
-                      <TableCell sx={{ fontWeight: 800, color: '#475569', fontSize: '11px' }}>TIMES USED</TableCell>
-                      <TableCell sx={{ fontWeight: 800, color: '#475569', fontSize: '11px' }}>STATUS</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 800, color: '#475569', fontSize: '11px' }}>ACTIONS</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {couponsList.map((c) => (
-                      <TableRow key={c.id} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                        <TableCell>
-                          <Chip
-                            label={c.code}
-                            size="small"
-                            sx={{
-                              fontFamily: 'monospace',
-                              fontWeight: 900,
-                              bgcolor: c.isActive ? '#EFF6FF' : '#F1F5F9',
-                              color: c.isActive ? '#1D4ED8' : '#64748B',
-                              border: c.isActive ? '1px solid #BFDBFE' : '1px solid #CBD5E1'
-                            }}
-                          />
-                        </TableCell>
-                        <TableCell sx={{ fontWeight: 700, color: '#0F172A' }}>
+                <DataTable
+                  columns={[
+                    {
+                      field: 'code',
+                      headerName: 'PROMO CODE',
+                      minWidth: 140,
+                      renderCell: (c) => (
+                        <Chip
+                          label={c.code}
+                          size="small"
+                          sx={{
+                            fontFamily: 'monospace',
+                            fontWeight: 700,
+                            bgcolor: c.isActive ? 'primary.50' : 'slate.100',
+                            color: c.isActive ? 'primary.main' : 'slate.600',
+                            border: '1px solid',
+                            borderColor: c.isActive ? 'primary.200' : 'slate.200'
+                          }}
+                        />
+                      )
+                    },
+                    {
+                      field: 'discount',
+                      headerName: 'DISCOUNT',
+                      minWidth: 160,
+                      renderCell: (c) => (
+                        <Typography variant="body2" sx={{ fontWeight: 700, color: 'slate.900' }}>
                           {c.discountType === 'percent'
                             ? `${c.discountValue}% Off ${c.maxDiscountCap ? `(Max INR ${c.maxDiscountCap})` : ''}`
                             : `INR ${c.discountValue} Flat Off`}
-                        </TableCell>
-                        <TableCell sx={{ color: '#64748B', fontSize: '12px' }}>
+                        </Typography>
+                      )
+                    },
+                    {
+                      field: 'minOrder',
+                      headerName: 'MIN ORDER',
+                      minWidth: 120,
+                      renderCell: (c) => (
+                        <Typography variant="body2" sx={{ color: 'slate.600', fontVariantNumeric: 'tabular-nums' }}>
                           INR {c.minOrderAmount}
-                        </TableCell>
-                        <TableCell sx={{ color: '#334155', fontSize: '12px', maxWidth: 220 }}>
-                          {c.description || '-'}
-                        </TableCell>
-                        <TableCell sx={{ fontWeight: 700, color: '#0284C7', fontVariantNumeric: 'tabular-nums' }}>
+                        </Typography>
+                      )
+                    },
+                    {
+                      field: 'description',
+                      headerName: 'DESCRIPTION',
+                      minWidth: 220,
+                      renderCell: (c) => (
+                        <Tooltip title={c.description || 'No description'}>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: 'slate.600',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              maxWidth: 240
+                            }}
+                          >
+                            {c.description || '-'}
+                          </Typography>
+                        </Tooltip>
+                      )
+                    },
+                    {
+                      field: 'usage',
+                      headerName: 'TIMES USED',
+                      minWidth: 120,
+                      renderCell: (c) => (
+                        <Typography variant="body2" sx={{ fontWeight: 600, color: 'primary.main', fontVariantNumeric: 'tabular-nums' }}>
                           {c.timesUsed} {c.usageLimit ? `/ ${c.usageLimit}` : 'uses'}
-                        </TableCell>
-                        <TableCell>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                            <Switch
-                              size="small"
-                              checked={c.isActive}
-                              onChange={() => handleToggleCouponActive(c)}
-                            />
-                            <Typography variant="caption" sx={{ fontWeight: 700, color: c.isActive ? '#166534' : '#94A3B8' }}>
-                              {c.isActive ? 'Active' : 'Disabled'}
-                            </Typography>
-                          </Box>
-                        </TableCell>
-                        <TableCell align="right">
-                          <IconButton
+                        </Typography>
+                      )
+                    },
+                    {
+                      field: 'status',
+                      headerName: 'STATUS',
+                      minWidth: 130,
+                      renderCell: (c) => (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                          <Switch
                             size="small"
+                            checked={c.isActive}
+                            onChange={() => handleToggleCouponActive(c)}
+                          />
+                          <Typography variant="caption" sx={{ fontWeight: 600, color: c.isActive ? 'success.main' : 'slate.400' }}>
+                            {c.isActive ? 'Active' : 'Disabled'}
+                          </Typography>
+                        </Box>
+                      )
+                    },
+                    {
+                      field: 'actions',
+                      headerName: 'ACTIONS',
+                      align: 'right',
+                      minWidth: 100,
+                      renderCell: (c) => (
+                        <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'flex-end' }}>
+                          <IconActionButton
+                            title="Edit Coupon"
                             onClick={() => {
                               navigate(`/admin/coupons/${c.code}/edit`, { state: { coupon: c, returnTo: location.pathname } });
                             }}
-                            sx={{ color: '#0284C7' }}
                           >
                             <EditIcon sx={{ fontSize: 16 }} />
-                          </IconButton>
-                          <IconButton
-                            size="small"
-                            onClick={() => handleDeleteCoupon(c)}
-                            sx={{ color: '#EF4444' }}
+                          </IconActionButton>
+                          <IconActionButton
+                            title="Delete Coupon"
+                            color="error"
+                            onClick={() => setCouponToDelete(c)}
                           >
                             <DeleteIcon sx={{ fontSize: 16 }} />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </Box>
-            )}
+                          </IconActionButton>
+                        </Box>
+                      )
+                    }
+                  ]}
+                  rows={couponsList}
+                  loading={couponsLoading}
+                  emptyMessage="No promotional coupons registered yet."
+                />
+              )}
             </Card>
+
+            {/* Mobile / Desktop Sticky Save Bar for Settings */}
+            <StickySaveBar
+              visible={Boolean(initialRewardConfig && JSON.stringify(rewardConfig) !== JSON.stringify(initialRewardConfig))}
+              loading={rewardsSaving}
+              onSave={handleSaveRewardConfig}
+              onDiscard={() => setRewardConfig(initialRewardConfig)}
+            />
+
+            {/* Confirm Dialog for Coupon Deletion */}
+            <ConfirmDialog
+              open={Boolean(couponToDelete)}
+              title="Delete Promotional Coupon"
+              message={`Are you sure you want to permanently delete the coupon "${couponToDelete?.code}"? Customers will no longer be able to redeem this voucher at checkout.`}
+              confirmLabel="Delete Coupon"
+              confirmColor="error"
+              onConfirm={async () => {
+                if (!couponToDelete) return;
+                try {
+                  const res = await fetch(`${API_V1_URL}/admin/coupons/${couponToDelete.id}`, { method: 'DELETE' });
+                  const data = await res.json();
+                  if (data.success) {
+                    setToast({ open: true, message: `Coupon ${couponToDelete.code} deleted`, severity: 'success' });
+                    fetchCoupons();
+                  }
+                } catch (err) {
+                  setToast({ open: true, message: err.message, severity: 'error' });
+                } finally {
+                  setCouponToDelete(null);
+                }
+              }}
+              onCancel={() => setCouponToDelete(null)}
+            />
           </Box>
         )}
 

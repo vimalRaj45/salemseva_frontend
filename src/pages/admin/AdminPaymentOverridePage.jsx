@@ -26,6 +26,7 @@ import {
   FileText
 } from 'lucide-react';
 import { API_V1_URL, PARTNER_COMMISSION_PERCENT, PARTNER_PAYOUT_PERCENT } from '../../config';
+import { PageHeader } from '../../components/ui';
 import toast from 'react-hot-toast';
 
 const PAYMENT_METHODS = [
@@ -181,66 +182,16 @@ export default function AdminPaymentOverridePage() {
   }
 
   return (
-    <Box sx={{ minHeight: '100dvh', bgcolor: '#F8FAFC', display: 'flex', flexDirection: 'column' }}>
-      {/* Top Header Bar */}
-      <Box
-        sx={{
-          bgcolor: '#FFFFFF',
-          borderBottom: '1px solid #E2E8F0',
-          position: 'sticky',
-          top: 0,
-          zIndex: 10,
-          px: { xs: 2, sm: 3 },
-          py: 1.5,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 1.5
-        }}
-      >
-        <IconButton
-          onClick={handleDismiss}
-          aria-label="Go back"
-          sx={{
-            color: '#0F172A',
-            bgcolor: '#F1F5F9',
-            '&:hover': { bgcolor: '#E2E8F0' },
-            width: 40,
-            height: 40,
-            borderRadius: '10px'
-          }}
-        >
-          <ArrowLeft size={20} />
-        </IconButton>
+    <Box sx={{ minHeight: '100dvh', bgcolor: 'background.default', pb: 8 }}>
+      <Container maxWidth="sm" sx={{ pt: 3, px: { xs: 2, sm: 3 } }}>
+        <PageHeader
+          title="Payment Override & Ledger Settlement"
+          subtitle={`Booking #${booking?.id || bookingId} • ${booking?.customer_name || 'Customer'} (${booking?.locality || 'Salem'})`}
+          backUrl={location.state?.returnTo || '/admin'}
+          backLabel="Back to Admin"
+        />
 
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography sx={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>
-            Admin payment override & ledger settlement
-          </Typography>
-          <Typography sx={{ fontSize: '12px', color: '#64748B', lineHeight: 1.3 }}>
-            Booking #{booking?.id || bookingId} • {booking?.customer_name} ({booking?.locality || 'Salem'})
-          </Typography>
-        </Box>
-
-        <Box
-          sx={{
-            width: 38,
-            height: 38,
-            borderRadius: '10px',
-            bgcolor: '#F0FDF4',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#16A34A',
-            flexShrink: 0
-          }}
-        >
-          <CreditCard size={20} />
-        </Box>
-      </Box>
-
-      {/* Main Content Area */}
-      <Container maxWidth="sm" sx={{ flex: 1, py: { xs: 2.5, sm: 3.5 } }}>
-        <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+        <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, mt: 3 }}>
           {/* Summary Card */}
           <Paper elevation={0} sx={{ p: 2, borderRadius: '14px', border: '1px solid #E2E8F0', bgcolor: '#F8FAFC' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>

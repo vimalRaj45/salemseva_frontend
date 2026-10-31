@@ -6,24 +6,18 @@ import {
   Button,
   TextField,
   FormControl,
-  InputLabel,
   Select,
   MenuItem,
   Paper,
   Container,
-  IconButton,
   CircularProgress,
   Grid
 } from '@mui/material';
 import {
-  ArrowLeft,
   Users,
-  Save,
-  CheckCircle2,
-  ShieldCheck,
-  Mail,
-  Phone
+  Save
 } from 'lucide-react';
+import { PageHeader } from '../../components/ui';
 import { API_V1_URL } from '../../config';
 import toast from 'react-hot-toast';
 
@@ -133,57 +127,43 @@ export default function AdminStaffEditorPage() {
   }
 
   return (
-    <Box sx={{ minHeight: '100dvh', bgcolor: '#F8FAFC', pb: 10 }}>
-      {/* Top App Bar */}
-      <Box sx={{ bgcolor: '#0F172A', color: '#FFFFFF', px: { xs: 2, sm: 3 }, py: 2, borderBottom: '1px solid #1E293B', position: 'sticky', top: 0, zIndex: 110 }}>
-        <Container maxWidth="md" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <IconButton onClick={handleDismiss} sx={{ color: '#94A3B8', '&:hover': { color: '#FFFFFF', bgcolor: '#1E293B' } }}>
-              <ArrowLeft size={20} />
-            </IconButton>
-            <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 800, fontSize: { xs: '16px', sm: '18px' }, color: '#FFFFFF' }}>
-                {isEditMode ? `Edit Staff: ${formData.name}` : 'Add Operations Staff Member'}
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '12px' }}>
-                Salem Seva Operations Control & Team Privileges
-              </Typography>
-            </Box>
-          </Box>
-          <Button
-            variant="contained"
-            disabled={saving}
-            onClick={handleSave}
-            startIcon={saving ? <CircularProgress size={16} color="inherit" /> : <Save size={16} />}
-            sx={{
-              bgcolor: '#0A66C2',
-              color: '#FFFFFF',
-              fontWeight: 700,
-              borderRadius: '10px',
-              textTransform: 'none',
-              px: 2.5,
-              height: 40,
-              fontSize: '13px',
-              '&:hover': { bgcolor: '#084e96' }
-            }}
-          >
-            {saving ? 'Saving...' : 'Save Staff Member'}
-          </Button>
-        </Container>
-      </Box>
+    <Box sx={{ minHeight: '100dvh', bgcolor: 'background.default', pb: 10 }}>
+      <Container maxWidth="md" sx={{ pt: 3, px: { xs: 2, sm: 3 } }}>
+        <PageHeader
+          title={isEditMode ? `Edit Staff: ${formData.name}` : 'Add Operations Staff Member'}
+          subtitle="Salem Seva Operations Control & Team Privileges"
+          backUrl={location.state?.returnTo || '/admin'}
+          backLabel="Back to Admin"
+          actions={
+            <Button
+              variant="contained"
+              disabled={saving}
+              onClick={handleSave}
+              startIcon={saving ? <CircularProgress size={16} color="inherit" /> : <Save size={16} />}
+              sx={{
+                fontWeight: 600,
+                borderRadius: '8px',
+                textTransform: 'none',
+                px: 2.5,
+                minHeight: 40
+              }}
+            >
+              {saving ? 'Saving...' : 'Save Staff Member'}
+            </Button>
+          }
+        />
 
-      {/* Form Content */}
-      <Container maxWidth="md" sx={{ mt: 3, px: { xs: 2, sm: 3 } }}>
-        <Paper elevation={0} sx={{ p: { xs: 2.5, sm: 3.5 }, borderRadius: '16px', border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3, pb: 2, borderBottom: '1px solid #F1F5F9' }}>
-            <Box sx={{ p: 1, bgcolor: '#EFF6FF', borderRadius: '10px', color: '#0A66C2' }}>
+        {/* Form Content */}
+        <Paper elevation={0} sx={{ p: { xs: 2.5, sm: 3.5 }, borderRadius: '12px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', mt: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3, pb: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+            <Box sx={{ p: 1, bgcolor: 'primary.50', borderRadius: '8px', color: 'primary.main', display: 'flex' }}>
               <Users size={20} />
             </Box>
             <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '15px' }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary', fontSize: '15px' }}>
                 Staff Profile and Hub Allocation
               </Typography>
-              <Typography variant="caption" sx={{ color: '#64748B', fontSize: '12px' }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '12px' }}>
                 Assign roles, contact details, and operating hub across Salem Corporation wards
               </Typography>
             </Box>

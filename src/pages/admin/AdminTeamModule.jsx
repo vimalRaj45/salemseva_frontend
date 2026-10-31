@@ -37,6 +37,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import LockIcon from '@mui/icons-material/Lock';
 import ShieldIcon from '@mui/icons-material/Shield';
 import { ILLUSTRATIONS } from '../../constants/visualAssets';
+import { ConfirmDialog, IconActionButton } from '../../components/ui';
 import { API_V1_URL } from '../../config';
 
 const roleMeta = {
@@ -85,6 +86,7 @@ export default function AdminTeamModule({ currentRole = 'super_admin', onToast =
     status: 'active'
   });
   const [saving, setSaving] = useState(false);
+  const [memberToDelete, setMemberToDelete] = useState(null);
 
   const canManageTeam = currentRole === 'super_admin';
 
@@ -400,24 +402,19 @@ export default function AdminTeamModule({ currentRole = 'super_admin', onToast =
                     <TableCell align="right">
                       {canManageTeam ? (
                         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5 }}>
-                          <Tooltip title="Edit Member Role">
-                            <IconButton
-                              size="small"
-                              onClick={() => handleOpenEdit(member)}
-                              sx={{ color: '#0284C7', border: '1px solid #E2E8F0', borderRadius: '6px' }}
-                            >
-                              <EditIcon sx={{ fontSize: 15 }} />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Remove Member">
-                            <IconButton
-                              size="small"
-                              onClick={() => handleDelete(member.id, member.name)}
-                              sx={{ color: '#DC2626', border: '1px solid #E2E8F0', borderRadius: '6px' }}
-                            >
-                              <DeleteIcon sx={{ fontSize: 15 }} />
-                            </IconButton>
-                          </Tooltip>
+                          <IconActionButton
+                            title="Edit Member Role"
+                            onClick={() => handleOpenEdit(member)}
+                          >
+                            <EditIcon sx={{ fontSize: 16 }} />
+                          </IconActionButton>
+                          <IconActionButton
+                            title="Remove Member"
+                            color="error"
+                            onClick={() => setMemberToDelete(member)}
+                          >
+                            <DeleteIcon sx={{ fontSize: 16 }} />
+                          </IconActionButton>
                         </Box>
                       ) : (
                         <Chip
@@ -436,6 +433,103 @@ export default function AdminTeamModule({ currentRole = 'super_admin', onToast =
         </Box>
       )}
       </Card>
+
+      {/* Role Permission Matrix (Step 5 item 7) */}
+      <Card
+        elevation={0}
+        sx={{
+          mt: 3,
+          bgcolor: 'background.paper',
+          border: '1px solid',
+          borderColor: 'divider',
+          borderRadius: '12px',
+          p: { xs: 2, sm: 3 }
+        }}
+      >
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', fontSize: '16px' }}>
+            Role Permission Matrix & Delegation
+          </Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            RBAC capabilities matrix across Salem Operations personnel and modules.
+          </Typography>
+        </Box>
+
+        <Box sx={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: '8px', border: '1px solid', borderColor: 'divider' }}>
+          <Table size="small" sx={{ minWidth: 640 }}>
+            <TableHead>
+              <TableRow sx={{ bgcolor: 'slate.50' }}>
+                <TableCell sx={{ fontWeight: 700, color: 'text.secondary', position: 'sticky', left: 0, bgcolor: 'slate.50', zIndex: 1, minWidth: 200 }}>
+                  CAPABILITY / SCOPE
+                </TableCell>
+                <TableCell align="center" sx={{ fontWeight: 700, color: 'text.secondary', minWidth: 110 }}>Super Admin</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 700, color: 'text.secondary', minWidth: 110 }}>Ops Dispatcher</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 700, color: 'text.secondary', minWidth: 110 }}>Support & Quality</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 700, color: 'text.secondary', minWidth: 110 }}>Finance Officer</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {[
+                { capability: 'Live Dispatch & Queue Triage', super_admin: true, ops_dispatcher: true, support_quality: false, finance_officer: false },
+                { capability: 'Manual Technician Assignment', super_admin: true, ops_dispatcher: true, support_quality: false, finance_officer: false },
+                { capability: 'Technician KYC Verification', super_admin: true, ops_dispatcher: true, support_quality: false, finance_officer: false },
+                { capability: 'Customer CRM & Direct Contact', super_admin: true, ops_dispatcher: true, support_quality: true, finance_officer: false },
+                { capability: 'Support Tickets & Escalation', super_admin: true, ops_dispatcher: false, support_quality: true, finance_officer: false },
+                { capability: 'Payment Override (Mark Paid)', super_admin: true, ops_dispatcher: false, support_quality: false, finance_officer: true },
+                { capability: 'Razorpay Escrow & Settlements', super_admin: true, ops_dispatcher: false, support_quality: false, finance_officer: true },
+                { capability: 'Platform Fee & Commission Editing', super_admin: true, ops_dispatcher: false, support_quality: false, finance_officer: true },
+                { capability: 'Promotional Coupons Management', super_admin: true, ops_dispatcher: false, support_quality: false, finance_officer: true },
+                { capability: 'Team Staff & Role Management', super_admin: true, ops_dispatcher: false, support_quality: false, finance_officer: false }
+              ].map((perm, idx) => (
+                <TableRow key={idx} hover sx={{ '&:last-child td': { border: 0 } }}>
+                  <TableCell sx={{ fontWeight: 600, color: 'text.primary', position: 'sticky', left: 0, bgcolor: 'background.paper', zIndex: 1 }}>
+                    {perm.capability}
+                  </TableCell>
+                  <TableCell align="center">
+                    {perm.super_admin ? <CheckCircleIcon sx={{ fontSize: 18, color: 'success.main' }} /> : <Box sx={{ width: 6, height: 2, bgcolor: 'slate.300', mx: 'auto' }} />}
+                  </TableCell>
+                  <TableCell align="center">
+                    {perm.ops_dispatcher ? <CheckCircleIcon sx={{ fontSize: 18, color: 'success.main' }} /> : <Box sx={{ width: 6, height: 2, bgcolor: 'slate.300', mx: 'auto' }} />}
+                  </TableCell>
+                  <TableCell align="center">
+                    {perm.support_quality ? <CheckCircleIcon sx={{ fontSize: 18, color: 'success.main' }} /> : <Box sx={{ width: 6, height: 2, bgcolor: 'slate.300', mx: 'auto' }} />}
+                  </TableCell>
+                  <TableCell align="center">
+                    {perm.finance_officer ? <CheckCircleIcon sx={{ fontSize: 18, color: 'success.main' }} /> : <Box sx={{ width: 6, height: 2, bgcolor: 'slate.300', mx: 'auto' }} />}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Box>
+      </Card>
+
+      {/* Confirm Dialog for Staff Removal */}
+      <ConfirmDialog
+        open={Boolean(memberToDelete)}
+        title="Remove Staff Member"
+        message={`Are you sure you want to remove ${memberToDelete?.name} from internal team access? Their RBAC credentials will be revoked immediately.`}
+        confirmLabel="Remove Member"
+        confirmColor="error"
+        onConfirm={async () => {
+          if (!memberToDelete) return;
+          try {
+            const res = await fetch(`${API_V1_URL}/admin/team/${memberToDelete.id}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.success) {
+              onToast('Member removed from team', 'info');
+              setTeam(prev => prev.filter(m => m.id !== memberToDelete.id));
+            } else {
+              onToast(data.error || 'Failed to remove member', 'error');
+            }
+          } catch (err) {
+            onToast(err.message, 'error');
+          } finally {
+            setMemberToDelete(null);
+          }
+        }}
+        onCancel={() => setMemberToDelete(null)}
+      />
     </Box>
   );
 }

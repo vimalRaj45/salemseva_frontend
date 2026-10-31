@@ -6,24 +6,19 @@ import {
   Button,
   TextField,
   FormControl,
-  InputLabel,
   Select,
   MenuItem,
   Switch,
   Paper,
   Container,
-  IconButton,
   CircularProgress,
   Grid
 } from '@mui/material';
 import {
-  ArrowLeft,
   Tag,
-  Save,
-  CheckCircle2,
-  Percent,
-  Coins
+  Save
 } from 'lucide-react';
+import { PageHeader, AddonInput } from '../../components/ui';
 import { API_V1_URL } from '../../config';
 import toast from 'react-hot-toast';
 
@@ -142,65 +137,51 @@ export default function AdminCouponEditorPage() {
   }
 
   return (
-    <Box sx={{ minHeight: '100dvh', bgcolor: '#F8FAFC', pb: 10 }}>
-      {/* Top App Bar */}
-      <Box sx={{ bgcolor: '#0F172A', color: '#FFFFFF', px: { xs: 2, sm: 3 }, py: 2, borderBottom: '1px solid #1E293B', position: 'sticky', top: 0, zIndex: 110 }}>
-        <Container maxWidth="md" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <IconButton onClick={handleDismiss} sx={{ color: '#94A3B8', '&:hover': { color: '#FFFFFF', bgcolor: '#1E293B' } }}>
-              <ArrowLeft size={20} />
-            </IconButton>
-            <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 800, fontSize: { xs: '16px', sm: '18px' }, color: '#FFFFFF' }}>
-                {isEditMode ? `Edit Coupon: ${formData.code}` : 'Create Promotional Coupon'}
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '12px' }}>
-                Salem Operations Promotional Discount Desk
-              </Typography>
-            </Box>
-          </Box>
-          <Button
-            variant="contained"
-            disabled={saving}
-            onClick={handleSave}
-            startIcon={saving ? <CircularProgress size={16} color="inherit" /> : <Save size={16} />}
-            sx={{
-              bgcolor: '#0A66C2',
-              color: '#FFFFFF',
-              fontWeight: 700,
-              borderRadius: '10px',
-              textTransform: 'none',
-              px: 2.5,
-              height: 40,
-              fontSize: '13px',
-              '&:hover': { bgcolor: '#084e96' }
-            }}
-          >
-            {saving ? 'Saving...' : 'Save Coupon'}
-          </Button>
-        </Container>
-      </Box>
+    <Box sx={{ minHeight: '100dvh', bgcolor: 'background.default', pb: 10 }}>
+      <Container maxWidth="md" sx={{ pt: 3, px: { xs: 2, sm: 3 } }}>
+        <PageHeader
+          title={isEditMode ? `Edit Coupon: ${formData.code}` : 'Create Promotional Coupon'}
+          subtitle="Configure discounts applicable during doorstep service checkout across Salem"
+          backUrl={location.state?.returnTo || '/admin'}
+          backLabel="Back to Admin"
+          actions={
+            <Button
+              variant="contained"
+              disabled={saving}
+              onClick={handleSave}
+              startIcon={saving ? <CircularProgress size={16} color="inherit" /> : <Save size={16} />}
+              sx={{
+                fontWeight: 600,
+                borderRadius: '8px',
+                textTransform: 'none',
+                px: 2.5,
+                minHeight: 40
+              }}
+            >
+              {saving ? 'Saving...' : 'Save Coupon'}
+            </Button>
+          }
+        />
 
-      {/* Form Content */}
-      <Container maxWidth="md" sx={{ mt: 3, px: { xs: 2, sm: 3 } }}>
-        <Paper elevation={0} sx={{ p: { xs: 2.5, sm: 3.5 }, borderRadius: '16px', border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3, pb: 2, borderBottom: '1px solid #F1F5F9' }}>
-            <Box sx={{ p: 1, bgcolor: '#EFF6FF', borderRadius: '10px', color: '#0A66C2' }}>
+        {/* Form Content */}
+        <Paper elevation={0} sx={{ p: { xs: 2.5, sm: 3.5 }, borderRadius: '12px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', mt: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3, pb: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+            <Box sx={{ p: 1, bgcolor: 'primary.50', borderRadius: '8px', color: 'primary.main', display: 'flex' }}>
               <Tag size={20} />
             </Box>
             <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '15px' }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary', fontSize: '15px' }}>
                 Coupon Rules and Redemption Criteria
               </Typography>
-              <Typography variant="caption" sx={{ color: '#64748B', fontSize: '12px' }}>
-                Configure discounts applicable during doorstep service checkout across Salem
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '12px' }}>
+                Configure rules and discount caps applied at checkout
               </Typography>
             </Box>
           </Box>
 
           <Grid container spacing={2.5}>
             <Grid item xs={12} sm={6}>
-              <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569', display: 'block', mb: 0.8, fontSize: '12.5px' }}>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.8, fontSize: '12px' }}>
                 COUPON CODE
               </Typography>
               <TextField
@@ -210,19 +191,17 @@ export default function AdminCouponEditorPage() {
                 value={formData.code}
                 onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
                 helperText="Must be unique uppercase characters (e.g. FESTIVE50)"
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', bgcolor: '#F8FAFC' } }}
               />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569', display: 'block', mb: 0.8, fontSize: '12.5px' }}>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.8, fontSize: '12px' }}>
                 DISCOUNT TYPE
               </Typography>
               <FormControl fullWidth size="small">
                 <Select
                   value={formData.discountType}
                   onChange={(e) => setFormData({ ...formData, discountType: e.target.value })}
-                  sx={{ borderRadius: '10px', bgcolor: '#F8FAFC' }}
                 >
                   <MenuItem value="flat">Flat Rupee Amount (INR)</MenuItem>
                   <MenuItem value="percent">Percentage Discount (%)</MenuItem>
@@ -231,69 +210,62 @@ export default function AdminCouponEditorPage() {
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569', display: 'block', mb: 0.8, fontSize: '12.5px' }}>
-                {formData.discountType === 'percent' ? 'DISCOUNT PERCENTAGE (%)' : 'DISCOUNT AMOUNT (INR)'}
+              <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.8, fontSize: '12px' }}>
+                {formData.discountType === 'percent' ? 'DISCOUNT PERCENTAGE' : 'DISCOUNT AMOUNT'}
               </Typography>
-              <TextField
-                fullWidth
-                size="small"
+              <AddonInput
                 type="number"
                 placeholder={formData.discountType === 'percent' ? '15' : '100'}
                 value={formData.discountValue}
                 onChange={(e) => setFormData({ ...formData, discountValue: e.target.value })}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', bgcolor: '#F8FAFC' } }}
+                prefix={formData.discountType === 'flat' ? 'INR' : undefined}
+                suffix={formData.discountType === 'percent' ? '%' : undefined}
               />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569', display: 'block', mb: 0.8, fontSize: '12.5px' }}>
-                MINIMUM ORDER SUB-TOTAL (INR)
+              <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.8, fontSize: '12px' }}>
+                MINIMUM ORDER SUB-TOTAL
               </Typography>
-              <TextField
-                fullWidth
-                size="small"
+              <AddonInput
                 type="number"
                 placeholder="e.g. 299"
                 value={formData.minOrderAmount}
                 onChange={(e) => setFormData({ ...formData, minOrderAmount: e.target.value })}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', bgcolor: '#F8FAFC' } }}
+                prefix="INR"
               />
             </Grid>
 
             {formData.discountType === 'percent' && (
               <Grid item xs={12} sm={6}>
-                <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569', display: 'block', mb: 0.8, fontSize: '12.5px' }}>
-                  MAXIMUM DISCOUNT CAP (INR)
+                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.8, fontSize: '12px' }}>
+                  MAXIMUM DISCOUNT CAP
                 </Typography>
-                <TextField
-                  fullWidth
-                  size="small"
+                <AddonInput
                   type="number"
                   placeholder="e.g. 150"
                   value={formData.maxDiscountCap}
                   onChange={(e) => setFormData({ ...formData, maxDiscountCap: e.target.value })}
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', bgcolor: '#F8FAFC' } }}
+                  prefix="INR"
                 />
               </Grid>
             )}
 
             <Grid item xs={12} sm={formData.discountType === 'percent' ? 6 : 12}>
-              <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569', display: 'block', mb: 0.8, fontSize: '12.5px' }}>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.8, fontSize: '12px' }}>
                 USAGE LIMIT (OPTIONAL)
               </Typography>
-              <TextField
-                fullWidth
-                size="small"
+              <AddonInput
                 type="number"
                 placeholder="Leave blank for unlimited"
                 value={formData.usageLimit}
                 onChange={(e) => setFormData({ ...formData, usageLimit: e.target.value })}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', bgcolor: '#F8FAFC' } }}
+                suffix="uses"
               />
             </Grid>
 
             <Grid item xs={12}>
-              <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569', display: 'block', mb: 0.8, fontSize: '12.5px' }}>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.8, fontSize: '12px' }}>
                 INTERNAL DESCRIPTION & CAMPAIGN PURPOSE
               </Typography>
               <TextField
@@ -304,17 +276,16 @@ export default function AdminCouponEditorPage() {
                 placeholder="e.g. Deepavali festive campaign across Salem Urban areas"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', bgcolor: '#F8FAFC' } }}
               />
             </Grid>
 
             <Grid item xs={12}>
-              <Box sx={{ p: 2, bgcolor: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ p: 2, bgcolor: 'slate.50', borderRadius: '8px', border: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Box>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '13.5px' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary', fontSize: '13.5px' }}>
                     Coupon Active Status
                   </Typography>
-                  <Typography variant="caption" sx={{ color: '#64748B', fontSize: '12px' }}>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '12px' }}>
                     Active coupons can be redeemed by customers in the checkout cart
                   </Typography>
                 </Box>

@@ -43,6 +43,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import LocalAtmIcon from '@mui/icons-material/LocalAtm';
 import StarIcon from '@mui/icons-material/Star';
 import SalemLottie from '../../components/SalemLottie';
+import { ConfirmDialog, IconActionButton } from '../../components/ui';
 import { API_V1_URL } from '../../config';
 
 const getServiceCategoryIcon = (category) => {
@@ -83,6 +84,7 @@ export default function AdminServicesModule({ currentRole = 'super_admin', onToa
     rating_avg: '4.85'
   });
   const [savingService, setSavingService] = useState(false);
+  const [serviceToDelete, setServiceToDelete] = useState(null);
 
   const canEditPricing = currentRole === 'super_admin' || currentRole === 'finance_officer';
 
@@ -463,24 +465,19 @@ const formatServicePrice = (srv) => {
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5 }}>
                       {canEditPricing ? (
                         <>
-                          <Tooltip title="Edit Full Service Details">
-                            <IconButton
-                              size="small"
-                              onClick={() => handleOpenEditService(srv)}
-                              sx={{ color: '#0284C7', border: '1px solid #E2E8F0', borderRadius: '6px' }}
-                            >
-                              <EditIcon sx={{ fontSize: 15 }} />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Delete Service">
-                            <IconButton
-                              size="small"
-                              onClick={() => handleDeleteService(srv.id, srv.name)}
-                              sx={{ color: '#DC2626', border: '1px solid #E2E8F0', borderRadius: '6px' }}
-                            >
-                              <DeleteIcon sx={{ fontSize: 15 }} />
-                            </IconButton>
-                          </Tooltip>
+                          <IconActionButton
+                            title="Edit Full Service Details"
+                            onClick={() => handleOpenEditService(srv)}
+                          >
+                            <EditIcon sx={{ fontSize: 16 }} />
+                          </IconActionButton>
+                          <IconActionButton
+                            title="Delete Service"
+                            color="error"
+                            onClick={() => setServiceToDelete(srv)}
+                          >
+                            <DeleteIcon sx={{ fontSize: 16 }} />
+                          </IconActionButton>
                         </>
                       ) : (
                         <Chip
@@ -499,6 +496,33 @@ const formatServicePrice = (srv) => {
         </Box>
       )}
       </Card>
+
+      {/* Confirm Dialog for Service Deletion */}
+      <ConfirmDialog
+        open={Boolean(serviceToDelete)}
+        title="Delete Service"
+        message={`Are you sure you want to permanently remove "${serviceToDelete?.name_en || serviceToDelete?.name}" from the services catalog? Customers will no longer be able to book this trade.`}
+        confirmLabel="Delete Service"
+        confirmColor="error"
+        onConfirm={async () => {
+          if (!serviceToDelete) return;
+          try {
+            const res = await fetch(`${API_V1_URL}/admin/services/${serviceToDelete.id}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.success) {
+              onToast('Service deleted successfully', 'info');
+              setServices(prev => prev.filter(s => s.id !== serviceToDelete.id));
+            } else {
+              onToast(data.error || 'Failed to delete service', 'error');
+            }
+          } catch (err) {
+            onToast(err.message, 'error');
+          } finally {
+            setServiceToDelete(null);
+          }
+        }}
+        onCancel={() => setServiceToDelete(null)}
+      />
     </Box>
   );
 }

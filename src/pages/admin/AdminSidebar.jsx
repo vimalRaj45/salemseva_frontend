@@ -10,7 +10,13 @@ import {
   MenuItem,
   FormControl,
   Avatar,
-  Drawer
+  Drawer,
+  List,
+  ListSubheader,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText
 } from '@mui/material';
 import HubIcon from '@mui/icons-material/Hub';
 import TimelineIcon from '@mui/icons-material/Timeline';
@@ -26,9 +32,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import CloseIcon from '@mui/icons-material/Close';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
-import ShieldIcon from '@mui/icons-material/Shield';
 import SecurityIcon from '@mui/icons-material/Security';
-import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import PaymentsIcon from '@mui/icons-material/Payments';
 import QrCode2Icon from '@mui/icons-material/QrCode2';
@@ -42,8 +46,8 @@ const navSections = [
         label: 'Live Dispatch Queue',
         icon: HubIcon,
         badgeKey: 'activeBookings',
-        badgeColor: '#0284C7',
-        badgeBg: '#E0F2FE'
+        badgeColor: '#1D6FE5',
+        badgeBg: '#EFF6FF'
       },
       {
         id: 'tracking',
@@ -126,8 +130,8 @@ const navSections = [
         label: 'Escrow & Settlements',
         icon: AccountBalanceWalletIcon,
         badgeText: 'Razorpay',
-        badgeColor: '#0284C7',
-        badgeBg: '#E0F2FE'
+        badgeColor: '#1D6FE5',
+        badgeBg: '#EFF6FF'
       }
     ]
   },
@@ -139,8 +143,8 @@ const navSections = [
         label: 'WhatsApp OTP Gateway',
         icon: QrCode2Icon,
         badgeText: 'Baileys',
-        badgeColor: '#059669',
-        badgeBg: '#ECFDF5'
+        badgeColor: '#16A34A',
+        badgeBg: '#DCFCE7'
       },
       {
         id: 'team',
@@ -155,8 +159,8 @@ const navSections = [
         label: 'Audit Traceability Logs',
         icon: TimelineIcon,
         badgeText: 'Logs',
-        badgeColor: '#059669',
-        badgeBg: '#ECFDF5'
+        badgeColor: '#16A34A',
+        badgeBg: '#DCFCE7'
       }
     ]
   }
@@ -183,9 +187,9 @@ export default function AdminSidebar({
 
   const roleLabels = {
     super_admin: { label: 'Super Admin', color: '#7C3AED', icon: SecurityIcon },
-    ops_dispatcher: { label: 'Ops Dispatcher', color: '#0284C7', icon: HubIcon },
+    ops_dispatcher: { label: 'Ops Dispatcher', color: '#1D6FE5', icon: HubIcon },
     support_quality: { label: 'Support & Quality', color: '#D97706', icon: SupportAgentIcon },
-    finance_officer: { label: 'Finance Officer', color: '#059669', icon: PaymentsIcon }
+    finance_officer: { label: 'Finance Officer', color: '#16A34A', icon: PaymentsIcon }
   };
 
   const CurrentRoleIcon = roleLabels[currentRole]?.icon || AdminPanelSettingsIcon;
@@ -194,7 +198,7 @@ export default function AdminSidebar({
     const isCollapsed = isMobile ? false : collapsed;
 
     return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: '#FFFFFF' }}>
         {/* Brand Header */}
         <Box
           sx={{
@@ -203,19 +207,20 @@ export default function AdminSidebar({
             alignItems: 'center',
             justifyContent: isCollapsed ? 'center' : 'space-between',
             borderBottom: '1px solid',
-            borderColor: 'divider',
+            borderColor: 'slate.200',
             minHeight: 64
           }}
         >
           {!isCollapsed ? (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
               <Box
                 sx={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: '10px',
-                  bgcolor: 'background.paper',
-                  boxShadow: '0 2px 8px rgba(13, 59, 102, 0.12)',
+                  width: 36,
+                  height: 36,
+                  borderRadius: '8px',
+                  bgcolor: '#FFFFFF',
+                  border: '1px solid',
+                  borderColor: 'slate.200',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -231,11 +236,11 @@ export default function AdminSidebar({
                 />
               </Box>
               <Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 900, color: 'text.primary', lineHeight: 1.1 }}>
-                  Shazu One
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'slate.900', lineHeight: 1.15 }}>
+                  Shazu Ops
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#0284C7', fontWeight: 800, fontSize: '10.5px' }}>
-                  Ops Command Hub
+                <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 700, fontSize: '11px' }}>
+                  Central Command
                 </Typography>
               </Box>
             </Box>
@@ -243,17 +248,17 @@ export default function AdminSidebar({
             <Tooltip title="Expand Sidebar" placement="right">
               <Box
                 sx={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: '10px',
+                  width: 36,
+                  height: 36,
+                  borderRadius: '8px',
                   bgcolor: '#FFFFFF',
-                  boxShadow: '0 2px 8px rgba(13, 59, 102, 0.12)',
+                  border: '1px solid',
+                  borderColor: 'slate.200',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   p: 0.5,
-                  cursor: 'pointer',
-                  overflow: 'hidden'
+                  cursor: 'pointer'
                 }}
                 onClick={onToggleCollapse}
               >
@@ -273,30 +278,28 @@ export default function AdminSidebar({
               onClick={onCloseMobile}
               aria-label="Close navigation"
               sx={{
-                color: '#64748B',
+                color: 'slate.600',
                 borderRadius: '8px',
-                border: '1px solid #E2E8F0',
-                minWidth: 40,
-                minHeight: 40,
-                '&:hover': { bgcolor: '#F8FAFC', color: '#0F172A' }
+                border: '1px solid',
+                borderColor: 'slate.200',
+                '&:hover': { bgcolor: 'slate.50', color: 'slate.900' }
               }}
             >
-              <CloseIcon sx={{ fontSize: 20 }} />
+              <CloseIcon sx={{ fontSize: 18 }} />
             </IconButton>
           ) : (
             !isCollapsed && (
-              <Tooltip title="Collapse Sidebar">
+              <Tooltip title="Collapse to rail">
                 <IconButton
                   size="small"
                   onClick={onToggleCollapse}
                   aria-label="Collapse sidebar"
                   sx={{
-                    color: '#64748B',
+                    color: 'slate.600',
                     borderRadius: '8px',
-                    border: '1px solid #E2E8F0',
-                    minWidth: 36,
-                    minHeight: 36,
-                    '&:hover': { bgcolor: '#F8FAFC', color: '#0F172A' }
+                    border: '1px solid',
+                    borderColor: 'slate.200',
+                    '&:hover': { bgcolor: 'slate.50', color: 'slate.900' }
                   }}
                 >
                   <ChevronLeftIcon sx={{ fontSize: 18 }} />
@@ -314,153 +317,155 @@ export default function AdminSidebar({
             flex: 1,
             overflowY: 'auto',
             py: 1.5,
-            px: isCollapsed ? 0.8 : 1.2,
-            WebkitOverflowScrolling: 'touch',
-            '&::-webkit-scrollbar': { width: 4 },
-            '&::-webkit-scrollbar-thumb': { bgcolor: '#CBD5E1', borderRadius: 2 }
+            px: isCollapsed ? 0.75 : 1.25,
+            WebkitOverflowScrolling: 'touch'
           }}
         >
           {navSections.map((section) => (
-            <Box key={section.category} sx={{ mb: 1.8 }}>
-              {!isCollapsed && (
-                <Typography
-                  variant="caption"
-                  sx={{
-                    px: 1.5,
-                    py: 0.5,
-                    display: 'block',
-                    color: '#94A3B8',
-                    fontWeight: 800,
-                    fontSize: '10px',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.6px'
-                  }}
-                >
-                  {section.category}
-                </Typography>
-              )}
-
+            <List
+              key={section.category}
+              dense
+              disablePadding
+              subheader={
+                !isCollapsed ? (
+                  <ListSubheader
+                    disableSticky
+                    sx={{
+                      px: 1.5,
+                      py: 0.5,
+                      bgcolor: 'transparent',
+                      color: 'slate.400',
+                      fontWeight: 700,
+                      fontSize: '10px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.08em',
+                      lineHeight: '24px'
+                    }}
+                  >
+                    {section.category}
+                  </ListSubheader>
+                ) : undefined
+              }
+              sx={{ mb: 1.5 }}
+            >
               {section.items.map((item) => {
                 const ItemIcon = item.icon;
                 const isSelected = activeTab === item.id;
                 const badgeVal = getBadgeValue(item);
 
                 return (
-                  <Tooltip
-                    key={item.id}
-                    title={isCollapsed ? `${item.label} ${badgeVal ? `(${badgeVal})` : ''}` : ''}
-                    placement="right"
-                  >
-                    <Box
-                      component="button"
-                      type="button"
-                      onClick={() => {
-                        onSelectTab(item.id);
-                        if (isMobile && onCloseMobile) {
-                          onCloseMobile();
-                        }
-                      }}
-                      sx={{
-                        width: '100%',
-                        border: 'none',
-                        outline: 'none',
-                        textAlign: 'left',
-                        font: 'inherit',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: isCollapsed ? 'center' : 'space-between',
-                        px: isCollapsed ? 1 : 1.4,
-                        py: 1.1,
-                        minHeight: 44,
-                        mb: 0.5,
-                        borderRadius: '10px',
-                        cursor: 'pointer',
-                        bgcolor: isSelected ? '#F0F9FF' : 'transparent',
-                        color: isSelected ? '#0284C7' : '#475569',
-                        boxShadow: isSelected ? 'inset 0 0 0 1px #BAE6FD' : 'none',
-                        transition: 'all 0.15s ease',
-                        '&:hover': {
-                          bgcolor: isSelected ? '#F0F9FF' : '#F8FAFC',
-                          color: isSelected ? '#0284C7' : '#0F172A'
-                        },
-                        '&:focus-visible': {
-                          outline: '2px solid #0284C7',
-                          outlineOffset: 1
-                        }
-                      }}
+                  <ListItem key={item.id} disablePadding sx={{ display: 'block', mb: 0.5 }}>
+                    <Tooltip
+                      title={isCollapsed ? `${item.label} ${badgeVal ? `(${badgeVal})` : ''}` : ''}
+                      placement="right"
+                      arrow
                     >
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, overflow: 'hidden' }}>
-                        <ItemIcon
-                          sx={{
-                            fontSize: 20,
-                            color: isSelected ? '#0284C7' : '#64748B',
-                            flexShrink: 0
-                          }}
-                        />
-                        {!isCollapsed && (
-                          <Typography
-                            variant="body2"
+                      <ListItemButton
+                        onClick={() => {
+                          onSelectTab(item.id);
+                          if (isMobile && onCloseMobile) {
+                            onCloseMobile();
+                          }
+                        }}
+                        selected={isSelected}
+                        sx={{
+                          minHeight: 40,
+                          borderRadius: '8px',
+                          px: isCollapsed ? 1 : 1.5,
+                          py: 0.75,
+                          justifyContent: isCollapsed ? 'center' : 'space-between',
+                          borderLeft: isSelected ? '3px solid' : '3px solid transparent',
+                          borderColor: isSelected ? 'primary.main' : 'transparent',
+                          bgcolor: isSelected ? '#EFF6FF' : 'transparent',
+                          color: isSelected ? 'primary.main' : 'slate.700',
+                          '&:hover': {
+                            bgcolor: isSelected ? '#EFF6FF' : 'slate.50',
+                            color: isSelected ? 'primary.main' : 'slate.900'
+                          },
+                          '&.Mui-selected': {
+                            bgcolor: '#EFF6FF',
+                            color: 'primary.main',
+                            '&:hover': {
+                              bgcolor: '#EFF6FF'
+                            }
+                          }
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, overflow: 'hidden' }}>
+                          <ListItemIcon
                             sx={{
-                              fontWeight: isSelected ? 800 : 600,
-                              fontSize: '13px',
-                              whiteSpace: 'nowrap',
-                              textOverflow: 'ellipsis',
-                              overflow: 'hidden'
+                              minWidth: 0,
+                              color: isSelected ? 'primary.main' : 'slate.500',
+                              justifyContent: 'center'
                             }}
                           >
-                            {item.label}
-                          </Typography>
-                        )}
-                      </Box>
+                            <ItemIcon sx={{ fontSize: 18 }} />
+                          </ListItemIcon>
 
-                      {!isCollapsed && badgeVal !== null && badgeVal !== undefined && (
-                        <Chip
-                          label={badgeVal}
-                          size="small"
-                          sx={{
-                            height: 20,
-                            fontSize: '10.5px',
-                            fontWeight: 800,
-                            bgcolor: isSelected ? '#0284C7' : (item.badgeBg || '#F1F5F9'),
-                            color: isSelected ? '#FFFFFF' : (item.badgeColor || '#475569')
-                          }}
-                        />
-                      )}
-                    </Box>
-                  </Tooltip>
+                          {!isCollapsed && (
+                            <ListItemText
+                              primary={item.label}
+                              primaryTypographyProps={{
+                                fontSize: '13px',
+                                fontWeight: isSelected ? 700 : 500,
+                                noWrap: false,
+                                lineHeight: 1.3
+                              }}
+                            />
+                          )}
+                        </Box>
+
+                        {!isCollapsed && badgeVal !== null && badgeVal !== undefined && (
+                          <Chip
+                            label={badgeVal}
+                            size="small"
+                            sx={{
+                              height: 20,
+                              fontSize: '10.5px',
+                              fontWeight: 700,
+                              bgcolor: isSelected ? 'primary.main' : (item.badgeBg || 'slate.100'),
+                              color: isSelected ? '#FFFFFF' : (item.badgeColor || 'slate.600'),
+                              borderRadius: '4px',
+                              ml: 1
+                            }}
+                          />
+                        )}
+                      </ListItemButton>
+                    </Tooltip>
+                  </ListItem>
                 );
               })}
-            </Box>
+            </List>
           ))}
         </Box>
 
-        {/* Footer Role Switcher & Operator Details */}
+        {/* Pinned Footer: RBAC Role & Profile */}
         <Box
           sx={{
-            p: isCollapsed ? 1 : 1.5,
+            p: isCollapsed ? 1 : 1.75,
             borderTop: '1px solid',
-            borderColor: 'divider',
-            bgcolor: 'background.default'
+            borderColor: 'slate.200',
+            bgcolor: 'slate.50'
           }}
         >
           {!isCollapsed ? (
             <Box>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 800, fontSize: '10.5px' }}>
-                  CURRENT RBAC ROLE
+                <Typography variant="overline" sx={{ color: 'slate.500', fontWeight: 700, fontSize: '10px' }}>
+                  RBAC Role
                 </Typography>
                 <Chip
                   icon={<CurrentRoleIcon sx={{ fontSize: '12px !important', color: `${roleLabels[currentRole]?.color} !important` }} />}
                   label={roleLabels[currentRole]?.label || 'Super Admin'}
                   size="small"
                   sx={{
-                    height: 22,
+                    height: 20,
                     fontSize: '10px',
-                    fontWeight: 800,
+                    fontWeight: 700,
                     color: roleLabels[currentRole]?.color || '#7C3AED',
-                    bgcolor: 'background.paper',
+                    bgcolor: '#FFFFFF',
                     border: '1px solid',
-                    borderColor: 'divider'
+                    borderColor: 'slate.200'
                   }}
                 />
               </Box>
@@ -471,58 +476,55 @@ export default function AdminSidebar({
                   value={currentRole}
                   onChange={(e) => onRoleChange(e.target.value)}
                   sx={{
-                    bgcolor: 'background.paper',
-                    color: 'text.primary',
+                    bgcolor: '#FFFFFF',
+                    color: 'slate.900',
                     borderRadius: '8px',
                     fontSize: '12px',
-                    fontWeight: 700,
-                    minHeight: 38,
+                    fontWeight: 600,
+                    height: 36,
                     border: '1px solid',
-                    borderColor: 'divider',
-                    '& .MuiSelect-select': {
-                      color: 'text.primary'
-                    }
+                    borderColor: 'slate.200'
                   }}
                 >
-                  <MenuItem value="super_admin" sx={{ fontSize: '12.5px', fontWeight: 700 }}>
+                  <MenuItem value="super_admin" sx={{ fontSize: '12px', fontWeight: 600 }}>
                     Super Admin (Full Root)
                   </MenuItem>
-                  <MenuItem value="ops_dispatcher" sx={{ fontSize: '12.5px', fontWeight: 700 }}>
+                  <MenuItem value="ops_dispatcher" sx={{ fontSize: '12px', fontWeight: 600 }}>
                     Ops Dispatcher (Dispatch & Fleet)
                   </MenuItem>
-                  <MenuItem value="support_quality" sx={{ fontSize: '12.5px', fontWeight: 700 }}>
+                  <MenuItem value="support_quality" sx={{ fontSize: '12px', fontWeight: 600 }}>
                     Support & Quality (Reviews & Logs)
                   </MenuItem>
-                  <MenuItem value="finance_officer" sx={{ fontSize: '12.5px', fontWeight: 700 }}>
+                  <MenuItem value="finance_officer" sx={{ fontSize: '12px', fontWeight: 600 }}>
                     Finance Officer (Pricing & Escrow)
                   </MenuItem>
                 </Select>
               </FormControl>
 
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1.2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mt: 1.5 }}>
                 <Avatar
                   sx={{
                     width: 32,
                     height: 32,
-                    bgcolor: roleLabels[currentRole]?.color || '#0284C7',
+                    bgcolor: roleLabels[currentRole]?.color || 'primary.main',
                     fontSize: '12px',
-                    fontWeight: 800
+                    fontWeight: 700
                   }}
                 >
                   {currentRole === 'super_admin' ? 'VR' : currentRole === 'ops_dispatcher' ? 'AM' : currentRole === 'support_quality' ? 'PS' : 'KK'}
                 </Avatar>
                 <Box sx={{ overflow: 'hidden' }}>
-                  <Typography variant="caption" sx={{ fontWeight: 800, color: '#0F172A', display: 'block', lineHeight: 1.1 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 700, color: 'slate.900', fontSize: '12px', lineHeight: 1.2 }}>
                     {currentRole === 'super_admin' ? 'Vimal Raj' : currentRole === 'ops_dispatcher' ? 'Anand M.' : currentRole === 'support_quality' ? 'Priya S.' : 'Karthik K.'}
                   </Typography>
-                  <Typography variant="caption" sx={{ color: '#64748B', fontSize: '10px' }}>
+                  <Typography variant="caption" sx={{ color: 'slate.500', fontSize: '11px' }}>
                     Salem Central HQ
                   </Typography>
                 </Box>
               </Box>
             </Box>
           ) : (
-            <Tooltip title={`Role: ${roleLabels[currentRole]?.label || 'Super Admin'}. Click to expand to change.`} placement="right">
+            <Tooltip title={`Role: ${roleLabels[currentRole]?.label || 'Super Admin'}. Click to expand.`} placement="right">
               <Box
                 onClick={onToggleCollapse}
                 sx={{
@@ -535,11 +537,11 @@ export default function AdminSidebar({
               >
                 <Avatar
                   sx={{
-                    width: 34,
-                    height: 34,
-                    bgcolor: roleLabels[currentRole]?.color || '#0284C7',
+                    width: 32,
+                    height: 32,
+                    bgcolor: roleLabels[currentRole]?.color || 'primary.main',
                     fontSize: '12px',
-                    fontWeight: 800
+                    fontWeight: 700
                   }}
                 >
                   {currentRole === 'super_admin' ? 'VR' : 'OP'}
@@ -554,29 +556,28 @@ export default function AdminSidebar({
 
   return (
     <>
-      {/* Desktop Sidebar (Permanent, Collapsible) */}
+      {/* Desktop Permanent Drawer (lg+) collapsible to 72px icon rail */}
       <Box
         component="aside"
         sx={{
           width: collapsed ? 72 : 260,
           flexShrink: 0,
-          bgcolor: 'background.paper',
+          bgcolor: '#FFFFFF',
           borderRight: '1px solid',
-          borderColor: 'divider',
-          display: { xs: 'none', md: 'flex' },
+          borderColor: 'slate.200',
+          display: { xs: 'none', lg: 'flex' },
           flexDirection: 'column',
           height: '100dvh',
           position: 'sticky',
           top: 0,
-          transition: 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-          zIndex: 100,
-          boxShadow: '1px 0 8px rgba(15, 23, 42, 0.03)'
+          transition: 'width 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+          zIndex: 100
         }}
       >
         {renderContent(false)}
       </Box>
 
-      {/* Mobile Temporary Drawer */}
+      {/* Mobile / Tablet Temporary Drawer (<lg) */}
       <Drawer
         variant="temporary"
         anchor="left"
@@ -585,16 +586,15 @@ export default function AdminSidebar({
         ModalProps={{ keepMounted: true }}
         PaperProps={{
           sx: {
-            width: 290,
+            width: 280,
             maxWidth: '85vw',
             bgcolor: '#FFFFFF',
-            display: 'flex',
-            flexDirection: 'column',
-            height: '100%',
-            boxShadow: '4px 0 24px rgba(15, 23, 42, 0.15)'
+            borderRight: '1px solid',
+            borderColor: 'slate.200',
+            boxShadow: '0 20px 25px -5px rgba(15, 23, 42, 0.1)'
           }
         }}
-        sx={{ display: { xs: 'block', md: 'none' } }}
+        sx={{ display: { xs: 'block', lg: 'none' } }}
       >
         {renderContent(true)}
       </Drawer>

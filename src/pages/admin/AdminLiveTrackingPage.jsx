@@ -27,6 +27,7 @@ import {
   Wrench
 } from 'lucide-react';
 import LeafletMap from '../../components/LeafletMap';
+import { PageHeader, StatusPill } from '../../components/ui';
 import { API_V1_URL } from '../../config';
 import toast from 'react-hot-toast';
 
@@ -126,57 +127,18 @@ export default function AdminLiveTrackingPage() {
   }
 
   return (
-    <Box sx={{ minHeight: '100dvh', bgcolor: '#F8FAFC', display: 'flex', flexDirection: 'column' }}>
-      {/* Top Header Bar */}
-      <Box
-        sx={{
-          bgcolor: '#FFFFFF',
-          borderBottom: '1px solid #E2E8F0',
-          position: 'sticky',
-          top: 0,
-          zIndex: 10,
-          px: { xs: 2, sm: 3 },
-          py: 1.5,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 1.5
-        }}
-      >
-        <IconButton
-          onClick={handleDismiss}
-          aria-label="Go back"
-          sx={{
-            color: '#0F172A',
-            bgcolor: '#F1F5F9',
-            '&:hover': { bgcolor: '#E2E8F0' },
-            width: 40,
-            height: 40,
-            borderRadius: '10px'
-          }}
-        >
-          <ArrowLeft size={20} />
-        </IconButton>
-
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography sx={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>
-            Admin live tracking console
-          </Typography>
-          <Typography sx={{ fontSize: '12px', color: '#64748B', lineHeight: 1.3 }}>
-            Booking #{bookingId} • {booking?.service_name || booking?.service_id || 'Service Duty'}
-          </Typography>
-        </Box>
-
-        <Chip
-          label={currentStatus.replace(/_/g, ' ').toUpperCase()}
-          size="small"
-          sx={{ bgcolor: '#EFF6FF', color: '#0A66C2', fontWeight: 800, fontSize: '11px', height: 26 }}
-        />
-      </Box>
-
-      {/* Main Content Area */}
+    <Box sx={{ minHeight: '100dvh', bgcolor: 'background.default', display: 'flex', flexDirection: 'column' }}>
       <Container maxWidth="md" sx={{ flex: 1, py: { xs: 2.5, sm: 3.5 } }}>
+        <PageHeader
+          title="Admin Live Tracking Console"
+          subtitle={`Booking #${bookingId} • ${booking?.service_name || booking?.service_id || 'Service Duty'}`}
+          backUrl={location.state?.returnTo || '/admin'}
+          backLabel="Back to Admin"
+          badge={<StatusPill status={currentStatus} />}
+        />
+
         {errorMsg && (
-          <Alert severity="error" sx={{ mb: 2.5, borderRadius: '12px' }}>
+          <Alert severity="error" sx={{ my: 2.5, borderRadius: '8px' }}>
             {errorMsg}
           </Alert>
         )}
@@ -239,7 +201,7 @@ export default function AdminLiveTrackingPage() {
         </Paper>
 
         {/* Live Radar Map */}
-        <Paper elevation={0} sx={{ borderRadius: '16px', border: '1px solid #E2E8F0', overflow: 'hidden', mb: 2.5, height: 360 }}>
+        <Paper elevation={0} sx={{ borderRadius: '12px', border: '1px solid', borderColor: 'divider', overflow: 'hidden', mb: 2.5, height: 360 }}>
           <LeafletMap
             technicianLocation={techCoords}
             customerLocation={custCoords}
@@ -250,14 +212,14 @@ export default function AdminLiveTrackingPage() {
         {/* Technician & Customer Details Split */}
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
-            <Paper elevation={0} sx={{ p: 2.2, borderRadius: '14px', border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
-              <Typography sx={{ fontSize: '12px', fontWeight: 800, color: '#64748B', mb: 1, textTransform: 'uppercase' }}>
+            <Paper elevation={0} sx={{ p: 2.5, borderRadius: '12px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
+              <Typography sx={{ fontSize: '11px', fontWeight: 700, color: 'text.secondary', mb: 1, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Assigned Specialist
               </Typography>
-              <Typography sx={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', mb: 0.5 }}>
+              <Typography sx={{ fontSize: '15px', fontWeight: 700, color: 'text.primary', mb: 0.5 }}>
                 {booking?.technician_name || technician?.full_name || 'Verified Salem Partner'}
               </Typography>
-              <Typography sx={{ fontSize: '12.5px', color: '#475569', mb: 1.5 }}>
+              <Typography sx={{ fontSize: '12.5px', color: 'text.secondary', mb: 1.5 }}>
                 Trade: <strong>{(booking?.service_id || technician?.primary_trade || 'Specialist').toUpperCase()}</strong> • Rating: <strong>4.9 / 5.0</strong>
               </Typography>
               {booking?.technician_phone && (
@@ -267,7 +229,7 @@ export default function AdminLiveTrackingPage() {
                   component="a"
                   href={`tel:${booking.technician_phone}`}
                   startIcon={<Phone size={14} />}
-                  sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 700 }}
+                  sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 600 }}
                 >
                   Call Specialist ({booking.technician_phone})
                 </Button>
@@ -276,14 +238,14 @@ export default function AdminLiveTrackingPage() {
           </Grid>
 
           <Grid item xs={12} sm={6}>
-            <Paper elevation={0} sx={{ p: 2.2, borderRadius: '14px', border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
-              <Typography sx={{ fontSize: '12px', fontWeight: 800, color: '#64748B', mb: 1, textTransform: 'uppercase' }}>
+            <Paper elevation={0} sx={{ p: 2.5, borderRadius: '12px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
+              <Typography sx={{ fontSize: '11px', fontWeight: 700, color: 'text.secondary', mb: 1, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Customer & Doorstep
               </Typography>
-              <Typography sx={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', mb: 0.5 }}>
+              <Typography sx={{ fontSize: '15px', fontWeight: 700, color: 'text.primary', mb: 0.5 }}>
                 {booking?.customer_name || 'Customer'}
               </Typography>
-              <Typography sx={{ fontSize: '12.5px', color: '#475569', mb: 1.5 }}>
+              <Typography sx={{ fontSize: '12.5px', color: 'text.secondary', mb: 1.5 }}>
                 Locality: <strong>{booking?.address_line || booking?.locality || 'Fairlands, Salem'}</strong>
               </Typography>
               {booking?.customer_phone && (
