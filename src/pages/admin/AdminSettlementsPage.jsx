@@ -31,8 +31,8 @@ import {
   Users,
   CheckCircle2
 } from 'lucide-react';
-import { PageHeader as CommonPageHeader, DataTable, StatusChip } from '../../components/common';
-import { KpiCard, StatusPill } from '../../components/ui';
+import { PageHeader, DataTable, KpiCard, StatusPill } from '../../components/ui';
+import { StatusChip } from '../../components/common';
 
 const SALEM_LOCALITIES = [
   'All Salem Regions',

@@ -274,14 +274,7 @@ function MainLayout({ walletBalance, currentBooking, setCurrentBooking }) {
     location.pathname.startsWith('/partner/settlements/') ||
     location.pathname === '/partner/profile' ||
     location.pathname.startsWith('/partner/duty/reschedule/') ||
-    location.pathname.startsWith('/admin/settlements/') ||
-    location.pathname.startsWith('/admin/jobs/') ||
-    location.pathname.startsWith('/admin/dispatch/') ||
-    location.pathname.startsWith('/admin/orders/') ||
-    location.pathname.startsWith('/admin/coupons/') ||
-    location.pathname.startsWith('/admin/services/') ||
-    location.pathname.startsWith('/admin/team/') ||
-    location.pathname === '/admin/documents/preview' ||
+    location.pathname.startsWith('/admin') ||
     location.pathname === '/login/help' ||
     location.pathname === '/auth/help';
 
