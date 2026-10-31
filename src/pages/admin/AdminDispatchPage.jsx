@@ -92,6 +92,7 @@ export default function AdminDispatchPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          bookingId,
           technicianId: selectedTechId,
           dispatcher: localStorage.getItem('shazuone_admin_user') || 'Central Dispatch Desk'
         })

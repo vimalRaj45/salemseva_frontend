@@ -1073,7 +1073,7 @@ export default function PartnerDutyPage() {
                     setStep(1);
                   }
                 }
-              } else if (st === 'completed') {
+              } else if (st === 'completed' || st === 'cancelled') {
                 setActiveJob(null);
                 setStep(1);
                 localStorage.removeItem('shazuone_partner_step');
@@ -2907,7 +2907,7 @@ export default function PartnerDutyPage() {
                                 variant="outlined"
                                 fullWidth
                                 size="small"
-                                onClick={() => setChatDrawerOpen(true)}
+                                onClick={() => handleOpenChat(activeJob)}
                                 startIcon={<ChatBubbleOutlineIcon sx={{ fontSize: 16 }} />}
                                 sx={{
                                   borderColor: '#475569',
@@ -3856,7 +3856,7 @@ export default function PartnerDutyPage() {
                               <CalendarMonthIcon sx={{ color: '#38BDF8', fontSize: 22 }} />
                               <Box>
                                 <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#FFFFFF', fontSize: 'clamp(0.9375rem, 2vw, 1.05rem)' }}>
-                                  Service Calendar Agenda ({myScheduledJobs.length} Duty Records)
+                                  Service Calendar Agenda ({(myScheduledJobs || []).filter(j => j.status !== 'cancelled').length} Active Duties)
                                 </Typography>
                                 <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '11px', display: 'block' }}>
                                   Switch months to view past completed job history or upcoming customer bookings.
@@ -3910,7 +3910,7 @@ export default function PartnerDutyPage() {
 
                           {/* Days with Bookings Summary & Quick Jump Bar */}
                           {(() => {
-                            const daysWithAssigned = monthDaysList.filter(d => (myScheduledJobs || []).some(j => jobMatchesDate(j, d.iso)));
+                            const daysWithAssigned = monthDaysList.filter(d => (myScheduledJobs || []).some(j => jobMatchesDate(j, d.iso) && j.status !== 'cancelled'));
                             const daysWithOpen = monthDaysList.filter(d => (openScheduledLeads || []).some(j => jobMatchesDate(j, d.iso)));
                             const allBookedDays = Array.from(new Set([...daysWithAssigned, ...daysWithOpen]));
 
@@ -3923,7 +3923,7 @@ export default function PartnerDutyPage() {
                                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                     <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#10B981' }} />
                                     <Typography variant="caption" sx={{ color: '#34D399', fontSize: '11px', fontWeight: 700 }}>
-                                      {daysWithAssigned.length} Days with Your Bookings
+                                      {daysWithAssigned.length} Days with Your Active Bookings
                                     </Typography>
                                   </Box>
                                   {daysWithOpen.length > 0 && (
@@ -3943,7 +3943,7 @@ export default function PartnerDutyPage() {
                                     </Typography>
                                     {allBookedDays.slice(0, 4).map(bd => {
                                       const isCurr = calendarSelectedDate === bd.iso;
-                                      const isAssigned = (myScheduledJobs || []).some(j => jobMatchesDate(j, bd.iso));
+                                      const isAssigned = (myScheduledJobs || []).some(j => jobMatchesDate(j, bd.iso) && j.status !== 'cancelled');
                                       return (
                                         <Button
                                           key={bd.iso}
@@ -3978,12 +3978,15 @@ export default function PartnerDutyPage() {
                             {monthDaysList.map((d) => {
                               const isSelected = calendarSelectedDate === d.iso;
                               const dayAssignedJobs = (myScheduledJobs || []).filter(j => jobMatchesDate(j, d.iso));
+                              const dayActiveAssignedJobs = dayAssignedJobs.filter(j => j.status !== 'cancelled');
+                              const dayCancelledJobs = dayAssignedJobs.filter(j => j.status === 'cancelled');
                               const dayOpenLeads = (openScheduledLeads || []).filter(j => jobMatchesDate(j, d.iso));
-                              const assignedCount = dayAssignedJobs.length;
+                              const assignedCount = dayActiveAssignedJobs.length;
                               const openCount = dayOpenLeads.length;
                               const hasAssigned = assignedCount > 0;
+                              const hasCancelledOnly = !hasAssigned && dayCancelledJobs.length > 0;
                               const hasOpen = openCount > 0;
-                              const hasAny = hasAssigned || hasOpen;
+                              const hasAny = hasAssigned || hasOpen || hasCancelledOnly;
 
                               return (
                                 <Paper
@@ -4002,6 +4005,8 @@ export default function PartnerDutyPage() {
                                       ? '#0284C7'
                                       : hasAssigned
                                       ? 'linear-gradient(180deg, #064E3B 0%, #022C22 100%)'
+                                      : hasCancelledOnly
+                                      ? '#1E293B'
                                       : hasOpen
                                       ? 'linear-gradient(180deg, #0C4A6E 0%, #082F49 100%)'
                                       : d.isToday
@@ -4012,6 +4017,8 @@ export default function PartnerDutyPage() {
                                       ? '2px solid #38BDF8'
                                       : hasAssigned
                                       ? '2px solid #10B981'
+                                      : hasCancelledOnly
+                                      ? '1px solid #7F1D1D'
                                       : hasOpen
                                       ? '2px solid #38BDF8'
                                       : d.isToday
@@ -4046,7 +4053,20 @@ export default function PartnerDutyPage() {
                                       }}
                                     />
                                   )}
-                                  {!hasAssigned && hasOpen && (
+                                  {hasCancelledOnly && (
+                                    <Box
+                                      sx={{
+                                        position: 'absolute',
+                                        top: 5,
+                                        right: 5,
+                                        width: 7,
+                                        height: 7,
+                                        borderRadius: '50%',
+                                        bgcolor: '#EF4444'
+                                      }}
+                                    />
+                                  )}
+                                  {!hasAssigned && !hasCancelledOnly && hasOpen && (
                                     <Box
                                       sx={{
                                         position: 'absolute',
@@ -4071,6 +4091,8 @@ export default function PartnerDutyPage() {
                                         ? '#E0F2FE'
                                         : hasAssigned
                                         ? '#34D399'
+                                        : hasCancelledOnly
+                                        ? '#F87171'
                                         : hasOpen
                                         ? '#38BDF8'
                                         : d.isToday
@@ -4119,6 +4141,19 @@ export default function PartnerDutyPage() {
                                         boxShadow: '0 1px 4px rgba(0,0,0,0.2)'
                                       }}
                                     />
+                                  ) : hasCancelledOnly ? (
+                                    <Chip
+                                      label="Cancelled"
+                                      size="small"
+                                      sx={{
+                                        mt: 0.5,
+                                        height: 18,
+                                        fontSize: '8.5px',
+                                        fontWeight: 800,
+                                        bgcolor: isSelected ? '#FFFFFF' : '#7F1D1D',
+                                        color: isSelected ? '#DC2626' : '#FECACA'
+                                      }}
+                                    />
                                   ) : hasOpen ? (
                                     <Chip
                                       label={`${openCount} Open`}
@@ -4144,10 +4179,12 @@ export default function PartnerDutyPage() {
                           {(() => {
                             const selectedDayObj = monthDaysList.find(d => d.iso === calendarSelectedDate) || monthDaysList[0];
                             const selectedDayJobs = (myScheduledJobs || []).filter(j => jobMatchesDate(j, calendarSelectedDate));
+                            const activeSelectedDayJobs = selectedDayJobs.filter(j => j.status !== 'cancelled');
+                            const cancelledSelectedDayJobs = selectedDayJobs.filter(j => j.status === 'cancelled');
                             const selectedDayOpenLeads = (openScheduledLeads || []).filter(j => jobMatchesDate(j, calendarSelectedDate));
                             const isToday = selectedDayObj ? selectedDayObj.isToday : false;
                             const isPast = selectedDayObj ? selectedDayObj.isPast : false;
-                            const nextBookedDay = monthDaysList.find(d => (myScheduledJobs || []).some(j => jobMatchesDate(j, d.iso)) && d.iso !== calendarSelectedDate);
+                            const nextBookedDay = monthDaysList.find(d => (myScheduledJobs || []).some(j => jobMatchesDate(j, d.iso) && j.status !== 'cancelled') && d.iso !== calendarSelectedDate);
 
                             return (
                               <Box>
@@ -4156,11 +4193,18 @@ export default function PartnerDutyPage() {
                                     <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#F8FAFC', fontSize: '13.5px' }}>
                                       Agenda for {selectedDayObj ? `${selectedDayObj.dayLabel}, ${selectedDayObj.dayNum} ${selectedDayObj.monthLabel}` : calendarSelectedDate}
                                     </Typography>
-                                    {selectedDayJobs.length > 0 && (
+                                    {activeSelectedDayJobs.length > 0 && (
                                       <Chip
-                                        label={`${selectedDayJobs.length} Booked Duty`}
+                                        label={`${activeSelectedDayJobs.length} Booked Duty`}
                                         size="small"
                                         sx={{ bgcolor: '#059669', color: '#FFFFFF', fontWeight: 800, fontSize: '10.5px', height: 20 }}
+                                      />
+                                    )}
+                                    {cancelledSelectedDayJobs.length > 0 && activeSelectedDayJobs.length === 0 && (
+                                      <Chip
+                                        label={`${cancelledSelectedDayJobs.length} Cancelled`}
+                                        size="small"
+                                        sx={{ bgcolor: '#7F1D1D', color: '#FECACA', fontWeight: 800, fontSize: '10.5px', height: 20 }}
                                       />
                                     )}
                                     {selectedDayOpenLeads.length > 0 && (
@@ -4171,7 +4215,7 @@ export default function PartnerDutyPage() {
                                       />
                                     )}
                                   </Box>
-                                  {isToday && (
+                                  {isToday && activeSelectedDayJobs.length > 0 && (
                                     <Chip
                                       label="Today's Service Schedule - இன்றைய பணி"
                                       size="small"
@@ -4185,11 +4229,18 @@ export default function PartnerDutyPage() {
                                       sx={{ bgcolor: '#334155', color: '#CBD5E1', fontWeight: 700, fontSize: '10.5px', border: '1px solid #475569' }}
                                     />
                                   )}
-                                  {!isToday && !isPast && selectedDayJobs.length > 0 && (
+                                  {!isToday && !isPast && activeSelectedDayJobs.length > 0 && (
                                     <Chip
                                       label="Confirmed Appointment - உறுதிப்படுத்தப்பட்ட பணி"
                                       size="small"
                                       sx={{ bgcolor: '#0369A1', color: '#FFFFFF', fontWeight: 700, fontSize: '10.5px' }}
+                                    />
+                                  )}
+                                  {!isPast && activeSelectedDayJobs.length === 0 && cancelledSelectedDayJobs.length > 0 && (
+                                    <Chip
+                                      label="Cancelled Order - ரத்து செய்யப்பட்ட பணி"
+                                      size="small"
+                                      sx={{ bgcolor: '#7F1D1D', color: '#FECACA', fontWeight: 700, fontSize: '10.5px', border: '1px solid #991B1B' }}
                                     />
                                   )}
                                 </Box>
@@ -4259,7 +4310,9 @@ export default function PartnerDutyPage() {
                                           sx={{
                                             p: 2,
                                             bgcolor: '#1E293B',
-                                            border: isToday
+                                            border: isCancelled
+                                              ? '1.5px solid #991B1B'
+                                              : isToday
                                               ? '2px solid #10B981'
                                               : isCompleted
                                               ? '1.5px solid #059669'
@@ -4275,7 +4328,7 @@ export default function PartnerDutyPage() {
                                                   label={`#${job.id}`}
                                                   size="small"
                                                   sx={{
-                                                    bgcolor: isToday ? '#059669' : isCompleted ? '#065F46' : '#0284C7',
+                                                    bgcolor: isCancelled ? '#7F1D1D' : isToday ? '#059669' : isCompleted ? '#065F46' : '#0284C7',
                                                     color: '#FFFFFF',
                                                     fontWeight: 800,
                                                     fontSize: '10px',
@@ -4283,12 +4336,12 @@ export default function PartnerDutyPage() {
                                                   }}
                                                 />
                                                 <Chip
-                                                  icon={<AccessTimeIcon sx={{ fontSize: '12px !important', color: isToday ? '#065F46 !important' : '#0369A1 !important' }} />}
+                                                  icon={<AccessTimeIcon sx={{ fontSize: '12px !important', color: isCancelled ? '#F87171 !important' : isToday ? '#065F46 !important' : '#0369A1 !important' }} />}
                                                   label={job.scheduledSlot || 'Slot Confirmed'}
                                                   size="small"
                                                   sx={{
-                                                    bgcolor: isToday ? '#D1FAE5' : '#E0F2FE',
-                                                    color: isToday ? '#064E3B' : '#0369A1',
+                                                    bgcolor: isCancelled ? '#450A0A' : isToday ? '#D1FAE5' : '#E0F2FE',
+                                                    color: isCancelled ? '#FCA5A5' : isToday ? '#064E3B' : '#0369A1',
                                                     fontWeight: 800,
                                                     fontSize: '10.5px',
                                                     height: 20
@@ -4330,7 +4383,7 @@ export default function PartnerDutyPage() {
                                               </Typography>
                                             </Box>
 
-                                            {job.customerPhone && (
+                                            {job.customerPhone && !isCancelled && !isCompleted && (
                                               <Box sx={{ display: 'flex', gap: 0.8, alignItems: 'center' }}>
                                                 <Button
                                                   size="small"
@@ -4390,38 +4443,71 @@ export default function PartnerDutyPage() {
                                             </Box>
                                           )}
 
-                                          {/* End-to-End Tracking Stepper for this Request */}
-                                          <Box sx={{ my: 1.5, p: 1.2, bgcolor: '#0F172A', borderRadius: '8px', border: '1px solid #334155' }}>
-                                            <Typography variant="caption" sx={{ color: '#94A3B8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '9.5px', display: 'block', mb: 0.8 }}>
-                                              End-to-End Lifecycle Tracking:
-                                            </Typography>
-                                            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 0.5, textAlign: 'center' }}>
-                                              {stages.map((stageName, sIdx) => {
-                                                const isDone = sIdx <= stageIdx;
-                                                const isCurrent = sIdx === stageIdx;
-                                                return (
-                                                  <Box
-                                                    key={sIdx}
-                                                    sx={{
-                                                      p: 0.5,
-                                                      borderRadius: '4px',
-                                                      bgcolor: isCurrent ? '#0284C7' : isDone ? '#065F46' : '#1E293B',
-                                                      color: isCurrent ? '#FFFFFF' : isDone ? '#6EE7B7' : '#64748B',
-                                                      border: isCurrent ? '1px solid #38BDF8' : 'none'
-                                                    }}
-                                                  >
-                                                    <Typography variant="caption" sx={{ fontSize: '9px', fontWeight: 800, display: 'block', lineHeight: 1.1 }}>
-                                                      {stageName}
-                                                    </Typography>
-                                                  </Box>
-                                                );
-                                              })}
+                                          {/* End-to-End Tracking Stepper or Cancellation Banner */}
+                                          {isCancelled ? (
+                                            <Box sx={{ my: 1.5, p: 1.2, bgcolor: '#450A0A', borderRadius: '8px', border: '1px solid #7F1D1D' }}>
+                                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                <Chip
+                                                  label="ORDER CANCELLED"
+                                                  size="small"
+                                                  sx={{ bgcolor: '#DC2626', color: '#FFFFFF', fontWeight: 900, fontSize: '10px', height: 20 }}
+                                                />
+                                                <Typography variant="caption" sx={{ color: '#FCA5A5', fontWeight: 700, fontSize: '11px' }}>
+                                                  This booking has been cancelled and closed.
+                                                </Typography>
+                                              </Box>
+                                              {(job.cancellationReason || job.cancellation_details || job.cancellation_reason) && (
+                                                <Typography variant="caption" sx={{ color: '#FECACA', fontSize: '11px', display: 'block', mt: 0.5 }}>
+                                                  Reason: {job.cancellationReason || job.cancellation_details || job.cancellation_reason}
+                                                </Typography>
+                                              )}
                                             </Box>
-                                          </Box>
+                                          ) : (
+                                            <Box sx={{ my: 1.5, p: 1.2, bgcolor: '#0F172A', borderRadius: '8px', border: '1px solid #334155' }}>
+                                              <Typography variant="caption" sx={{ color: '#94A3B8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '9.5px', display: 'block', mb: 0.8 }}>
+                                                End-to-End Lifecycle Tracking:
+                                              </Typography>
+                                              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 0.5, textAlign: 'center' }}>
+                                                {stages.map((stageName, sIdx) => {
+                                                  const isDone = sIdx <= stageIdx;
+                                                  const isCurrent = sIdx === stageIdx;
+                                                  return (
+                                                    <Box
+                                                      key={sIdx}
+                                                      sx={{
+                                                        p: 0.5,
+                                                        borderRadius: '4px',
+                                                        bgcolor: isCurrent ? '#0284C7' : isDone ? '#065F46' : '#1E293B',
+                                                        color: isCurrent ? '#FFFFFF' : isDone ? '#6EE7B7' : '#64748B',
+                                                        border: isCurrent ? '1px solid #38BDF8' : 'none'
+                                                      }}
+                                                    >
+                                                      <Typography variant="caption" sx={{ fontSize: '9px', fontWeight: 800, display: 'block', lineHeight: 1.1 }}>
+                                                        {stageName}
+                                                      </Typography>
+                                                    </Box>
+                                                  );
+                                                })}
+                                              </Box>
+                                            </Box>
+                                          )}
 
                                           {/* Action Bar */}
                                           <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1, mt: 1.2, flexWrap: 'wrap' }}>
-                                            {isCompleted ? (
+                                            {isCancelled ? (
+                                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                <Chip
+                                                  label={`Order Cancelled: ${job.cancellationReason || job.cancellation_details || job.cancellation_reason || 'Closed by Operations'}`}
+                                                  sx={{
+                                                    bgcolor: '#7F1D1D',
+                                                    color: '#FECACA',
+                                                    fontWeight: 800,
+                                                    fontSize: '11px',
+                                                    border: '1px solid #991B1B'
+                                                  }}
+                                                />
+                                              </Box>
+                                            ) : isCompleted ? (
                                               <Chip
                                                 label={`Settled Amount: Rs. ${job.finalPrice || job.totalAmount || 0} - Duty Completed`}
                                                 sx={{

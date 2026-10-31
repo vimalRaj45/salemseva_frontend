@@ -184,14 +184,14 @@ export default function ServiceDetailPage({ onStartBooking }) {
   });
 
   const [userLocation, setUserLocation] = useState(() => {
-    const saved = localStorage.getItem('shazuone_user_location');
-    return saved ? JSON.parse(saved) : {
-      locality: 'Fairlands',
-      pincode: '636016',
-      address: 'Plot 42, 5th Cross, Fairlands, Salem - 636016',
-      lat: 11.6738,
-      lng: 78.1460
-    };
+    try {
+      const saved = localStorage.getItem('shazuone_user_location');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && (parsed.address || parsed.locality)) return parsed;
+      }
+    } catch (_) {}
+    return null;
   });
 
   useEffect(() => {
@@ -375,6 +375,9 @@ export default function ServiceDetailPage({ onStartBooking }) {
   const isDomainTemporarilyClosed = domainAvailability.loaded && !domainAvailability.hasTechniciansInDomain;
 
   const checkSalemPincode = () => {
+    if (!userLocation || !userLocation.address) {
+      return false;
+    }
     const pinMatch = String(userLocation.pincode || userLocation.address || '').match(/\b(\d{6})\b/);
     const pin = pinMatch ? pinMatch[1] : (userLocation.pincode || '');
     if (pin && !pin.startsWith('636')) {
@@ -422,7 +425,16 @@ export default function ServiceDetailPage({ onStartBooking }) {
       return;
     }
 
-    if (!checkSalemPincode()) return;
+    if (!userLocation || !userLocation.address || !userLocation.locality) {
+      toast.error('Please enter your service address or turn on location to proceed.');
+      navigate('/booking/address', { state: { returnTo: location.pathname + location.search } });
+      return;
+    }
+
+    if (!checkSalemPincode()) {
+      navigate('/booking/address', { state: { returnTo: location.pathname + location.search } });
+      return;
+    }
 
     const activeUser = overrideUser || user;
     if (!activeUser) {
@@ -445,7 +457,16 @@ export default function ServiceDetailPage({ onStartBooking }) {
       return;
     }
 
-    if (!checkSalemPincode()) return;
+    if (!userLocation || !userLocation.address || !userLocation.locality) {
+      toast.error('Please enter your service address or turn on location to proceed.');
+      navigate('/booking/address', { state: { returnTo: location.pathname + location.search } });
+      return;
+    }
+
+    if (!checkSalemPincode()) {
+      navigate('/booking/address', { state: { returnTo: location.pathname + location.search } });
+      return;
+    }
 
     if (!user) {
       toast.error('Please sign in to proceed with your booking.');
@@ -480,11 +501,11 @@ export default function ServiceDetailPage({ onStartBooking }) {
             customerId: user?.id || null,
             customerName: user?.name || user?.full_name || 'Customer',
             customerPhone: user?.phone || '',
-            lat: userLocation.lat || 11.6643,
-            lng: userLocation.lng || 78.1460,
-            locality: userLocation.locality || 'Fairlands',
-            address: userLocation.address || `${userLocation.locality || 'Fairlands'}, Salem`,
-            pincode: userLocation.pincode || '636016',
+            lat: userLocation?.lat || 11.6643,
+            lng: userLocation?.lng || 78.1460,
+            locality: userLocation?.locality || 'Fairlands',
+            address: userLocation?.address || '',
+            pincode: userLocation?.pincode || '636016',
             couponCode: couponApplied ? couponCode : null,
             discountAmount: discount,
             isUrgentDispatch: Boolean(finalSlot.toLowerCase().includes('emergency') || selectedSlot === 'emergency_urgent'),
@@ -658,41 +679,45 @@ export default function ServiceDetailPage({ onStartBooking }) {
         
         {/* Location selector bar */}
         {(() => {
-          const pinMatch = String(userLocation.pincode || userLocation.address || '').match(/\b(\d{6})\b/);
-          const p = pinMatch ? pinMatch[1] : (userLocation.pincode || '');
+          const pinMatch = String(userLocation?.pincode || userLocation?.address || '').match(/\b(\d{6})\b/);
+          const p = pinMatch ? pinMatch[1] : (userLocation?.pincode || '');
           const isBadPin = Boolean(p && !p.startsWith('636'));
+          const hasLocation = Boolean(userLocation && userLocation.address && userLocation.locality);
           return (
             <Paper
               elevation={0}
               onClick={() => navigate('/booking/address', { state: { returnTo: location.pathname + location.search } })}
               sx={{
-                p: { xs: 1, sm: 1.2 },
-                mb: 1.2,
+                p: { xs: 1.25, sm: 1.5 },
+                mb: 1.5,
                 borderRadius: '8px',
-                bgcolor: isBadPin ? '#FEF2F2' : '#FFFFFF',
-                border: isBadPin ? '1.5px solid #EF4444' : '1px solid #E2E8F0',
+                bgcolor: !hasLocation ? '#FFFBEB' : (isBadPin ? '#FEF2F2' : '#FFFFFF'),
+                border: !hasLocation ? '1.5px dashed #F59E0B' : (isBadPin ? '1.5px solid #EF4444' : '1px solid #E2E8F0'),
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 cursor: 'pointer',
-                '&:hover': { borderColor: isBadPin ? '#DC2626' : '#CBD5E1' }
+                '&:hover': { borderColor: !hasLocation ? '#D97706' : (isBadPin ? '#DC2626' : '#CBD5E1') }
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
-                <LocationOnIcon sx={{ fontSize: { xs: 20, sm: 22 }, color: isBadPin ? '#DC2626' : '#2563EB', flexShrink: 0 }} />
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, minWidth: 0 }}>
+                <LocationOnIcon sx={{ fontSize: { xs: 22, sm: 24 }, color: !hasLocation ? '#D97706' : (isBadPin ? '#DC2626' : '#2563EB'), flexShrink: 0 }} />
                 <Box sx={{ minWidth: 0 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: isBadPin ? '#991B1B' : '#0F172A', fontSize: { xs: '13.5px', sm: '14.5px' }, lineHeight: 1.2 }}>
-                      {userLocation.locality || 'Fairlands, Salem'}
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: !hasLocation ? '#92400E' : (isBadPin ? '#991B1B' : '#0F172A'), fontSize: { xs: '13.5px', sm: '14.5px' }, lineHeight: 1.2 }}>
+                      {hasLocation ? (userLocation.locality || 'Salem') : 'Enter or Turn ON Location (Required)'}
                     </Typography>
                     {isBadPin && (
                       <Chip label="Outside Salem" size="small" sx={{ height: 18, fontSize: '10px', fontWeight: 800, bgcolor: '#EF4444', color: '#FFF' }} />
+                    )}
+                    {!hasLocation && (
+                      <Chip label="Required" size="small" sx={{ height: 18, fontSize: '10px', fontWeight: 800, bgcolor: '#F59E0B', color: '#FFF' }} />
                     )}
                   </Box>
                   <Typography
                     variant="caption"
                     sx={{
-                      color: isBadPin ? '#B91C1C' : '#64748B',
+                      color: !hasLocation ? '#B45309' : (isBadPin ? '#B91C1C' : '#64748B'),
                       fontSize: { xs: '11.5px', sm: '12.5px' },
                       display: 'block',
                       whiteSpace: 'nowrap',
@@ -700,25 +725,26 @@ export default function ServiceDetailPage({ onStartBooking }) {
                       textOverflow: 'ellipsis'
                     }}
                   >
-                    {userLocation.address || 'Service address in Salem'}
+                    {hasLocation ? userLocation.address : 'Please tap here to enter address or enable GPS before booking'}
                   </Typography>
                 </Box>
               </Box>
 
               <Button
                 size="small"
+                variant={!hasLocation ? 'contained' : 'text'}
+                color={!hasLocation ? 'warning' : 'primary'}
                 endIcon={<KeyboardArrowDownIcon sx={{ fontSize: 16 }} />}
                 sx={{
-                  color: isBadPin ? '#DC2626' : '#2563EB',
                   fontWeight: 700,
                   fontSize: { xs: '12px', sm: '13px' },
                   textTransform: 'none',
                   flexShrink: 0,
-                  p: { xs: '2px 6px', sm: '4px 8px' },
+                  p: !hasLocation ? { xs: '4px 10px', sm: '6px 12px' } : { xs: '2px 6px', sm: '4px 8px' },
                   minWidth: 0
                 }}
               >
-                Change
+                {!hasLocation ? 'Set Location' : 'Change'}
               </Button>
             </Paper>
           );
@@ -1845,7 +1871,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
             >
               {bookingMode === 'scheduled'
                 ? `${getFormattedDateString()} • ${getEffectiveSlot().split('-')[0].trim()}`
-                : couponApplied ? `₹${couponDiscount} discount applied` : `Service in ${userLocation.locality || 'Fairlands, Salem'}`}
+                : couponApplied ? `₹${couponDiscount} discount applied` : (userLocation?.locality ? `Service in ${userLocation.locality}` : 'Set Service Location')}
             </Typography>
           </Box>
 

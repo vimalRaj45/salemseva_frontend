@@ -60,14 +60,11 @@ export default function CustomerHomePage() {
     }));
   };
   const [userLocation, setUserLocation] = useState(() => {
-    const saved = localStorage.getItem('shazuone_user_location');
-    return saved ? JSON.parse(saved) : {
-      locality: 'Fairlands',
-      pincode: '636016',
-      address: 'Plot 42, 5th Cross, Fairlands, Salem - 636016',
-      lat: 11.6738,
-      lng: 78.1460
-    };
+    try {
+      const saved = localStorage.getItem('shazuone_user_location');
+      if (saved) return JSON.parse(saved);
+    } catch (_) {}
+    return null;
   });
 
   useEffect(() => {

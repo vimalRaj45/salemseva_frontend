@@ -85,6 +85,7 @@ export default function AdminOrderCancelPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          bookingId,
           reason: cancelReason,
           details: cancelDetails.trim(),
           compensateTech,
