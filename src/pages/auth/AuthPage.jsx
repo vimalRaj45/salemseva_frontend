@@ -145,6 +145,7 @@ export default function AuthPage({ initialMode = 'login' }) {
   // Flow specific fields
   const [yearsExperience, setYearsExperience] = useState('2');
   const [dailyJobCapacity, setDailyJobCapacity] = useState('4');
+  const [secondaryTrades, setSecondaryTrades] = useState([]);
   const [partnerLocalities, setPartnerLocalities] = useState([...SALEM_LOCALITIES]);
   const [aadhaarNumber, setAadhaarNumber] = useState('');
   const [aadhaarDocName, setAadhaarDocName] = useState('');
@@ -172,6 +173,9 @@ export default function AuthPage({ initialMode = 'login' }) {
         if (draft.fullName) setFullName(draft.fullName);
         if (draft.locality) setLocality(draft.locality);
         if (draft.trade) setTrade(draft.trade);
+        if (draft.secondaryTrades && Array.isArray(draft.secondaryTrades)) {
+          setSecondaryTrades(draft.secondaryTrades);
+        }
         if (draft.yearsExperience) setYearsExperience(draft.yearsExperience);
         if (draft.dailyJobCapacity) setDailyJobCapacity(String(draft.dailyJobCapacity));
         if (draft.partnerLocalities && Array.isArray(draft.partnerLocalities)) {
@@ -198,6 +202,7 @@ export default function AuthPage({ initialMode = 'login' }) {
         fullName,
         locality,
         trade,
+        secondaryTrades,
         yearsExperience,
         dailyJobCapacity,
         partnerLocalities,
@@ -471,7 +476,14 @@ export default function AuthPage({ initialMode = 'login' }) {
       return;
     }
     setRegisterStep(3);
-    saveDraft(3, { fullName: fullName.trim(), trade, yearsExperience, dailyJobCapacity, partnerLocalities });
+    saveDraft(3, {
+      fullName: fullName.trim(),
+      trade,
+      secondaryTrades: secondaryTrades.filter((t) => t && t !== trade),
+      yearsExperience,
+      dailyJobCapacity,
+      partnerLocalities
+    });
   };
 
   // Step 3 User Submit / Skip -> Step 4 Done
@@ -592,6 +604,7 @@ export default function AuthPage({ initialMode = 'login' }) {
         password: registerPassword.trim(),
         role: 'technician',
         trade,
+        secondaryTrades: secondaryTrades.filter((t) => t && t !== trade),
         locality: (partnerLocalities && partnerLocalities[0]) || 'Fairlands, Salem',
         aadhaar: cleanAadhaar,
         aadhaarCardUrl: aadhaarDocUrl,
@@ -1692,7 +1705,11 @@ export default function AuthPage({ initialMode = 'login' }) {
                             select
                             fullWidth
                             value={trade}
-                            onChange={(e) => setTrade(e.target.value)}
+                            onChange={(e) => {
+                              const newTrade = e.target.value;
+                              setTrade(newTrade);
+                              setSecondaryTrades((prev) => prev.filter((t) => t !== newTrade));
+                            }}
                             InputProps={{
                               startAdornment: (
                                 <InputAdornment position="start">
@@ -1711,6 +1728,60 @@ export default function AuthPage({ initialMode = 'login' }) {
                           <FormHelperText sx={{ fontSize: '10.5px', color: 'text.secondary', m: '3px 0 0' }}>
                             Primary skill category used to dispatch customer orders.
                           </FormHelperText>
+                        </Box>
+
+                        {/* Secondary Trades / Additional Skills */}
+                        <Box sx={{ mb: 1.1 }}>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.3 }}>
+                            <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.primary', fontSize: '11px' }}>
+                              Additional Work / Secondary Trades (Optional)
+                            </Typography>
+                            <Chip
+                              size="small"
+                              label={`${secondaryTrades.filter((t) => t !== trade).length} selected`}
+                              sx={{
+                                bgcolor: '#EFF6FF',
+                                color: '#0284C7',
+                                fontWeight: 700,
+                                fontSize: '10px',
+                                height: '18px',
+                                borderRadius: '4px'
+                              }}
+                            />
+                          </Box>
+                          <Typography sx={{ fontSize: '10.5px', color: 'text.secondary', mb: 0.6 }}>
+                            கூடுதல் சேவைகள் — Select other trade jobs you can handle. You will receive booking leads for these services too.
+                          </Typography>
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.8 }}>
+                            {AVAILABLE_TRADES.filter((t) => t.id !== trade).map((t) => {
+                              const isSelected = secondaryTrades.includes(t.id);
+                              return (
+                                <Chip
+                                  key={t.id}
+                                  label={t.name.split('&')[0].trim()}
+                                  clickable
+                                  onClick={() => {
+                                    setSecondaryTrades((prev) =>
+                                      prev.includes(t.id) ? prev.filter((item) => item !== t.id) : [...prev, t.id]
+                                    );
+                                  }}
+                                  icon={isSelected ? <Check size={12} strokeWidth={3} color="#FFFFFF" /> : undefined}
+                                  sx={{
+                                    fontWeight: isSelected ? 700 : 500,
+                                    fontSize: '11.5px',
+                                    borderRadius: '6px',
+                                    height: '30px',
+                                    bgcolor: isSelected ? brandPrimary : 'background.paper',
+                                    color: isSelected ? '#FFFFFF' : 'text.primary',
+                                    border: isSelected ? `1px solid ${brandPrimary}` : '1px solid #CBD5E1',
+                                    '&:hover': {
+                                      bgcolor: isSelected ? brandPrimary : '#F1F5F9'
+                                    }
+                                  }}
+                                />
+                              );
+                            })}
+                          </Box>
                         </Box>
 
                         <Box sx={{ mb: 1.1 }}>
@@ -2330,6 +2401,17 @@ export default function AuthPage({ initialMode = 'login' }) {
                             <Typography sx={{ fontSize: '11.5px', color: 'text.secondary' }}>Primary Trade:</Typography>
                             <Typography sx={{ fontSize: '11.5px', fontWeight: 700, color: 'text.primary' }}>
                               {AVAILABLE_TRADES.find((t) => t.id === trade)?.name || trade}
+                            </Typography>
+                          </Box>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.4, alignItems: 'flex-start' }}>
+                            <Typography sx={{ fontSize: '11.5px', color: 'text.secondary' }}>Secondary Trades:</Typography>
+                            <Typography sx={{ fontSize: '11.5px', fontWeight: 700, color: 'text.primary', textAlign: 'right', maxWidth: '60%' }}>
+                              {secondaryTrades.filter((st) => st !== trade).length > 0
+                                ? secondaryTrades
+                                    .filter((st) => st !== trade)
+                                    .map((st) => AVAILABLE_TRADES.find((t) => t.id === st)?.name?.split('&')[0]?.trim() || st)
+                                    .join(', ')
+                                : 'None (Single Trade)'}
                             </Typography>
                           </Box>
                           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>

@@ -569,12 +569,13 @@ export function AuthProvider({ children }) {
     });
   };
 
-  const signupTechnician = async ({ name, phone, password, trade, aadhaar, serviceArea, dailyJobCapacity = 4 }) => {
+  const signupTechnician = async ({ name, phone, password, trade, secondaryTrades = [], aadhaar, serviceArea, dailyJobCapacity = 4 }) => {
     const userResult = await registerAccount({
       name,
       phone,
       password,
       trade,
+      secondaryTrades,
       aadhaar,
       serviceArea,
       locality: serviceArea || 'Fairlands, Salem',
