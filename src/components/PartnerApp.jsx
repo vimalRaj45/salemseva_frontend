@@ -1,4 +1,5 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
+import { PARTNER_PAYOUT_PERCENT } from '../config';
 import {
   Box,
   Typography,
@@ -161,7 +162,7 @@ export default function PartnerApp({ currentStep, setStep }) {
         {/* Weekly Earnings Card */}
         <Card sx={{ p: 2, background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)', color: '#FFF', textAlign: 'center' }}>
           <Typography variant="caption" sx={{ color: '#94A3B8' }}>
-            {isTa ? 'இந்த வார வருமானம் (Take-Home)' : 'Current Week Payout (Net 85%)'}
+            {isTa ? 'இந்த வார வருமானம் (Take-Home)' : `Current Week Payout (Net ${PARTNER_PAYOUT_PERCENT}%)`}
           </Typography>
           <Typography variant="h4" sx={{ fontWeight: 800, color: '#38BDF8', my: 0.5 }}>
             ₹4,890.00

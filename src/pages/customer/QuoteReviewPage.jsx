@@ -1,4 +1,4 @@
-import { API_V1_URL } from '../../config';
+import { API_V1_URL, PARTNER_COMMISSION_PERCENT } from '../../config';
 import React, { useState, useEffect } from 'react';
 import {
   Container,
@@ -153,7 +153,7 @@ export default function QuoteReviewPage() {
             </Typography>
           </Box>
           <Typography variant="caption" sx={{ color: '#14532D', display: 'block', fontSize: '11.5px', lineHeight: 1.5 }}>
-            சேலம்சேவா தளம் <strong>உதிரிபாகங்களை விற்பனை செய்வதில்லை</strong>. உதிரிபாகங்கள் தேவைப்பட்டால், நீங்கள் நேரடியாகவோ அல்லது டெக்னீஷியன் மூலமாகவோ உள்ளூர் கடையில் வாங்கிக்கொள்ளலாம். எங்கள் கட்டணம் (5%) டெக்னீஷியனின் <strong>வேலைக் கட்டணத்திற்கு மட்டுமே</strong> கணக்கிடப்படுகிறது.
+            சேலம்சேவா தளம் <strong>உதிரிபாகங்களை விற்பனை செய்வதில்லை</strong>. உதிரிபாகங்கள் தேவைப்பட்டால், நீங்கள் நேரடியாகவோ அல்லது டெக்னீஷியன் மூலமாகவோ உள்ளூர் கடையில் வாங்கிக்கொள்ளலாம். எங்கள் கட்டணம் ({PARTNER_COMMISSION_PERCENT}%) டெக்னீஷியனின் <strong>வேலைக் கட்டணத்திற்கு மட்டுமே</strong> கணக்கிடப்படுகிறது.
           </Typography>
         </Card>
 

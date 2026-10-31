@@ -104,7 +104,7 @@ import LeadAudioPlayer from '../../components/LeadAudioPlayer';
 import SalemLottie from '../../components/SalemLottie';
 import { useAuth } from '../../context/AuthContext';
 import { NativeNotifier } from '../../services/nativeNotify';
-import { API_V1_URL } from '../../config';
+import { API_V1_URL, PARTNER_PAYOUT_PERCENT, PARTNER_COMMISSION_PERCENT } from '../../config';
 import { resolveMediaUrl } from '../../utils/mediaUtils';
 
 // Helper to strictly match job lead locality against technician's chosen operating areas
@@ -1541,7 +1541,7 @@ export default function PartnerDutyPage() {
           fileName: `parts_bill_${activeBookingId}.jpg`
         })
       });
-      setTechToast(`கடை பில் தொகை ₹${amt} சேமிக்கப்பட்டது! வாடிக்கையாளருக்கு பில் + 5% கட்டணம் காண்பிக்கப்படும்.`);
+      setTechToast(`கடை பில் தொகை ₹${amt} சேமிக்கப்பட்டது! வாடிக்கையாளருக்கு பில் + ${PARTNER_COMMISSION_PERCENT}% கட்டணம் காண்பிக்கப்படும்.`);
     } catch (e) {
       console.warn('Bill amount update error:', e);
     }
@@ -2004,7 +2004,7 @@ export default function PartnerDutyPage() {
                     3. Instant Transfer
                   </Typography>
                   <Typography variant="caption" sx={{ color: '#10B981', fontSize: '9.5px', lineHeight: 1.1, display: 'block' }}>
-                    100% Visit + 85% to your Bank/UPI
+                    100% Visit + {PARTNER_PAYOUT_PERCENT}% to your Bank/UPI
                   </Typography>
                 </Paper>
               </Box>
@@ -2946,7 +2946,7 @@ export default function PartnerDutyPage() {
                                 </Typography>
                               </Box>
                               <Chip
-                                label="85% tech share"
+                                label={`${PARTNER_PAYOUT_PERCENT}% tech share`}
                                 size="small"
                                 sx={{ bgcolor: '#1E293B', color: '#FEF08A', border: '1px solid #334155', fontWeight: 700, fontSize: '10px' }}
                               />
@@ -5123,7 +5123,7 @@ export default function PartnerDutyPage() {
                         </Box>
 
                         <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 1, lineHeight: 1.4 }}>
-                          சேலம்சேவா தளம் 5% கமிஷனை உங்கள் <strong>வேலைக் கட்டணத்திற்கு மட்டுமே</strong> கணக்கிடுகிறது. உதிரிபாகங்கள் விற்பனை தளத்தில் இல்லை.
+                          சேலம்சேவா தளம் {PARTNER_COMMISSION_PERCENT}% கமிஷனை உங்கள் <strong>வேலைக் கட்டணத்திற்கு மட்டுமே</strong> கணக்கிடுகிறது. உதிரிபாகங்கள் விற்பனை தளத்தில் இல்லை.
                         </Typography>
                       </Card>
                     </Box>
@@ -5552,7 +5552,7 @@ export default function PartnerDutyPage() {
                   Direct bank transfer history & protected earnings
                 </Typography>
               </Box>
-              <Chip label="85% Tech Share" size="small" sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 700, fontSize: '10.5px', borderRadius: '4px' }} />
+              <Chip label={`${PARTNER_PAYOUT_PERCENT}% Tech Share`} size="small" sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 700, fontSize: '10.5px', borderRadius: '4px' }} />
             </Box>
 
             {/* 1. Main Earnings Card */}
@@ -5676,7 +5676,7 @@ export default function PartnerDutyPage() {
                     முடிக்கப்பட்ட ஆர்டர்கள் இல்லை (No Completed Jobs Yet)
                   </Typography>
                   <Typography variant="body2" sx={{ color: '#64748B', fontSize: '12px' }}>
-                    When you accept and complete customer requests, your itemized payouts, 85% tech share, and direct bank settlements will appear here.
+                    When you accept and complete customer requests, your itemized payouts, {PARTNER_PAYOUT_PERCENT}% tech share, and direct bank settlements will appear here.
                   </Typography>
                 </Paper>
               ) : (
@@ -5719,7 +5719,7 @@ export default function PartnerDutyPage() {
                             +₹{job.techPayout.toFixed(2)}
                           </Typography>
                           <Typography variant="caption" sx={{ color: '#64748B', fontSize: '10px', display: 'block' }}>
-                            Tech share (85%)
+                            Tech share ({PARTNER_PAYOUT_PERCENT}%)
                           </Typography>
                         </Box>
                       </Box>
@@ -5731,11 +5731,11 @@ export default function PartnerDutyPage() {
                           <strong>₹{job.grossAmount.toFixed(2)}</strong>
                         </Box>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '11.5px', color: '#16A34A', mb: 0.3 }}>
-                          <span>Technician Payout (95% + Travel):</span>
+                          <span>Technician Payout ({PARTNER_PAYOUT_PERCENT}% + Travel):</span>
                           <strong>₹{job.techPayout.toFixed(2)}</strong>
                         </Box>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748B' }}>
-                          <span>Shazu One Platform Commission (5%):</span>
+                          <span>Shazu One Platform Commission ({PARTNER_COMMISSION_PERCENT}%):</span>
                           <span>₹{job.platformCommission.toFixed(2)}</span>
                         </Box>
                       </Paper>
@@ -6363,7 +6363,7 @@ export default function PartnerDutyPage() {
                 <Divider sx={{ borderColor: '#F1F5F9' }} />
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: '#64748B' }}>Settlement Model:</span>
-                  <strong style={{ color: '#2563EB' }}>Shazu One Direct (98% Technician Share)</strong>
+                  <strong style={{ color: '#2563EB' }}>Shazu One Direct ({PARTNER_PAYOUT_PERCENT}% Technician Share)</strong>
                 </Box>
               </Box>
             </Paper>

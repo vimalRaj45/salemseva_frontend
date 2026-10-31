@@ -25,7 +25,7 @@ import {
   ShieldCheck,
   FileText
 } from 'lucide-react';
-import { API_V1_URL } from '../../config';
+import { API_V1_URL, PARTNER_COMMISSION_PERCENT, PARTNER_PAYOUT_PERCENT } from '../../config';
 import toast from 'react-hot-toast';
 
 const PAYMENT_METHODS = [
@@ -122,7 +122,8 @@ export default function AdminPaymentOverridePage() {
   };
 
   const parsedAmount = parseFloat(amount) || 0;
-  const platformCut = stage === 'advance' ? 0.0 : parseFloat((parsedAmount * 0.05).toFixed(2));
+  const commissionRate = (Number(PARTNER_COMMISSION_PERCENT) || 2.0) / 100.0;
+  const platformCut = stage === 'advance' ? 0.0 : parseFloat((parsedAmount * commissionRate).toFixed(2));
   const techPayout = parseFloat((parsedAmount - platformCut).toFixed(2));
 
   const handleSubmit = async (e) => {
@@ -404,11 +405,11 @@ export default function AdminPaymentOverridePage() {
               Automatic Escrow & Split Allocation
             </Typography>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', mb: 0.5 }}>
-              <Typography sx={{ color: '#166534' }}>Technician Net Disbursal (95%):</Typography>
+              <Typography sx={{ color: '#166534' }}>Technician Net Disbursal ({PARTNER_PAYOUT_PERCENT}%):</Typography>
               <Typography sx={{ fontWeight: 800, color: '#166534' }}>₹{techPayout.toFixed(2)}</Typography>
             </Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px' }}>
-              <Typography sx={{ color: '#166534' }}>Shazu One Platform Commission (5%):</Typography>
+              <Typography sx={{ color: '#166534' }}>Shazu One Platform Commission ({PARTNER_COMMISSION_PERCENT}%):</Typography>
               <Typography sx={{ fontWeight: 800, color: '#166534' }}>₹{platformCut.toFixed(2)}</Typography>
             </Box>
           </Paper>

@@ -20,6 +20,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import { Globe } from 'lucide-react';
 import { getCurrentLanguage, SUPPORTED_LANGUAGES } from '../../services/languageService';
 import { ILLUSTRATIONS } from '../../constants/visualAssets';
+import { PARTNER_PAYOUT_PERCENT, PARTNER_COMMISSION_PERCENT } from '../../config';
 
 const CUSTOMER_SLIDES = [
   {
@@ -64,11 +65,11 @@ const PARTNER_SLIDES = [
   {
     id: 'partner_earnings',
     badge: 'Technician Partner Fleet',
-    title: 'Earn 98% on Every Doorstep Job',
-    desc: 'Join Salem trade network. Shazu One retains only 2% platform fee, giving you 98% direct daily earnings.',
+    title: `Earn ${PARTNER_PAYOUT_PERCENT}% on Every Doorstep Job`,
+    desc: `Join Salem trade network. Shazu One retains only ${PARTNER_COMMISSION_PERCENT}% platform fee, giving you ${PARTNER_PAYOUT_PERCENT}% direct daily earnings.`,
     illustration: ILLUSTRATIONS.partnerService,
     points: [
-      '98% net service revenue paid out to you',
+      `${PARTNER_PAYOUT_PERCENT}% net service revenue paid out to you`,
       'Daily automated bank payouts via direct UPI',
       'Zero registration or subscription fees'
     ]

@@ -15,6 +15,7 @@ import {
   Lock,
   ArrowUpRight
 } from 'lucide-react';
+import { PARTNER_PAYOUT_PERCENT } from '../config';
 
 export default function Footer() {
   const navigate = useNavigate();
@@ -185,7 +186,7 @@ export default function Footer() {
               </Box>
             </Grid>
 
-            {/* Card 3: 98% Partner Payout */}
+            {/* Card 3: Partner Payout */}
             <Grid item xs={12} sm={6} md={3}>
               <Box
                 sx={{
@@ -218,7 +219,7 @@ export default function Footer() {
                   <Sparkles size={20} />
                 </Box>
                 <Typography sx={{ fontWeight: 700, fontSize: '15px', color: '#0F172A', mb: '6px', textAlign: 'left' }}>
-                  98% Partner Payout
+                  {PARTNER_PAYOUT_PERCENT}% Partner Payout
                 </Typography>
                 <Typography sx={{ fontSize: '13px', color: '#64748B', lineHeight: 1.5, textAlign: 'left' }}>
                   Direct escrow settlement empowering local Salem tradesmen.

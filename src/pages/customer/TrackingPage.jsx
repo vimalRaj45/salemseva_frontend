@@ -1,4 +1,4 @@
-import { API_V1_URL } from '../../config';
+import { API_V1_URL, PARTNER_COMMISSION_PERCENT } from '../../config';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Container,
@@ -1961,7 +1961,7 @@ export default function TrackingPage() {
                 <Box sx={{ bgcolor: '#F0FDF4', p: 1.2, borderRadius: '6px', border: '1px solid #BBF7D0', mb: 1.5, display: 'flex', alignItems: 'center', gap: 0.8 }}>
                   <ShieldIcon sx={{ fontSize: 16, color: '#166534', flexShrink: 0 }} />
                   <Typography variant="caption" sx={{ color: '#166534', fontWeight: 600, display: 'block' }}>
-                    சேலம்சேவா தளம் உதிரிபாகங்களை விற்பனை செய்வதில்லை. 5% தள கட்டணம் தொழிலாளர் <strong>வேலைக் கட்டணத்திற்கு மட்டுமே</strong>.
+                    சேலம்சேவா தளம் உதிரிபாகங்களை விற்பனை செய்வதில்லை. {PARTNER_COMMISSION_PERCENT}% தள கட்டணம் தொழிலாளர் <strong>வேலைக் கட்டணத்திற்கு மட்டுமே</strong>.
                   </Typography>
                 </Box>
 
@@ -1979,11 +1979,11 @@ export default function TrackingPage() {
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                       <ShieldIcon sx={{ color: '#2563EB', fontSize: 14 }} />
                       <Typography variant="body2" sx={{ color: '#2563EB', fontSize: '12px', fontWeight: 600 }}>
-                        2. சேலம்சேவா தள கட்டணம் (Platform Fee 5% on Labor):
+                        2. சேலம்சேவா தள கட்டணம் (Platform Fee {PARTNER_COMMISSION_PERCENT}% on Labor):
                       </Typography>
                     </Box>
                     <Typography variant="body2" sx={{ fontWeight: 700, color: '#2563EB', fontSize: '12.5px' }}>
-                      +₹{parseFloat(billDetails?.platformFee || (parseFloat(billDetails?.laborCost || 250) * 0.05)).toFixed(2)}
+                      +₹{parseFloat(billDetails?.platformFee || (parseFloat(billDetails?.laborCost || 250) * ((Number(PARTNER_COMMISSION_PERCENT) || 2.0) / 100.0))).toFixed(2)}
                     </Typography>
                   </Box>
 

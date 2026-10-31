@@ -1,4 +1,4 @@
-﻿import { API_V1_URL } from '../../config';
+import { API_V1_URL, PARTNER_COMMISSION_PERCENT } from '../../config';
 import React, { useState, useEffect } from 'react';
 import {
   Container,
@@ -127,7 +127,8 @@ export default function PartnerQuoteBuilderPage() {
   }, [resolvedId]);
 
   const totalGross = items.reduce((sum, item) => sum + ((parseFloat(item.price) || 0) * (parseInt(item.qty, 10) || 1)), 0);
-  const platformShare = Math.round(totalGross * 0.05 * 100) / 100; // 5% Platform Fee on Labor ONLY
+  const commRate = (Number(PARTNER_COMMISSION_PERCENT) || 2.0) / 100.0;
+  const platformShare = Math.round(totalGross * commRate * 100) / 100; // Configured Platform Fee on Labor ONLY
   const techShare = totalGross; // Partner receives full quoted work charge amount
   const totalCustomerBill = totalGross + platformShare;
 
@@ -222,7 +223,7 @@ export default function PartnerQuoteBuilderPage() {
               <Paper elevation={0} sx={{ p: 1.4, bgcolor: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '10px', mb: 2.5, display: 'flex', alignItems: 'flex-start', gap: 1 }}>
                 <ShieldIcon sx={{ fontSize: 18, color: '#166534', mt: 0.2, flexShrink: 0 }} />
                 <Typography variant="caption" sx={{ color: '#166534', display: 'block', fontSize: '11.5px', lineHeight: 1.45, fontWeight: 600 }}>
-                  <strong>உதிரிபாகங்கள் தளம் மூலம் விற்கப்படுவதில்லை (No Product Sales):</strong> உதிரிபாகங்கள் தேவைப்பட்டால், வாடிக்கையாளர் நேரடியாகவோ அல்லது நீங்கள் உள்ளூர் கடையிலிருந்தோ வாங்கிக் கொள்ளலாம். சேலம்சேவா தளத்தின் 5% கட்டணம் உங்கள் <strong>வேலைக் கட்டணத்திற்கு மட்டுமே</strong> பொருந்தும்.
+                  <strong>உதிரிபாகங்கள் தளம் மூலம் விற்கப்படுவதில்லை (No Product Sales):</strong> உதிரிபாகங்கள் தேவைப்பட்டால், வாடிக்கையாளர் நேரடியாகவோ அல்லது நீங்கள் உள்ளூர் கடையிலிருந்தோ வாங்கிக் கொள்ளலாம். சேலம்சேவா தளத்தின் {PARTNER_COMMISSION_PERCENT}% கட்டணம் உங்கள் <strong>வேலைக் கட்டணத்திற்கு மட்டுமே</strong> பொருந்தும்.
                 </Typography>
               </Paper>
 
@@ -311,7 +312,7 @@ export default function PartnerQuoteBuilderPage() {
               </Box>
 
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1, color: '#2563EB' }}>
-                <Typography variant="body2" sx={{ fontWeight: 700 }}>Shazu One Platform Fee (5% on Labor)</Typography>
+                <Typography variant="body2" sx={{ fontWeight: 700 }}>Shazu One Platform Fee ({PARTNER_COMMISSION_PERCENT}% on Labor)</Typography>
                 <Typography variant="body2" sx={{ fontWeight: 800 }}>+₹{platformShare.toFixed(2)}</Typography>
               </Box>
 

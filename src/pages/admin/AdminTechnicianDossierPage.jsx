@@ -34,7 +34,7 @@ import PrintIcon from '@mui/icons-material/Print';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import { resolveMediaUrl } from '../../utils/mediaUtils';
-import { API_V1_URL } from '../../config';
+import { API_V1_URL, PARTNER_COMMISSION_PERCENT } from '../../config';
 
 export default function AdminTechnicianDossierPage() {
   const { id } = useParams();
@@ -429,7 +429,7 @@ export default function AdminTechnicianDossierPage() {
                 <Typography variant="body2" sx={{ fontWeight: 900, color: '#059669' }}>₹{(financials.lifetimeEarnings || 0).toLocaleString()}</Typography>
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 0.8 }}>
-                <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 600 }}>Platform Revenue (2-5%):</Typography>
+                <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 600 }}>Platform Revenue ({PARTNER_COMMISSION_PERCENT}%):</Typography>
                 <Typography variant="body2" sx={{ fontWeight: 800, color: '#0284C7' }}>
                   ₹{(Math.max(0, (financials.grossJobVolume || 0) - (financials.lifetimeEarnings || 0))).toLocaleString()}
                 </Typography>

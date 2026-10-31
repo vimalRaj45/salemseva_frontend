@@ -22,7 +22,7 @@ import {
   CreditCard,
   Receipt
 } from 'lucide-react';
-import { API_V1_URL } from '../../config';
+import { API_V1_URL, PARTNER_PAYOUT_PERCENT, PARTNER_COMMISSION_PERCENT } from '../../config';
 
 export default function PartnerSettlementSlipPage() {
   const { bookingId } = useParams();
@@ -54,8 +54,10 @@ export default function PartnerSettlementSlipPage() {
             const gross = parseFloat(b.final_amount || b.quote_subtotal || 250);
             const visit = parseFloat(b.visit_fee || 99);
             const labor = Math.max(0, gross - visit);
-            const comm = labor * 0.05;
-            const payout = (labor * 0.95) + visit;
+            const payoutRate = (Number(PARTNER_PAYOUT_PERCENT) || 98.0) / 100.0;
+            const commRate = (Number(PARTNER_COMMISSION_PERCENT) || 2.0) / 100.0;
+            const comm = labor * commRate;
+            const payout = (labor * payoutRate) + visit;
 
             setJob({
               id: b.id,
@@ -112,8 +114,10 @@ export default function PartnerSettlementSlipPage() {
 
   const grossAmount = job?.grossAmount || 0;
   const visitFee = parseFloat(job?.visit_fee || job?.visitFee || 99);
-  const laborShare = Math.max(0, grossAmount - visitFee) * 0.95;
-  const platformComm = job?.platformCommission || (Math.max(0, grossAmount - visitFee) * 0.05);
+  const payoutRate = (Number(PARTNER_PAYOUT_PERCENT) || 98.0) / 100.0;
+  const commRate = (Number(PARTNER_COMMISSION_PERCENT) || 2.0) / 100.0;
+  const laborShare = Math.max(0, grossAmount - visitFee) * payoutRate;
+  const platformComm = job?.platformCommission || (Math.max(0, grossAmount - visitFee) * commRate);
   const netPayout = job?.techPayout || (laborShare + visitFee);
 
   return (
@@ -241,7 +245,7 @@ export default function PartnerSettlementSlipPage() {
             </Box>
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1, borderBottom: '1px dashed #E2E8F0', fontSize: '13.5px' }}>
-              <Typography sx={{ color: '#16A34A', fontSize: '13px', fontWeight: 600 }}>Technician labour share (95%)</Typography>
+              <Typography sx={{ color: '#16A34A', fontSize: '13px', fontWeight: 600 }}>Technician labour share ({PARTNER_PAYOUT_PERCENT}%)</Typography>
               <Typography sx={{ fontWeight: 700, color: '#16A34A', fontSize: '13.5px' }}>+₹{laborShare.toFixed(2)}</Typography>
             </Box>
 
@@ -251,7 +255,7 @@ export default function PartnerSettlementSlipPage() {
             </Box>
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1, borderBottom: '1px dashed #E2E8F0', fontSize: '13.5px' }}>
-              <Typography sx={{ color: '#DC2626', fontSize: '13px' }}>Platform tech fee (5% on labour)</Typography>
+              <Typography sx={{ color: '#DC2626', fontSize: '13px' }}>Platform tech fee ({PARTNER_COMMISSION_PERCENT}% on labour)</Typography>
               <Typography sx={{ fontWeight: 600, color: '#DC2626', fontSize: '13.5px' }}>-₹{platformComm.toFixed(2)}</Typography>
             </Box>
 

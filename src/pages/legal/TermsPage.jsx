@@ -1,5 +1,6 @@
-﻿import React from 'react';
+import React from 'react';
 import LegalLayout from './LegalLayout';
+import { PARTNER_COMMISSION_PERCENT, PARTNER_PAYOUT_PERCENT } from '../../config';
 import {
   FileText,
   Percent,
@@ -70,20 +71,20 @@ export default function TermsPage() {
           <div style={{ backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
               <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>Shazu One Platform Cut</span>
-              <span style={{ fontSize: '14px', fontWeight: 900, color: '#0284C7' }}>2.0%</span>
+              <span style={{ fontSize: '14px', fontWeight: 900, color: '#0284C7' }}>{PARTNER_COMMISSION_PERCENT}%</span>
             </div>
             <p style={{ margin: 0, fontSize: '12.5px', color: '#64748B', lineHeight: 1.6 }}>
-              A standard deduction of exactly 2.0% applied to the gross billable service total for platform operational facilitation and dispatch coordination.
+              A standard deduction of exactly {PARTNER_COMMISSION_PERCENT}% applied to the gross billable service total for platform operational facilitation and dispatch coordination.
             </p>
           </div>
 
           <div style={{ backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
               <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>Technician Direct Payout</span>
-              <span style={{ fontSize: '14px', fontWeight: 900, color: '#16A34A' }}>98.0%</span>
+              <span style={{ fontSize: '14px', fontWeight: 900, color: '#16A34A' }}>{PARTNER_PAYOUT_PERCENT}%</span>
             </div>
             <p style={{ margin: 0, fontSize: '12.5px', color: '#64748B', lineHeight: 1.6 }}>
-              Independent technician partners receive 98.0% of billable labor and diagnostic amounts, disbursed directly to their verified UPI/bank account via automated Razorpay Route settlement.
+              Independent technician partners receive {PARTNER_PAYOUT_PERCENT}% of billable labor and diagnostic amounts, disbursed directly to their verified UPI/bank account via automated Razorpay Route settlement.
             </p>
           </div>
         </div>
@@ -93,7 +94,7 @@ export default function TermsPage() {
             Transparent Digital Invoicing
           </strong>
           <p style={{ margin: 0, fontSize: '13px', color: '#475569', lineHeight: 1.6 }}>
-            Every completed service booking produces a tamper-proof digital invoice within the customer and technician app view, distinctly itemizing the base diagnostic fee, labor additions, replacement spare parts, applicable GST, and the 2.0% platform facilitation cut.
+            Every completed service booking produces a tamper-proof digital invoice within the customer and technician app view, distinctly itemizing the base diagnostic fee, labor additions, replacement spare parts, applicable GST, and the {PARTNER_COMMISSION_PERCENT}% platform facilitation cut.
           </p>
         </div>
 

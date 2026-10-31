@@ -24,7 +24,7 @@ import {
   Save
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { API_V1_URL } from '../../config';
+import { API_V1_URL, PARTNER_PAYOUT_PERCENT } from '../../config';
 import DocumentUploadControl from '../../components/DocumentUploadControl';
 import toast from 'react-hot-toast';
 
@@ -311,7 +311,7 @@ export default function PartnerProfilePage() {
               Payout phone number & UPI link
             </Typography>
             <Typography sx={{ fontSize: '11.5px', color: '#64748B', mb: 1.5 }}>
-              Automated 95% duty earnings & ₹99 travel fees will be disbursed directly to this phone number via IMPS UPI.
+              Automated {PARTNER_PAYOUT_PERCENT}% duty earnings & ₹99 travel fees will be disbursed directly to this phone number via IMPS UPI.
             </Typography>
 
             <TextField

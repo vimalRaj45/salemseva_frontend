@@ -1,4 +1,4 @@
-import { API_V1_URL } from '../../config';
+import { API_V1_URL, PARTNER_PAYOUT_PERCENT, PARTNER_COMMISSION_PERCENT } from '../../config';
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Container,
@@ -390,7 +390,7 @@ export default function AdminSettlementsPage() {
                 ₹{summary.totalTechPayout.toLocaleString('en-IN')}
               </Typography>
               <Typography variant="caption" sx={{ color: 'secondary.dark', fontWeight: 600 }}>
-                100% Travel + 95% Labor
+                100% Travel + {PARTNER_PAYOUT_PERCENT}% Labor
               </Typography>
             </Card>
           </Grid>
@@ -430,7 +430,7 @@ export default function AdminSettlementsPage() {
                 ₹{summary.totalPlatformCut.toLocaleString('en-IN')}
               </Typography>
               <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
-                5% Commission on Work Done
+                {PARTNER_COMMISSION_PERCENT}% Commission on Work Done
               </Typography>
             </Card>
           </Grid>

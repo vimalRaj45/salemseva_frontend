@@ -18,6 +18,7 @@ import HandymanIcon from '@mui/icons-material/Handyman';
 import PersonIcon from '@mui/icons-material/Person';
 import CloseIcon from '@mui/icons-material/Close';
 import { ILLUSTRATIONS } from '../../constants/visualAssets';
+import { PARTNER_PAYOUT_PERCENT, PARTNER_COMMISSION_PERCENT } from '../../config';
 
 const CUSTOMER_STAGES = [
   {
@@ -131,12 +132,12 @@ const PARTNER_STAGES = [
     id: 'p_completion',
     stageNumber: 4,
     badge: 'Stage 4: OTP Signoff & Payout',
-    title: '98% Direct Daily Payout via UPI',
-    desc: 'Complete service, verify customer completion OTP, and receive 98% of the booking directly into your UPI account.',
+    title: `${PARTNER_PAYOUT_PERCENT}% Direct Daily Payout via UPI`,
+    desc: `Complete service, verify customer completion OTP, and receive ${PARTNER_PAYOUT_PERCENT}% of the booking directly into your UPI account.`,
     illustration: ILLUSTRATIONS.partnerService,
     points: [
-      'Shazu One retains only 2% platform facilitation',
-      '98% net service payment disbursed daily via bank UPI',
+      `Shazu One retains only ${PARTNER_COMMISSION_PERCENT}% platform facilitation`,
+      `${PARTNER_PAYOUT_PERCENT}% net service payment disbursed daily via bank UPI`,
       'Earn 5-star badges and qualify for weekly cash incentives'
     ]
   }

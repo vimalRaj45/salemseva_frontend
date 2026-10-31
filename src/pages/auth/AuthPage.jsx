@@ -45,7 +45,7 @@ import {
 import { FormHelperText, Chip } from '@mui/material';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
-import { API_V1_URL } from '../../config';
+import { API_V1_URL, PARTNER_PAYOUT_PERCENT } from '../../config';
 
 const SALEM_LOCALITIES = [
   'Fairlands, Salem',
@@ -992,7 +992,7 @@ export default function AuthPage({ initialMode = 'login' }) {
                           </Typography>
                         </Box>
                         <Typography sx={{ fontSize: '12px', color: '#64748B', mt: 0.2 }}>
-                          Accept customer dispatches & earn 98% daily
+                          Accept customer dispatches & earn {PARTNER_PAYOUT_PERCENT}% daily
                         </Typography>
                       </Box>
                     </Box>
@@ -2123,7 +2123,7 @@ export default function AuthPage({ initialMode = 'login' }) {
                             }}
                           />
                           <FormHelperText sx={{ fontSize: '10.5px', color: 'text.secondary', m: '3px 0 0' }}>
-                            Direct UPI or mobile number where daily 98% earnings are deposited.
+                            Direct UPI or mobile number where daily {PARTNER_PAYOUT_PERCENT}% earnings are deposited.
                           </FormHelperText>
                         </Box>
 

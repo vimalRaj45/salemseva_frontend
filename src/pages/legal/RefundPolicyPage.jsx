@@ -1,5 +1,6 @@
-﻿import React from 'react';
+import React from 'react';
 import LegalLayout from './LegalLayout';
+import { CUSTOMER_PLATFORM_FEE_PERCENT, PAYMENT_GATEWAY_FEE_PERCENT } from '../../config';
 import {
   RotateCcw,
   Percent,
@@ -74,16 +75,16 @@ export default function RefundPolicyPage() {
               <strong>₹99.00</strong>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span>Shazu One 2% Platform Facilitation Retention:</span>
-              <span style={{ color: '#DC2626' }}>-₹1.98</span>
+              <span>Shazu One {CUSTOMER_PLATFORM_FEE_PERCENT}% Platform Facilitation Retention:</span>
+              <span style={{ color: '#DC2626' }}>-₹{(99.0 * ((Number(CUSTOMER_PLATFORM_FEE_PERCENT) || 2.0) / 100.0)).toFixed(2)}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span>Razorpay 2% Gateway Interchange Retention:</span>
-              <span style={{ color: '#DC2626' }}>-₹1.98</span>
+              <span>Razorpay {PAYMENT_GATEWAY_FEE_PERCENT}% Gateway Interchange Retention:</span>
+              <span style={{ color: '#DC2626' }}>-₹{(99.0 * ((Number(PAYMENT_GATEWAY_FEE_PERCENT) || 2.0) / 100.0)).toFixed(2)}</span>
             </div>
             <div style={{ borderTop: '1px dashed #7DD3FC', paddingTop: '8px', marginTop: '4px', display: 'flex', justifyContent: 'space-between', fontSize: '14px', fontWeight: 800, color: '#0369A1' }}>
               <span>Net Refund Credited to Customer Source Account:</span>
-              <span>₹95.04</span>
+              <span>₹{(99.0 - (99.0 * ((Number(CUSTOMER_PLATFORM_FEE_PERCENT) || 2.0) / 100.0)) - (99.0 * ((Number(PAYMENT_GATEWAY_FEE_PERCENT) || 2.0) / 100.0))).toFixed(2)}</span>
             </div>
           </div>
         </div>
