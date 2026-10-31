@@ -82,6 +82,13 @@ const EXPERIENCE_OPTIONS = [
   { value: '5', label: '5+ Years' }
 ];
 
+const DAILY_JOB_OPTIONS = [
+  { value: '1', label: '1 Job per day (Part-time / Light load)' },
+  { value: '2', label: '2 Jobs per day (Moderate pace)' },
+  { value: '3', label: '3 Jobs per day (Active specialist)' },
+  { value: '4', label: '4 Jobs per day (Maximum daily quota)' }
+];
+
 const DRAFT_STORAGE_KEY = 'shazuone_onboarding_draft';
 
 export default function AuthPage({ initialMode = 'login' }) {
@@ -137,6 +144,7 @@ export default function AuthPage({ initialMode = 'login' }) {
 
   // Flow specific fields
   const [yearsExperience, setYearsExperience] = useState('2');
+  const [dailyJobCapacity, setDailyJobCapacity] = useState('4');
   const [partnerLocalities, setPartnerLocalities] = useState([...SALEM_LOCALITIES]);
   const [aadhaarNumber, setAadhaarNumber] = useState('');
   const [aadhaarDocName, setAadhaarDocName] = useState('');
@@ -165,6 +173,7 @@ export default function AuthPage({ initialMode = 'login' }) {
         if (draft.locality) setLocality(draft.locality);
         if (draft.trade) setTrade(draft.trade);
         if (draft.yearsExperience) setYearsExperience(draft.yearsExperience);
+        if (draft.dailyJobCapacity) setDailyJobCapacity(String(draft.dailyJobCapacity));
         if (draft.partnerLocalities && Array.isArray(draft.partnerLocalities)) {
           setPartnerLocalities(draft.partnerLocalities);
         }
@@ -190,6 +199,7 @@ export default function AuthPage({ initialMode = 'login' }) {
         locality,
         trade,
         yearsExperience,
+        dailyJobCapacity,
         partnerLocalities,
         aadhaarNumber,
         aadhaarDocName,
@@ -461,7 +471,7 @@ export default function AuthPage({ initialMode = 'login' }) {
       return;
     }
     setRegisterStep(3);
-    saveDraft(3, { fullName: fullName.trim(), trade, yearsExperience, partnerLocalities });
+    saveDraft(3, { fullName: fullName.trim(), trade, yearsExperience, dailyJobCapacity, partnerLocalities });
   };
 
   // Step 3 User Submit / Skip -> Step 4 Done
@@ -587,6 +597,7 @@ export default function AuthPage({ initialMode = 'login' }) {
         aadhaarCardUrl: aadhaarDocUrl,
         upiId: upiId.trim(),
         experienceYears: yearsExperience,
+        dailyJobCapacity: Math.min(4, Math.max(1, parseInt(dailyJobCapacity, 10) || 4)),
         assignedLocalities: partnerLocalities
       });
       clearDraft();
@@ -1723,6 +1734,30 @@ export default function AuthPage({ initialMode = 'login' }) {
                           </TextField>
                           <FormHelperText sx={{ fontSize: '10.5px', color: 'text.secondary', m: '3px 0 0' }}>
                             Hands-on trade experience in Salem and surrounding areas.
+                          </FormHelperText>
+                        </Box>
+
+                        <Box sx={{ mb: 1.1 }}>
+                          <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.primary', display: 'block', mb: 0.3, fontSize: '11px' }}>
+                            Per Day Jobs Capacity (1 - 4 Jobs Limit)
+                          </Typography>
+                          <TextField
+                            select
+                            fullWidth
+                            value={dailyJobCapacity}
+                            onChange={(e) => setDailyJobCapacity(e.target.value)}
+                            InputProps={{
+                              sx: { borderRadius: '6px', bgcolor: 'background.paper', fontSize: '12.5px', height: '38px' }
+                            }}
+                          >
+                            {DAILY_JOB_OPTIONS.map((opt) => (
+                              <MenuItem key={opt.value} value={opt.value} sx={{ fontSize: '12.5px' }}>
+                                {opt.label}
+                              </MenuItem>
+                            ))}
+                          </TextField>
+                          <FormHelperText sx={{ fontSize: '10.5px', color: 'text.secondary', m: '3px 0 0' }}>
+                            Select how many bookings you can fulfill per day in Salem (maximum 1 to 4 jobs).
                           </FormHelperText>
                         </Box>
 

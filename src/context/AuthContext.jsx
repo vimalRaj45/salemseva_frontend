@@ -569,7 +569,7 @@ export function AuthProvider({ children }) {
     });
   };
 
-  const signupTechnician = async ({ name, phone, password, trade, aadhaar, serviceArea }) => {
+  const signupTechnician = async ({ name, phone, password, trade, aadhaar, serviceArea, dailyJobCapacity = 4 }) => {
     const userResult = await registerAccount({
       name,
       phone,
@@ -578,6 +578,7 @@ export function AuthProvider({ children }) {
       aadhaar,
       serviceArea,
       locality: serviceArea || 'Fairlands, Salem',
+      dailyJobCapacity: Math.min(4, Math.max(1, parseInt(dailyJobCapacity, 10) || 4)),
       role: 'technician'
     });
 

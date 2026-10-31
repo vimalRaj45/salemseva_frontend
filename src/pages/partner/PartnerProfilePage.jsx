@@ -55,6 +55,9 @@ export default function PartnerProfilePage() {
   const [profileAadhaarUrl, setProfileAadhaarUrl] = useState(
     activeTech?.aadhaar_card_url || localStorage.getItem('shazuone_partner_aadhaar_url') || null
   );
+  const [profileDailyCapacity, setProfileDailyCapacity] = useState(
+    activeTech?.daily_job_capacity || parseInt(localStorage.getItem('shazuone_partner_daily_capacity'), 10) || 4
+  );
   const [isSaving, setIsSaving] = useState(false);
 
   const handleDismiss = () => {
@@ -89,18 +92,22 @@ export default function PartnerProfilePage() {
     setIsSaving(true);
     const updatedTrades = Array.from(new Set([profileTrade, ...profileSecondaryTrades]));
 
+    const clampedCapacity = Math.min(4, Math.max(1, parseInt(profileDailyCapacity, 10) || 4));
     const profileData = {
       name: profileName.trim(),
       full_name: profileName.trim(),
       primary_trade: profileTrade,
       secondary_trades: updatedTrades,
       payout_phone: profilePayoutPhone,
-      aadhaar_card_url: profileAadhaarUrl
+      aadhaar_card_url: profileAadhaarUrl,
+      daily_job_capacity: clampedCapacity,
+      dailyJobCapacity: clampedCapacity
     };
 
     localStorage.setItem('shazuone_partner_name', profileName.trim());
     localStorage.setItem('shazuone_partner_trade', profileTrade);
     localStorage.setItem('shazuone_partner_secondary_trades', JSON.stringify(updatedTrades));
+    localStorage.setItem('shazuone_partner_daily_capacity', String(clampedCapacity));
     if (profilePayoutPhone) localStorage.setItem('shazuone_partner_payout_phone', profilePayoutPhone);
     if (profileAadhaarUrl) localStorage.setItem('shazuone_partner_aadhaar_url', profileAadhaarUrl);
 
@@ -322,6 +329,41 @@ export default function PartnerProfilePage() {
                 sx: { borderRadius: '12px', bgcolor: '#F8FAFC' }
               }}
             />
+          </Paper>
+
+          {/* Daily Job Capacity */}
+          <Paper elevation={0} sx={{ p: 2.5, borderRadius: '14px', border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
+            <Typography sx={{ fontSize: '13px', fontWeight: 700, color: '#334155', mb: 0.5 }}>
+              Daily Job Capacity (ஒரு நாளைக்கு எத்தனை வேலைகள் ஏற்க முடியும்?)
+            </Typography>
+            <Typography sx={{ fontSize: '11.5px', color: '#64748B', mb: 1.5 }}>
+              Maximum customer bookings you are willing to take per day (1 to 4 jobs limit).
+            </Typography>
+
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              {[1, 2, 3, 4].map((num) => {
+                const isSelected = parseInt(profileDailyCapacity, 10) === num;
+                return (
+                  <Chip
+                    key={num}
+                    label={`${num} ${num === 1 ? 'Job' : 'Jobs'}`}
+                    clickable
+                    onClick={() => setProfileDailyCapacity(num)}
+                    sx={{
+                      flex: 1,
+                      fontWeight: isSelected ? 800 : 600,
+                      fontSize: '12px',
+                      borderRadius: '10px',
+                      py: 2,
+                      bgcolor: isSelected ? '#0284C7' : '#FFFFFF',
+                      color: isSelected ? '#FFFFFF' : '#334155',
+                      border: isSelected ? '1px solid #0284C7' : '1px solid #CBD5E1',
+                      '&:hover': { bgcolor: isSelected ? '#0369A1' : '#F0F9FF' }
+                    }}
+                  />
+                );
+              })}
+            </Box>
           </Paper>
 
           {/* KYC Document Upload */}
