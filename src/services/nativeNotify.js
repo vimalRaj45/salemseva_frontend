@@ -190,9 +190,7 @@ class NativeNotificationService {
   async notifyIncomingCall({ callerName, bookingId, role }) {
     RingtoneService.startRinging();
 
-    const targetUrl = (role === 'customer' || role === 'Customer')
-      ? `/track?bookingId=${bookingId}&autoAnswer=true`
-      : `/partner?bookingId=${bookingId}&autoAnswer=true`;
+    const targetUrl = `/call/${bookingId}?incoming=true&autoAnswer=true`;
 
     await this.showSystemNotification({
       title: `Incoming Call: ${callerName || 'Salem Specialist'}`,

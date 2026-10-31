@@ -1547,30 +1547,15 @@ export default function PartnerDutyPage() {
     }
   };
 
-  // Real-time VoIP Call & Chat Notification Poller from Customer
+  // Real-time Chat Notification Poller from Customer (Calls handled globally by GlobalNotificationWatcher)
   useEffect(() => {
     let isMounted = true;
 
     const pollPartnerCommunications = async () => {
       try {
-        // 1. Check for incoming VoIP calls from customer
-        const callRes = await fetch(`${API_V1_URL}/webrtc/call/status?bookingId=${activeBookingId}`);
-        const callData = await callRes.json();
-        if (callData.success && callData.call && isMounted) {
-          if (callData.call.active && callData.call.caller === 'customer' && callData.call.status === 'RINGING') {
-            if (!callOpen) {
-              NativeNotifier.notifyIncomingCall({
-                callerName: activeJob?.customerName || 'Customer',
-                bookingId: activeBookingId,
-                role: 'Technician'
-              });
-            }
-            setIsIncomingCall(true);
-            setCallOpen(true);
-          }
-        }
+        if (!activeBookingId) return;
 
-        // 2. Check for incoming chat messages from customer
+        // Check for incoming chat messages from customer
         const msgRes = await fetch(`${API_V1_URL}/bookings/${activeBookingId}/messages`);
         const msgData = await msgRes.json();
         if (msgData.success && msgData.messages && isMounted) {

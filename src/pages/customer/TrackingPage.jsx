@@ -281,29 +281,15 @@ export default function TrackingPage() {
     return () => clearTimeout(ceiling);
   }, [awaitingPaymentConfirmation, trackData, arrivedFromPayment, searchParams, setSearchParams]);
 
-  // Real-time VoIP Call & Chat Notification Poller
+  // Real-time Chat Notification Poller from Technician (Calls handled globally by GlobalNotificationWatcher)
   useEffect(() => {
     let isMounted = true;
 
     const pollCommunications = async () => {
       try {
-        // 1. Check for incoming VoIP calls from technician
-        const callRes = await fetch(`${API_V1_URL}/webrtc/call/status?bookingId=${bookingId}`);
-        const callData = await callRes.json();
-        if (callData.success && callData.call && isMounted) {
-          if (callData.call.active && callData.call.caller === 'technician' && callData.call.status === 'RINGING') {
-            if (!callOpen) {
-              NativeNotifier.notifyIncomingCall({
-                callerName: tech?.name || 'Technician',
-                bookingId,
-                role: 'Customer'
-              });
-            }
-            navigate(`/call/${bookingId}?incoming=true`);
-          }
-        }
+        if (!bookingId) return;
 
-        // 2. Check for incoming chat messages from technician
+        // Check for incoming chat messages from technician
         const msgRes = await fetch(`${API_V1_URL}/bookings/${bookingId}/messages`);
         const msgData = await msgRes.json();
         if (msgData.success && msgData.messages && isMounted) {

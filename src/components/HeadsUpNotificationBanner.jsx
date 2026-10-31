@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Box, Typography, IconButton, Button, Slide } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import PhoneInTalkIcon from '@mui/icons-material/PhoneInTalk';
@@ -13,6 +13,7 @@ import { API_BASE_URL } from '../config';
 
 export default function HeadsUpNotificationBanner() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [notification, setNotification] = useState(null);
   const [visible, setVisible] = useState(false);
   const timerRef = useRef(null);
@@ -22,6 +23,10 @@ export default function HeadsUpNotificationBanner() {
       const detail = event.detail;
       if (!detail) return;
 
+      // FocusCallOverlay is the sole, dedicated incoming call UI with full-screen focus.
+      // Suppress HeadsUpNotificationBanner for calls to prevent duplicate conflicting modals.
+      if (detail.data?.type === 'call') return;
+
       if (timerRef.current) {
         clearTimeout(timerRef.current);
         timerRef.current = null;
@@ -30,14 +35,9 @@ export default function HeadsUpNotificationBanner() {
       setNotification(detail);
       setVisible(true);
 
-      const isCall = detail.data?.type === 'call';
-
-      // Auto dismiss after 6.5 seconds unless it is an active incoming call
-      if (!isCall) {
-        timerRef.current = setTimeout(() => {
-          setVisible(false);
-        }, 6500);
-      }
+      timerRef.current = setTimeout(() => {
+        setVisible(false);
+      }, 6500);
     };
 
     window.addEventListener('shazuone_heads_up_notification', handleNotification);
@@ -48,7 +48,7 @@ export default function HeadsUpNotificationBanner() {
     };
   }, []);
 
-  if (!notification) return null;
+  if (!notification || location.pathname.startsWith('/call')) return null;
 
   const isCall = notification.data?.type === 'call';
   const isJob = notification.data?.type === 'new_job';

@@ -18,8 +18,8 @@ export default function GlobalNotificationWatcher() {
   const lastSeenMsgCountRef = useRef({});
   const lastSeenBookingStatusRef = useRef({});
 
-  // Check if current route already has its own dedicated in-page VoIP modal (TrackingPage or PartnerDutyPage)
-  const isCallHandledByPage = location.pathname.startsWith('/track') || location.pathname.startsWith('/partner');
+  // Suppress overlay if the user is already on the dedicated full-screen VoIP calling page
+  const isOnCallScreen = location.pathname.startsWith('/call');
 
   // Auto-subscribe to Web Push for background/cleared app wake-up if permissions are granted
   useEffect(() => {
@@ -37,11 +37,13 @@ export default function GlobalNotificationWatcher() {
     if (Capacitor.isNativePlatform()) {
       LocalNotifications.addListener('localNotificationActionPerformed', (event) => {
         const extra = event.notification?.extra || {};
-        if (extra.type === 'call' || extra.type === 'chat') {
+        if (extra.type === 'call') {
+          navigate(`/call/${extra.bookingId}?incoming=true&autoAnswer=true`);
+        } else if (extra.type === 'chat') {
           if (extra.role === 'Customer' || extra.role === 'customer') {
-            navigate(`/track?bookingId=${extra.bookingId}&autoAnswer=true`);
+            navigate(`/track?bookingId=${extra.bookingId}`);
           } else {
-            navigate(`/partner?bookingId=${extra.bookingId}&autoAnswer=true`);
+            navigate(`/partner?bookingId=${extra.bookingId}`);
           }
         } else if (extra.type === 'new_job') {
           navigate('/partner');
@@ -89,15 +91,14 @@ export default function GlobalNotificationWatcher() {
 
         // B. Active Booking: Check for VoIP Calls & Chat Messages
         if (activeBookingId) {
-          // If the current route is TrackingPage or PartnerDutyPage, that screen handles VoIP calls
-          // directly via VoipCallModal. Suppress FocusCallOverlay to eliminate modal conflicts.
-          if (isCallHandledByPage) {
+          if (isOnCallScreen) {
+            // Already on dedicated calling screen; clear any overlay state
             if (incomingCall) {
               setIncomingCall(null);
               NativeNotifier.stopCallRingtone();
             }
           } else {
-            // Check VoIP Calls (only for background/other pages)
+            // Check VoIP Calls
             try {
               const callRes = await fetch(`${API_BASE_URL}/api/v1/webrtc/call/status?bookingId=${activeBookingId}`);
               const callData = await callRes.json();
@@ -236,19 +237,10 @@ export default function GlobalNotificationWatcher() {
     if (!incomingCall) return;
     NativeNotifier.stopCallRingtone();
     const targetBookingId = incomingCall.bookingId;
-    const targetRole = incomingCall.role;
     setIncomingCall(null);
 
-    // Notify any active page listener to open WebRTC modal
-    window.dispatchEvent(new CustomEvent('shazuone_open_active_call', {
-      detail: { bookingId: targetBookingId, autoAnswer: true }
-    }));
-
-    if (targetRole === 'Customer' || targetRole === 'customer') {
-      navigate(`/track?bookingId=${targetBookingId}&autoAnswer=true`);
-    } else {
-      navigate(`/partner?bookingId=${targetBookingId}&autoAnswer=true`);
-    }
+    // Direct navigation to dedicated VoIP call screen with autoAnswer flag
+    navigate(`/call/${targetBookingId}?incoming=true&autoAnswer=true`);
   };
 
   const handleDeclineCall = async () => {
@@ -267,8 +259,8 @@ export default function GlobalNotificationWatcher() {
     } catch (e) {}
   };
 
-  // If current screen is TrackingPage or PartnerDutyPage, VoipCallModal handles call directly
-  if (isCallHandledByPage) {
+  // If user is already on the dedicated VoIP call screen, never render an overlay modal
+  if (isOnCallScreen) {
     return null;
   }
 
