@@ -38,7 +38,7 @@ export default function SideNavbar({
   onClose,
   user,
   techUser,
-  creditsAmount = 100,
+  creditsAmount = 0,
   isTechnician = false,
   isAdmin = false,
   isCustomer = false,

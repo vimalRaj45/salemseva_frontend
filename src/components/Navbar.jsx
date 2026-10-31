@@ -83,7 +83,7 @@ export default function Navbar({
   // Display user information
   const displayName = propUserName || user?.name || (isTechnician ? 'Salem Partner' : isAdmin ? 'Salem Ops Admin' : 'Customer');
   const initial = displayName ? displayName.charAt(0).toUpperCase() : (isTechnician ? 'P' : isAdmin ? 'A' : 'C');
-  const creditsAmount = propCredits !== undefined ? propCredits : (authWalletBalance ?? user?.walletBalance ?? 100);
+  const creditsAmount = propCredits !== undefined ? propCredits : (authWalletBalance ?? user?.walletBalance ?? 0);
   const isPartnerOnline = user?.isOnline !== false;
 
   // Responsive mobile state

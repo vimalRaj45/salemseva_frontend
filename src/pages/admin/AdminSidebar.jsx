@@ -115,7 +115,7 @@ const navSections = [
     items: [
       {
         id: 'rewards',
-        label: 'Rewards & Coupon Codes',
+        label: 'Settings, Fees & Rewards',
         icon: ConfirmationNumberIcon,
         badgeKey: 'couponsCount',
         badgeColor: '#B45309',

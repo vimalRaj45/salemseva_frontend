@@ -267,15 +267,19 @@ export default function AdminDashboardPage() {
   const [paymentOverrideModalOpen, setPaymentOverrideModalOpen] = useState(false);
   const [targetBookingForPayment, setTargetBookingForPayment] = useState(null);
 
-  // Rewards & Incentive Settings State (Customizable by Admin)
+  // Rewards, Commission & Settings State (Customizable by Admin in platform_settings)
   const [rewardConfig, setRewardConfig] = useState({
     customer_referral_credits: 50,
     referee_discount_amount: 50,
     review_reward_credits: 25,
-    feedback_reward_credits: 15,
-    feedback_rewards_enabled: true,
+    feedback_reward_credits: 0,
+    feedback_rewards_enabled: false,
     partner_referral_incentive: 100,
-    partner_welcome_bonus: 50
+    partner_welcome_bonus: 0,
+    partner_commission_percent: 2.0,
+    customer_platform_fee_percent: 2.0,
+    payment_gateway_fee_percent: 2.0,
+    inspection_visit_fee: 99
   });
   const [rewardsLoading, setRewardsLoading] = useState(false);
   const [rewardsSaving, setRewardsSaving] = useState(false);
@@ -4708,10 +4712,10 @@ export default function AdminDashboardPage() {
                   </Avatar>
                   <Box>
                     <Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '16px' }}>
-                      Referral & Feedback Reward Rates
+                      Platform Settings: Fees, Commissions & Rewards
                     </Typography>
                     <Typography variant="caption" sx={{ color: '#64748B' }}>
-                      Admin-customizable credit incentives. Rates set here immediately apply to user wallets, review screens, and onboarding flows.
+                      Central source of truth in PostgreSQL (platform_settings). All values edited and saved here apply immediately across all bookings, splits, and user wallets.
                     </Typography>
                   </Box>
                 </Box>
@@ -4729,13 +4733,121 @@ export default function AdminDashboardPage() {
                     px: 2.5
                   }}
                 >
-                  {rewardsSaving ? 'Saving...' : 'Save Reward Settings'}
+                  {rewardsSaving ? 'Saving...' : 'Save All Settings'}
                 </Button>
               </Box>
 
               <Divider sx={{ mb: 2.5 }} />
 
-              <Grid container spacing={2.5}>
+              {/* Section A: Platform Commission & Gateway Fee Matrix */}
+              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <span>1. Dual-Sided Commission & Fee Matrix</span>
+                <Chip label="PostgreSQL Live" size="small" sx={{ bgcolor: '#EFF6FF', color: '#1E40AF', fontWeight: 700, fontSize: '10px' }} />
+              </Typography>
+
+              <Grid container spacing={2.5} sx={{ mb: 3 }}>
+                {/* Partner Commission */}
+                <Grid item xs={12} sm={6} md={3}>
+                  <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px' }}>
+                    <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569', display: 'block', mb: 0.5 }}>
+                      PARTNER COMMISSION (%)
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 1.5, fontSize: '11px' }}>
+                      Platform cut deducted from technician work total (e.g. 2% = 98% tech payout).
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      type="number"
+                      inputProps={{ step: '0.1', min: '0', max: '100' }}
+                      value={rewardConfig.partner_commission_percent ?? 2.0}
+                      onChange={(e) => setRewardConfig({ ...rewardConfig, partner_commission_percent: e.target.value })}
+                      InputProps={{
+                        endAdornment: <InputAdornment position="end">%</InputAdornment>
+                      }}
+                      sx={{ bgcolor: '#FFFFFF', borderRadius: '6px' }}
+                    />
+                  </Paper>
+                </Grid>
+
+                {/* Customer Convenience / Platform Fee */}
+                <Grid item xs={12} sm={6} md={3}>
+                  <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px' }}>
+                    <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569', display: 'block', mb: 0.5 }}>
+                      CUSTOMER PLATFORM FEE (%)
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 1.5, fontSize: '11px' }}>
+                      Customer convenience charge added to bill at checkout (e.g. 2.0%).
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      type="number"
+                      inputProps={{ step: '0.1', min: '0', max: '100' }}
+                      value={rewardConfig.customer_platform_fee_percent ?? 2.0}
+                      onChange={(e) => setRewardConfig({ ...rewardConfig, customer_platform_fee_percent: e.target.value })}
+                      InputProps={{
+                        endAdornment: <InputAdornment position="end">%</InputAdornment>
+                      }}
+                      sx={{ bgcolor: '#FFFFFF', borderRadius: '6px' }}
+                    />
+                  </Paper>
+                </Grid>
+
+                {/* Payment Gateway Fee */}
+                <Grid item xs={12} sm={6} md={3}>
+                  <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px' }}>
+                    <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569', display: 'block', mb: 0.5 }}>
+                      PAYMENT GATEWAY FEE (%)
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 1.5, fontSize: '11px' }}>
+                      Razorpay processing fee passed transparently to payment provider (e.g. 2.0%).
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      type="number"
+                      inputProps={{ step: '0.1', min: '0', max: '100' }}
+                      value={rewardConfig.payment_gateway_fee_percent ?? 2.0}
+                      onChange={(e) => setRewardConfig({ ...rewardConfig, payment_gateway_fee_percent: e.target.value })}
+                      InputProps={{
+                        endAdornment: <InputAdornment position="end">%</InputAdornment>
+                      }}
+                      sx={{ bgcolor: '#FFFFFF', borderRadius: '6px' }}
+                    />
+                  </Paper>
+                </Grid>
+
+                {/* Inspection Visit Fee */}
+                <Grid item xs={12} sm={6} md={3}>
+                  <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px' }}>
+                    <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569', display: 'block', mb: 0.5 }}>
+                      INSPECTION VISIT FEE (INR)
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 1.5, fontSize: '11px' }}>
+                      Upfront diagnostic visitation fee paid on booking confirmation.
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      type="number"
+                      value={rewardConfig.inspection_visit_fee ?? 99}
+                      onChange={(e) => setRewardConfig({ ...rewardConfig, inspection_visit_fee: e.target.value })}
+                      InputProps={{
+                        startAdornment: <InputAdornment position="start">INR</InputAdornment>
+                      }}
+                      sx={{ bgcolor: '#FFFFFF', borderRadius: '6px' }}
+                    />
+                  </Paper>
+                </Grid>
+              </Grid>
+
+              {/* Section B: Customer Booking & Referral Rewards */}
+              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <span>2. Customer Booking & Referral Rewards</span>
+              </Typography>
+
+              <Grid container spacing={2.5} sx={{ mb: 3 }}>
                 {/* Customer Referral Credits */}
                 <Grid item xs={12} sm={6} md={3}>
                   <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px' }}>
@@ -4782,14 +4894,14 @@ export default function AdminDashboardPage() {
                   </Paper>
                 </Grid>
 
-                {/* Review Rating Reward */}
+                {/* Completed Booking Cashback Reward */}
                 <Grid item xs={12} sm={6} md={3}>
                   <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px' }}>
                     <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569', display: 'block', mb: 0.5 }}>
-                      5-STAR REVIEW REWARD (CREDITS)
+                      BOOKING COMPLETION CASHBACK (CREDITS)
                     </Typography>
                     <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 1.5, fontSize: '11px' }}>
-                      Credits awarded when customer submits 4 or 5-star service feedback.
+                      Credits awarded to customer wallet upon completing a service booking.
                     </Typography>
                     <TextField
                       fullWidth
@@ -4819,7 +4931,7 @@ export default function AdminDashboardPage() {
                       />
                     </Box>
                     <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 1.5, fontSize: '11px' }}>
-                      Credits given when submitting general app feedback or issue report.
+                      Credits given when submitting general app feedback (currently disabled).
                     </Typography>
                     <TextField
                       fullWidth
@@ -4835,7 +4947,14 @@ export default function AdminDashboardPage() {
                     />
                   </Paper>
                 </Grid>
+              </Grid>
 
+              {/* Section C: Partner Fleet Referral & Incentive */}
+              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <span>3. Partner Fleet Referral Incentives</span>
+              </Typography>
+
+              <Grid container spacing={2.5}>
                 {/* Partner Referrer Incentive */}
                 <Grid item xs={12} sm={6} md={6}>
                   <Paper elevation={0} sx={{ p: 2, bgcolor: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '10px' }}>
@@ -4843,7 +4962,7 @@ export default function AdminDashboardPage() {
                       PARTNER TECHNICIAN REFERRAL INCENTIVE (INR)
                     </Typography>
                     <Typography variant="caption" sx={{ color: '#15803D', display: 'block', mb: 1.5, fontSize: '11px' }}>
-                      Incentive credited to a technician when they refer another partner to Shazu One fleet.
+                      Incentive credited to technician wallet when referring a new partner to the fleet.
                     </Typography>
                     <TextField
                       fullWidth
@@ -4863,10 +4982,10 @@ export default function AdminDashboardPage() {
                 <Grid item xs={12} sm={6} md={6}>
                   <Paper elevation={0} sx={{ p: 2, bgcolor: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '10px' }}>
                     <Typography variant="caption" sx={{ fontWeight: 700, color: '#166534', display: 'block', mb: 0.5 }}>
-                      NEW PARTNER WELCOME TOOL KIT BONUS (INR)
+                      NEW PARTNER ONBOARDING BONUS (INR)
                     </Typography>
                     <Typography variant="caption" sx={{ color: '#15803D', display: 'block', mb: 1.5, fontSize: '11px' }}>
-                      Tool kit bonus credited to newly registered technician who onboarded with a referral code.
+                      Welcome bonus for new technician signups (set to 0 for booking/referral only policy).
                     </Typography>
                     <TextField
                       fullWidth
@@ -4886,7 +5005,7 @@ export default function AdminDashboardPage() {
               {/* Live Preview Bar */}
               <Box sx={{ mt: 2.5, p: 1.5, bgcolor: '#EFF6FF', borderRadius: '8px', border: '1px solid #BFDBFE', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
                 <Typography variant="caption" sx={{ color: '#1E40AF', fontWeight: 600 }}>
-                  Active User UI Copy Preview: "Give friends INR {rewardConfig.referee_discount_amount} off. You get {rewardConfig.customer_referral_credits} Seva Credits when their service completes. Reviews earn +{rewardConfig.review_reward_credits} credits."
+                  Active Business Policy Preview: Partner Commission: {rewardConfig.partner_commission_percent}% | Customer Fee: {rewardConfig.customer_platform_fee_percent}% | Gateway Fee: {rewardConfig.payment_gateway_fee_percent}% | Booking Cashback: {rewardConfig.review_reward_credits} Credits | Customer Referral: {rewardConfig.customer_referral_credits} Credits
                 </Typography>
                 <Chip label="Real-time DB Sync" size="small" sx={{ bgcolor: '#DBEAFE', color: '#1E40AF', fontWeight: 800, fontSize: '10px' }} />
               </Box>

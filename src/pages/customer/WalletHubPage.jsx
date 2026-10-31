@@ -205,7 +205,7 @@ export default function WalletHubPage() {
               Sign In to View Seva Savings & Credits
             </Typography>
             <Typography variant="body2" sx={{ color: '#475569', fontSize: '13px', mb: 2 }}>
-              Access your referral credits, welcome bonus, and digital cashback balance.
+              Access your referral credits, booking rewards, and digital cashback balance.
             </Typography>
             <Button
               variant="contained"

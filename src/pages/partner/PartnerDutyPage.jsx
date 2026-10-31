@@ -199,7 +199,7 @@ export default function PartnerDutyPage() {
 
   const handleShareTechWhatsApp = () => {
     const text = encodeURIComponent(
-      `வணக்கம் நண்பா! சேலத்தில் தினசரி ₹1,500+ சம்பாதிக்க Shazu One-வில் டெக்னீசியனாக இணையுங்கள். \n\nஎனது ரெஃபரல் கோட் *${techReferralCode}* பயன்படுத்தி இணையும்போது உங்களுக்கு ₹${partnerWelcomeBonus} டூல் கிட் போனஸ் கிடைக்கும்: ${window.location.origin}/partner/onboarding`
+      `வணக்கம் நண்பா! சேலத்தில் தினசரி ₹1,500+ சம்பாதிக்க Shazu One-வில் டெக்னீசியனாக இணையுங்கள். \n\nஎனது ரெஃபரல் கோட் *${techReferralCode}* பயன்படுத்தி உடனே இணையுங்கள்: ${window.location.origin}/partner/onboarding`
     );
     window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
   };
