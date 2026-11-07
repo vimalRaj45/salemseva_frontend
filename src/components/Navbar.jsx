@@ -1667,7 +1667,7 @@ export default function Navbar({
             else navigate('/login');
             return;
           }
-          setIsAiSupportOpen(true);
+          navigate('/ask-ai');
         }}
         logout={logout}
         logoutTech={logoutTech}
@@ -1679,7 +1679,8 @@ export default function Navbar({
         onClose={() => setIsAiSupportOpen(false)}
       />
 
-      {/* Floating Action Button: "Ask AI" (Restricted to logged-in users) */}
+      {/* Floating Action Button: "Ask AI" (Restricted to logged-in users, hidden on /ask-ai) */}
+      {location.pathname !== '/ask-ai' && (
       <button
         type="button"
         onClick={() => {
@@ -1688,7 +1689,7 @@ export default function Navbar({
             else navigate('/login');
             return;
           }
-          setIsAiSupportOpen(true);
+          navigate('/ask-ai');
         }}
         title="Ask AI Assistant (Voice & Text)"
         aria-label="Ask AI Assistant"
@@ -1748,6 +1749,7 @@ export default function Navbar({
           }}
         />
       </button>
+      )}
     </header>
   );
 }

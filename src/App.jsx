@@ -11,6 +11,7 @@ import CustomerTabBar from './components/customer/CustomerTabBar';
 import LanguageSelectionPage from './pages/customer/LanguageSelectionPage';
 import FeedbackPage from './pages/customer/FeedbackPage';
 import SupportHubPage from './pages/customer/SupportHubPage';
+import AskAiPage from './pages/customer/AskAiPage';
 import LocationPickerPage from './pages/customer/LocationPickerPage';
 import BookingReceiptPage from './pages/customer/BookingReceiptPage';
 import BookingAddressPage from './pages/customer/BookingAddressPage';
@@ -328,6 +329,8 @@ function MainLayout({ walletBalance, currentBooking, setCurrentBooking }) {
             <Route path="/language" element={<LanguageSelectionPage />} />
             <Route path="/feedback" element={<FeedbackPage />} />
             <Route path="/support" element={<SupportHubPage />} />
+            <Route path="/ask-ai" element={<AskAiPage />} />
+            <Route path="/support/ai" element={<Navigate to="/ask-ai" replace />} />
             <Route path="/location" element={<LocationPickerPage />} />
             <Route path="/receipt/:bookingId" element={<BookingReceiptPage />} />
             <Route path="/booking/address" element={<BookingAddressPage />} />
