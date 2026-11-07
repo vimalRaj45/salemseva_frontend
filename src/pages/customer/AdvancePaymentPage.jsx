@@ -55,6 +55,21 @@ export default function AdvancePaymentPage() {
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
+
+    // Fetch and log environment payment settings for verification
+    fetch(`${API_V1_URL}/payments/qr-config`)
+      .then(res => res.json())
+      .then(cfg => {
+        console.log('%c[ADVANCE PAYMENT PAGE - BACKEND QR ENV CONFIG]', 'background: #059669; color: #FFFFFF; font-size: 13px; font-weight: bold; padding: 4px 8px; border-radius: 4px;');
+        console.log('Backend UPI ID from env:', cfg.businessUpiId);
+        console.log('Backend Merchant Name from env:', cfg.businessMerchantName);
+        console.log('Payment Gateway Mode:', cfg.paymentGatewayMode);
+        console.log('Full Platform QR Settings:', cfg);
+      })
+      .catch(err => {
+        console.warn('[ADVANCE PAYMENT PAGE] Unable to log payment QR settings:', err);
+      });
+
     return () => {
       // If customer leaves payment screen without completing payment, purge active booking from storage
       if (!paymentSucceededRef.current) {

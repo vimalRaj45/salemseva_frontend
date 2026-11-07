@@ -66,6 +66,15 @@ export default function DynamicQrPaymentBox({
       setErrorMessage('');
       const res = await fetch(`${API_V1_URL}/payments/qr-intent?bookingId=${encodeURIComponent(bookingId || '')}&amount=${amount}&paymentType=${paymentType}`);
       const data = await res.json();
+
+      // Console log what comes from backend environment
+      console.log('%c[DYNAMIC QR PAGE - BACKEND ENV CONFIG]', 'background: #2563EB; color: #FFFFFF; font-size: 13px; font-weight: bold; padding: 4px 8px; border-radius: 4px;');
+      console.log('1. Business UPI ID (from backend env):', data.businessUpiId);
+      console.log('2. Business Merchant Name (from backend env):', data.businessMerchantName);
+      console.log('3. Dynamic UPI Intent URI:', data.upiUri);
+      console.log('4. Amount:', data.amount);
+      console.log('5. Full Backend Response Payload:', data);
+
       if (data.success && data.upiUri) {
         setUpiUri(data.upiUri);
         setMerchantName(data.businessMerchantName || '');
