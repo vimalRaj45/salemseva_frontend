@@ -252,7 +252,7 @@ export default function AskAiPage() {
         {
           id: `bot_${Date.now()}`,
           sender: 'bot',
-          text: data.reply || 'Support response received.',
+          text: data.reply || 'Hello! I am Ask AI, your Shazu One support assistant. How can I assist you with your booking or technician today?',
           booking: data.booking || null,
           escalateToOps: Boolean(data.escalateToOps),
           opsContact: data.opsContact || opsContact || DEFAULT_OPS_CONTACT,
@@ -281,12 +281,6 @@ export default function AskAiPage() {
   const handleSendMessage = async (textToSend = null) => {
     const query = String(textToSend !== null ? textToSend : inputValue).trim();
     if (!query) return;
-
-    if (!currentUser) {
-      toast.error('Please sign in to chat with Ask AI.');
-      if (typeof openAuthModal === 'function') openAuthModal();
-      return;
-    }
 
     setInputValue('');
     const userMsgId = `msg_${Date.now()}`;
@@ -338,7 +332,7 @@ export default function AskAiPage() {
         {
           id: `bot_${Date.now()}`,
           sender: 'bot',
-          text: data.reply || 'Support response received.',
+          text: data.reply || 'Hello! I am Ask AI, your Shazu One support assistant. How can I assist you with your booking or technician today?',
           booking: data.booking || null,
           escalateToOps: Boolean(data.escalateToOps),
           opsContact: data.opsContact || opsContact || DEFAULT_OPS_CONTACT,

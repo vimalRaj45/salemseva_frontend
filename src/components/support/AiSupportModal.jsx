@@ -62,17 +62,17 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
   // Quick suggestions based on role
   const quickSuggestions = isTechnician
     ? [
-        "Today's assigned jobs",
-        "Check my payout balance",
-        "Emergency dispatch support",
-        "Talk to Salem Ops desk"
-      ]
+      "Today's assigned jobs",
+      "Check my payout balance",
+      "Emergency dispatch support",
+      "Talk to Salem Ops desk"
+    ]
     : [
-        "Where is my technician?",
-        "Show my booking status",
-        "Cancellation and refund rules",
-        "Talk to Salem Ops desk"
-      ];
+      "Where is my technician?",
+      "Show my booking status",
+      "Cancellation and refund rules",
+      "Talk to Salem Ops desk"
+    ];
 
   // Initial welcome message
   useEffect(() => {
@@ -82,7 +82,7 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
           {
             id: 'welcome_login',
             sender: 'bot',
-            text: 'Hello! Ask AI is reserved for logged-in SalemSeva users. Please sign in so I can check your technician location, active bookings, and service receipts.',
+            text: 'Hello! Ask AI is reserved for logged-in Shazu One users. Please sign in so I can check your technician location, active bookings, and service receipts.',
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
           }
         ]);
@@ -243,7 +243,7 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
         {
           id: `bot_${Date.now()}`,
           sender: 'bot',
-          text: data.reply || 'Support response received.',
+          text: data.reply || 'Hello! I am Ask AI, your Shazu One support assistant. How can I assist you with your booking or technician today?',
           escalateToOps: Boolean(data.escalateToOps),
           opsContact: data.opsContact || opsContact || DEFAULT_OPS_CONTACT,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -322,7 +322,7 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
         {
           id: `bot_${Date.now()}`,
           sender: 'bot',
-          text: data.reply || 'Support response received.',
+          text: data.reply || 'Hello! I am Ask AI, your Shazu One support assistant. How can I assist you with your booking or technician today?',
           escalateToOps: Boolean(data.escalateToOps),
           opsContact: data.opsContact || opsContact || DEFAULT_OPS_CONTACT,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -649,7 +649,7 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
             Sign In Required to Chat with Ask AI
           </Typography>
           <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 2, px: 2 }}>
-            Please sign in to your SalemSeva account so Ask AI can locate your assigned technicians, track active bookings, and check payment receipts.
+            Please sign in to your Shazu One account so Ask AI can locate your assigned technicians, track active bookings, and check payment receipts.
           </Typography>
           <Button
             variant="contained"
@@ -668,7 +668,7 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
               '&:hover': { bgcolor: '#1558B0' }
             }}
           >
-            Sign In to SalemSeva
+            Sign In to Shazu One
           </Button>
         </Box>
       ) : (

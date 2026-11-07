@@ -55,7 +55,7 @@ export default function BrandLoadingScreen({
     },
     payment: {
       title: 'Securing Payment...',
-      subtitle: 'Bank-grade 256-bit encryption. 100% protected under SalemSeva Service Guarantee.',
+      subtitle: 'Bank-grade 256-bit encryption. 100% protected under Shazu One Service Guarantee.',
       badge: null
     },
     booking: {

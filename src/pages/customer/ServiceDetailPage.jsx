@@ -95,7 +95,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
   const [selectedIssue, setSelectedIssue] = useState('');
   const [customDescription, setCustomDescription] = useState('');
   const [voiceNoteAudio, setVoiceNoteAudio] = useState(null);
-  
+
   // Coupon state
   const [couponCode, setCouponCode] = useState('');
   const [couponInput, setCouponInput] = useState('');
@@ -117,9 +117,9 @@ export default function ServiceDetailPage({ onStartBooking }) {
   );
   const currentServiceName = serviceInfo?.name || (
     serviceId === 'ac' ? 'AC Repair & Service' :
-    serviceId === 'electrician' ? 'Electrician & Wiring Service' :
-    serviceId === 'plumber' ? 'Plumber & Sanitary Service' :
-    serviceId === 'cleaning' ? 'Home & Deep Cleaning' : 'Doorstep Home Service'
+      serviceId === 'electrician' ? 'Electrician & Wiring Service' :
+        serviceId === 'plumber' ? 'Plumber & Sanitary Service' :
+          serviceId === 'cleaning' ? 'Home & Deep Cleaning' : 'Doorstep Home Service'
   );
   const discountedFee = Math.max(0, inspectionFeeNumber - (couponApplied ? couponDiscount : 0));
   const [isLoadingIssues, setIsLoadingIssues] = useState(true);
@@ -177,8 +177,8 @@ export default function ServiceDetailPage({ onStartBooking }) {
     const fullDateText = isToday
       ? `Today, ${dayNumber} ${monthName}`
       : isTomorrow
-      ? `Tomorrow, ${dayNumber} ${monthName}`
-      : `${date.toLocaleDateString('en-IN', { weekday: 'short' })}, ${dayNumber} ${monthName}`;
+        ? `Tomorrow, ${dayNumber} ${monthName}`
+        : `${date.toLocaleDateString('en-IN', { weekday: 'short' })}, ${dayNumber} ${monthName}`;
 
     return {
       offset: i,
@@ -197,7 +197,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
         const parsed = JSON.parse(saved);
         if (parsed && (parsed.address || parsed.locality)) return parsed;
       }
-    } catch (_) {}
+    } catch (_) { }
     return null;
   });
 
@@ -206,7 +206,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
       try {
         const saved = localStorage.getItem('shazuone_user_location');
         if (saved) setUserLocation(JSON.parse(saved));
-      } catch (_) {}
+      } catch (_) { }
     };
     window.addEventListener('shazuone_location_updated', handleLocUpdate);
     return () => window.removeEventListener('shazuone_location_updated', handleLocUpdate);
@@ -315,7 +315,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
           }
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, [user?.phone, user?.id, user?.isReferred, user?.referredBy, user?.referralsCount, user?.referralCodeUsed]);
 
   const handleApplyCoupon = async (overrideCode) => {
@@ -740,7 +740,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
           currency: 'INR',
           name: 'Shazu One Scheduled Booking',
           description: `Advance Visit Fee Reservation (${currentServiceName})`,
-          image: 'https://salemseva-backend.onrender.com/favicon.png',
+          image: 'https://Shazu One-backend.onrender.com/favicon.png',
           order_id: orderId,
           prefill: {
             name: user?.name || 'Customer',
@@ -797,7 +797,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
   return (
     <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100dvh', pb: { xs: 16, md: 10 } }}>
       <Container maxWidth="md" sx={{ px: { xs: 2, sm: 3, md: 4 }, pt: { xs: 2, md: 3 } }}>
-        
+
         {/* Location selector bar */}
         {(() => {
           const pinMatch = String(userLocation?.pincode || userLocation?.address || '').match(/\b(\d{6})\b/);
@@ -1451,7 +1451,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
               }
             }}
           />
-          
+
           {/* Audio Voice Note for Technician */}
           <VoiceNoteRecorder
             onAudioChange={(audio) => setVoiceNoteAudio(audio)}
@@ -1493,330 +1493,330 @@ export default function ServiceDetailPage({ onStartBooking }) {
               border: '1px solid #E2E8F0'
             }}
           >
-              {/* Step 1: 14-Day Horizontal Scroller + Calendar Picker */}
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.2 }}>
-                <Typography variant="caption" sx={{ fontWeight: 800, color: '#0369A1', textTransform: 'uppercase', fontSize: { xs: '12.5px', sm: '13.5px' } }}>
-                  1. Select Service Date:
-                </Typography>
-                <Button
-                  size="small"
-                  variant="text"
-                  startIcon={<CalendarMonthIcon sx={{ fontSize: 18 }} />}
-                  onClick={() => dateInputRef.current && (dateInputRef.current.showPicker ? dateInputRef.current.showPicker() : dateInputRef.current.click())}
-                  sx={{
-                    color: '#0284C7',
-                    fontWeight: 800,
-                    fontSize: { xs: '12.5px', sm: '13.5px' },
-                    textTransform: 'none',
-                    p: 0,
-                    minWidth: 0
-                  }}
-                >
-                  Pick from Calendar
-                </Button>
-                <input
-                  type="date"
-                  ref={dateInputRef}
-                  min={todayISO}
-                  value={selectedDateISO}
-                  onChange={(e) => {
-                    if (e.target.value) setSelectedDateISO(e.target.value);
-                  }}
-                  style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0 }}
-                />
-              </Box>
-
-              {/* Horizontal Scrollable 14-Day Date Strip */}
-              <Box
+            {/* Step 1: 14-Day Horizontal Scroller + Calendar Picker */}
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.2 }}>
+              <Typography variant="caption" sx={{ fontWeight: 800, color: '#0369A1', textTransform: 'uppercase', fontSize: { xs: '12.5px', sm: '13.5px' } }}>
+                1. Select Service Date:
+              </Typography>
+              <Button
+                size="small"
+                variant="text"
+                startIcon={<CalendarMonthIcon sx={{ fontSize: 18 }} />}
+                onClick={() => dateInputRef.current && (dateInputRef.current.showPicker ? dateInputRef.current.showPicker() : dateInputRef.current.click())}
                 sx={{
-                  display: 'flex',
-                  gap: 1.2,
-                  overflowX: 'auto',
-                  pb: 1.2,
-                  mb: 1.5,
-                  '::-webkit-scrollbar': { height: '5px' },
-                  '::-webkit-scrollbar-thumb': { bgcolor: '#CBD5E1', borderRadius: '4px' }
+                  color: '#0284C7',
+                  fontWeight: 800,
+                  fontSize: { xs: '12.5px', sm: '13.5px' },
+                  textTransform: 'none',
+                  p: 0,
+                  minWidth: 0
                 }}
               >
-                {availableDates.map((d) => {
-                  const isSelected = selectedDateISO === d.iso;
-                  const dateInfo = domainAvailability.dates?.[d.iso];
-                  const isDateFull = Boolean(dateInfo?.isFullyBooked);
+                Pick from Calendar
+              </Button>
+              <input
+                type="date"
+                ref={dateInputRef}
+                min={todayISO}
+                value={selectedDateISO}
+                onChange={(e) => {
+                  if (e.target.value) setSelectedDateISO(e.target.value);
+                }}
+                style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0 }}
+              />
+            </Box>
 
-                  return (
-                    <Paper
-                      key={d.iso}
-                      elevation={0}
-                      onClick={() => setSelectedDateISO(d.iso)}
+            {/* Horizontal Scrollable 14-Day Date Strip */}
+            <Box
+              sx={{
+                display: 'flex',
+                gap: 1.2,
+                overflowX: 'auto',
+                pb: 1.2,
+                mb: 1.5,
+                '::-webkit-scrollbar': { height: '5px' },
+                '::-webkit-scrollbar-thumb': { bgcolor: '#CBD5E1', borderRadius: '4px' }
+              }}
+            >
+              {availableDates.map((d) => {
+                const isSelected = selectedDateISO === d.iso;
+                const dateInfo = domainAvailability.dates?.[d.iso];
+                const isDateFull = Boolean(dateInfo?.isFullyBooked);
+
+                return (
+                  <Paper
+                    key={d.iso}
+                    elevation={0}
+                    onClick={() => setSelectedDateISO(d.iso)}
+                    sx={{
+                      minWidth: '74px',
+                      p: '10px 8px',
+                      borderRadius: '10px',
+                      cursor: 'pointer',
+                      textAlign: 'center',
+                      flexShrink: 0,
+                      position: 'relative',
+                      border: isSelected
+                        ? (isDateFull ? '2px solid #DC2626' : '2px solid #0284C7')
+                        : (isDateFull ? '1.5px solid #FCA5A5' : '1px solid #E2E8F0'),
+                      bgcolor: isSelected
+                        ? (isDateFull ? '#DC2626' : '#0284C7')
+                        : (isDateFull ? '#FEF2F2' : '#FFFFFF'),
+                      color: isSelected ? '#FFFFFF' : (isDateFull ? '#991B1B' : '#0F172A'),
+                      transition: 'all 0.15s ease',
+                      boxShadow: isSelected ? '0 4px 12px rgba(2, 132, 199, 0.25)' : 'none',
+                      '&:hover': {
+                        borderColor: isDateFull ? '#DC2626' : '#0284C7',
+                        bgcolor: isSelected
+                          ? (isDateFull ? '#DC2626' : '#0284C7')
+                          : (isDateFull ? '#FEE2E2' : '#F0F9FF')
+                      }
+                    }}
+                  >
+                    {isDateFull && (
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: -6,
+                          right: -4,
+                          bgcolor: '#DC2626',
+                          color: '#FFFFFF',
+                          fontSize: '9px',
+                          fontWeight: 900,
+                          px: 0.6,
+                          py: 0.1,
+                          borderRadius: '4px',
+                          letterSpacing: '0.3px',
+                          boxShadow: '0 2px 4px rgba(220, 38, 38, 0.25)'
+                        }}
+                      >
+                        FULL
+                      </Box>
+                    )}
+                    <Typography
+                      variant="caption"
                       sx={{
-                        minWidth: '74px',
-                        p: '10px 8px',
-                        borderRadius: '10px',
-                        cursor: 'pointer',
-                        textAlign: 'center',
-                        flexShrink: 0,
-                        position: 'relative',
-                        border: isSelected 
-                          ? (isDateFull ? '2px solid #DC2626' : '2px solid #0284C7')
-                          : (isDateFull ? '1.5px solid #FCA5A5' : '1px solid #E2E8F0'),
-                        bgcolor: isSelected 
-                          ? (isDateFull ? '#DC2626' : '#0284C7') 
-                          : (isDateFull ? '#FEF2F2' : '#FFFFFF'),
-                        color: isSelected ? '#FFFFFF' : (isDateFull ? '#991B1B' : '#0F172A'),
-                        transition: 'all 0.15s ease',
-                        boxShadow: isSelected ? '0 4px 12px rgba(2, 132, 199, 0.25)' : 'none',
-                        '&:hover': {
-                          borderColor: isDateFull ? '#DC2626' : '#0284C7',
-                          bgcolor: isSelected 
-                            ? (isDateFull ? '#DC2626' : '#0284C7') 
-                            : (isDateFull ? '#FEE2E2' : '#F0F9FF')
-                        }
+                        display: 'block',
+                        fontSize: '11.5px',
+                        fontWeight: 800,
+                        letterSpacing: '0.3px',
+                        color: isSelected ? '#E0F2FE' : (isDateFull ? '#B91C1C' : '#64748B')
                       }}
                     >
-                      {isDateFull && (
-                        <Box
-                          sx={{
-                            position: 'absolute',
-                            top: -6,
-                            right: -4,
-                            bgcolor: '#DC2626',
-                            color: '#FFFFFF',
-                            fontSize: '9px',
-                            fontWeight: 900,
-                            px: 0.6,
-                            py: 0.1,
-                            borderRadius: '4px',
-                            letterSpacing: '0.3px',
-                            boxShadow: '0 2px 4px rgba(220, 38, 38, 0.25)'
-                          }}
-                        >
-                          FULL
-                        </Box>
-                      )}
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          display: 'block',
-                          fontSize: '11.5px',
-                          fontWeight: 800,
-                          letterSpacing: '0.3px',
-                          color: isSelected ? '#E0F2FE' : (isDateFull ? '#B91C1C' : '#64748B')
-                        }}
-                      >
-                        {d.dayName}
-                      </Typography>
-                      <Typography
-                        variant="subtitle1"
-                        sx={{
-                          fontWeight: 900,
-                          fontSize: { xs: '19px', sm: '21px' },
-                          lineHeight: 1.2,
-                          my: 0.3,
-                          color: isSelected ? '#FFFFFF' : (isDateFull ? '#991B1B' : '#0F172A')
-                        }}
-                      >
-                        {d.dayNumber}
-                      </Typography>
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          display: 'block',
-                          fontSize: '11px',
-                          fontWeight: 700,
-                          color: isSelected ? '#E0F2FE' : (isDateFull ? '#DC2626' : '#94A3B8')
-                        }}
-                      >
-                        {isDateFull ? 'BOOKED' : d.monthName}
-                      </Typography>
-                    </Paper>
-                  );
-                })}
-              </Box>
-
-              {/* Alert if selected date is fully booked */}
-              {isSelectedDateFull && (
-                <Paper
-                  elevation={0}
-                  sx={{
-                    p: 1.4,
-                    bgcolor: '#FEF2F2',
-                    border: '1.5px solid #FCA5A5',
-                    borderRadius: '8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1.2,
-                    mb: 1.8
-                  }}
-                >
-                  <WarningAmberIcon sx={{ color: '#DC2626', fontSize: 24, flexShrink: 0 }} />
-                  <Box>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#991B1B', fontSize: { xs: '13px', sm: '14px' } }}>
-                      All technicians are booked on this date.
+                      {d.dayName}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: '#B91C1C', fontSize: { xs: '12px', sm: '12.5px' }, display: 'block' }}>
-                      Please choose another date from the schedule ribbon above to reserve your slot.
+                    <Typography
+                      variant="subtitle1"
+                      sx={{
+                        fontWeight: 900,
+                        fontSize: { xs: '19px', sm: '21px' },
+                        lineHeight: 1.2,
+                        my: 0.3,
+                        color: isSelected ? '#FFFFFF' : (isDateFull ? '#991B1B' : '#0F172A')
+                      }}
+                    >
+                      {d.dayNumber}
                     </Typography>
-                  </Box>
-                </Paper>
-              )}
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        display: 'block',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        color: isSelected ? '#E0F2FE' : (isDateFull ? '#DC2626' : '#94A3B8')
+                      }}
+                    >
+                      {isDateFull ? 'BOOKED' : d.monthName}
+                    </Typography>
+                  </Paper>
+                );
+              })}
+            </Box>
 
-              {/* Selected Date Indicator Banner */}
-              <Box
+            {/* Alert if selected date is fully booked */}
+            {isSelectedDateFull && (
+              <Paper
+                elevation={0}
                 sx={{
+                  p: 1.4,
+                  bgcolor: '#FEF2F2',
+                  border: '1.5px solid #FCA5A5',
+                  borderRadius: '8px',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'space-between',
-                  p: '8px 12px',
-                  bgcolor: isSelectedDateFull ? '#FEF2F2' : '#EFF6FF',
-                  borderRadius: '8px',
-                  border: isSelectedDateFull ? '1px solid #FECACA' : '1px solid #BFDBFE',
-                  mb: 2
+                  gap: 1.2,
+                  mb: 1.8
                 }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                  <EventIcon sx={{ color: isSelectedDateFull ? '#DC2626' : '#0284C7', fontSize: 18 }} />
-                  <Typography variant="caption" sx={{ color: isSelectedDateFull ? '#991B1B' : '#0369A1', fontWeight: 800, fontSize: { xs: '13px', sm: '14px' } }}>
-                    Selected Date: <strong>{getFormattedDateString()}</strong> {isSelectedDateFull ? '(Fully Booked)' : ''}
+                <WarningAmberIcon sx={{ color: '#DC2626', fontSize: 24, flexShrink: 0 }} />
+                <Box>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#991B1B', fontSize: { xs: '13px', sm: '14px' } }}>
+                    All technicians are booked on this date.
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#B91C1C', fontSize: { xs: '12px', sm: '12.5px' }, display: 'block' }}>
+                    Please choose another date from the schedule ribbon above to reserve your slot.
                   </Typography>
                 </Box>
-                <Button
-                  size="small"
-                  variant="text"
-                  onClick={() => dateInputRef.current && (dateInputRef.current.showPicker ? dateInputRef.current.showPicker() : dateInputRef.current.click())}
-                  sx={{ p: 0, minWidth: 0, fontSize: { xs: '12px', sm: '13px' }, fontWeight: 700, color: isSelectedDateFull ? '#DC2626' : '#0284C7', textTransform: 'none' }}
-                >
-                  Change Date
-                </Button>
-              </Box>
+              </Paper>
+            )}
 
-              {/* Step 2: Time Slots + Custom Time */}
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.2 }}>
-                <Typography variant="caption" sx={{ fontWeight: 800, color: '#0369A1', textTransform: 'uppercase', fontSize: { xs: '12.5px', sm: '13.5px' } }}>
-                  2. Select Time Window or Custom Time:
+            {/* Selected Date Indicator Banner */}
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                p: '8px 12px',
+                bgcolor: isSelectedDateFull ? '#FEF2F2' : '#EFF6FF',
+                borderRadius: '8px',
+                border: isSelectedDateFull ? '1px solid #FECACA' : '1px solid #BFDBFE',
+                mb: 2
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                <EventIcon sx={{ color: isSelectedDateFull ? '#DC2626' : '#0284C7', fontSize: 18 }} />
+                <Typography variant="caption" sx={{ color: isSelectedDateFull ? '#991B1B' : '#0369A1', fontWeight: 800, fontSize: { xs: '13px', sm: '14px' } }}>
+                  Selected Date: <strong>{getFormattedDateString()}</strong> {isSelectedDateFull ? '(Fully Booked)' : ''}
                 </Typography>
               </Box>
+              <Button
+                size="small"
+                variant="text"
+                onClick={() => dateInputRef.current && (dateInputRef.current.showPicker ? dateInputRef.current.showPicker() : dateInputRef.current.click())}
+                sx={{ p: 0, minWidth: 0, fontSize: { xs: '12px', sm: '13px' }, fontWeight: 700, color: isSelectedDateFull ? '#DC2626' : '#0284C7', textTransform: 'none' }}
+              >
+                Change Date
+              </Button>
+            </Box>
 
-              <Grid container spacing={1.2} sx={{ mb: 1.5 }}>
-                {timeSlots.map(slot => {
-                  const isSlotActive = !isCustomTimeActive && selectedSlot === slot.label;
-                  const slotStatus = currentDateStatus?.slots?.[slot.label];
-                  const isSlotFull = Boolean(slotStatus?.isFull);
+            {/* Step 2: Time Slots + Custom Time */}
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.2 }}>
+              <Typography variant="caption" sx={{ fontWeight: 800, color: '#0369A1', textTransform: 'uppercase', fontSize: { xs: '12.5px', sm: '13.5px' } }}>
+                2. Select Time Window or Custom Time:
+              </Typography>
+            </Box>
 
-                  return (
-                    <Grid item xs={6} key={slot.id}>
-                      <Paper
-                        elevation={0}
-                        onClick={() => {
-                          if (isSlotFull || isSelectedDateFull) {
-                            toast.error('This slot is fully booked. Please pick another slot or date.');
-                            return;
-                          }
-                          setIsCustomTimeActive(false);
-                          setSelectedSlot(slot.label);
-                        }}
-                        sx={{
-                          p: { xs: 1.2, sm: 1.4 },
-                          borderRadius: '8px',
-                          cursor: (isSlotFull || isSelectedDateFull) ? 'not-allowed' : 'pointer',
-                          opacity: (isSlotFull || isSelectedDateFull) ? 0.6 : 1,
-                          border: isSlotActive 
-                            ? '1.5px solid #0284C7' 
-                            : (isSlotFull ? '1px dashed #CBD5E1' : '1px solid #E2E8F0'),
-                          bgcolor: isSlotActive 
-                            ? '#E0F2FE' 
-                            : (isSlotFull ? '#F8FAFC' : '#FFFFFF'),
-                          transition: 'all 0.15s ease',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: 0.4
-                        }}
-                      >
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <Typography variant="caption" sx={{ fontWeight: 800, color: isSlotActive ? '#0369A1' : (isSlotFull ? '#64748B' : '#0F172A'), fontSize: { xs: '13px', sm: '14px' } }}>
-                            {slot.label}
-                          </Typography>
-                          {isSlotActive && <CheckCircleIcon sx={{ fontSize: 16, color: '#0284C7' }} />}
-                          {isSlotFull && (
-                            <Chip label="Full" size="small" sx={{ height: 18, fontSize: '10px', fontWeight: 800, bgcolor: '#FEE2E2', color: '#991B1B' }} />
-                          )}
-                        </Box>
-                        <Typography variant="caption" sx={{ color: '#64748B', fontSize: { xs: '11.5px', sm: '12.5px' } }}>
-                          {isSlotFull ? 'All specialists assigned' : `${slot.period} ${slot.popular ? '• Popular' : ''}`}
+            <Grid container spacing={1.2} sx={{ mb: 1.5 }}>
+              {timeSlots.map(slot => {
+                const isSlotActive = !isCustomTimeActive && selectedSlot === slot.label;
+                const slotStatus = currentDateStatus?.slots?.[slot.label];
+                const isSlotFull = Boolean(slotStatus?.isFull);
+
+                return (
+                  <Grid item xs={6} key={slot.id}>
+                    <Paper
+                      elevation={0}
+                      onClick={() => {
+                        if (isSlotFull || isSelectedDateFull) {
+                          toast.error('This slot is fully booked. Please pick another slot or date.');
+                          return;
+                        }
+                        setIsCustomTimeActive(false);
+                        setSelectedSlot(slot.label);
+                      }}
+                      sx={{
+                        p: { xs: 1.2, sm: 1.4 },
+                        borderRadius: '8px',
+                        cursor: (isSlotFull || isSelectedDateFull) ? 'not-allowed' : 'pointer',
+                        opacity: (isSlotFull || isSelectedDateFull) ? 0.6 : 1,
+                        border: isSlotActive
+                          ? '1.5px solid #0284C7'
+                          : (isSlotFull ? '1px dashed #CBD5E1' : '1px solid #E2E8F0'),
+                        bgcolor: isSlotActive
+                          ? '#E0F2FE'
+                          : (isSlotFull ? '#F8FAFC' : '#FFFFFF'),
+                        transition: 'all 0.15s ease',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 0.4
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Typography variant="caption" sx={{ fontWeight: 800, color: isSlotActive ? '#0369A1' : (isSlotFull ? '#64748B' : '#0F172A'), fontSize: { xs: '13px', sm: '14px' } }}>
+                          {slot.label}
                         </Typography>
-                      </Paper>
-                    </Grid>
-                  );
-                })}
-              </Grid>
+                        {isSlotActive && <CheckCircleIcon sx={{ fontSize: 16, color: '#0284C7' }} />}
+                        {isSlotFull && (
+                          <Chip label="Full" size="small" sx={{ height: 18, fontSize: '10px', fontWeight: 800, bgcolor: '#FEE2E2', color: '#991B1B' }} />
+                        )}
+                      </Box>
+                      <Typography variant="caption" sx={{ color: '#64748B', fontSize: { xs: '11.5px', sm: '12.5px' } }}>
+                        {isSlotFull ? 'All specialists assigned' : `${slot.period} ${slot.popular ? '• Popular' : ''}`}
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                );
+              })}
+            </Grid>
 
-              {/* Custom Specific Time Picker Input */}
-              <Paper
-                elevation={0}
-                onClick={() => setIsCustomTimeActive(true)}
-                sx={{
-                  p: { xs: 1.2, sm: 1.5 },
-                  borderRadius: '8px',
-                  border: isCustomTimeActive ? '1.5px solid #0284C7' : '1px solid #E2E8F0',
-                  bgcolor: isCustomTimeActive ? '#E0F2FE' : '#FFFFFF',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  mb: 2,
+            {/* Custom Specific Time Picker Input */}
+            <Paper
+              elevation={0}
+              onClick={() => setIsCustomTimeActive(true)}
+              sx={{
+                p: { xs: 1.2, sm: 1.5 },
+                borderRadius: '8px',
+                border: isCustomTimeActive ? '1.5px solid #0284C7' : '1px solid #E2E8F0',
+                bgcolor: isCustomTimeActive ? '#E0F2FE' : '#FFFFFF',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                mb: 2,
+                cursor: 'pointer'
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <AccessTimeIcon sx={{ color: isCustomTimeActive ? '#0284C7' : '#64748B', fontSize: 20 }} />
+                <Box>
+                  <Typography variant="caption" sx={{ fontWeight: 800, color: isCustomTimeActive ? '#0369A1' : '#0F172A', fontSize: { xs: '13px', sm: '14px' }, display: 'block' }}>
+                    Specify Exact Custom Time (Optional)
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#64748B', fontSize: { xs: '12px', sm: '13px' } }}>
+                    {customTime ? `Chosen: ${getEffectiveSlot()}` : 'Pick an exact arrival time'}
+                  </Typography>
+                </Box>
+              </Box>
+
+              <input
+                type="time"
+                value={customTime}
+                onFocus={() => setIsCustomTimeActive(true)}
+                onChange={(e) => {
+                  setCustomTime(e.target.value);
+                  setIsCustomTimeActive(true);
+                }}
+                style={{
+                  padding: '6px 10px',
+                  borderRadius: '6px',
+                  border: '1px solid #CBD5E1',
+                  fontSize: '13.5px',
+                  fontWeight: '700',
+                  color: '#0F172A',
+                  backgroundColor: '#F8FAFC',
                   cursor: 'pointer'
                 }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <AccessTimeIcon sx={{ color: isCustomTimeActive ? '#0284C7' : '#64748B', fontSize: 20 }} />
-                  <Box>
-                    <Typography variant="caption" sx={{ fontWeight: 800, color: isCustomTimeActive ? '#0369A1' : '#0F172A', fontSize: { xs: '13px', sm: '14px' }, display: 'block' }}>
-                      Specify Exact Custom Time (Optional)
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: '#64748B', fontSize: { xs: '12px', sm: '13px' } }}>
-                      {customTime ? `Chosen: ${getEffectiveSlot()}` : 'Pick an exact arrival time'}
-                    </Typography>
-                  </Box>
-                </Box>
+              />
+            </Paper>
 
-                <input
-                  type="time"
-                  value={customTime}
-                  onFocus={() => setIsCustomTimeActive(true)}
-                  onChange={(e) => {
-                    setCustomTime(e.target.value);
-                    setIsCustomTimeActive(true);
-                  }}
-                  style={{
-                    padding: '6px 10px',
-                    borderRadius: '6px',
-                    border: '1px solid #CBD5E1',
-                    fontSize: '13.5px',
-                    fontWeight: '700',
-                    color: '#0F172A',
-                    backgroundColor: '#F8FAFC',
-                    cursor: 'pointer'
-                  }}
-                />
-              </Paper>
-
-              {/* Admin Dispatch Notice */}
-              <Paper
-                elevation={0}
-                sx={{
-                  p: { xs: 1.2, sm: 1.5 },
-                  bgcolor: '#FFFFFF',
-                  borderRadius: '8px',
-                  border: '1px dashed #BAE6FD',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1.2
-                }}
-              >
-                <AdminPanelSettingsIcon sx={{ color: '#0284C7', fontSize: 22, flexShrink: 0 }} />
-                <Typography variant="caption" sx={{ color: '#334155', fontSize: { xs: '12px', sm: '13px' }, lineHeight: 1.45 }}>
-                  <strong>Admin Operations Queue:</strong> Once booked, this slot request is forwarded directly to the Salem Central Admin Board. Our operations desk assigns a certified technician for your scheduled window.
-                </Typography>
-              </Paper>
-            </Box>
+            {/* Admin Dispatch Notice */}
+            <Paper
+              elevation={0}
+              sx={{
+                p: { xs: 1.2, sm: 1.5 },
+                bgcolor: '#FFFFFF',
+                borderRadius: '8px',
+                border: '1px dashed #BAE6FD',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1.2
+              }}
+            >
+              <AdminPanelSettingsIcon sx={{ color: '#0284C7', fontSize: 22, flexShrink: 0 }} />
+              <Typography variant="caption" sx={{ color: '#334155', fontSize: { xs: '12px', sm: '13px' }, lineHeight: 1.45 }}>
+                <strong>Admin Operations Queue:</strong> Once booked, this slot request is forwarded directly to the Salem Central Admin Board. Our operations desk assigns a certified technician for your scheduled window.
+              </Typography>
+            </Paper>
+          </Box>
         </Card>
 
         {/* Quality & Guarantees Accordion Section */}
@@ -2003,11 +2003,11 @@ export default function ServiceDetailPage({ onStartBooking }) {
             onClick={handleProceed}
             endIcon={!isDomainTemporarilyClosed && !isSelectedDateFull ? <ArrowForwardIcon sx={{ fontSize: { xs: 16, sm: 18 } }} /> : undefined}
             sx={{
-              bgcolor: isDomainTemporarilyClosed 
-                ? '#94A3B8' 
-                : isSelectedDateFull 
-                ? '#DC2626' 
-                : '#0284C7',
+              bgcolor: isDomainTemporarilyClosed
+                ? '#94A3B8'
+                : isSelectedDateFull
+                  ? '#DC2626'
+                  : '#0284C7',
               color: '#FFFFFF',
               borderRadius: '8px',
               fontWeight: 800,
@@ -2032,8 +2032,8 @@ export default function ServiceDetailPage({ onStartBooking }) {
             {isDomainTemporarilyClosed
               ? 'Closed'
               : isSelectedDateFull
-              ? 'Full'
-              : `Pay ₹${discountedFee} & Book`}
+                ? 'Full'
+                : `Pay ₹${discountedFee} & Book`}
           </Button>
         </Container>
       </Paper>
@@ -2262,4 +2262,3 @@ export default function ServiceDetailPage({ onStartBooking }) {
     </Box>
   );
 }
-  

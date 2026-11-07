@@ -84,13 +84,13 @@ import PwaInstallPrompt from './components/PwaInstallPrompt';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Capacitor } from '@capacitor/core';
 
-// ── Phase 4: One-time localStorage key migration SalemSeva → Shazu One ───────
-// Runs once per device. Migrates all salemseva_ prefixed keys to shazuone_
+// ── Phase 4: One-time localStorage key migration Shazu One → Shazu One ───────
+// Runs once per device. Migrates all Shazu One_ prefixed keys to shazuone_
 // so existing users do not lose their saved sessions or state.
 (function migrateLocalStorageKeys() {
   try {
     if (localStorage.getItem('__shazuone_migrated__')) return;
-    const OLD_PREFIX = 'salemseva_';
+    const OLD_PREFIX = 'Shazu One_';
     const NEW_PREFIX = 'shazuone_';
     Object.keys(localStorage).forEach(key => {
       if (key.startsWith(OLD_PREFIX)) {
@@ -123,7 +123,7 @@ function CustomerActiveJobGuard({ children }) {
 
     // Only guard customer browsing routes (home, service catalog exploration)
     const isCustomerRoute = !location.pathname.startsWith('/partner') && !location.pathname.startsWith('/admin');
-    
+
     // Explicit list of all active-job flow screens, VoIP call, masked chat, booking management & utility pages
     const isExemptRoute = [
       '/matching',
@@ -153,7 +153,7 @@ function CustomerActiveJobGuard({ children }) {
       '/partner',
       '/admin'
     ].some(p => location.pathname.startsWith(p));
-    
+
     if (!isCustomerRoute || isExemptRoute) return;
 
     const activeBookingId = localStorage.getItem('shazuone_active_booking');
@@ -461,50 +461,50 @@ function AppContent() {
           setCurrentBooking={setCurrentBooking}
         />
 
-      {/* PWA Floating Install Prompt */}
-      <PwaInstallPrompt />
+        {/* PWA Floating Install Prompt */}
+        <PwaInstallPrompt />
 
-      {/* Global React Hot Toast Notifier - Single-Line Clean Bottom-Left Toast */}
-      <Toaster
-        position="bottom-left"
-        containerStyle={{
-          bottom: 20,
-          left: 20,
-        }}
-        toastOptions={{
-          duration: 3200,
-          style: {
-            background: '#0F172A',
-            color: '#FFFFFF',
-            fontSize: '12px',
-            fontWeight: 600,
-            borderRadius: '8px',
-            padding: '8px 18px',
-            boxShadow: '0 6px 20px rgba(0, 0, 0, 0.22)',
-            border: '1px solid #334155',
-            maxWidth: 'min(580px, calc(100vw - 36px))',
-            whiteSpace: 'nowrap',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            lineHeight: 1.4,
-            letterSpacing: '0.1px'
-          },
-          success: {
-            iconTheme: {
-              primary: '#10B981',
-              secondary: '#FFFFFF',
+        {/* Global React Hot Toast Notifier - Single-Line Clean Bottom-Left Toast */}
+        <Toaster
+          position="bottom-left"
+          containerStyle={{
+            bottom: 20,
+            left: 20,
+          }}
+          toastOptions={{
+            duration: 3200,
+            style: {
+              background: '#0F172A',
+              color: '#FFFFFF',
+              fontSize: '12px',
+              fontWeight: 600,
+              borderRadius: '8px',
+              padding: '8px 18px',
+              boxShadow: '0 6px 20px rgba(0, 0, 0, 0.22)',
+              border: '1px solid #334155',
+              maxWidth: 'min(580px, calc(100vw - 36px))',
+              whiteSpace: 'nowrap',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              lineHeight: 1.4,
+              letterSpacing: '0.1px'
             },
-          },
-          error: {
-            iconTheme: {
-              primary: '#EF4444',
-              secondary: '#FFFFFF',
+            success: {
+              iconTheme: {
+                primary: '#10B981',
+                secondary: '#FFFFFF',
+              },
             },
-          },
-        }}
-      />
-    </BrowserRouter>
+            error: {
+              iconTheme: {
+                primary: '#EF4444',
+                secondary: '#FFFFFF',
+              },
+            },
+          }}
+        />
+      </BrowserRouter>
     </>
   );
 }

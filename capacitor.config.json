@@ -11,7 +11,7 @@
       "api.razorpay.com",
       "checkout.razorpay.com",
       "*.onrender.com",
-      "salemseva-backend.onrender.com"
+      "Shazu One-backend.onrender.com"
     ]
   },
   "plugins": {

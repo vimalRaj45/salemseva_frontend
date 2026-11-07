@@ -174,7 +174,7 @@ export default function CheckoutPage() {
         }
       }).then((handle) => {
         nativeListener = handle;
-      }).catch(() => {});
+      }).catch(() => { });
     } catch (e) {
       // Browser fallback
     }
@@ -241,9 +241,9 @@ export default function CheckoutPage() {
           key: keyId,
           amount: rzpAmountPaise,
           currency: 'INR',
-          name: 'SalemSeva Home Services',
+          name: 'Shazu One Home Services',
           description: `Service Payment Authorization (${bookingId})`,
-          image: 'https://salemseva-backend.onrender.com/favicon.png',
+          image: 'https://Shazu One-backend.onrender.com/favicon.png',
           order_id: orderId,
           prefill: {
             name: user?.name || 'Customer',
@@ -315,7 +315,7 @@ export default function CheckoutPage() {
   return (
     <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100dvh', pb: 10 }}>
       <Container maxWidth="sm" sx={{ px: 2, pt: 2 }}>
-        
+
         {/* 1. Job Diagnosis Authorized Top Card */}
         <Card
           elevation={0}

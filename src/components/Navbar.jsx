@@ -328,7 +328,7 @@ export default function Navbar({
 
       <div
         style={{
-          maxWidth: '1200px',
+          maxWidth: '1400px',
           width: '100%',
           height: isMobile ? '56px' : '72px',
           boxSizing: 'border-box',
@@ -424,7 +424,7 @@ export default function Navbar({
 
           {/* ================= 2. CENTER: ROLE ADAPTIVE ACTION / SEARCH BAR (DESKTOP) ================= */}
           {!isMobile && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: '220px', maxWidth: '480px' }}>
               
               {/* --- CASE A: CUSTOMER OR GUEST: Locality Pill + Search --- */}
               {(!isTechnician && !isAdmin) && (
@@ -560,7 +560,7 @@ export default function Navbar({
                   </div>
 
                   {/* Global Search Bar */}
-                  <form onSubmit={handleSearchSubmit} style={{ flex: 1, maxWidth: '420px', minWidth: 0, margin: 0 }}>
+                  <form onSubmit={handleSearchSubmit} style={{ flex: 1, maxWidth: '420px', minWidth: '140px', margin: 0 }}>
                     <div
                       style={{
                         display: 'flex',
@@ -1065,7 +1065,7 @@ export default function Navbar({
               <>
                 <button
                   type="button"
-                  className="hidden xl:inline-flex"
+                  className="hidden 2xl:inline-flex"
                   onClick={() => navigate('/how-it-works')}
                   style={{
                     alignItems: 'center',
@@ -1182,9 +1182,9 @@ export default function Navbar({
                 target="_blank"
                 rel="noopener noreferrer"
                 download="ShazuOne.apk"
+                className="hidden xl:inline-flex"
                 title="Download Shazu One Android App (APK)"
                 style={{
-                  display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
                   height: '40px',

@@ -44,7 +44,7 @@ export async function openRazorpay(options) {
         currency: options.currency || 'INR',
         name: options.name || 'Shazu One',
         description: options.description || 'Service Booking Payment Authorization',
-        image: options.image || 'https://salemseva-backend.onrender.com/favicon.png',
+        image: options.image || 'https://Shazu One-backend.onrender.com/favicon.png',
         order_id: options.order_id,
         prefill: {
           name: options.prefill?.name || 'Customer',
@@ -59,7 +59,7 @@ export async function openRazorpay(options) {
 
       const result = await Checkout.open(nativeOptions);
       console.log('[RazorpayService] Native Android payment result:', result);
-      
+
       const payload = result?.response || result || {};
       const paymentId = payload.razorpay_payment_id || payload.payment_id;
       const orderId = payload.razorpay_order_id || payload.order_id || options.order_id;
