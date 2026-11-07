@@ -14,7 +14,7 @@ import {
   CircularProgress,
   IconButton
 } from '@mui/material';
-import { ArrowLeft, AlertTriangle, CheckCircle, ShieldAlert, ArrowRight } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, CheckCircle, ShieldAlert, ArrowRight, Lock, Phone, MessageCircle, Clock } from 'lucide-react';
 import { API_V1_URL } from '../../config';
 
 const CANCEL_REASONS = [
@@ -37,6 +37,8 @@ export default function BookingCancelPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [cancelResult, setCancelResult] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
+  const [isWindowLocked, setIsWindowLocked] = useState(false);
+  const [lockDetails, setLockDetails] = useState(null);
 
   // Fetch booking details
   useEffect(() => {
@@ -49,6 +51,37 @@ export default function BookingCancelPage() {
         if (isMounted) {
           if (d.success && d.booking) {
             setBookingInfo(d.booking);
+
+            // Pre-evaluate 24-hour cancellation cutoff window
+            const slotStr = String(d.booking.scheduled_slot || '').toLowerCase();
+            const isUrgent = Boolean(d.booking.is_urgent_dispatch || slotStr.includes('emergency'));
+            const dateMatch = slotStr.match(/\b(202\d)-(\d{2})-(\d{2})\b/);
+            let appointmentTime = null;
+
+            if (isUrgent) {
+              appointmentTime = new Date(Date.now() + 60 * 60 * 1000);
+            } else if (dateMatch) {
+              appointmentTime = new Date(`${dateMatch[1]}-${dateMatch[2]}-${dateMatch[3]}T10:00:00`);
+            } else if (slotStr.includes('today')) {
+              appointmentTime = new Date();
+            } else if (slotStr.includes('tomorrow')) {
+              appointmentTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
+            }
+
+            if (appointmentTime) {
+              const hoursLeft = (appointmentTime.getTime() - Date.now()) / (1000 * 60 * 60);
+              if (hoursLeft < 24) {
+                setIsWindowLocked(true);
+                setLockDetails({
+                  policyReason: 'Under Shazu One policy, cancellations are only available at least 24 hours prior to the scheduled service appointment.',
+                  hoursRemaining: Math.max(0, Math.round(hoursLeft)),
+                  opsContact: {
+                    phone: '+918807099288',
+                    whatsappUrl: `https://wa.me/918807099288?text=${encodeURIComponent(`Hello Shazu One Ops Desk, I need assistance with booking #${bookingId}`)}`
+                  }
+                });
+              }
+            }
           }
           setIsLoading(false);
         }
@@ -100,6 +133,17 @@ export default function BookingCancelPage() {
           }
         );
       } else {
+        if (data.code === 'CANCELLATION_WINDOW_EXPIRED') {
+          setIsWindowLocked(true);
+          setLockDetails({
+            policyReason: data.policyReason || data.error,
+            hoursRemaining: data.hoursRemaining || 0,
+            opsContact: data.opsContact || {
+              phone: '+918807099288',
+              whatsappUrl: `https://wa.me/918807099288?text=${encodeURIComponent(`Hello Shazu One Ops Desk, I need emergency assistance with booking #${bookingId}`)}`
+            }
+          });
+        }
         setErrorMessage(data.error || 'Unable to cancel booking. Please try again or contact Salem Ops.');
       }
     } catch (err) {
@@ -338,6 +382,121 @@ export default function BookingCancelPage() {
               Return to Home
             </Button>
           </Paper>
+        ) : isWindowLocked ? (
+          /* 24-Hour Policy Lock Notice Screen */
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                borderRadius: '16px',
+                border: '1px solid #FECACA',
+                bgcolor: '#FFFFFF',
+                textAlign: 'center'
+              }}
+            >
+              <Box
+                sx={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: '50%',
+                  bgcolor: '#FEF2F2',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mx: 'auto',
+                  mb: 2
+                }}
+              >
+                <Lock size={28} color="#DC2626" />
+              </Box>
+
+              <Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A', mb: 1 }}>
+                Cancellation Window Closed
+              </Typography>
+
+              <Typography sx={{ color: '#475569', fontSize: '13.5px', lineHeight: 1.6, mb: 2.5 }}>
+                Under Shazu One policy, cancellations are only available at least <strong>24 hours prior</strong> to your scheduled appointment. Because this service is scheduled within the next 24 hours, our specialist technician, equipment, and travel route have already been committed.
+              </Typography>
+
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  mb: 3,
+                  bgcolor: '#F8FAFC',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '12px',
+                  textAlign: 'left'
+                }}
+              >
+                <Typography sx={{ fontWeight: 700, fontSize: '13px', color: '#0F172A', mb: 0.5 }}>
+                  Need to change plans or reschedule?
+                </Typography>
+                <Typography sx={{ fontSize: '12px', color: '#64748B', lineHeight: 1.5 }}>
+                  Our central Salem Operations Desk is available to help you reschedule or resolve urgent issues directly:
+                </Typography>
+              </Paper>
+
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1.5, mb: 2 }}>
+                <Button
+                  variant="contained"
+                  component="a"
+                  href={`tel:${lockDetails?.opsContact?.phone || '+918807099288'}`}
+                  startIcon={<Phone size={16} />}
+                  sx={{
+                    bgcolor: '#0F172A',
+                    color: '#FFFFFF',
+                    py: 1.25,
+                    borderRadius: '10px',
+                    fontWeight: 700,
+                    textTransform: 'none',
+                    '&:hover': { bgcolor: '#1E293B' }
+                  }}
+                >
+                  Call Salem Ops Desk
+                </Button>
+
+                <Button
+                  variant="contained"
+                  component="a"
+                  href={lockDetails?.opsContact?.whatsappUrl || 'https://wa.me/918807099288'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  startIcon={<MessageCircle size={16} />}
+                  sx={{
+                    bgcolor: '#059669',
+                    color: '#FFFFFF',
+                    py: 1.25,
+                    borderRadius: '10px',
+                    fontWeight: 700,
+                    textTransform: 'none',
+                    '&:hover': { bgcolor: '#047857' }
+                  }}
+                >
+                  WhatsApp Support
+                </Button>
+              </Box>
+
+              <Button
+                variant="outlined"
+                fullWidth
+                onClick={handleBack}
+                sx={{
+                  color: '#475569',
+                  borderColor: '#CBD5E1',
+                  borderRadius: '10px',
+                  py: 1.2,
+                  fontWeight: 600,
+                  fontSize: '13.5px',
+                  textTransform: 'none',
+                  '&:hover': { bgcolor: '#F1F5F9', borderColor: '#94A3B8' }
+                }}
+              >
+                Return to Live Tracking
+              </Button>
+            </Paper>
+          </Box>
         ) : (
           /* Active Cancellation Selection Form */
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
