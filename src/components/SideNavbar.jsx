@@ -696,7 +696,7 @@ export default function SideNavbar({
                 />
                 <DrawerNavItem
                   icon={<Bot size={16} color="#2563EB" />}
-                  label="AI Support & Helpdesk"
+                  label="Ask AI Assistant"
                   sublabel="Voice & text assistant • Salem Ops live link"
                   badge="AI"
                   badgeColor="#2563EB"

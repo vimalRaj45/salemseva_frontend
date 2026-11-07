@@ -1065,9 +1065,9 @@ export default function Navbar({
               <>
                 <button
                   type="button"
+                  className="hidden xl:inline-flex"
                   onClick={() => navigate('/how-it-works')}
                   style={{
-                    display: 'inline-flex',
                     alignItems: 'center',
                     gap: '6px',
                     height: '40px',
@@ -1217,46 +1217,6 @@ export default function Navbar({
                   APK
                 </span>
               </a>
-            )}
-
-            {/* 3.66 AI HELPDESK BUTTON (Desktop) */}
-            {!isAdmin && !isMobile && (
-              <button
-                type="button"
-                onClick={() => setIsAiSupportOpen(true)}
-                title="AI Support Helpdesk (Voice & Text)"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  height: '40px',
-                  padding: '0 12px',
-                  borderRadius: '8px',
-                  backgroundColor: '#EFF6FF',
-                  border: '1px solid #BFDBFE',
-                  color: '#1D4ED8',
-                  cursor: 'pointer',
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                <Bot size={16} color="#2563EB" />
-                <span>AI Helpdesk</span>
-                <span
-                  style={{
-                    fontSize: '9.5px',
-                    fontWeight: 800,
-                    backgroundColor: '#2563EB',
-                    color: '#FFFFFF',
-                    padding: '2px 5px',
-                    borderRadius: '4px',
-                    lineHeight: 1
-                  }}
-                >
-                  AI
-                </span>
-              </button>
             )}
 
             {/* 3.7 USER PROFILE AVATAR & DROPDOWN (LOGGED IN) OR CLEAN SIGN IN BUTTON */}
@@ -1711,6 +1671,69 @@ export default function Navbar({
         open={isAiSupportOpen}
         onClose={() => setIsAiSupportOpen(false)}
       />
+
+      {/* Floating Action Button: "Ask AI" */}
+      <button
+        type="button"
+        onClick={() => setIsAiSupportOpen(true)}
+        title="Ask AI Assistant (Voice & Text)"
+        aria-label="Ask AI Assistant"
+        style={{
+          position: 'fixed',
+          bottom: '24px',
+          right: '24px',
+          zIndex: 1200,
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '8px',
+          height: '46px',
+          padding: '0 18px',
+          borderRadius: '9999px',
+          background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+          color: '#FFFFFF',
+          border: '1.5px solid rgba(255, 255, 255, 0.15)',
+          boxShadow: '0 10px 25px -4px rgba(15, 23, 42, 0.35), 0 6px 12px -2px rgba(15, 23, 42, 0.2)',
+          cursor: 'pointer',
+          fontSize: '13.5px',
+          fontWeight: 700,
+          letterSpacing: '0.2px',
+          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+          outline: 'none'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'translateY(-2px) scale(1.03)';
+          e.currentTarget.style.boxShadow = '0 14px 28px -4px rgba(37, 99, 235, 0.4)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'translateY(0) scale(1)';
+          e.currentTarget.style.boxShadow = '0 10px 25px -4px rgba(15, 23, 42, 0.35)';
+        }}
+      >
+        <div
+          style={{
+            width: '24px',
+            height: '24px',
+            borderRadius: '50%',
+            backgroundColor: '#2563EB',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 0 10px rgba(37, 99, 235, 0.5)'
+          }}
+        >
+          <Sparkles size={13} color="#FFFFFF" />
+        </div>
+        <span>Ask AI</span>
+        <span
+          style={{
+            width: '7px',
+            height: '7px',
+            borderRadius: '50%',
+            backgroundColor: '#10B981',
+            boxShadow: '0 0 6px #10B981'
+          }}
+        />
+      </button>
     </header>
   );
 }

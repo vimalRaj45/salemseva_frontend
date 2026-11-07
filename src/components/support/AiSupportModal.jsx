@@ -33,6 +33,14 @@ import { useAuth } from '../../context/AuthContext';
 import { API_V1_URL } from '../../config';
 import toast from 'react-hot-toast';
 
+const DEFAULT_OPS_CONTACT = {
+  phone: '+918807099288',
+  whatsapp: '+918807099288',
+  whatsappUrl: `https://wa.me/918807099288?text=${encodeURIComponent('Hello Shazu One Salem Ops Support, I need assistance with my service.')}`,
+  email: 'support@shazuone.com',
+  hours: '8:00 AM - 9:00 PM IST (All 7 Days)'
+};
+
 export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
   const { user } = useAuth();
   const [messages, setMessages] = useState([]);
@@ -40,7 +48,7 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
-  const [opsContact, setOpsContact] = useState(null);
+  const [opsContact, setOpsContact] = useState(DEFAULT_OPS_CONTACT);
 
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
@@ -184,6 +192,21 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
         })
       });
 
+      if (!res.ok) {
+        setMessages(prev => [
+          ...prev,
+          {
+            id: `bot_${Date.now()}`,
+            sender: 'bot',
+            text: 'Our AI cloud assistant is currently synchronizing with the central dispatch network. For immediate assistance with your booking, payment, or technician, please connect directly with our Salem Operations desk below:',
+            escalateToOps: true,
+            opsContact: opsContact || DEFAULT_OPS_CONTACT,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }
+        ]);
+        return;
+      }
+
       const data = await res.json();
 
       // Update user message with transcribed text if available
@@ -201,8 +224,8 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
           id: `bot_${Date.now()}`,
           sender: 'bot',
           text: data.reply || 'Support response received.',
-          escalateToOps: data.escalateToOps,
-          opsContact: data.opsContact || opsContact,
+          escalateToOps: Boolean(data.escalateToOps),
+          opsContact: data.opsContact || opsContact || DEFAULT_OPS_CONTACT,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
@@ -215,7 +238,7 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
           sender: 'bot',
           text: 'We are experiencing high demand on our voice line. Please connect directly with our Salem Operations team below.',
           escalateToOps: true,
-          opsContact,
+          opsContact: opsContact || DEFAULT_OPS_CONTACT,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
@@ -257,6 +280,21 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
         })
       });
 
+      if (!res.ok) {
+        setMessages(prev => [
+          ...prev,
+          {
+            id: `bot_${Date.now()}`,
+            sender: 'bot',
+            text: 'Our AI cloud assistant is currently synchronizing with the central dispatch network. For immediate assistance with your booking, payment, or technician, please connect directly with our Salem Operations desk below:',
+            escalateToOps: true,
+            opsContact: opsContact || DEFAULT_OPS_CONTACT,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }
+        ]);
+        return;
+      }
+
       const data = await res.json();
 
       setMessages(prev => [
@@ -265,8 +303,8 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
           id: `bot_${Date.now()}`,
           sender: 'bot',
           text: data.reply || 'Support response received.',
-          escalateToOps: data.escalateToOps,
-          opsContact: data.opsContact || opsContact,
+          escalateToOps: Boolean(data.escalateToOps),
+          opsContact: data.opsContact || opsContact || DEFAULT_OPS_CONTACT,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
@@ -279,7 +317,7 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
           sender: 'bot',
           text: 'Our network connection to the AI support copilot is momentarily unavailable. Our Salem Operations team is ready to help you directly.',
           escalateToOps: true,
-          opsContact,
+          opsContact: opsContact || DEFAULT_OPS_CONTACT,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
@@ -333,10 +371,10 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
           </Box>
           <Box>
             <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2, color: '#FFFFFF' }}>
-              Shazu One AI Helpdesk
+              Ask AI
             </Typography>
             <Typography variant="caption" sx={{ color: '#94A3B8' }}>
-              {isTechnician ? 'Technician Operations Agent' : 'Customer Care & Booking RAG'}
+              {isTechnician ? 'Technician Operations Agent' : 'Instant Service & Booking Support'}
             </Typography>
           </Box>
         </Box>
