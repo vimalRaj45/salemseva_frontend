@@ -1661,7 +1661,14 @@ export default function Navbar({
         onOpenLanguageModal={() => navigate('/language')}
         onOpenFeedbackModal={() => navigate('/feedback')}
         onOpenSupportTicketModal={() => navigate('/support')}
-        onOpenAiSupportModal={() => setIsAiSupportOpen(true)}
+        onOpenAiSupportModal={() => {
+          if (!user && !techUser) {
+            if (typeof openAuthModal === 'function') openAuthModal();
+            else navigate('/login');
+            return;
+          }
+          setIsAiSupportOpen(true);
+        }}
         logout={logout}
         logoutTech={logoutTech}
       />
@@ -1672,10 +1679,17 @@ export default function Navbar({
         onClose={() => setIsAiSupportOpen(false)}
       />
 
-      {/* Floating Action Button: "Ask AI" */}
+      {/* Floating Action Button: "Ask AI" (Restricted to logged-in users) */}
       <button
         type="button"
-        onClick={() => setIsAiSupportOpen(true)}
+        onClick={() => {
+          if (!user && !techUser) {
+            if (typeof openAuthModal === 'function') openAuthModal();
+            else navigate('/login');
+            return;
+          }
+          setIsAiSupportOpen(true);
+        }}
         title="Ask AI Assistant (Voice & Text)"
         aria-label="Ask AI Assistant"
         style={{

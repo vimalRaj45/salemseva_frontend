@@ -42,7 +42,8 @@ const DEFAULT_OPS_CONTACT = {
 };
 
 export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
-  const { user } = useAuth();
+  const { user, techUser, openAuthModal } = useAuth();
+  const currentUser = user || techUser;
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -55,7 +56,7 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
   const timerIntervalRef = useRef(null);
   const messagesEndRef = useRef(null);
 
-  const isTechnician = user?.role === 'technician' || user?.role === 'partner';
+  const isTechnician = currentUser?.role === 'technician' || currentUser?.role === 'partner';
   const role = isTechnician ? 'technician' : 'customer';
 
   // Quick suggestions based on role
@@ -75,25 +76,39 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
 
   // Initial welcome message
   useEffect(() => {
-    if (open && messages.length === 0) {
-      const welcome = isTechnician
-        ? `Hello ${user?.name || 'Partner'}, I am your Shazu One Field Support Assistant. Ask about your assigned jobs, daily capacity, or payout statuses.`
-        : `Hello ${user?.name || user?.full_name || 'there'}, I am your Shazu One Support Assistant. How can I assist you with your booking, payment, or technician today?`;
+    if (open) {
+      if (!currentUser) {
+        setMessages([
+          {
+            id: 'welcome_login',
+            sender: 'bot',
+            text: 'Hello! Ask AI is reserved for logged-in SalemSeva users. Please sign in so I can check your technician location, active bookings, and service receipts.',
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }
+        ]);
+        return;
+      }
 
-      setMessages([
-        {
-          id: 'welcome_1',
-          sender: 'bot',
-          text: welcome,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      if (messages.length === 0 || messages[0]?.id === 'welcome_login') {
+        const welcome = isTechnician
+          ? `Hello ${currentUser?.name || 'Partner'}, I am your Shazu One Field Support Assistant. Ask about your assigned jobs, daily capacity, or payout statuses.`
+          : `Hello ${currentUser?.name || currentUser?.full_name || 'Customer'}, I am your Shazu One Support Assistant. How can I assist you with your booking, payment, or technician today?`;
+
+        setMessages([
+          {
+            id: 'welcome_1',
+            sender: 'bot',
+            text: welcome,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }
+        ]);
+
+        if (defaultQuery) {
+          handleSendMessage(defaultQuery);
         }
-      ]);
-
-      if (defaultQuery) {
-        handleSendMessage(defaultQuery);
       }
     }
-  }, [open]);
+  }, [open, currentUser]);
 
   // Scroll to bottom when messages update
   useEffect(() => {
@@ -593,102 +608,137 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
         <div ref={messagesEndRef} />
       </DialogContent>
 
-      {/* Quick Suggestion Chips */}
-      <Box sx={{ px: 2, py: 1, bgcolor: '#FFFFFF', borderTop: '1px solid #F1F5F9', display: 'flex', gap: 1, overflowX: 'auto' }}>
-        {quickSuggestions.map((text, idx) => (
-          <Chip
-            key={idx}
-            label={text}
-            size="small"
-            clickable
-            onClick={() => handleSendMessage(text)}
-            sx={{
-              fontSize: '0.75rem',
-              bgcolor: '#F1F5F9',
-              color: '#334155',
-              border: '1px solid #E2E8F0',
-              '&:hover': { bgcolor: '#E2E8F0' }
+      {/* Quick Suggestion Chips or Sign In Barrier */}
+      {!currentUser ? (
+        <Box sx={{ p: 2.5, bgcolor: '#FFFFFF', borderTop: '1px solid #E2E8F0', textAlign: 'center' }}>
+          <Box sx={{ display: 'inline-flex', p: 1.5, borderRadius: '50%', bgcolor: '#EFF6FF', color: '#2563EB', mb: 1 }}>
+            <User size={22} />
+          </Box>
+          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', mb: 0.5 }}>
+            Sign In Required to Chat with Ask AI
+          </Typography>
+          <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 2, px: 2 }}>
+            Please sign in to your SalemSeva account so Ask AI can locate your assigned technicians, track active bookings, and check payment receipts.
+          </Typography>
+          <Button
+            variant="contained"
+            fullWidth
+            onClick={() => {
+              onClose();
+              if (typeof openAuthModal === 'function') openAuthModal();
             }}
-          />
-        ))}
-      </Box>
-
-      {/* Input Bar */}
-      <Box
-        sx={{
-          p: 1.5,
-          bgcolor: '#FFFFFF',
-          borderTop: '1px solid #E2E8F0',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 1
-        }}
-      >
-        {/* Voice Input Button */}
-        {isRecording ? (
-          <IconButton
-            onClick={stopRecording}
             sx={{
-              bgcolor: '#DC2626',
-              color: '#FFFFFF',
-              '&:hover': { bgcolor: '#B91C1C' }
-            }}
-            aria-label="Stop recording"
-          >
-            <Square size={18} />
-          </IconButton>
-        ) : (
-          <IconButton
-            onClick={startRecording}
-            disabled={isLoading}
-            sx={{
-              bgcolor: '#F1F5F9',
-              color: '#475569',
-              '&:hover': { bgcolor: '#E2E8F0', color: '#0F172A' }
-            }}
-            aria-label="Voice input"
-          >
-            <Mic size={18} />
-          </IconButton>
-        )}
-
-        {/* Text Input Field */}
-        <TextField
-          fullWidth
-          size="small"
-          placeholder={isRecording ? 'Listening to speech...' : 'Type your question here...'}
-          value={inputValue}
-          disabled={isRecording || isLoading}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              handleSendMessage();
-            }
-          }}
-          sx={{
-            '& .MuiOutlinedInput-root': {
+              bgcolor: '#2563EB',
+              textTransform: 'none',
+              fontWeight: 700,
               borderRadius: 2,
-              bgcolor: '#F8FAFC'
-            }
-          }}
-        />
+              py: 1,
+              '&:hover': { bgcolor: '#1D4ED8' }
+            }}
+          >
+            Sign In to SalemSeva
+          </Button>
+        </Box>
+      ) : (
+        <>
+          {/* Quick Suggestion Chips */}
+          <Box sx={{ px: 2, py: 1, bgcolor: '#FFFFFF', borderTop: '1px solid #F1F5F9', display: 'flex', gap: 1, overflowX: 'auto' }}>
+            {quickSuggestions.map((text, idx) => (
+              <Chip
+                key={idx}
+                label={text}
+                size="small"
+                clickable
+                onClick={() => handleSendMessage(text)}
+                sx={{
+                  fontSize: '0.75rem',
+                  bgcolor: '#F1F5F9',
+                  color: '#334155',
+                  border: '1px solid #E2E8F0',
+                  '&:hover': { bgcolor: '#E2E8F0' }
+                }}
+              />
+            ))}
+          </Box>
 
-        {/* Send Button */}
-        <IconButton
-          onClick={() => handleSendMessage()}
-          disabled={!inputValue.trim() || isLoading || isRecording}
-          sx={{
-            bgcolor: '#2563EB',
-            color: '#FFFFFF',
-            '&:hover': { bgcolor: '#1D4ED8' },
-            '&.Mui-disabled': { bgcolor: '#E2E8F0', color: '#94A3B8' }
-          }}
-          aria-label="Send message"
-        >
-          <Send size={18} />
-        </IconButton>
-      </Box>
+          {/* Input Bar */}
+          <Box
+            sx={{
+              p: 1.5,
+              bgcolor: '#FFFFFF',
+              borderTop: '1px solid #E2E8F0',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1
+            }}
+          >
+            {/* Voice Input Button */}
+            {isRecording ? (
+              <IconButton
+                onClick={stopRecording}
+                sx={{
+                  bgcolor: '#DC2626',
+                  color: '#FFFFFF',
+                  '&:hover': { bgcolor: '#B91C1C' }
+                }}
+                aria-label="Stop recording"
+              >
+                <Square size={18} />
+              </IconButton>
+            ) : (
+              <IconButton
+                onClick={startRecording}
+                disabled={isLoading}
+                sx={{
+                  bgcolor: '#F1F5F9',
+                  color: '#475569',
+                  '&:hover': { bgcolor: '#E2E8F0', color: '#0F172A' }
+                }}
+                aria-label="Voice input"
+              >
+                <Mic size={18} />
+              </IconButton>
+            )}
+
+            {/* Text Input Field */}
+            <TextField
+              fullWidth
+              size="small"
+              placeholder={isRecording ? 'Listening to speech...' : 'Type your question here...'}
+              value={inputValue}
+              disabled={isRecording || isLoading}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage();
+                }
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                  bgcolor: '#F8FAFC'
+                }
+              }}
+            />
+
+            {/* Send Button */}
+            <IconButton
+              onClick={() => handleSendMessage()}
+              disabled={!inputValue.trim() || isLoading || isRecording}
+              sx={{
+                bgcolor: '#2563EB',
+                color: '#FFFFFF',
+                '&:hover': { bgcolor: '#1D4ED8' },
+                '&.Mui-disabled': { bgcolor: '#E2E8F0', color: '#94A3B8' }
+              }}
+              aria-label="Send message"
+            >
+              <Send size={18} />
+            </IconButton>
+          </Box>
+        </>
+      )}
     </Dialog>
   );
 }
