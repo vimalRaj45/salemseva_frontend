@@ -1,0 +1,30 @@
+{
+  "appId": "com.shazuone.app",
+  "appName": "Shazu One",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true,
+    "allowNavigation": [
+      "*.razorpay.com",
+      "api.razorpay.com",
+      "checkout.razorpay.com",
+      "*.onrender.com",
+      "salemseva-backend.onrender.com"
+    ]
+  },
+  "plugins": {
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_icon_config_sample",
+      "iconColor": "#2563EB",
+      "sound": "beep.wav"
+    },
+    "Haptics": {},
+    "StatusBar": {
+      "style": "LIGHT",
+      "backgroundColor": "#FFFFFF",
+      "overlays": false
+    }
+  }
+}

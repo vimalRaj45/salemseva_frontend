@@ -1,0 +1,67 @@
+{
+  "short_name": "Shazu One",
+  "name": "Shazu One — All Your Home Services. One Platform.",
+  "description": "All your home services, one platform. Book AC, Electrician, Plumber & more with upfront pricing and 30-day warranty.",
+  "id": "/",
+  "start_url": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "window-controls-overlay"],
+  "orientation": "portrait-primary",
+  "background_color": "#0D3B66",
+  "theme_color": "#0D3B66",
+  "lang": "en-IN",
+  "dir": "ltr",
+  "categories": ["lifestyle", "utilities", "business"],
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "AC Service & Repair",
+      "short_name": "AC Service",
+      "url": "/services/ac",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Certified Electrician",
+      "short_name": "Electrician",
+      "url": "/services/electrician",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Partner Duty Radar",
+      "short_name": "Partner Duty",
+      "url": "/partner",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+    }
+  ]
+}

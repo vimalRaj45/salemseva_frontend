@@ -1,0 +1,52 @@
+{
+  "name": "shazu-one",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 3000 --host",
+    "build": "vite build",
+    "preview": "vite preview",
+    "cap:sync": "vite build && cap sync android",
+    "cap:copy": "vite build && cap copy android",
+    "cap:open": "cap open android",
+    "app:build": "vite build && cap sync android && cd android && .\\gradlew.bat assembleDebug"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/cli": "^8.5.3",
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/local-notifications": "^8.3.1",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.4",
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.5",
+    "@mui/icons-material": "^5.15.15",
+    "@mui/material": "^5.15.15",
+    "@simplewebauthn/browser": "^14.0.0",
+    "capacitor-razorpay": "github:razorpay/razorpay-capacitor",
+    "leaflet": "^1.9.4",
+    "lottie-react": "^3.1.2",
+    "lucide-react": "^1.53.0",
+    "qrcode": "^1.5.4",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-hot-toast": "^2.6.1",
+    "react-leaflet": "^4.2.1",
+    "react-router-dom": "^7.18.4",
+    "tesseract.js": "^7.0.0",
+    "ux-ui-agent-skills": "^2.9.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/react": "^18.2.66",
+    "@types/react-dom": "^18.2.22",
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.6.1",
+    "postcss": "^8.5.29",
+    "tailwindcss": "^4.3.3",
+    "vite": "^5.2.0"
+  }
+}

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Shazu One — All Your Home Services. One Platform.</title>
+    <!-- Progressive Web App (PWA) Manifest & Meta -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#0D3B66" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Shazu One" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="128x128" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512x512.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Official Razorpay Checkout JS SDK -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <!-- Google Translate Anti-Shift & Anti-Banner Shield -->
+    <style>
+      /* 1. COMPLETELY HIDE the Google Translate top banner iframe & all its class variants */
+      .goog-te-banner-frame,
+      .goog-te-banner-frame.skiptranslate,
+      iframe.goog-te-banner-frame,
+      iframe[class*="goog-te-banner-frame"],
+      iframe.VIpgJd-ZVi9od-ORHb-OEVmcd,
+      iframe.VIpgJd-ZVi9od-ORHb-OEVmcd.skiptranslate,
+      .VIpgJd-ZVi9od-aZ2wEe-wOHMyf,
+      .VIpgJd-ZVi9od-xl07Ob-OEVmcd,
+      iframe[id*=":1.container"],
+      iframe[id*=":2.container"],
+      iframe[id*="container"],
+      #goog-gt-tt,
+      .goog-te-balloon-frame,
+      .goog-tooltip,
+      .goog-tooltip:hover,
+      .goog-te-spinner-pos {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0px !important;
+        width: 0px !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        position: absolute !important;
+        top: -9999px !important;
+        left: -9999px !important;
+        z-index: -9999 !important;
+      }
+
+      /* 2. PREVENT Google Translate from adding margin/top to body or html */
+      html,
+      body,
+      html.translated-ltr,
+      html.translated-rtl,
+      body.translated-ltr,
+      body.translated-rtl {
+        top: 0px !important;
+        margin-top: 0px !important;
+        padding-top: 0px !important;
+        position: static !important;
+      }
+
+      /* 3. Strip Google font highlighting and fix line-heights */
+      font, font[style] {
+        vertical-align: baseline !important;
+        background: transparent !important;
+        box-shadow: none !important;
+      }
+
+      .goog-text-highlight {
+        background: transparent !important;
+        box-shadow: none !important;
+      }
+
+      #google_translate_element {
+        display: none !important;
+        position: absolute !important;
+        top: -9999px !important;
+        left: -9999px !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+      }
+    </style>
+
+    <!-- Google Translate Script & Handler + React DOM Protection Shield -->
+    <script type="text/javascript">
+      // ── DOM Mutation Armor for React 18 & Google Translate / Browser Extensions ──
+      // Google Translate and browser extensions wrap text nodes in <font> or insert spans.
+      // When React tries to remove/insert nodes during unmounting or reconciliation,
+      // native removeChild throws NotFoundError because the parent-child relationship was altered.
+      // This monkey-patch prevents fatal app crashes while preserving normal DOM behavior.
+      if (typeof Node === 'function' && Node.prototype) {
+        const originalRemoveChild = Node.prototype.removeChild;
+        Node.prototype.removeChild = function(child) {
+          if (child && child.parentNode !== this) {
+            if (typeof console !== 'undefined' && console.warn) {
+              console.warn('[DOM Protection] Prevented removeChild NotFoundError on altered node:', child, 'expected parent:', this);
+            }
+            if (child.parentNode) {
+              return child.parentNode.removeChild(child);
+            }
+            return child;
+          }
+          return originalRemoveChild.apply(this, arguments);
+        };
+
+        const originalInsertBefore = Node.prototype.insertBefore;
+        Node.prototype.insertBefore = function(newNode, referenceNode) {
+          if (referenceNode && referenceNode.parentNode !== this) {
+            if (typeof console !== 'undefined' && console.warn) {
+              console.warn('[DOM Protection] Prevented insertBefore NotFoundError on altered node:', referenceNode, 'parent:', this);
+            }
+            return this.appendChild(newNode);
+          }
+          return originalInsertBefore.apply(this, arguments);
+        };
+      }
+
+      function googleTranslateElementInit() {
+        if (window.google && window.google.translate) {
+          new google.translate.TranslateElement({
+            pageLanguage: 'en',
+            includedLanguages: 'en,ta,hi,te,kn,ml',
+            autoDisplay: false,
+            layout: google.translate.TranslateElement.InlineLayout.HORIZONTAL
+          }, 'google_translate_element');
+        }
+      }
+
+      // Neutralize Google Translate's body top-shift & banner in DOM
+      (function() {
+        function sanitizeTranslate() {
+          if (document.body) {
+            if (document.body.style.top && document.body.style.top !== '0px') {
+              document.body.style.setProperty('top', '0px', 'important');
+            }
+            if (document.body.style.position === 'relative') {
+              document.body.style.position = 'static';
+            }
+          }
+          if (document.documentElement && document.documentElement.style.marginTop) {
+            document.documentElement.style.setProperty('margin-top', '0px', 'important');
+          }
+          var frames = document.querySelectorAll('.goog-te-banner-frame, iframe[id*="container"], iframe.VIpgJd-ZVi9od-ORHb-OEVmcd');
+          for (var i = 0; i < frames.length; i++) {
+            frames[i].style.setProperty('display', 'none', 'important');
+            frames[i].style.setProperty('visibility', 'hidden', 'important');
+            frames[i].style.setProperty('height', '0px', 'important');
+          }
+        }
+
+        if (typeof MutationObserver !== 'undefined') {
+          var obs = new MutationObserver(function() {
+            sanitizeTranslate();
+          });
+          obs.observe(document.documentElement, { attributes: true, attributeFilter: ['style', 'class'] });
+          document.addEventListener('DOMContentLoaded', function() {
+            if (document.body) {
+              obs.observe(document.body, { attributes: true, attributeFilter: ['style', 'class'] });
+              sanitizeTranslate();
+            }
+          });
+        }
+        window.addEventListener('load', sanitizeTranslate);
+      })();
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+  </head>
+  <body style="margin: 0; padding: 0; font-family: 'Inter', 'Noto Sans Tamil', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background-color: #F8FAFC; overflow-x: hidden; width: 100%;">
+    <div id="google_translate_element" style="display:none !important; position: absolute; top: -9999px; left: -9999px; opacity: 0; pointer-events: none;"></div>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+    <!-- Shazu One PWA Offline Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js')
+            .then(function(reg) {
+              console.log('Shazu One PWA Service Worker active:', reg.scope);
+            })
+            .catch(function(err) {
+              console.warn('PWA registration note:', err);
+            });
+        });
+      }
+    </script>
+  </body>
+</html>
