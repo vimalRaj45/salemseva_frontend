@@ -90,9 +90,14 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
       }
 
       if (messages.length === 0 || messages[0]?.id === 'welcome_login') {
+        const rawName = (currentUser?.name || currentUser?.full_name || '').trim();
+        const formattedName = rawName && rawName.toLowerCase() !== 'customer'
+          ? rawName.charAt(0).toUpperCase() + rawName.slice(1)
+          : 'there';
+
         const welcome = isTechnician
-          ? `Hello ${currentUser?.name || 'Partner'}, I am your Shazu One Field Support Assistant. Ask about your assigned jobs, daily capacity, or payout statuses.`
-          : `Hello ${currentUser?.name || currentUser?.full_name || 'Customer'}, I am your Shazu One Support Assistant. How can I assist you with your booking, payment, or technician today?`;
+          ? `Hello ${formattedName}! I am your Shazu One Field Support Assistant. How can I assist you with your assigned dispatches, schedules, or payouts today?`
+          : `Hello ${formattedName}! I am Ask AI, your personal Shazu One assistant. How can I assist you with your booking, assigned technician, or doorstep service today?`;
 
         setMessages([
           {
@@ -349,22 +354,25 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
       maxWidth="sm"
       PaperProps={{
         sx: {
-          borderRadius: 3,
-          height: { xs: '90vh', sm: '680px' },
+          borderRadius: { xs: 0, sm: 3 },
+          height: { xs: '100dvh', sm: '660px' },
+          maxHeight: { xs: '100dvh', sm: '660px' },
+          m: { xs: 0, sm: 2 },
           display: 'flex',
           flexDirection: 'column',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.25)'
         }
       }}
     >
       {/* Header */}
       <DialogTitle
         sx={{
-          p: 2,
+          p: { xs: 1.5, sm: 2 },
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          borderBottom: '1px solid #E2E8F0',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
           bgcolor: '#0F172A',
           color: '#FFFFFF'
         }}
@@ -372,24 +380,33 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <Box
             sx={{
-              width: 36,
-              height: 36,
+              width: 38,
+              height: 38,
               borderRadius: '50%',
-              bgcolor: '#2563EB',
+              bgcolor: '#1D6FE5',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#FFFFFF'
+              color: '#FFFFFF',
+              boxShadow: '0 0 12px rgba(29, 111, 229, 0.5)'
             }}
           >
-            <Bot size={20} />
+            <Bot size={22} />
           </Box>
           <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2, color: '#FFFFFF' }}>
-              Ask AI
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#94A3B8' }}>
-              {isTechnician ? 'Technician Operations Agent' : 'Instant Service & Booking Support'}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 800, lineHeight: 1.2, color: '#FFFFFF', fontSize: { xs: '0.95rem', sm: '1.05rem' } }}>
+                Ask AI
+              </Typography>
+              <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, px: 0.8, py: 0.2, borderRadius: '10px', bgcolor: 'rgba(34, 197, 94, 0.15)', border: '1px solid rgba(34, 197, 94, 0.3)' }}>
+                <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#22C55E' }} />
+                <Typography sx={{ color: '#4ADE80', fontSize: '10px', fontWeight: 700, letterSpacing: '0.3px' }}>
+                  LIVE RAG
+                </Typography>
+              </Box>
+            </Box>
+            <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '11.5px', display: 'block', mt: 0.2 }}>
+              {isTechnician ? 'Salem Technician Operations Desk' : 'Verified Booking & Technician Support'}
             </Typography>
           </Box>
         </Box>
@@ -406,12 +423,12 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
       {/* Messages Scroll Area */}
       <DialogContent
         sx={{
-          p: 2,
+          p: { xs: 1.5, sm: 2 },
           flex: 1,
           overflowY: 'auto',
           display: 'flex',
           flexDirection: 'column',
-          gap: 1.5,
+          gap: 2,
           bgcolor: '#F8FAFC'
         }}
       >
@@ -421,14 +438,15 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
             sx={{
               display: 'flex',
               flexDirection: 'column',
-              alignItems: msg.sender === 'user' ? 'flex-end' : 'flex-start'
+              alignItems: msg.sender === 'user' ? 'flex-end' : 'flex-start',
+              width: '100%'
             }}
           >
             <Box
               sx={{
                 display: 'flex',
-                gap: 1,
-                maxWidth: '88%',
+                gap: 1.2,
+                maxWidth: { xs: '88%', sm: '82%' },
                 alignItems: 'flex-start',
                 flexDirection: msg.sender === 'user' ? 'row-reverse' : 'row'
               }}
@@ -436,33 +454,39 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
               {/* Avatar */}
               <Box
                 sx={{
-                  width: 28,
-                  height: 28,
+                  width: 30,
+                  height: 30,
                   borderRadius: '50%',
-                  bgcolor: msg.sender === 'user' ? '#0F172A' : '#2563EB',
+                  bgcolor: msg.sender === 'user' ? '#0F172A' : '#1D6FE5',
                   color: '#FFFFFF',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
-                  mt: 0.5
+                  mt: 0.3,
+                  boxShadow: msg.sender === 'user' ? 'none' : '0 2px 6px rgba(29, 111, 229, 0.25)'
                 }}
               >
-                {msg.sender === 'user' ? <User size={14} /> : <Bot size={14} />}
+                {msg.sender === 'user' ? <User size={15} /> : <Bot size={15} />}
               </Box>
 
               {/* Message Bubble */}
               <Box
                 sx={{
-                  p: 1.5,
-                  borderRadius: 2.5,
-                  bgcolor: msg.sender === 'user' ? '#2563EB' : '#FFFFFF',
+                  p: { xs: 1.3, sm: 1.6 },
+                  borderRadius: msg.sender === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+                  background: msg.sender === 'user'
+                    ? 'linear-gradient(135deg, #1D6FE5 0%, #1558B0 100%)'
+                    : '#FFFFFF',
                   color: msg.sender === 'user' ? '#FFFFFF' : '#0F172A',
                   border: msg.sender === 'user' ? 'none' : '1px solid #E2E8F0',
-                  boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
+                  boxShadow: msg.sender === 'user'
+                    ? '0 3px 10px rgba(29, 111, 229, 0.25)'
+                    : '0 2px 8px rgba(15, 23, 42, 0.04)',
+                  wordBreak: 'break-word'
                 }}
               >
-                <Typography variant="body2" sx={{ whiteSpace: 'pre-line', lineHeight: 1.5, fontSize: '0.9rem' }}>
+                <Typography variant="body2" sx={{ whiteSpace: 'pre-line', lineHeight: 1.55, fontSize: { xs: '0.86rem', sm: '0.92rem' } }}>
                   {msg.text}
                 </Typography>
 
@@ -470,10 +494,11 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
                   variant="caption"
                   sx={{
                     display: 'block',
-                    mt: 0.5,
-                    fontSize: '0.7rem',
+                    mt: 0.6,
+                    fontSize: '0.68rem',
                     textAlign: msg.sender === 'user' ? 'right' : 'left',
-                    color: msg.sender === 'user' ? 'rgba(255,255,255,0.7)' : '#94A3B8'
+                    color: msg.sender === 'user' ? 'rgba(255,255,255,0.75)' : '#94A3B8',
+                    fontWeight: 500
                   }}
                 >
                   {msg.timestamp}
@@ -483,29 +508,29 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
 
             {/* Salem Ops Emergency Card if escalated or AI unavailable */}
             {msg.escalateToOps && (
-              <Box sx={{ mt: 1.5, width: '100%', maxWidth: '92%' }}>
+              <Box sx={{ mt: 1.5, width: '100%', maxWidth: { xs: '96%', sm: '88%' } }}>
                 <Paper
                   elevation={0}
                   sx={{
-                    p: 2,
+                    p: { xs: 1.6, sm: 2 },
                     borderRadius: 2.5,
                     border: '1px solid #CBD5E1',
                     bgcolor: '#FFFFFF',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+                    boxShadow: '0 4px 12px rgba(15, 23, 42, 0.06)'
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                    <Headphones size={18} color="#2563EB" />
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A' }}>
+                    <Headphones size={18} color="#1D6FE5" />
+                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '0.9rem' }}>
                       Salem Operations Support Desk
                     </Typography>
                   </Box>
 
-                  <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.85rem', mb: 2 }}>
+                  <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.82rem', mb: 1.8, lineHeight: 1.45 }}>
                     Connect directly with our live dispatchers for emergency overrides, cancellations, or booking modifications:
                   </Typography>
 
-                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, mb: 1.5 }}>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1, mb: 1.2 }}>
                     <Button
                       variant="contained"
                       component="a"
@@ -514,13 +539,16 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
                       sx={{
                         bgcolor: '#0F172A',
                         color: '#FFFFFF',
-                        fontWeight: 600,
+                        fontWeight: 700,
                         textTransform: 'none',
                         fontSize: '0.82rem',
+                        py: 1,
+                        borderRadius: 2,
+                        minHeight: 44,
                         '&:hover': { bgcolor: '#1E293B' }
                       }}
                     >
-                      Call Desk
+                      Call Desk ({msg.opsContact?.phone || '+918807099288'})
                     </Button>
 
                     <Button
@@ -533,20 +561,23 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
                       sx={{
                         bgcolor: '#059669',
                         color: '#FFFFFF',
-                        fontWeight: 600,
+                        fontWeight: 700,
                         textTransform: 'none',
                         fontSize: '0.82rem',
+                        py: 1,
+                        borderRadius: 2,
+                        minHeight: 44,
                         '&:hover': { bgcolor: '#047857' }
                       }}
                     >
-                      WhatsApp
+                      Chat on WhatsApp
                     </Button>
                   </Box>
 
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#64748B' }}>
-                    <Clock size={13} />
-                    <Typography variant="caption" sx={{ fontSize: '0.75rem' }}>
-                      Operating Hours: {msg.opsContact?.hours || '8:00 AM - 9:00 PM IST'}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, color: '#64748B' }}>
+                    <Clock size={12} />
+                    <Typography variant="caption" sx={{ fontSize: '0.72rem' }}>
+                      Operating Hours: {msg.opsContact?.hours || '8:00 AM - 9:00 PM IST (All 7 Days)'}
                     </Typography>
                   </Box>
                 </Paper>
@@ -557,10 +588,10 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
 
         {/* Loading Spinner Indicator */}
         {isLoading && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1 }}>
-            <CircularProgress size={16} sx={{ color: '#2563EB' }} />
-            <Typography variant="caption" sx={{ color: '#64748B', fontStyle: 'italic' }}>
-              Consulting live operations database...
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, p: 1.2, bgcolor: '#FFFFFF', borderRadius: 2, border: '1px solid #E2E8F0', width: 'fit-content' }}>
+            <CircularProgress size={16} sx={{ color: '#1D6FE5' }} />
+            <Typography variant="caption" sx={{ color: '#475569', fontWeight: 600 }}>
+              Checking your live booking & technician details...
             </Typography>
           </Box>
         )}
@@ -588,8 +619,8 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
                   animation: 'pulse 1.2s infinite'
                 }}
               />
-              <Typography variant="body2" sx={{ fontWeight: 600, color: '#991B1B' }}>
-                Recording voice query... ({recordingSeconds}s)
+              <Typography variant="body2" sx={{ fontWeight: 700, color: '#991B1B', fontSize: '0.85rem' }}>
+                Listening to voice query ({recordingSeconds}s)...
               </Typography>
             </Box>
             <Button
@@ -598,7 +629,7 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
               color="error"
               onClick={stopRecording}
               startIcon={<Square size={14} />}
-              sx={{ textTransform: 'none', fontWeight: 600 }}
+              sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 1.5, minHeight: 36 }}
             >
               Done
             </Button>
@@ -611,7 +642,7 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
       {/* Quick Suggestion Chips or Sign In Barrier */}
       {!currentUser ? (
         <Box sx={{ p: 2.5, bgcolor: '#FFFFFF', borderTop: '1px solid #E2E8F0', textAlign: 'center' }}>
-          <Box sx={{ display: 'inline-flex', p: 1.5, borderRadius: '50%', bgcolor: '#EFF6FF', color: '#2563EB', mb: 1 }}>
+          <Box sx={{ display: 'inline-flex', p: 1.5, borderRadius: '50%', bgcolor: '#EFF6FF', color: '#1D6FE5', mb: 1 }}>
             <User size={22} />
           </Box>
           <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', mb: 0.5 }}>
@@ -628,12 +659,13 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
               if (typeof openAuthModal === 'function') openAuthModal();
             }}
             sx={{
-              bgcolor: '#2563EB',
+              bgcolor: '#1D6FE5',
               textTransform: 'none',
               fontWeight: 700,
               borderRadius: 2,
-              py: 1,
-              '&:hover': { bgcolor: '#1D4ED8' }
+              py: 1.1,
+              minHeight: 44,
+              '&:hover': { bgcolor: '#1558B0' }
             }}
           >
             Sign In to SalemSeva
@@ -642,7 +674,21 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
       ) : (
         <>
           {/* Quick Suggestion Chips */}
-          <Box sx={{ px: 2, py: 1, bgcolor: '#FFFFFF', borderTop: '1px solid #F1F5F9', display: 'flex', gap: 1, overflowX: 'auto' }}>
+          <Box
+            sx={{
+              px: { xs: 1.5, sm: 2 },
+              py: 1,
+              bgcolor: '#FFFFFF',
+              borderTop: '1px solid #F1F5F9',
+              display: 'flex',
+              gap: 1,
+              overflowX: 'auto',
+              whiteSpace: 'nowrap',
+              WebkitOverflowScrolling: 'touch',
+              '&::-webkit-scrollbar': { height: 4 },
+              '&::-webkit-scrollbar-thumb': { bgcolor: '#CBD5E1', borderRadius: 2 }
+            }}
+          >
             {quickSuggestions.map((text, idx) => (
               <Chip
                 key={idx}
@@ -652,10 +698,13 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
                 onClick={() => handleSendMessage(text)}
                 sx={{
                   fontSize: '0.75rem',
-                  bgcolor: '#F1F5F9',
+                  fontWeight: 600,
+                  bgcolor: '#F8FAFC',
                   color: '#334155',
                   border: '1px solid #E2E8F0',
-                  '&:hover': { bgcolor: '#E2E8F0' }
+                  borderRadius: '14px',
+                  height: 28,
+                  '&:hover': { bgcolor: '#EDF2F7', borderColor: '#CBD5E1' }
                 }}
               />
             ))}
@@ -664,7 +713,7 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
           {/* Input Bar */}
           <Box
             sx={{
-              p: 1.5,
+              p: { xs: 1.25, sm: 1.6 },
               bgcolor: '#FFFFFF',
               borderTop: '1px solid #E2E8F0',
               display: 'flex',
@@ -679,6 +728,8 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
                 sx={{
                   bgcolor: '#DC2626',
                   color: '#FFFFFF',
+                  width: 42,
+                  height: 42,
                   '&:hover': { bgcolor: '#B91C1C' }
                 }}
                 aria-label="Stop recording"
@@ -692,6 +743,8 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
                 sx={{
                   bgcolor: '#F1F5F9',
                   color: '#475569',
+                  width: 42,
+                  height: 42,
                   '&:hover': { bgcolor: '#E2E8F0', color: '#0F172A' }
                 }}
                 aria-label="Voice input"
@@ -716,8 +769,18 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
               }}
               sx={{
                 '& .MuiOutlinedInput-root': {
-                  borderRadius: 2,
-                  bgcolor: '#F8FAFC'
+                  borderRadius: 3,
+                  bgcolor: '#F8FAFC',
+                  fontSize: '0.88rem',
+                  '& fieldset': {
+                    borderColor: '#E2E8F0'
+                  },
+                  '&:hover fieldset': {
+                    borderColor: '#CBD5E1'
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#1D6FE5'
+                  }
                 }
               }}
             />
@@ -727,9 +790,12 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
               onClick={() => handleSendMessage()}
               disabled={!inputValue.trim() || isLoading || isRecording}
               sx={{
-                bgcolor: '#2563EB',
+                bgcolor: '#1D6FE5',
                 color: '#FFFFFF',
-                '&:hover': { bgcolor: '#1D4ED8' },
+                width: 42,
+                height: 42,
+                boxShadow: inputValue.trim() ? '0 2px 8px rgba(29, 111, 229, 0.35)' : 'none',
+                '&:hover': { bgcolor: '#1558B0' },
                 '&.Mui-disabled': { bgcolor: '#E2E8F0', color: '#94A3B8' }
               }}
               aria-label="Send message"
