@@ -1,10 +1,10 @@
 /**
  * Domain:           Home Services Marketplace / AI Customer Support
- * Audience & tone:  Salem residents & service partners; reassuring, fast, dependable, professional
- * Mood:             "Precise & Warm"
- * Motion depth:     Subtle feedback (smooth bubble transitions, gentle audio waveform indicator)
+ * Audience & tone:  Salem residents & service partners; direct, concise, factual, dependable
+ * Mood:             "Warm & Precise"
+ * Motion depth:     Subtle feedback (smooth bubble transitions, clean card surfaces)
  * Layout family:    App Shell with Sticky Header + Scrollable Chat Stream + Docked Command Bar
- * Reference anchor: High-end conversational assistant with live transactional status widgets
+ * Reference anchor: Stripe / Linear support assistant grounded in design tokens
  */
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -28,18 +28,29 @@ import {
   Square,
   Phone,
   MessageCircle,
-  Sparkles,
+  LifeBuoy,
   ShieldAlert,
   Clock,
   Calendar,
   MapPin,
   CheckCircle2,
   AlertCircle,
-  LogIn
+  LogIn,
+  ExternalLink,
+  Receipt
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { API_V1_URL } from '../../config';
 import toast from 'react-hot-toast';
+
+const THEME = {
+  primaryBlue: '#0D3B66',
+  secondaryGreen: '#2E7D32',
+  accentOrange: '#F7931E',
+  lightGreen: '#A5D6A7',
+  background: '#E8F5E9',
+  text: '#546E7A'
+};
 
 const DEFAULT_OPS_CONTACT = {
   phone: '+918807099288',
@@ -74,14 +85,14 @@ export default function AskAiPage() {
     ? [
         "Today's assigned jobs",
         "Check my payout balance",
-        "Emergency dispatch support",
+        "Check my support ticket status",
         "Talk to Salem Ops desk"
       ]
     : [
         "Where is my technician?",
         "Show my booking status",
-        "Cancellation and refund rules",
-        "Talk to Salem Ops desk"
+        "Check my support ticket status",
+        "Cancellation and refund rules"
       ];
 
   // Auto-scroll to bottom of messages
@@ -116,18 +127,22 @@ export default function AskAiPage() {
         {
           id: 'welcome_unauth',
           sender: 'bot',
-          text: 'Welcome to Ask AI. This assistant connects directly to your live bookings, technician GPS updates, and service receipts in Salem. Please sign in to your account to get started.',
-          isAuthBarrier: true,
+          text: 'Welcome to Ask AI. I connect directly to your live bookings, technician dispatches, and support tickets in Salem. How can I assist you today?',
+          isAuthBarrier: false,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
       return;
     }
 
-    const userName = currentUser?.full_name || currentUser?.name || 'Customer';
+    const rawName = (currentUser?.full_name || currentUser?.name || '').trim();
+    const formattedName = rawName && !['tech', 'customer', 'user', 'guest'].includes(rawName.toLowerCase())
+      ? rawName
+      : (isTechnician ? 'Partner' : 'there');
+
     const welcomeText = isTechnician
-      ? `Hello Specialist ${userName}, I am your Shazu One Field Support Assistant. Ask me about your assigned jobs, schedule, or technician payouts in Salem.`
-      : `Hello ${userName}, I am your Shazu One Support Assistant. How can I assist you with your booking, payment, or technician today?`;
+      ? `Hello ${formattedName}! I am your Shazu One Field Support Assistant. Ask about your assigned jobs, dispatch schedule, or partner payouts in Salem.`
+      : `Hello ${formattedName}! I am your Shazu One Support Assistant. Ask about your booking status, assigned specialist, or support tickets.`;
 
     setMessages([
       {
@@ -141,12 +156,6 @@ export default function AskAiPage() {
 
   // Voice Recording Handlers
   const startRecording = async () => {
-    if (!currentUser) {
-      toast.error('Please sign in to record a voice query.');
-      if (typeof openAuthModal === 'function') openAuthModal();
-      return;
-    }
-
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       audioChunksRef.current = [];
@@ -201,7 +210,7 @@ export default function AskAiPage() {
       {
         id: userMsgId,
         sender: 'user',
-        text: 'Voice query recorded and transcribing...',
+        text: 'Voice query recorded...',
         isAudio: true,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }
@@ -228,7 +237,7 @@ export default function AskAiPage() {
           {
             id: `bot_${Date.now()}`,
             sender: 'bot',
-            text: 'Our voice assistant line is currently synchronizing with the central dispatch network. You can type your request or connect directly with our Salem Operations desk below:',
+            text: 'Our voice assistant is synchronizing with Salem dispatch. You can type your question or call our operations desk below:',
             escalateToOps: true,
             opsContact: opsContact || DEFAULT_OPS_CONTACT,
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -253,7 +262,10 @@ export default function AskAiPage() {
           id: `bot_${Date.now()}`,
           sender: 'bot',
           text: data.reply || 'Hello! I am Ask AI, your Shazu One support assistant. How can I assist you with your booking or technician today?',
-          booking: data.booking || null,
+          activeBooking: data.activeBooking || null,
+          recentCompletedBooking: data.recentCompletedBooking || null,
+          recentTicket: data.recentTicket || null,
+          booking: data.activeBooking || data.booking || null,
           escalateToOps: Boolean(data.escalateToOps),
           opsContact: data.opsContact || opsContact || DEFAULT_OPS_CONTACT,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -266,7 +278,7 @@ export default function AskAiPage() {
         {
           id: `bot_${Date.now()}`,
           sender: 'bot',
-          text: 'Our AI support assistant is currently at high demand. Our dedicated Salem Operations team is standing by to help you directly right now.',
+          text: 'Network connection unavailable. Our Salem Operations team is standing by to help you directly.',
           escalateToOps: true,
           opsContact: opsContact || DEFAULT_OPS_CONTACT,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -316,7 +328,7 @@ export default function AskAiPage() {
           {
             id: `bot_${Date.now()}`,
             sender: 'bot',
-            text: 'Our AI cloud assistant is currently synchronizing with the central dispatch network. For immediate assistance with your booking, payment, or technician, please connect directly with our Salem Operations desk below:',
+            text: 'Our AI cloud assistant is currently updating with central dispatch. Connect directly with our Salem Operations desk below:',
             escalateToOps: true,
             opsContact: opsContact || DEFAULT_OPS_CONTACT,
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -333,7 +345,10 @@ export default function AskAiPage() {
           id: `bot_${Date.now()}`,
           sender: 'bot',
           text: data.reply || 'Hello! I am Ask AI, your Shazu One support assistant. How can I assist you with your booking or technician today?',
-          booking: data.booking || null,
+          activeBooking: data.activeBooking || null,
+          recentCompletedBooking: data.recentCompletedBooking || null,
+          recentTicket: data.recentTicket || null,
+          booking: data.activeBooking || data.booking || null,
           escalateToOps: Boolean(data.escalateToOps),
           opsContact: data.opsContact || opsContact || DEFAULT_OPS_CONTACT,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -346,7 +361,7 @@ export default function AskAiPage() {
         {
           id: `bot_${Date.now()}`,
           sender: 'bot',
-          text: 'Our AI support assistant is currently at high demand. Our dedicated Salem Operations team is standing by to help you directly right now.',
+          text: 'Our AI support connection is momentarily busy. Our Salem Operations team is ready to assist you directly.',
           escalateToOps: true,
           opsContact: opsContact || DEFAULT_OPS_CONTACT,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -368,12 +383,13 @@ export default function AskAiPage() {
     <Box
       sx={{
         minHeight: '100vh',
-        background: 'linear-gradient(180deg, #021636 0%, #061F4A 40%, #0B192C 100%)',
-        color: '#FFFFFF',
+        backgroundColor: THEME.background,
+        color: THEME.primaryBlue,
         display: 'flex',
         flexDirection: 'column',
-        pt: { xs: 8, md: 9 }, // clear fixed navbar
-        pb: 2
+        pt: { xs: 8, md: 9.5 },
+        pb: 3,
+        boxSizing: 'border-box'
       }}
     >
       {/* Container Card */}
@@ -395,9 +411,9 @@ export default function AskAiPage() {
             p: { xs: 1.5, sm: 2 },
             mb: 2,
             borderRadius: 3,
-            background: 'rgba(2, 47, 110, 0.45)',
-            backdropFilter: 'blur(16px)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
+            backgroundColor: '#FFFFFF',
+            border: `1px solid ${THEME.lightGreen}`,
+            boxShadow: '0 2px 10px rgba(13, 59, 102, 0.05)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -409,9 +425,9 @@ export default function AskAiPage() {
               onClick={() => navigate(-1)}
               aria-label="Back"
               sx={{
-                color: '#FFFFFF',
-                bgcolor: 'rgba(255, 255, 255, 0.08)',
-                '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.16)' }
+                color: THEME.primaryBlue,
+                bgcolor: '#F1F5F9',
+                '&:hover': { bgcolor: '#E2E8F0' }
               }}
             >
               <ArrowLeft size={18} />
@@ -422,11 +438,11 @@ export default function AskAiPage() {
                 width: 42,
                 height: 42,
                 borderRadius: '50%',
-                bgcolor: '#0A5CC4',
+                bgcolor: THEME.primaryBlue,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 0 16px rgba(10, 92, 196, 0.5)'
+                boxShadow: '0 2px 8px rgba(13, 59, 102, 0.25)'
               }}
             >
               <Bot size={22} color="#FFFFFF" />
@@ -434,21 +450,21 @@ export default function AskAiPage() {
 
             <Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#FFFFFF', fontSize: '15px' }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 800, color: THEME.primaryBlue, fontSize: '15px' }}>
                   Ask AI Assistant
                 </Typography>
                 <Box
                   sx={{
-                    width: 7,
-                    height: 7,
+                    width: 8,
+                    height: 8,
                     borderRadius: '50%',
-                    bgcolor: '#2B9236',
-                    boxShadow: '0 0 8px #2B9236'
+                    bgcolor: THEME.secondaryGreen,
+                    boxShadow: `0 0 6px ${THEME.secondaryGreen}`
                   }}
                 />
               </Box>
-              <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.65)', fontSize: '12px' }}>
-                Instant Service & Dispatch Support (Salem)
+              <Typography variant="caption" sx={{ color: THEME.text, fontSize: '12px', fontWeight: 500 }}>
+                Instant Service & Support (Salem Central Dispatch)
               </Typography>
             </Box>
           </Box>
@@ -460,17 +476,17 @@ export default function AskAiPage() {
             variant="outlined"
             size="small"
             sx={{
-              color: '#FFFFFF',
-              borderColor: 'rgba(255, 255, 255, 0.25)',
-              bgcolor: 'rgba(255, 255, 255, 0.05)',
+              color: THEME.secondaryGreen,
+              borderColor: THEME.secondaryGreen,
+              bgcolor: '#F0FDF4',
               textTransform: 'none',
-              fontWeight: 600,
+              fontWeight: 700,
               fontSize: '12px',
               px: 1.5,
               borderRadius: 2,
               '&:hover': {
-                borderColor: '#2B9236',
-                bgcolor: 'rgba(43, 146, 54, 0.15)'
+                borderColor: THEME.secondaryGreen,
+                bgcolor: '#DCFCE7'
               }
             }}
           >
@@ -486,9 +502,9 @@ export default function AskAiPage() {
             display: 'flex',
             flexDirection: 'column',
             borderRadius: 3,
-            background: 'rgba(2, 22, 54, 0.6)',
-            backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
+            backgroundColor: '#FFFFFF',
+            border: `1px solid ${THEME.lightGreen}`,
+            boxShadow: '0 4px 20px -2px rgba(13, 59, 102, 0.06)',
             overflow: 'hidden',
             minHeight: '480px'
           }}
@@ -502,14 +518,15 @@ export default function AskAiPage() {
               maxHeight: { xs: 'calc(100vh - 280px)', md: 'calc(100vh - 300px)' },
               display: 'flex',
               flexDirection: 'column',
-              gap: 2
+              gap: 2,
+              backgroundColor: '#FAFCFA'
             }}
           >
             {/* Quick Suggestion Chips */}
-            {currentUser && messages.length <= 2 && (
+            {messages.length <= 2 && (
               <Box sx={{ mb: 1 }}>
-                <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)', mb: 1, display: 'block', fontWeight: 600 }}>
-                  Suggested queries:
+                <Typography variant="caption" sx={{ color: THEME.text, mb: 1, display: 'block', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px', fontSize: '11px' }}>
+                  Frequently Asked Questions
                 </Typography>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                   {quickSuggestions.map((suggestion, idx) => (
@@ -518,15 +535,16 @@ export default function AskAiPage() {
                       label={suggestion}
                       onClick={() => handleSendMessage(suggestion)}
                       sx={{
-                        bgcolor: 'rgba(10, 92, 196, 0.2)',
-                        color: '#93C5FD',
-                        border: '1px solid rgba(147, 197, 253, 0.2)',
-                        fontWeight: 500,
+                        bgcolor: '#F0FDF4',
+                        color: THEME.primaryBlue,
+                        border: `1px solid ${THEME.lightGreen}`,
+                        fontWeight: 600,
                         fontSize: '12.5px',
                         cursor: 'pointer',
+                        transition: 'all 0.15s ease',
                         '&:hover': {
-                          bgcolor: 'rgba(10, 92, 196, 0.4)',
-                          borderColor: '#60A5FA'
+                          bgcolor: THEME.background,
+                          borderColor: THEME.secondaryGreen
                         }
                       }}
                     />
@@ -554,7 +572,7 @@ export default function AskAiPage() {
                       display: 'flex',
                       alignItems: 'flex-start',
                       gap: 1.25,
-                      maxWidth: { xs: '90%', sm: '80%' },
+                      maxWidth: { xs: '90%', sm: '82%' },
                       flexDirection: isBot ? 'row' : 'row-reverse'
                     }}
                   >
@@ -563,16 +581,16 @@ export default function AskAiPage() {
                         width: 32,
                         height: 32,
                         borderRadius: '50%',
-                        bgcolor: isBot ? '#0A5CC4' : '#1E293B',
+                        bgcolor: isBot ? THEME.primaryBlue : THEME.secondaryGreen,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         flexShrink: 0,
                         mt: 0.5,
-                        border: '1px solid rgba(255, 255, 255, 0.15)'
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
                       }}
                     >
-                      {isBot ? <Bot size={17} color="#FFFFFF" /> : <User size={17} color="#94A3B8" />}
+                      {isBot ? <Bot size={17} color="#FFFFFF" /> : <User size={17} color="#FFFFFF" />}
                     </Box>
 
                     <Box
@@ -581,12 +599,12 @@ export default function AskAiPage() {
                         borderRadius: 3,
                         borderTopLeftRadius: isBot ? 1 : 12,
                         borderTopRightRadius: isBot ? 12 : 1,
-                        bgcolor: isBot ? 'rgba(15, 30, 54, 0.9)' : '#0A5CC4',
-                        color: '#FFFFFF',
-                        border: isBot ? '1px solid rgba(255, 255, 255, 0.1)' : 'none',
+                        bgcolor: isBot ? '#FFFFFF' : THEME.primaryBlue,
+                        color: isBot ? '#1E293B' : '#FFFFFF',
+                        border: isBot ? `1px solid ${THEME.lightGreen}` : 'none',
                         boxShadow: isBot
-                          ? '0 4px 12px rgba(0, 0, 0, 0.25)'
-                          : '0 4px 12px rgba(10, 92, 196, 0.35)'
+                          ? '0 2px 10px rgba(13, 59, 102, 0.05)'
+                          : '0 3px 12px rgba(13, 59, 102, 0.25)'
                       }}
                     >
                       <Typography
@@ -595,7 +613,8 @@ export default function AskAiPage() {
                           fontSize: '14px',
                           lineHeight: 1.6,
                           whiteSpace: 'pre-wrap',
-                          fontWeight: 400
+                          fontWeight: 500,
+                          color: isBot ? '#1E293B' : '#FFFFFF'
                         }}
                       >
                         {msg.text}
@@ -607,8 +626,9 @@ export default function AskAiPage() {
                           display: 'block',
                           mt: 0.75,
                           fontSize: '10.5px',
-                          color: isBot ? 'rgba(255, 255, 255, 0.45)' : 'rgba(255, 255, 255, 0.7)',
-                          textAlign: isBot ? 'left' : 'right'
+                          color: isBot ? THEME.text : 'rgba(255, 255, 255, 0.75)',
+                          textAlign: isBot ? 'left' : 'right',
+                          fontWeight: 600
                         }}
                       >
                         {msg.timestamp}
@@ -616,91 +636,52 @@ export default function AskAiPage() {
                     </Box>
                   </Box>
 
-                  {/* Auth Barrier Card */}
-                  {msg.isAuthBarrier && (
-                    <Box
-                      sx={{
-                        mt: 1.5,
-                        ml: { xs: 0, sm: 5.5 },
-                        p: 2.5,
-                        borderRadius: 3,
-                        bgcolor: 'rgba(2, 47, 110, 0.4)',
-                        border: '1px solid rgba(10, 92, 196, 0.4)',
-                        maxWidth: '480px'
-                      }}
-                    >
-                      <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: '#93C5FD' }}>
-                        Sign In Required to Chat with Ask AI
-                      </Typography>
-                      <Typography variant="body2" sx={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.8)', mb: 2 }}>
-                        Ask AI retrieves your real-time booking status, assigned technician contact, and verified invoices in Salem. Sign in to your account with your mobile number to access.
-                      </Typography>
-                      <Button
-                        variant="contained"
-                        startIcon={<LogIn size={16} />}
-                        onClick={() => {
-                          if (typeof openAuthModal === 'function') openAuthModal();
-                          else navigate('/login');
-                        }}
-                        sx={{
-                          bgcolor: '#0A5CC4',
-                          fontWeight: 600,
-                          textTransform: 'none',
-                          borderRadius: 2,
-                          '&:hover': { bgcolor: '#0A86EC' }
-                        }}
-                      >
-                        Sign In with Phone
-                      </Button>
-                    </Box>
-                  )}
-
-                  {/* Real-time Booking Card */}
-                  {msg.booking && (
+                  {/* 1. Active In-Progress Booking Card */}
+                  {msg.activeBooking && (
                     <Box
                       sx={{
                         mt: 1.5,
                         ml: { xs: 0, sm: 5.5 },
                         p: 2,
                         borderRadius: 3,
-                        bgcolor: 'rgba(10, 92, 196, 0.15)',
-                        border: '1px solid rgba(10, 92, 196, 0.35)',
-                        maxWidth: '460px'
+                        bgcolor: '#F0FDF4',
+                        border: `1px solid ${THEME.lightGreen}`,
+                        maxWidth: '460px',
+                        boxShadow: '0 2px 8px rgba(46, 125, 50, 0.08)'
                       }}
                     >
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#FFFFFF', fontSize: '13.5px' }}>
-                          Booking #{msg.booking.id}
+                        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: THEME.primaryBlue, fontSize: '13.5px' }}>
+                          Active Booking #{msg.activeBooking.id}
                         </Typography>
                         <Chip
-                          label={msg.booking.status}
+                          label={String(msg.activeBooking.status || 'Active').replace(/_/g, ' ').toUpperCase()}
                           size="small"
                           sx={{
-                            bgcolor: '#2B9236',
+                            bgcolor: THEME.secondaryGreen,
                             color: '#FFFFFF',
-                            fontWeight: 700,
-                            textTransform: 'uppercase',
+                            fontWeight: 800,
                             fontSize: '11px',
                             height: '22px'
                           }}
                         />
                       </Box>
 
-                      {msg.booking.technicianName && (
+                      {msg.activeBooking.technicianName && (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.75 }}>
-                          <CheckCircle2 size={15} color="#2B9236" />
-                          <Typography variant="body2" sx={{ fontSize: '13px', color: '#E2E8F0' }}>
-                            Specialist: <strong>{msg.booking.technicianName}</strong>
+                          <CheckCircle2 size={15} color={THEME.secondaryGreen} />
+                          <Typography variant="body2" sx={{ fontSize: '13px', color: '#1E293B' }}>
+                            Specialist: <strong>{msg.activeBooking.technicianName}</strong>
                           </Typography>
-                          {msg.booking.technicianPhone && (
+                          {msg.activeBooking.technicianPhone && (
                             <Typography
                               component="a"
-                              href={`tel:${msg.booking.technicianPhone}`}
+                              href={`tel:${msg.activeBooking.technicianPhone}`}
                               variant="body2"
                               sx={{
-                                color: '#93C5FD',
+                                color: THEME.secondaryGreen,
                                 textDecoration: 'none',
-                                fontWeight: 600,
+                                fontWeight: 700,
                                 fontSize: '12px',
                                 ml: 'auto'
                               }}
@@ -711,18 +692,121 @@ export default function AskAiPage() {
                         </Box>
                       )}
 
-                      {msg.booking.locality && (
+                      {msg.activeBooking.locality && (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <MapPin size={15} color="#94A3B8" />
-                          <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '12px' }}>
-                            Locality: {msg.booking.locality}
+                          <MapPin size={15} color={THEME.text} />
+                          <Typography variant="caption" sx={{ color: THEME.text, fontSize: '12px' }}>
+                            Locality: {msg.activeBooking.locality}
                           </Typography>
                         </Box>
                       )}
                     </Box>
                   )}
 
-                  {/* Salem Operations Escalation Desk Card */}
+                  {/* 2. Completed Service Receipt Card (Never shows active allotment!) */}
+                  {msg.recentCompletedBooking && (
+                    <Box
+                      sx={{
+                        mt: 1.5,
+                        ml: { xs: 0, sm: 5.5 },
+                        p: 2,
+                        borderRadius: 3,
+                        bgcolor: '#FFFFFF',
+                        border: `1px solid ${THEME.lightGreen}`,
+                        maxWidth: '460px',
+                        boxShadow: '0 2px 8px rgba(13, 59, 102, 0.06)'
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <CheckCircle2 size={18} color={THEME.secondaryGreen} />
+                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: THEME.primaryBlue, fontSize: '13.5px' }}>
+                            Service Completed & Closed
+                          </Typography>
+                        </Box>
+                        <Chip
+                          label="COMPLETED"
+                          size="small"
+                          sx={{
+                            bgcolor: '#DCFCE7',
+                            color: THEME.secondaryGreen,
+                            fontWeight: 800,
+                            fontSize: '10.5px',
+                            height: '22px'
+                          }}
+                        />
+                      </Box>
+
+                      <Typography variant="body2" sx={{ fontSize: '12.5px', color: THEME.text, mb: 1 }}>
+                        Booking #{msg.recentCompletedBooking.id} ({msg.recentCompletedBooking.serviceName}) was completed by Specialist {msg.recentCompletedBooking.technicianName}.
+                      </Typography>
+
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pt: 1, borderTop: '1px solid #F1F5F9' }}>
+                        <Typography variant="caption" sx={{ color: THEME.primaryBlue, fontWeight: 700, fontSize: '12px' }}>
+                          Invoiced Total: ₹{msg.recentCompletedBooking.finalAmount}
+                        </Typography>
+                        <Button
+                          size="small"
+                          onClick={() => navigate('/')}
+                          sx={{
+                            color: THEME.primaryBlue,
+                            textTransform: 'none',
+                            fontWeight: 700,
+                            fontSize: '11.5px',
+                            p: 0
+                          }}
+                        >
+                          Book New Service &rarr;
+                        </Button>
+                      </Box>
+                    </Box>
+                  )}
+
+                  {/* 3. Live Support Ticket Progress Card */}
+                  {msg.recentTicket && (
+                    <Box
+                      sx={{
+                        mt: 1.5,
+                        ml: { xs: 0, sm: 5.5 },
+                        p: 2,
+                        borderRadius: 3,
+                        bgcolor: '#FFFFFF',
+                        border: `1px solid ${THEME.lightGreen}`,
+                        maxWidth: '460px',
+                        boxShadow: '0 2px 8px rgba(13, 59, 102, 0.06)'
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <LifeBuoy size={17} color={THEME.primaryBlue} />
+                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: THEME.primaryBlue, fontSize: '13px' }}>
+                            Support Ticket #{msg.recentTicket.ticketNumber}
+                          </Typography>
+                        </Box>
+                        <Chip
+                          label={String(msg.recentTicket.status || 'Active').toUpperCase()}
+                          size="small"
+                          sx={{
+                            bgcolor: msg.recentTicket.status === 'resolved' ? '#DCFCE7' : '#FEF3C7',
+                            color: msg.recentTicket.status === 'resolved' ? THEME.secondaryGreen : THEME.accentOrange,
+                            fontWeight: 800,
+                            fontSize: '10.5px',
+                            height: '22px'
+                          }}
+                        />
+                      </Box>
+
+                      <Typography variant="body2" sx={{ fontSize: '12.5px', color: '#1E293B', fontWeight: 600, mb: 0.5 }}>
+                        {msg.recentTicket.subject || 'Support Case'}
+                      </Typography>
+
+                      <Typography variant="caption" sx={{ color: THEME.text, display: 'block', fontSize: '11.5px' }}>
+                        {msg.recentTicket.resolutionSummary || 'Salem Operations dispatch is actively tracking and reviewing this ticket.'}
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {/* 4. Salem Operations Escalation Desk Card */}
                   {msg.escalateToOps && (
                     <Box
                       sx={{
@@ -730,20 +814,20 @@ export default function AskAiPage() {
                         ml: { xs: 0, sm: 5.5 },
                         p: 2,
                         borderRadius: 3,
-                        bgcolor: 'rgba(2, 47, 110, 0.35)',
-                        border: '1px solid rgba(255, 255, 255, 0.12)',
+                        bgcolor: '#FFFBEB',
+                        border: '1px solid #FCD34D',
                         maxWidth: '480px'
                       }}
                     >
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                        <ShieldAlert size={16} color="#38BDF8" />
-                        <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#FFFFFF', fontSize: '13px' }}>
+                        <ShieldAlert size={16} color={THEME.accentOrange} />
+                        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#92400E', fontSize: '13px' }}>
                           Salem Operations Support Desk
                         </Typography>
                       </Box>
 
-                      <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.7)', display: 'block', mb: 1.5, fontSize: '12px' }}>
-                        Connect directly with our live dispatchers for emergency overrides, cancellations, or booking modifications:
+                      <Typography variant="caption" sx={{ color: '#78350F', display: 'block', mb: 1.5, fontSize: '12px' }}>
+                        Connect directly with our central Salem dispatchers for emergency overrides, cancellations, or booking queries:
                       </Typography>
 
                       <Box sx={{ display: 'flex', gap: 1.25, flexWrap: 'wrap' }}>
@@ -754,13 +838,13 @@ export default function AskAiPage() {
                           size="small"
                           startIcon={<Phone size={14} />}
                           sx={{
-                            bgcolor: '#0F172A',
+                            bgcolor: THEME.primaryBlue,
                             color: '#FFFFFF',
                             textTransform: 'none',
-                            fontWeight: 600,
+                            fontWeight: 700,
                             fontSize: '12px',
                             borderRadius: 2,
-                            '&:hover': { bgcolor: '#1E293B' }
+                            '&:hover': { bgcolor: '#0B2D4F' }
                           }}
                         >
                           Call Desk
@@ -775,20 +859,20 @@ export default function AskAiPage() {
                           size="small"
                           startIcon={<MessageCircle size={14} />}
                           sx={{
-                            bgcolor: '#2B9236',
+                            bgcolor: THEME.secondaryGreen,
                             color: '#FFFFFF',
                             textTransform: 'none',
-                            fontWeight: 600,
+                            fontWeight: 700,
                             fontSize: '12px',
                             borderRadius: 2,
-                            '&:hover': { bgcolor: '#22782B' }
+                            '&:hover': { bgcolor: '#226027' }
                           }}
                         >
                           WhatsApp
                         </Button>
                       </Box>
 
-                      <Typography variant="caption" sx={{ display: 'block', mt: 1.25, color: 'rgba(255, 255, 255, 0.5)', fontSize: '11px' }}>
+                      <Typography variant="caption" sx={{ display: 'block', mt: 1.25, color: '#92400E', fontSize: '11px' }}>
                         Operating Hours: {msg.opsContact?.hours || opsContact.hours}
                       </Typography>
                     </Box>
@@ -805,7 +889,7 @@ export default function AskAiPage() {
                     width: 32,
                     height: 32,
                     borderRadius: '50%',
-                    bgcolor: '#0A5CC4',
+                    bgcolor: THEME.primaryBlue,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center'
@@ -818,15 +902,15 @@ export default function AskAiPage() {
                     px: 2,
                     py: 1.25,
                     borderRadius: 3,
-                    bgcolor: 'rgba(15, 30, 54, 0.85)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    bgcolor: '#FFFFFF',
+                    border: `1px solid ${THEME.lightGreen}`,
                     display: 'flex',
                     alignItems: 'center',
                     gap: 1.5
                   }}
                 >
-                  <CircularProgress size={16} sx={{ color: '#60A5FA' }} />
-                  <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.75)', fontSize: '13px' }}>
+                  <CircularProgress size={16} sx={{ color: THEME.secondaryGreen }} />
+                  <Typography variant="caption" sx={{ color: THEME.text, fontSize: '13px', fontWeight: 600 }}>
                     Consulting Salem dispatch records...
                   </Typography>
                 </Paper>
@@ -840,9 +924,8 @@ export default function AskAiPage() {
           <Box
             sx={{
               p: { xs: 1.5, sm: 2 },
-              background: 'rgba(2, 47, 110, 0.5)',
-              backdropFilter: 'blur(16px)',
-              borderTop: '1px solid rgba(255, 255, 255, 0.08)'
+              backgroundColor: '#FFFFFF',
+              borderTop: `1px solid ${THEME.lightGreen}`
             }}
           >
             {isRecording ? (
@@ -854,8 +937,8 @@ export default function AskAiPage() {
                   px: 2,
                   py: 1,
                   borderRadius: 3,
-                  bgcolor: 'rgba(239, 68, 68, 0.15)',
-                  border: '1px solid rgba(239, 68, 68, 0.3)'
+                  bgcolor: '#FEF2F2',
+                  border: '1px solid #FECACA'
                 }}
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -864,11 +947,11 @@ export default function AskAiPage() {
                       width: 10,
                       height: 10,
                       borderRadius: '50%',
-                      bgcolor: '#EF4444',
+                      bgcolor: '#DC2626',
                       animation: 'pulse 1.2s infinite'
                     }}
                   />
-                  <Typography variant="body2" sx={{ fontWeight: 600, color: '#FCA5A5', fontSize: '13.5px' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 700, color: '#B91C1C', fontSize: '13.5px' }}>
                     Recording voice query: {formatTimer(recordingSeconds)}
                   </Typography>
                 </Box>
@@ -881,7 +964,7 @@ export default function AskAiPage() {
                   onClick={stopRecording}
                   sx={{
                     textTransform: 'none',
-                    fontWeight: 600,
+                    fontWeight: 700,
                     fontSize: '12px',
                     borderRadius: 2
                   }}
@@ -897,13 +980,13 @@ export default function AskAiPage() {
                   title="Speak voice query (Whisper STT)"
                   aria-label="Speak voice query"
                   sx={{
-                    color: '#93C5FD',
-                    bgcolor: 'rgba(10, 92, 196, 0.25)',
-                    border: '1px solid rgba(147, 197, 253, 0.2)',
+                    color: THEME.primaryBlue,
+                    bgcolor: THEME.background,
+                    border: `1px solid ${THEME.lightGreen}`,
                     p: 1.25,
                     '&:hover': {
-                      bgcolor: 'rgba(10, 92, 196, 0.45)',
-                      borderColor: '#60A5FA'
+                      bgcolor: '#DCFCE7',
+                      borderColor: THEME.secondaryGreen
                     }
                   }}
                 >
@@ -914,13 +997,9 @@ export default function AskAiPage() {
                   inputRef={inputRef}
                   fullWidth
                   size="small"
-                  placeholder={
-                    currentUser
-                      ? "Ask about your technician, booking, or home services in Salem..."
-                      : "Sign in to chat with Ask AI..."
-                  }
+                  placeholder="Ask about your technician, booking, tickets, or service rules..."
                   value={inputValue}
-                  disabled={isLoading || !currentUser}
+                  disabled={isLoading}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
@@ -930,23 +1009,23 @@ export default function AskAiPage() {
                   }}
                   sx={{
                     '& .MuiOutlinedInput-root': {
-                      color: '#FFFFFF',
-                      bgcolor: 'rgba(255, 255, 255, 0.06)',
+                      color: THEME.primaryBlue,
+                      bgcolor: '#F8FAFC',
                       borderRadius: 3,
                       fontSize: '13.5px',
                       '& fieldset': {
-                        borderColor: 'rgba(255, 255, 255, 0.15)'
+                        borderColor: THEME.lightGreen
                       },
                       '&:hover fieldset': {
-                        borderColor: 'rgba(255, 255, 255, 0.3)'
+                        borderColor: THEME.secondaryGreen
                       },
                       '&.Mui-focused fieldset': {
-                        borderColor: '#0A5CC4',
+                        borderColor: THEME.primaryBlue,
                         borderWidth: '1.5px'
                       }
                     },
                     '& .MuiInputBase-input::placeholder': {
-                      color: 'rgba(255, 255, 255, 0.5)',
+                      color: THEME.text,
                       opacity: 1
                     }
                   }}
@@ -954,18 +1033,19 @@ export default function AskAiPage() {
 
                 <IconButton
                   onClick={() => handleSendMessage()}
-                  disabled={isLoading || !inputValue.trim() || !currentUser}
+                  disabled={isLoading || !inputValue.trim()}
                   aria-label="Send message"
                   sx={{
                     color: '#FFFFFF',
-                    bgcolor: inputValue.trim() ? '#0A5CC4' : 'rgba(255, 255, 255, 0.08)',
+                    bgcolor: inputValue.trim() ? THEME.primaryBlue : '#CBD5E1',
                     p: 1.25,
                     transition: 'all 0.2s',
                     '&:hover': {
-                      bgcolor: inputValue.trim() ? '#0A86EC' : 'rgba(255, 255, 255, 0.15)'
+                      bgcolor: inputValue.trim() ? '#0B2D4F' : '#94A3B8'
                     },
                     '&.Mui-disabled': {
-                      color: 'rgba(255, 255, 255, 0.3)'
+                      color: '#FFFFFF',
+                      bgcolor: '#E2E8F0'
                     }
                   }}
                 >
@@ -979,4 +1059,3 @@ export default function AskAiPage() {
     </Box>
   );
 }
-

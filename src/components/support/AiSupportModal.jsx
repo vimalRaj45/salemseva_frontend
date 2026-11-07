@@ -64,14 +64,14 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
     ? [
       "Today's assigned jobs",
       "Check my payout balance",
-      "Emergency dispatch support",
+      "Check my support ticket status",
       "Talk to Salem Ops desk"
     ]
     : [
       "Where is my technician?",
       "Show my booking status",
-      "Cancellation and refund rules",
-      "Talk to Salem Ops desk"
+      "Check my support ticket status",
+      "Cancellation and refund rules"
     ];
 
   // Initial welcome message
@@ -244,6 +244,10 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
           id: `bot_${Date.now()}`,
           sender: 'bot',
           text: data.reply || 'Hello! I am Ask AI, your Shazu One support assistant. How can I assist you with your booking or technician today?',
+          activeBooking: data.activeBooking || null,
+          recentCompletedBooking: data.recentCompletedBooking || null,
+          recentTicket: data.recentTicket || null,
+          booking: data.activeBooking || data.booking || null,
           escalateToOps: Boolean(data.escalateToOps),
           opsContact: data.opsContact || opsContact || DEFAULT_OPS_CONTACT,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -323,6 +327,10 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
           id: `bot_${Date.now()}`,
           sender: 'bot',
           text: data.reply || 'Hello! I am Ask AI, your Shazu One support assistant. How can I assist you with your booking or technician today?',
+          activeBooking: data.activeBooking || null,
+          recentCompletedBooking: data.recentCompletedBooking || null,
+          recentTicket: data.recentTicket || null,
+          booking: data.activeBooking || data.booking || null,
           escalateToOps: Boolean(data.escalateToOps),
           opsContact: data.opsContact || opsContact || DEFAULT_OPS_CONTACT,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
