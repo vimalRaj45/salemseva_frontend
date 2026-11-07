@@ -32,7 +32,8 @@ import {
   Power,
   Tag,
   Smartphone,
-  Download
+  Download,
+  Bot
 } from 'lucide-react';
 import { getCurrentLanguage, SUPPORTED_LANGUAGES } from '../services/languageService';
 import { APP_DOWNLOAD_URL } from '../config';
@@ -51,6 +52,7 @@ export default function SideNavbar({
   onOpenLanguageModal,
   onOpenFeedbackModal,
   onOpenSupportTicketModal,
+  onOpenAiSupportModal,
   logout,
   logoutTech
 }) {
@@ -690,6 +692,17 @@ export default function SideNavbar({
                   onClick={() => {
                     onClose();
                     onOpenLanguageModal();
+                  }}
+                />
+                <DrawerNavItem
+                  icon={<Bot size={16} color="#2563EB" />}
+                  label="AI Support & Helpdesk"
+                  sublabel="Voice & text assistant • Salem Ops live link"
+                  badge="AI"
+                  badgeColor="#2563EB"
+                  onClick={() => {
+                    onClose();
+                    if (onOpenAiSupportModal) onOpenAiSupportModal();
                   }}
                 />
                 <DrawerNavItem

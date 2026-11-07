@@ -30,10 +30,13 @@ import {
   ArrowRight,
   Tag,
   Smartphone,
-  Download
+  Download,
+  Bot,
+  Headphones
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import SideNavbar from './SideNavbar';
+import AiSupportModal from './support/AiSupportModal';
 import { SUPPORTED_LANGUAGES, getCurrentLanguage } from '../services/languageService';
 import { getLiveAccurateLocation } from '../utils/geoUtils';
 import { APP_DOWNLOAD_URL } from '../config';
@@ -120,6 +123,7 @@ export default function Navbar({
   const [isPartnerMenuOpen, setIsPartnerMenuOpen] = useState(false);
   const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isAiSupportOpen, setIsAiSupportOpen] = useState(false);
 
   // Drawer State
   const [isSideNavOpen, setIsSideNavOpen] = useState(false);
@@ -1215,6 +1219,46 @@ export default function Navbar({
               </a>
             )}
 
+            {/* 3.66 AI HELPDESK BUTTON (Desktop) */}
+            {!isAdmin && !isMobile && (
+              <button
+                type="button"
+                onClick={() => setIsAiSupportOpen(true)}
+                title="AI Support Helpdesk (Voice & Text)"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  height: '40px',
+                  padding: '0 12px',
+                  borderRadius: '8px',
+                  backgroundColor: '#EFF6FF',
+                  border: '1px solid #BFDBFE',
+                  color: '#1D4ED8',
+                  cursor: 'pointer',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <Bot size={16} color="#2563EB" />
+                <span>AI Helpdesk</span>
+                <span
+                  style={{
+                    fontSize: '9.5px',
+                    fontWeight: 800,
+                    backgroundColor: '#2563EB',
+                    color: '#FFFFFF',
+                    padding: '2px 5px',
+                    borderRadius: '4px',
+                    lineHeight: 1
+                  }}
+                >
+                  AI
+                </span>
+              </button>
+            )}
+
             {/* 3.7 USER PROFILE AVATAR & DROPDOWN (LOGGED IN) OR CLEAN SIGN IN BUTTON */}
             {user ? (
               <div style={{ position: 'relative' }} ref={profileRef}>
@@ -1657,8 +1701,15 @@ export default function Navbar({
         onOpenLanguageModal={() => navigate('/language')}
         onOpenFeedbackModal={() => navigate('/feedback')}
         onOpenSupportTicketModal={() => navigate('/support')}
+        onOpenAiSupportModal={() => setIsAiSupportOpen(true)}
         logout={logout}
         logoutTech={logoutTech}
+      />
+
+      {/* Cloudflare AI Support Agent Modal (Voice + Text + RAG) */}
+      <AiSupportModal
+        open={isAiSupportOpen}
+        onClose={() => setIsAiSupportOpen(false)}
       />
     </header>
   );
