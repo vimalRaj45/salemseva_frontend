@@ -15,7 +15,7 @@ import {
 const refundSections = [
   { id: 'sec-deductions', title: '1. Deductions on Refund' },
   { id: 'sec-stages', title: '2. Cancellation Stages' },
-  { id: 'sec-warranty', title: '3. 30-Day Re-Service Warranty' },
+  { id: 'sec-warranty', title: '3. Completion & No-Warranty Policy' },
   { id: 'sec-timelines', title: '4. Settlement Timelines' }
 ];
 
@@ -138,7 +138,7 @@ export default function RefundPolicyPage() {
               <strong style={{ fontSize: '13.5px', color: '#0F172A' }}>Service Completed & OTP Confirmed</strong>
             </div>
             <p style={{ margin: 0, fontSize: '13px', color: '#475569', lineHeight: 1.6 }}>
-              Completed jobs with customer sign-off OTP are not eligible for direct cash reversals. Any post-service dissatisfaction is addressed via our 30-Day Re-Service Warranty.
+              Completed jobs with customer sign-off OTP are final and not eligible for cash reversals. Customers must thoroughly inspect and verify the repair before releasing the OTP to the technician.
             </p>
           </div>
         </div>
@@ -151,24 +151,27 @@ export default function RefundPolicyPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
           <ShieldCheck size={18} color="#16A34A" />
           <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px' }}>
-            3. 30-Day Shazu One Re-Service Warranty
+            3. Service Completion & No-Warranty Policy
           </h2>
         </div>
 
         <p style={{ fontSize: '14.5px', lineHeight: 1.75, color: '#334155', margin: '0 0 16px 0' }}>
-          Every completed home service booked through Shazu One includes our comprehensive 30-day workmanship guarantee:
+          Shazu One connects customers with independent skilled professionals in Salem. Please note our completion and warranty terms:
         </p>
 
         <div style={{ backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '16px 18px', marginBottom: '16px' }}>
           <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '13.5px', lineHeight: 1.8, color: '#334155' }}>
             <li>
-              If the exact repaired defect recurs within thirty (30) calendar days of service completion, Shazu One will dispatch a certified senior technician to re-inspect and rectify the fault with <strong>zero additional labor charges</strong>.
+              <strong>No Post-Service Warranty:</strong> No post-service warranty is provided on workmanship or completed repairs once the customer verifies the job and shares the completion OTP with the technician.
             </li>
             <li>
-              Spare parts or electrical components replaced during the job carry warranty certificates issued directly by original equipment manufacturers (OEMs).
+              <strong>On-Site Testing:</strong> Customers must thoroughly inspect and test the operational status of all repaired appliances, fittings, or circuits before releasing the completion OTP.
             </li>
             <li>
-              Damage resulting from external electrical power surges, physical water contamination, or unauthorized subsequent tampering by third parties is excluded from warranty coverage.
+              <strong>OEM Spare Parts:</strong> Spare parts or replacement hardware purchased during service carry warranty certificates issued directly by original equipment manufacturers (OEMs). Shazu One does not issue separate warranties on parts.
+            </li>
+            <li>
+              <strong>Subsequent Service Requests:</strong> Any faults arising after completion sign-off are treated as a fresh service inspection booking.
             </li>
           </ul>
         </div>

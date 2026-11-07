@@ -97,7 +97,7 @@ export default function MatchingPage() {
     jobsCount: trackData.technician.jobsCompleted || trackData.technician.jobs_completed_count || 0,
     distance: trackData.technician.distanceKm ? `${trackData.technician.distanceKm} km away` : 'Nearby',
     locality: trackData.technician.serviceArea || trackData.technician.locality || 'Fairlands, Salem',
-    eta: trackData.technician.eta || '15 mins',
+    eta: trackData.technician.eta || 'En route',
     phone: trackData.technician.phone
   } : candidate ? {
     id: candidate.id,
@@ -107,7 +107,7 @@ export default function MatchingPage() {
     jobsCount: candidate.jobsCompleted || 0,
     distance: 'Nearby',
     locality: candidate.serviceArea || 'Salem Central Zone',
-    eta: '15 mins',
+    eta: candidate.eta || 'En route',
     phone: candidate.phone
   } : null;
 

@@ -221,7 +221,7 @@ export default function PartnerDutyPage() {
   const handleShareTechWhatsApp = () => {
     const bonusText = partnerWelcomeBonus > 0 ? ` + ₹${partnerWelcomeBonus} வெல்கம் போனஸ்` : '';
     const text = encodeURIComponent(
-      `வணக்கம் நண்பா! சேலத்தில் தினசரி ₹1,500+ சம்பாதிக்க Shazu One-வில் டெக்னீசியனாக இணையுங்கள். \n\nஎனது ரெஃபரல் கோட் *${techReferralCode}* பயன்படுத்தி உடனே இணையுங்கள் (₹${partnerIncentiveAmount} போனஸ்${bonusText}): ${window.location.origin}/partner/onboarding`
+      `வணக்கம் நண்பா! சேலத்தில் தினசரி ₹1,500+ சம்பாதிக்க Shazu One-வில் டெக்னீசியனாக இணையுங்கள். \n\nஎனது ரெஃபரல் கோட் *${techReferralCode}* பயன்படுத்தி உடனே இணையுங்கள் (அதிகபட்சம் ₹${partnerIncentiveAmount} வரை ஊக்கத்தொகை போனஸ்${bonusText} - தகுதி அடிப்படையில்): ${window.location.origin}/partner/onboarding`
     );
     window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
   };
@@ -5333,7 +5333,7 @@ export default function PartnerDutyPage() {
                   டெக்னீசியன் போனஸ் & பரிந்துரை (Incentives Hub)
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11px' }}>
-                  ₹{partnerIncentiveAmount} per technician referral + 0% platform commission star rewards
+                  Up to ₹{partnerIncentiveAmount} incentive per verified technician referral + 0% platform commission star rewards
                 </Typography>
               </Box>
               <Chip
@@ -5500,14 +5500,14 @@ export default function PartnerDutyPage() {
                   </Typography>
                 </Box>
                 <Chip
-                  label={`GET ₹${partnerIncentiveAmount} / TECH`}
+                  label={`EARN UP TO ₹${partnerIncentiveAmount} / TECH`}
                   size="small"
                   sx={{ bgcolor: '#DCFCE7', color: '#059669', fontWeight: 900, fontSize: '10.5px', height: 22 }}
                 />
               </Box>
 
               <Typography variant="body2" sx={{ color: '#475569', fontSize: '12px', lineHeight: 1.45, mb: 1.8 }}>
-                Know skilled AC specialists, master electricians, or plumbers in Salem? Invite them with your partner code. You get <strong>₹{partnerIncentiveAmount} instant cash incentive</strong> upon their KYC verification{partnerWelcomeBonus > 0 ? `, and they receive a ₹${partnerWelcomeBonus} Welcome Tool Kit Bonus` : ''}!
+                Know skilled AC specialists, master electricians, or plumbers in Salem? Invite them with your partner code. You can earn an incentive of <strong>up to ₹{partnerIncentiveAmount}</strong> upon their document & trade verification (incentive amount is performance and verification-based, not guaranteed flat ₹100){partnerWelcomeBonus > 0 ? `, and they receive a ₹${partnerWelcomeBonus} Welcome Tool Kit Bonus` : ''}!
               </Typography>
 
               {/* Technician Referral Code Box */}
@@ -5570,6 +5570,16 @@ export default function PartnerDutyPage() {
                   </Button>
                 </Box>
               </Paper>
+
+              {/* Policy Disclaimer Note */}
+              <Box sx={{ p: 1.2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', mt: 1 }}>
+                <Typography variant="caption" sx={{ color: '#475569', fontSize: '10.5px', display: 'block', lineHeight: 1.4 }}>
+                  * <strong>குறிப்பு:</strong> டெக்னீசியன் பரிந்துரை ஊக்கத்தொகை அதிகபட்சம் ₹100 வரை மட்டுமே வழங்கப்படும். ஆவண சரிபார்ப்பு, தொழில் தகுதி மற்றும் நிர்வாக ஒப்புதல் அடிப்படையில் மட்டுமே இது நிர்ணயிக்கப்படும்.
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#64748B', fontSize: '10px', display: 'block', mt: 0.5, lineHeight: 1.3 }}>
+                  * Note: Referral incentive is provided up to ₹100 maximum based on trade verification and onboarding approval. Not guaranteed flat ₹100.
+                </Typography>
+              </Box>
             </Card>
 
             {/* 4. Referred Technicians Roster List */}
@@ -5630,7 +5640,7 @@ export default function PartnerDutyPage() {
 
                     <Box sx={{ textAlign: 'right' }}>
                       <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#16A34A', fontSize: '12.5px' }}>
-                        +₹{Number(t.incentiveAmount || partnerIncentiveAmount || 0).toFixed(2)}
+                        Up to +₹{Number(t.incentiveAmount || partnerIncentiveAmount || 0).toFixed(2)}
                       </Typography>
                       <Chip
                         label={t.payoutStatus === 'SETTLED_TO_PHONE' || t.payoutStatus === 'SETTLED_TO_UPI' ? 'Paid to Phone' : 'Ready to Claim'}

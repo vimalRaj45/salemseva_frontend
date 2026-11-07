@@ -2423,7 +2423,7 @@ export default function AdminDashboardPage() {
                       <MenuItem value="instant">
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <BoltIcon sx={{ fontSize: 17, color: '#B45309' }} />
-                          <span>Instant (15-25 min)</span>
+                          <span>Instant (Prompt Slot)</span>
                         </Box>
                       </MenuItem>
                       <MenuItem value="scheduled">
@@ -2954,7 +2954,7 @@ export default function AdminDashboardPage() {
                           ) : (
                             <Chip
                               icon={<BoltIcon sx={{ fontSize: '12px !important', color: '#B45309 !important' }} />}
-                              label="Instant (15-25 min)"
+                              label="Instant (Prompt Slot)"
                               size="small"
                               sx={{ bgcolor: '#FEF3C7', color: '#B45309', fontWeight: 800, fontSize: '10px', height: 20 }}
                             />

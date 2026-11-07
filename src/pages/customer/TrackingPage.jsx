@@ -1092,7 +1092,7 @@ export default function TrackingPage() {
                 <Box sx={{ mt: 1.5, p: 1.2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: 1 }}>
                   <ShieldIcon sx={{ fontSize: 18, color: '#0284C7', flexShrink: 0 }} />
                   <Typography variant="caption" sx={{ color: '#475569', fontSize: '11px', lineHeight: 1.3 }}>
-                    <strong>Salem Safe Work Guarantee:</strong> 30-Day Free Warranty & Insurance apply strictly to services logged inside Shazu One. Direct offline arrangements void all platform protection.
+                    <strong>Salem Safe Service Policy:</strong> Platform protections and verified records apply strictly to services logged inside Shazu One. Direct offline arrangements void all platform protection.
                   </Typography>
                 </Box>
               </Card>
@@ -1582,7 +1582,7 @@ export default function TrackingPage() {
                         '&:hover': { bgcolor: '#15803D' }
                       }}
                     >
-                      View Receipt & Warranty Slip (ரசீது) →
+                      View Service Receipt (ரசீது) →
                     </Button>
 
                     <Button
@@ -2101,7 +2101,7 @@ export default function TrackingPage() {
                     '&:hover': { bgcolor: '#15803D' }
                   }}
                 >
-                  Rate Service & View Warranty Slip (ரசீது) →
+                  Rate Service & View Receipt (ரசீது) →
                 </Button>
               ) : bookingStatus === 'quote_approved' ? (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>

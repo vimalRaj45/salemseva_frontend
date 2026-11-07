@@ -217,7 +217,7 @@ export default function CustomerHomePage() {
       status: 'Quick arrival',
       icon: <AcUnitIcon sx={{ fontSize: 20, color: '#0066CC' }} />,
       desc: 'Jet cleaning, gas check & cooling repairs',
-      benefits: ['Verified pro', 'Warranty on work', 'Pay after completion']
+      benefits: ['Verified pro', 'Quality inspection', 'Pay after completion']
     },
     {
       id: 'electrician',
@@ -276,7 +276,7 @@ export default function CustomerHomePage() {
       status: 'Quick arrival',
       icon: <WorkOutlineIcon sx={{ fontSize: 20, color: '#0066CC' }} />,
       desc: s.desc || s.category || 'Doorstep inspection, diagnostics & certified repair',
-      benefits: ['Verified pro', 'Warranty on work', 'Pay after completion']
+      benefits: ['Verified pro', 'Quality inspection', 'Pay after completion']
     };
   };
 
@@ -412,7 +412,7 @@ export default function CustomerHomePage() {
           } else if (status === 'accepted' || status === 'en_route') {
             resumeUrl = `/track?bookingId=${bId}`;
             statusTitle = `${techName} is En Route`;
-            statusSubtitle = 'Live GPS navigation • Two-wheeler ETA 15 mins';
+            statusSubtitle = 'Live GPS navigation • Technician en route to doorstep';
             btnText = 'Track Live';
             dotColor = '#34D399';
           } else if (status === 'arrived') {
@@ -579,7 +579,7 @@ export default function CustomerHomePage() {
                 </Typography>
 
                 <Typography variant="body2" sx={{ color: '#CBD5E1', fontSize: { xs: '13px', sm: '13.5px' }, mb: 2.25, maxWidth: '48ch', lineHeight: 1.6 }}>
-                  Apply code <Box component="span" sx={{ bgcolor: 'rgba(255,255,255,0.12)', px: 0.8, py: 0.2, borderRadius: '4px', fontWeight: 800, color: '#FFFFFF', letterSpacing: '0.5px' }}>SALEM100</Box> at checkout. Includes complete 30-day rework warranty and background-checked technicians.
+                  Apply code <Box component="span" sx={{ bgcolor: 'rgba(255,255,255,0.12)', px: 0.8, py: 0.2, borderRadius: '4px', fontWeight: 800, color: '#FFFFFF', letterSpacing: '0.5px' }}>SALEM100</Box> at checkout. Includes verified background-checked technicians and transparent upfront pricing.
                 </Typography>
 
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, flexWrap: 'wrap' }}>

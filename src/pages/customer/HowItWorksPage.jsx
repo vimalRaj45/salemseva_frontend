@@ -74,15 +74,15 @@ const CUSTOMER_STAGES = [
     ]
   },
   {
-    id: 'warranty',
+    id: 'completion',
     stageNumber: 5,
-    badge: 'Stage 5: Work & Warranty',
-    title: 'Job Completion & 30-Day Free Warranty',
-    desc: 'Test appliance, release payment with completion OTP, and enjoy unconditional 30-day warranty.',
+    badge: 'Stage 5: Work & Digital Receipt',
+    title: 'Job Completion & Digital Receipt',
+    desc: 'Inspect completed work, release payment with completion OTP, and receive your digital GST/service receipt.',
     illustration: ILLUSTRATIONS.transparentPricing,
     points: [
-      'Full digital receipt generated with unique warranty ID',
-      'Free 30-day rework warranty on all skilled workmanship',
+      'Full digital receipt generated with unique booking ID',
+      'Standardized diagnostic inspection on all skilled workmanship',
       'Rate technician to maintain highest Salem quality standards'
     ]
   }

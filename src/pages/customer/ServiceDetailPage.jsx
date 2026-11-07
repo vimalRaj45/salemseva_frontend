@@ -986,7 +986,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
                     textOverflow: 'ellipsis'
                   }}
                 >
-                  • Verified Salem Specialists • 15-25m ETA
+                  • Verified Salem Specialists • Scheduled Slot Dispatch
                 </Typography>
               </Box>
             </Box>
@@ -1840,18 +1840,18 @@ export default function ServiceDetailPage({ onStartBooking }) {
             </AccordionDetails>
           </Accordion>
 
-          {/* Accordion 2: 30-Day Free Rework Warranty */}
+          {/* Accordion 2: Verified Workmanship Standard */}
           <Accordion elevation={0} sx={{ border: '1px solid #E2E8F0', borderRadius: '10px !important', mb: 1, '&:before': { display: 'none' } }}>
             <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 20 }} />}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <CheckCircleIcon sx={{ fontSize: 20, color: '#16A34A' }} />
                 <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: { xs: '14px', sm: '15px' }, color: '#0F172A' }}>
-                  30-Day Free Work Warranty
+                  Verified Workmanship & Inspection Standard
                 </Typography>
               </Box>
             </AccordionSummary>
             <AccordionDetails sx={{ pt: 0, color: '#475569', fontSize: { xs: '13px', sm: '14px' }, lineHeight: 1.6 }}>
-              Every completed booking across Fairlands, Hasthampatti, Suramangalam, and all 10 Salem municipal wards comes with our 30-day workmanship assurance. If the same diagnosed fault reoccurs within 30 days, our technician will re-inspect and service it at zero extra labour charge.
+              Every completed service across Fairlands, Hasthampatti, Suramangalam, and all Salem municipal wards is conducted by skilled, background-checked technicians. You inspect and verify the completed repair on site before releasing payment via OTP. No post-completion platform warranty is provided; replacement components carry respective manufacturer warranty.
             </AccordionDetails>
           </Accordion>
 

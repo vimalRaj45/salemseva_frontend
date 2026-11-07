@@ -339,12 +339,12 @@ export default function BookingReceiptPage() {
             </Box>
             <Box>
               <Typography sx={{ fontSize: '13px', fontWeight: 800, color: isCancelled ? '#0369A1' : '#166534' }}>
-                {isCancelled ? 'Digital Escrow Refund Initiated' : '30-Day Doorstep Warranty Protected'}
+                {isCancelled ? 'Digital Escrow Refund Initiated' : 'Verified Doorstep Service Completed'}
               </Typography>
               <Typography sx={{ fontSize: '11.5px', color: isCancelled ? '#0284C7' : '#15803D', lineHeight: 1.4 }}>
                 {isCancelled 
                   ? 'Your net refund has been dispatched via automated banking route and will reflect in your source account within 3 to 5 business days.'
-                  : 'Any recurring issues within 30 days will be resolved free of cost by Shazu One technicians.'}
+                  : 'Work inspected and verified on site. For new queries or assistance, contact Salem Operations support.'}
               </Typography>
             </Box>
           </Paper>

@@ -50,13 +50,13 @@ const CUSTOMER_SLIDES = [
   {
     id: 'safety_guarantee',
     badge: 'Salem Trust Guarantee',
-    title: 'Aadhaar Verified with 30-Day Warranty',
+    title: 'Aadhaar Verified Local Specialists',
     desc: 'Every specialist undergoes government DigiLocker identity vetting and skill authentication.',
     illustration: ILLUSTRATIONS.safetyVerification,
     points: [
       'DigiLocker background verified with police check',
       'Masked phone calling to safeguard family privacy',
-      'Free 30-day rework warranty on all workmanship'
+      'Standardized doorstep inspection and upfront pricing'
     ]
   }
 ];

@@ -570,7 +570,7 @@ export default function SideNavbar({
                 <DrawerNavItem
                   icon={<Sparkles size={16} color="#2B9236" />}
                   label="How Shazu One Works"
-                  sublabel="Doorstep verified technicians & warranty"
+                  sublabel="Doorstep verified technicians & upfront pricing"
                   active={currentPath === '/how-it-works'}
                   onClick={() => handleNav('/how-it-works')}
                 />

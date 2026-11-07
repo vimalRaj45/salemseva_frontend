@@ -264,7 +264,7 @@ export default function AdminServiceEditorPage() {
                 size="small"
                 multiline
                 rows={4}
-                placeholder="Details of inspection, inclusions, safety protocols, and warranty coverage..."
+                placeholder="Details of inspection, inclusions, safety protocols, and service scope..."
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               />

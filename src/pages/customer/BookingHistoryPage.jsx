@@ -256,7 +256,7 @@ export default function BookingHistoryPage() {
           >
             <CheckCircleIcon sx={{ color: '#0066CC', fontSize: 18 }} />
             <Typography variant="caption" sx={{ fontWeight: 800, fontSize: '12px', color: '#1E40AF' }}>
-              30-Day Free Work Warranty
+              Standard Workmanship Inspection
             </Typography>
           </Box>
         </Box>
@@ -696,7 +696,7 @@ export default function BookingHistoryPage() {
                         )}
                         {item.status === 'completed' && (
                           <Typography variant="caption" sx={{ display: 'block', color: '#166534', fontSize: '10.5px', mb: 0.3 }}>
-                            • <strong>Job Completed & Warranty Activated:</strong> {formatDateTime(item.completed_at || item.updated_at)}
+                            • <strong>Job Completed & Receipt Generated:</strong> {formatDateTime(item.completed_at || item.updated_at)}
                           </Typography>
                         )}
                         {item.status === 'cancelled' && (

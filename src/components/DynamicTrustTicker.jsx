@@ -31,9 +31,9 @@ export default function DynamicTrustTicker({ locality = 'Fairlands, Salem' }) {
     {
       id: 'speed_eta',
       icon: <TimerIcon sx={{ fontSize: 16, color: '#16A34A' }} />,
-      primary: '15–25 Mins Doorstep Arrival',
-      secondary: '15-25 நிமிடங்களில் நேரடி சேவை',
-      badge: 'FAST DISPATCH',
+      primary: 'Prompt Scheduled Dispatch',
+      secondary: 'நேரத்திற்கு திட்டமிட்ட சேவை',
+      badge: 'ON-TIME SERVICE',
       badgeColor: { bg: '#EFF6FF', text: '#1D4ED8', border: '#BFDBFE' }
     },
     {
@@ -55,11 +55,11 @@ export default function DynamicTrustTicker({ locality = 'Fairlands, Salem' }) {
       isInteractive: true
     },
     {
-      id: 'warranty',
+      id: 'verified_experts',
       icon: <StarIcon sx={{ fontSize: 16, color: '#EAB308' }} />,
-      primary: '30-Day Free Rework Warranty',
-      secondary: 'Certified & police-verified technicians',
-      badge: 'ASSURED QUALITY',
+      primary: 'Verified Doorstep Experts',
+      secondary: 'சரிபார்க்கப்பட்ட சேலம் நிபுணர்கள்',
+      badge: 'VERIFIED PROS',
       badgeColor: { bg: '#FAF5FF', text: '#7E22CE', border: '#E9D5FF' }
     },
     {

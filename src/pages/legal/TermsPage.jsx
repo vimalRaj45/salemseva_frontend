@@ -122,7 +122,7 @@ export default function TermsPage() {
             <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12.5px', color: '#78350F', lineHeight: 1.7 }}>
               <li>Verbal, threatening, or physical harassment directed towards service partners.</li>
               <li>Repeated unjustified cancellations after the technician has arrived at the location.</li>
-              <li>Attempting off-platform under-the-table cash transactions to evade warranty tracking.</li>
+              <li>Attempting off-platform under-the-table cash transactions to evade service and payment tracking.</li>
               <li>Fraudulent chargebacks, forged UPI screenshots, or payment evasion.</li>
             </ul>
           </div>
