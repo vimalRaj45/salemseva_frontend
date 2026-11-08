@@ -5299,7 +5299,7 @@ export default function PartnerDutyPage() {
 
               <Divider sx={{ borderColor: 'rgba(255,255,255,0.2)', my: 1.5 }} />
 
-              <Box sx={{ display: 'flex', gap: 1, mb: 1.5 }}>
+              <Box sx={{ display: 'flex', gap: 1 }}>
                 <Paper elevation={0} sx={{ flex: 1, p: 1, bgcolor: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
                   <Typography variant="caption" sx={{ color: '#A7F3D0', display: 'block', fontSize: '10px', fontWeight: 600 }}>
                     மொத்த பரிந்துரை வருமானம் (Total Earned)
@@ -5318,33 +5318,9 @@ export default function PartnerDutyPage() {
                   </Typography>
                 </Paper>
               </Box>
-
-              {/* 1-Click Instant Payout Claim */}
-              <Button
-                variant="contained"
-                fullWidth
-                onClick={handleClaimInstantPayout}
-                disabled={!partnerIncentives?.availablePayout || partnerIncentives.availablePayout <= 0}
-                sx={{
-                  bgcolor: '#F59E0B',
-                  color: '#0F172A',
-                  fontWeight: 900,
-                  fontSize: '12.5px',
-                  py: 1,
-                  borderRadius: '10px',
-                  textTransform: 'none',
-                  boxShadow: '0 2px 8px rgba(245, 158, 11, 0.3)',
-                  '&:hover': { bgcolor: '#D97706' },
-                  '&.Mui-disabled': { bgcolor: 'rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.5)' }
-                }}
-              >
-                {partnerIncentives?.availablePayout > 0 
-                  ? `Claim Instant ₹${Number(partnerIncentives.availablePayout).toFixed(2)} to Payout Phone`
-                  : 'All Referral Incentives Settled'}
-              </Button>
             </Card>
 
-            {/* 2. Zero Commission Star Progression Banner */}
+            {/* 2. Star Club Fixed Cash Bonus Progression Banner */}
             <Card
               elevation={0}
               sx={{
@@ -5360,15 +5336,15 @@ export default function PartnerDutyPage() {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
                   <StarsIcon sx={{ color: '#D97706', fontSize: 20 }} />
                   <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '13.5px' }}>
-                    Star Club: Zero Platform Cut Quest
+                    Star Club: ₹500 Milestone Cash Bonus Quest
                   </Typography>
                 </Box>
                 <Chip
-                  label={partnerIncentives?.zeroCommUnlocked ? '0% Commission Unlocked!' : `${partnerIncentives?.starPoints || 0} / 30 Points`}
+                  label={(partnerIncentives?.starPoints || 0) >= 30 ? '₹500 Bonus Unlocked!' : `${partnerIncentives?.starPoints || 0} / 30 Points`}
                   size="small"
                   sx={{
-                    bgcolor: partnerIncentives?.zeroCommUnlocked ? '#DCFCE7' : '#FEF3C7',
-                    color: partnerIncentives?.zeroCommUnlocked ? '#166534' : '#92400E',
+                    bgcolor: (partnerIncentives?.starPoints || 0) >= 30 ? '#DCFCE7' : '#FEF3C7',
+                    color: (partnerIncentives?.starPoints || 0) >= 30 ? '#166534' : '#92400E',
                     fontWeight: 800,
                     fontSize: '10.5px'
                   }}
@@ -5391,9 +5367,9 @@ export default function PartnerDutyPage() {
               />
 
               <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontSize: '11px', lineHeight: 1.4 }}>
-                {partnerIncentives?.zeroCommUnlocked 
-                  ? '100% Zero Commission active! You retain 100% of all customer labor & diagnostic payouts.'
-                  : `Earn ${Math.max(0, 30 - (partnerIncentives?.starPoints || 0))} more Star Points to unlock 100% Zero Commission! (+2 pts per 5 rating, +3 pts per referred technician).`}
+                {(partnerIncentives?.starPoints || 0) >= 30 
+                  ? 'Quest Complete! ₹500 Fixed Cash Incentive credited to your available payout balance.'
+                  : `Earn ${Math.max(0, 30 - (partnerIncentives?.starPoints || 0))} more Star Points to unlock ₹500 Fixed Cash Bonus! (+2 pts per 5-star rating, +3 pts per referred technician).`}
               </Typography>
             </Card>
 
@@ -5665,7 +5641,7 @@ export default function PartnerDutyPage() {
               </Box>
             </Card>
 
-            {/* 2. Star Club Zero Commission Banner */}
+            {/* 2. Star Club Milestone Cash Bonus Banner */}
             <Paper
               elevation={0}
               sx={{
@@ -5682,11 +5658,11 @@ export default function PartnerDutyPage() {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
                 <StarsIcon sx={{ color: '#D97706', fontSize: 18 }} />
                 <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#92400E', fontSize: '12px' }}>
-                  ஸ்டார் கிளப்: {Number(activeTech?.star_points ?? partnerIncentives?.starPoints ?? 0)} / 100 புள்ளிகள் ({Math.max(0, 100 - Number(activeTech?.star_points ?? partnerIncentives?.starPoints ?? 0))} புள்ளிகளில் 0% கமிஷன்)
+                  ஸ்டார் கிளப்: {Number(activeTech?.star_points ?? partnerIncentives?.starPoints ?? 0)} / 30 புள்ளிகள் ({Math.max(0, 30 - Number(activeTech?.star_points ?? partnerIncentives?.starPoints ?? 0))} புள்ளிகளில் ₹500 கேஷ் போனஸ்)
                 </Typography>
               </Box>
               <Chip
-                label={Number(activeTech?.star_points ?? partnerIncentives?.starPoints ?? 0) >= 80 ? 'Level: Gold' : Number(activeTech?.star_points ?? partnerIncentives?.starPoints ?? 0) >= 30 ? 'Level: Silver' : 'Level: Bronze'}
+                label={Number(activeTech?.star_points ?? partnerIncentives?.starPoints ?? 0) >= 30 ? 'Level: Gold (₹500 Bonus)' : Number(activeTech?.star_points ?? partnerIncentives?.starPoints ?? 0) >= 15 ? 'Level: Silver' : 'Level: Bronze'}
                 size="small"
                 sx={{ bgcolor: '#FEF3C7', color: '#92400E', fontWeight: 700, fontSize: '10px' }}
               />
