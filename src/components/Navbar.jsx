@@ -1219,8 +1219,9 @@ export default function Navbar({
               </a>
             )}
 
-            {/* 3.7 USER PROFILE AVATAR & DROPDOWN (LOGGED IN) OR CLEAN SIGN IN BUTTON */}
-            {user ? (
+            {/* 3.7 USER PROFILE AVATAR & DROPDOWN (DESKTOP) */}
+            {!isMobile && (
+              user ? (
               <div style={{ position: 'relative' }} ref={profileRef}>
                 <button
                   type="button"
@@ -1601,10 +1602,10 @@ export default function Navbar({
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  height: isMobile ? '36px' : '40px',
-                  padding: isMobile ? '0 12px' : '0 16px',
+                  height: '40px',
+                  padding: '0 16px',
                   borderRadius: '8px',
-                  fontSize: isMobile ? '12px' : '13px',
+                  fontSize: '13px',
                   fontWeight: 600,
                   backgroundColor: '#0066CC',
                   color: '#FFFFFF',
@@ -1614,32 +1615,82 @@ export default function Navbar({
                   transition: 'background-color 0.15s ease'
                 }}
               >
-                <User size={isMobile ? 13 : 15} />
+                <User size={15} />
+                <span>Sign In</span>
+              </button>
+            ))}
+
+            {/* Mobile Guest Sign In */}
+            {isMobile && !user && (
+              <button
+                type="button"
+                className="btn-shimmer"
+                onClick={() => navigate('/login')}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  height: '34px',
+                  padding: '0 10px',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  backgroundColor: '#0066CC',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  cursor: 'pointer',
+                  flexShrink: 0
+                }}
+              >
+                <User size={13} />
                 <span>Sign In</span>
               </button>
             )}
 
-            {/* 3.8 MOBILE HAMBURGER BUTTON */}
+            {/* 3.8 MOBILE UNIFIED MENU & IN-DRAWER PROFILE TRIGGER */}
             {isMobile && (
               <button
                 type="button"
                 onClick={() => setIsSideNavOpen(true)}
-                aria-label="Open Navigation Menu"
+                aria-label="Open Navigation and Profile Menu"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  width: '34px',
+                  gap: '6px',
                   height: '34px',
-                  borderRadius: '8px',
+                  padding: user ? '0 8px 0 5px' : '0 8px',
+                  borderRadius: user ? '18px' : '8px',
                   backgroundColor: '#F8FAFC',
-                  border: '1px solid #E2E8F0',
+                  border: '1px solid #CBD5E1',
                   color: '#0F172A',
                   cursor: 'pointer',
                   flexShrink: 0
                 }}
               >
-                <Menu size={18} />
+                {user ? (
+                  <>
+                    <div
+                      style={{
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '50%',
+                        backgroundColor: isTechnician ? '#2B9236' : isAdmin ? '#D97706' : '#0A5CC4',
+                        color: '#FFFFFF',
+                        fontWeight: 800,
+                        fontSize: '11px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      {initial}
+                    </div>
+                    <Menu size={16} />
+                  </>
+                ) : (
+                  <Menu size={18} />
+                )}
               </button>
             )}
           </div>

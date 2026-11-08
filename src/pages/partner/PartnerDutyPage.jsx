@@ -185,7 +185,6 @@ export default function PartnerDutyPage() {
   const VERIFIED_TECHNICIANS = dbTechnicians || [];
   const [searchParams] = useSearchParams();
   const paramBookingId = searchParams.get('bookingId');
-  const [techSwitcherAnchor, setTechSwitcherAnchor] = useState(null);
   const [bottomNav, setBottomNav] = useState(0); // 0: Duty | 1: Incentives & Referrals | 2: History & Pay | 3: Profile
 
   const [copiedTechCode, setCopiedTechCode] = useState(false);
@@ -2196,27 +2195,7 @@ export default function PartnerDutyPage() {
                     Support Desk
                   </Button>
 
-                  {/* 1-Click Switch Profile Button */}
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    onClick={(e) => setTechSwitcherAnchor(e.currentTarget)}
-                    startIcon={<SwapHorizIcon sx={{ fontSize: 14 }} />}
-                    sx={{
-                      borderColor: '#CBD5E1',
-                      color: '#0F172A',
-                      bgcolor: '#F8FAFC',
-                      borderRadius: '6px',
-                      fontWeight: 700,
-                      fontSize: '11px',
-                      py: 0.5,
-                      px: 1,
-                      textTransform: 'none',
-                      '&:hover': { bgcolor: '#F1F5F9', borderColor: '#94A3B8' }
-                    }}
-                  >
-                    Switch Tech
-                  </Button>
+
 
                   {/* Dedicated Technician Logout Button */}
                   <Button
@@ -2246,69 +2225,7 @@ export default function PartnerDutyPage() {
               </Box>
             </Card>
 
-            {/* Switch Technician Menu */}
-            <Menu
-              anchorEl={techSwitcherAnchor}
-              open={Boolean(techSwitcherAnchor)}
-              onClose={() => setTechSwitcherAnchor(null)}
-              PaperProps={{
-                sx: {
-                  borderRadius: '10px',
-                  bgcolor: '#0F172A',
-                  color: '#FFFFFF',
-                  border: '1px solid #334155',
-                  boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
-                  minWidth: 280,
-                  p: 0.5
-                }
-              }}
-            >
-              <Box sx={{ px: 1.5, py: 0.8, borderBottom: '1px solid #1E293B' }}>
-                <Typography variant="caption" sx={{ color: '#94A3B8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '10px' }}>
-                  Switch to Another Verified Specialist:
-                </Typography>
-              </Box>
 
-              {VERIFIED_TECHNICIANS.map((tech) => {
-                const isCurrent = (activeTech?.id === tech.id) || (activeTech?.name === tech.name);
-                return (
-                  <MenuItem
-                    key={tech.id}
-                    onClick={async () => {
-                      await loginTech(tech);
-                      loginAsTechnician(tech);
-                      setIsOnline(true);
-                      setTechSwitcherAnchor(null);
-                    }}
-                    sx={{
-                      borderRadius: '6px',
-                      my: 0.3,
-                      bgcolor: isCurrent ? '#065F46' : 'transparent',
-                      '&:hover': { bgcolor: isCurrent ? '#047857' : '#1E293B' }
-                    }}
-                  >
-                    <ListItemIcon sx={{ minWidth: 28, color: isCurrent ? '#34D399' : '#94A3B8' }}>
-                      {tech.trade === 'electrician' ? <BoltIcon sx={{ fontSize: 16 }} /> : tech.trade === 'ac' ? <AcUnitIcon sx={{ fontSize: 16 }} /> : tech.trade === 'plumber' ? <BuildIcon sx={{ fontSize: 16 }} /> : <EngineeringIcon sx={{ fontSize: 16 }} />}
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <Typography variant="subtitle2" sx={{ fontWeight: isCurrent ? 800 : 600, color: '#FFFFFF', fontSize: '12px' }}>
-                            {tech.name}
-                          </Typography>
-                          {isCurrent && <Chip label="Active" size="small" sx={{ bgcolor: '#10B981', color: '#FFF', fontWeight: 800, fontSize: '9px', height: 16 }} />}
-                        </Box>
-                      }
-                      secondary={
-                        <Typography variant="caption" sx={{ color: isCurrent ? '#A7F3D0' : '#94A3B8', fontSize: '10px' }}>
-                          {tech.tradeName} •  {tech.ratingAvg}
-                        </Typography>
-                      }
-                    />
-                  </MenuItem>
-                );
-              })}
-            </Menu>
 
             {/* STEP 1: INCOMING LEADS FEED / RADAR SCANNING / OFFLINE */}
             {step === 1 && (

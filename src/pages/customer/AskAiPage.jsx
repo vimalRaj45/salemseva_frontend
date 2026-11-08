@@ -63,7 +63,13 @@ const DEFAULT_OPS_CONTACT = {
 export default function AskAiPage() {
   const navigate = useNavigate();
   const { user, techUser, openAuthModal } = useAuth();
-  const currentUser = user || techUser;
+  const isTechnician = Boolean(
+    (typeof window !== 'undefined' && window.location.pathname.startsWith('/partner')) ||
+    techUser ||
+    (user && (user.role === 'technician' || user.role === 'partner'))
+  );
+  const currentUser = isTechnician ? (techUser || user) : user;
+  const role = isTechnician ? 'technician' : 'customer';
 
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
@@ -77,9 +83,6 @@ export default function AskAiPage() {
   const timerIntervalRef = useRef(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
-
-  const isTechnician = currentUser?.role === 'technician' || currentUser?.role === 'partner';
-  const role = isTechnician ? 'technician' : 'customer';
 
   const quickSuggestions = isTechnician
     ? [
@@ -256,6 +259,7 @@ export default function AskAiPage() {
         );
       }
 
+      const isTicketInquiry = /ticket|complaint|issue|support\s*case/i.test(data.transcribedText || '');
       setMessages((prev) => [
         ...prev,
         {
@@ -264,7 +268,7 @@ export default function AskAiPage() {
           text: data.reply || 'Hello! I am Ask AI, your Shazu One support assistant. How can I assist you with your booking or technician today?',
           activeBooking: data.activeBooking || null,
           recentCompletedBooking: data.recentCompletedBooking || null,
-          recentTicket: data.recentTicket || null,
+          recentTicket: (isTicketInquiry && data.recentTicket) ? data.recentTicket : null,
           booking: data.activeBooking || data.booking || null,
           escalateToOps: Boolean(data.escalateToOps),
           opsContact: data.opsContact || opsContact || DEFAULT_OPS_CONTACT,
@@ -339,6 +343,7 @@ export default function AskAiPage() {
 
       const data = await res.json();
 
+      const isTicketInquiry = /ticket|complaint|issue|support\s*case/i.test(data.transcribedText || '');
       setMessages((prev) => [
         ...prev,
         {
@@ -347,7 +352,7 @@ export default function AskAiPage() {
           text: data.reply || 'Hello! I am Ask AI, your Shazu One support assistant. How can I assist you with your booking or technician today?',
           activeBooking: data.activeBooking || null,
           recentCompletedBooking: data.recentCompletedBooking || null,
-          recentTicket: data.recentTicket || null,
+          recentTicket: (isTicketInquiry && data.recentTicket) ? data.recentTicket : null,
           booking: data.activeBooking || data.booking || null,
           escalateToOps: Boolean(data.escalateToOps),
           opsContact: data.opsContact || opsContact || DEFAULT_OPS_CONTACT,

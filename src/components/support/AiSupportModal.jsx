@@ -43,7 +43,14 @@ const DEFAULT_OPS_CONTACT = {
 
 export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
   const { user, techUser, openAuthModal } = useAuth();
-  const currentUser = user || techUser;
+  const isTechnician = Boolean(
+    (typeof window !== 'undefined' && window.location.pathname.startsWith('/partner')) ||
+    techUser ||
+    (user && (user.role === 'technician' || user.role === 'partner'))
+  );
+  const currentUser = isTechnician ? (techUser || user) : user;
+  const role = isTechnician ? 'technician' : 'customer';
+
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -55,9 +62,6 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
   const audioChunksRef = useRef([]);
   const timerIntervalRef = useRef(null);
   const messagesEndRef = useRef(null);
-
-  const isTechnician = currentUser?.role === 'technician' || currentUser?.role === 'partner';
-  const role = isTechnician ? 'technician' : 'customer';
 
   // Quick suggestions based on role
   const quickSuggestions = isTechnician
@@ -206,9 +210,9 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
         body: JSON.stringify({
           audioBase64: base64Audio,
           role,
-          userId: user?.id || 'guest',
-          userPhone: user?.phone || '',
-          userName: user?.name || user?.full_name || 'User'
+          userId: currentUser?.id || 'guest',
+          userPhone: currentUser?.phone || '',
+          userName: currentUser?.name || currentUser?.full_name || 'User'
         })
       });
 
@@ -238,6 +242,7 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
         );
       }
 
+      const isTicketInquiry = /ticket|complaint|issue|support\s*case/i.test(data.transcribedText || '');
       setMessages(prev => [
         ...prev,
         {
@@ -246,7 +251,7 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
           text: data.reply || 'Hello! I am Ask AI, your Shazu One support assistant. How can I assist you with your booking or technician today?',
           activeBooking: data.activeBooking || null,
           recentCompletedBooking: data.recentCompletedBooking || null,
-          recentTicket: data.recentTicket || null,
+          recentTicket: (isTicketInquiry && data.recentTicket) ? data.recentTicket : null,
           booking: data.activeBooking || data.booking || null,
           escalateToOps: Boolean(data.escalateToOps),
           opsContact: data.opsContact || opsContact || DEFAULT_OPS_CONTACT,
@@ -298,9 +303,9 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
         body: JSON.stringify({
           query,
           role,
-          userId: user?.id || 'guest',
-          userPhone: user?.phone || '',
-          userName: user?.name || user?.full_name || 'User'
+          userId: currentUser?.id || 'guest',
+          userPhone: currentUser?.phone || '',
+          userName: currentUser?.name || currentUser?.full_name || 'User'
         })
       });
 
@@ -321,6 +326,7 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
 
       const data = await res.json();
 
+      const isTicketInquiry = /ticket|complaint|issue|support\s*case/i.test(data.transcribedText || '');
       setMessages(prev => [
         ...prev,
         {
@@ -329,7 +335,7 @@ export default function AiSupportModal({ open, onClose, defaultQuery = '' }) {
           text: data.reply || 'Hello! I am Ask AI, your Shazu One support assistant. How can I assist you with your booking or technician today?',
           activeBooking: data.activeBooking || null,
           recentCompletedBooking: data.recentCompletedBooking || null,
-          recentTicket: data.recentTicket || null,
+          recentTicket: (isTicketInquiry && data.recentTicket) ? data.recentTicket : null,
           booking: data.activeBooking || data.booking || null,
           escalateToOps: Boolean(data.escalateToOps),
           opsContact: data.opsContact || opsContact || DEFAULT_OPS_CONTACT,

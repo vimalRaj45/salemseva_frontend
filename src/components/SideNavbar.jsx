@@ -258,22 +258,25 @@ export default function SideNavbar({
           {user ? (
             <div
               style={{
-                padding: '12px',
+                padding: '14px',
                 borderRadius: '12px',
                 backgroundColor: isTechnician ? '#F0FDF4' : isAdmin ? '#FFFBEB' : '#EFF6FF',
                 border: isTechnician ? '1px solid #BBF7D0' : isAdmin ? '1px solid #FDE68A' : '1px solid #DBEAFE',
                 marginBottom: '12px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '8px'
+                gap: '10px'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div
+                onClick={() => handleNav(isTechnician ? '/partner/profile' : isAdmin ? '/admin' : '/profile')}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
                   <div
                     style={{
-                      width: '40px',
-                      height: '40px',
+                      width: '42px',
+                      height: '42px',
                       borderRadius: '10px',
                       backgroundColor: isTechnician ? '#2B9236' : isAdmin ? '#D97706' : '#0A5CC4',
                       color: '#FFFFFF',
@@ -281,13 +284,14 @@ export default function SideNavbar({
                       fontSize: '16px',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center'
+                      justifyContent: 'center',
+                      flexShrink: 0
                     }}
                   >
                     {displayName.charAt(0).toUpperCase()}
                   </div>
-                  <div>
-                    <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#0F172A', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {displayName}
                     </div>
                     <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 500, marginTop: '2px' }}>
@@ -305,90 +309,117 @@ export default function SideNavbar({
                     borderRadius: '6px',
                     backgroundColor: isTechnician ? '#DCFCE7' : isAdmin ? '#FEF3C7' : '#DBEAFE',
                     color: isTechnician ? '#15803D' : isAdmin ? '#92400E' : '#0A5CC4',
-                    border: isTechnician ? '1px solid #86EFAC' : isAdmin ? '1px solid #FCD34D' : '1px solid #93C5FD'
+                    border: isTechnician ? '1px solid #86EFAC' : isAdmin ? '1px solid #FCD34D' : '1px solid #93C5FD',
+                    flexShrink: 0
                   }}
                 >
                   {isTechnician ? 'PARTNER PRO' : isAdmin ? 'OPS ADMIN' : 'CUSTOMER'}
                 </span>
               </div>
 
-              {/* Role Quick Bar */}
-              {isTechnician ? (
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    paddingTop: '8px',
-                    borderTop: '1px solid #BBF7D0'
-                  }}
-                >
+              {/* Role Quick Bar & Direct Profile Action */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  paddingTop: '8px',
+                  borderTop: isTechnician ? '1px solid #BBF7D0' : isAdmin ? '1px solid #FDE68A' : '1px solid #DBEAFE'
+                }}
+              >
+                {isTechnician ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={onToggleDuty}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '4px 8px',
+                        borderRadius: '6px',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        backgroundColor: isPartnerOnline ? '#DCFCE7' : '#FEE2E2',
+                        color: isPartnerOnline ? '#15803D' : '#DC2626',
+                        border: isPartnerOnline ? '1px solid #86EFAC' : '1px solid #FCA5A5',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: '6px',
+                          height: '6px',
+                          borderRadius: '50%',
+                          backgroundColor: isPartnerOnline ? '#16A34A' : '#DC2626'
+                        }}
+                      />
+                      <span>{isPartnerOnline ? 'ON DUTY' : 'OFFLINE'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleNav('/partner/profile')}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        color: '#15803D',
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <span>Edit Profile</span>
+                      <ChevronRight size={13} />
+                    </button>
+                  </>
+                ) : isCustomer ? (
                   <button
                     type="button"
-                    onClick={onToggleDuty}
+                    onClick={() => handleNav('/profile')}
                     style={{
+                      width: '100%',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '6px',
-                      padding: '4px 8px',
-                      borderRadius: '6px',
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      backgroundColor: isPartnerOnline ? '#DCFCE7' : '#FEE2E2',
-                      color: isPartnerOnline ? '#15803D' : '#DC2626',
-                      border: isPartnerOnline ? '1px solid #86EFAC' : '1px solid #FCA5A5',
+                      justifyContent: 'space-between',
+                      backgroundColor: 'transparent',
+                      border: 'none',
+                      padding: 0,
                       cursor: 'pointer'
                     }}
                   >
-                    <span
-                      style={{
-                        width: '6px',
-                        height: '6px',
-                        borderRadius: '50%',
-                        backgroundColor: isPartnerOnline ? '#16A34A' : '#DC2626'
-                      }}
-                    />
-                    <span>{isPartnerOnline ? 'ON DUTY' : 'OFFLINE'}</span>
-                  </button>
-
-                  <div style={{ fontSize: '11.5px', fontWeight: 800, color: '#15803D' }}>
-                    ₹{user?.todayEarnings != null ? user.todayEarnings : 0} Today
-                  </div>
-                </div>
-              ) : isCustomer ? (
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    paddingTop: '8px',
-                    borderTop: '1px solid #DBEAFE'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Tag size={13} color="#2563EB" />
-                    <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#1D4ED8' }}>
-                      Coupons & Promo Offers
+                    <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#0A5CC4', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <User size={13} color="#0A5CC4" />
+                      Manage Account & Profile
                     </span>
-                  </div>
-
+                    <ChevronRight size={13} color="#0A5CC4" />
+                  </button>
+                ) : (
                   <button
                     type="button"
-                    onClick={() => handleNav('/coupons')}
+                    onClick={() => handleNav('/admin')}
                     style={{
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      color: '#0A5CC4',
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
                       backgroundColor: 'transparent',
                       border: 'none',
-                      cursor: 'pointer',
-                      padding: 0
+                      padding: 0,
+                      cursor: 'pointer'
                     }}
                   >
-                    View &rarr;
+                    <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#92400E', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Activity size={13} color="#92400E" />
+                      Admin Control Panel
+                    </span>
+                    <ChevronRight size={13} color="#92400E" />
                   </button>
-                </div>
-              ) : null}
+                )}
+              </div>
             </div>
           ) : (
             <div
@@ -473,6 +504,13 @@ export default function SideNavbar({
 
               {partnerExpanded && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                  <DrawerNavItem
+                    icon={<User size={16} color="#2B9236" />}
+                    label="Partner Profile & Credentials"
+                    sublabel="Trade skills, rating & verification info"
+                    active={currentPath === '/partner/profile'}
+                    onClick={() => handleNav('/partner/profile')}
+                  />
                   <DrawerNavItem
                     icon={<Zap size={16} color="#2B9236" />}
                     label="Duty Radar & Nearby Jobs"
@@ -590,6 +628,13 @@ export default function SideNavbar({
                 </a>
                 {user && (
                   <>
+                    <DrawerNavItem
+                      icon={<User size={16} color="#0A5CC4" />}
+                      label="My Account & Profile"
+                      sublabel="Personal info, saved addresses & settings"
+                      active={currentPath === '/profile'}
+                      onClick={() => handleNav('/profile')}
+                    />
                     <DrawerNavItem
                       icon={<Calendar size={16} color="#0A5CC4" />}
                       label="My Bookings & Invoices"
