@@ -238,7 +238,11 @@ export default function TrackingPage() {
       navigate('/', { replace: true });
       return;
     }
+    let isFetching = false;
     const fetchTracking = async () => {
+      if (isFetching) return;
+      if (document.hidden && Math.random() > 0.25) return;
+      isFetching = true;
       try {
         const res = await fetch(`${API_V1_URL}/bookings/${bookingId}/track`);
         const data = await res.json();
@@ -269,12 +273,13 @@ export default function TrackingPage() {
       } catch (err) {
         console.warn('Real-time tracking poll:', err);
       } finally {
+        isFetching = false;
         if (isMounted) setIsLoading(false);
       }
     };
 
     fetchTracking();
-    const interval = setInterval(fetchTracking, 1200);
+    const interval = setInterval(fetchTracking, 2500);
 
     // Instant cross-tab & custom event triggers
     const handleQuoteEvent = (e) => {
@@ -284,15 +289,18 @@ export default function TrackingPage() {
       }
       fetchTracking();
     };
+    const handleVisibility = () => { if (!document.hidden) fetchTracking(); };
 
     window.addEventListener('shazuone_quote_updated', handleQuoteEvent);
     window.addEventListener('storage', handleQuoteEvent);
+    document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
       isMounted = false;
       clearInterval(interval);
       window.removeEventListener('shazuone_quote_updated', handleQuoteEvent);
       window.removeEventListener('storage', handleQuoteEvent);
+      document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, [bookingId]);
 

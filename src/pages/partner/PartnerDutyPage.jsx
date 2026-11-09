@@ -1024,17 +1024,21 @@ export default function PartnerDutyPage() {
 
   const dutyNotFoundRef = useRef(false);
 
-  // Poll real active job & synchronized duty state from Neon DB
+  // Poll real active job & synchronized duty state from Neon DB with in-flight guard
   useEffect(() => {
     dutyNotFoundRef.current = false;
     let isMounted = true;
+    let isFetching = false;
 
     const fetchDuty = async () => {
+      if (isFetching || dutyNotFoundRef.current) return;
+      if (document.hidden && Math.random() > 0.25) return; // Throttle background tab queries
+      const phone = activeTech?.phone || user?.phone || '';
+      const techId = activeTech?.id || user?.id || '';
+      if (!phone && !techId) return;
+
+      isFetching = true;
       try {
-        if (dutyNotFoundRef.current) return;
-        const phone = activeTech?.phone || user?.phone || '';
-        const techId = activeTech?.id || user?.id || '';
-        if (!phone && !techId) return;
         const res = await fetch(`${API_V1_URL}/partner/duty?phone=${encodeURIComponent(phone)}&technicianId=${encodeURIComponent(techId)}`);
         if (res.status === 404) {
           dutyNotFoundRef.current = true;
@@ -1203,21 +1207,26 @@ export default function PartnerDutyPage() {
         }
       } catch (err) {
         console.warn('Partner duty poll:', err);
+      } finally {
+        isFetching = false;
       }
     };
 
     fetchDuty();
-    const interval = setInterval(fetchDuty, 1200);
+    const interval = setInterval(fetchDuty, 2500);
 
     const handleSync = () => fetchDuty();
+    const handleVisibility = () => { if (!document.hidden) fetchDuty(); };
     window.addEventListener('shazuone_new_booking_created', handleSync);
     window.addEventListener('storage', handleSync);
+    document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
       isMounted = false;
       clearInterval(interval);
       window.removeEventListener('shazuone_new_booking_created', handleSync);
       window.removeEventListener('storage', handleSync);
+      document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, [activeTech?.phone, user?.phone, acknowledgedCancelIds]);
 
