@@ -34,6 +34,7 @@ import {
   Tabs,
   Tab,
   Switch,
+  FormControlLabel,
   Collapse,
   Menu,
   TablePagination
@@ -352,7 +353,15 @@ export default function AdminDashboardPage() {
     inspection_visit_fee: 99,
     business_upi_id: '',
     business_merchant_name: '',
-    payment_gateway_mode: 'DYNAMIC_QR'
+    payment_gateway_mode: 'DYNAMIC_QR',
+    quality_governance_enabled: true,
+    quality_throttle_rating: 4.0,
+    quality_throttle_daily_cap: 1,
+    quality_throttle_min_reviews: 3,
+    quality_priority_window_seconds: 90,
+    quality_priority_min_rating: 4.5,
+    quality_suspension_rating: 3.5,
+    quality_suspension_min_reviews: 5
   });
   const [rewardsLoading, setRewardsLoading] = useState(false);
   const [rewardsSaving, setRewardsSaving] = useState(false);
@@ -5183,6 +5192,156 @@ export default function AdminDashboardPage() {
                 </Grid>
               </Grid>
 
+              {/* Section 5: Automated Quality Governance & Rating Safeguards */}
+              <SectionHeader
+                number="5"
+                title="Automated Quality Governance & Rating Safeguards"
+                description="Real-time algorithm protecting customer experience by prioritizing top-rated technicians and gating lower-rated partners."
+              />
+
+              <Box sx={{ mb: 3.5, p: 2.5, bgcolor: rewardConfig.quality_governance_enabled ? 'primary.50' : 'slate.50', borderRadius: '8px', border: '1px solid', borderColor: rewardConfig.quality_governance_enabled ? 'primary.200' : 'slate.200' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, mb: 2 }}>
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary', fontSize: '14px' }}>
+                      Master Quality Governance Engine
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>
+                      When active, lead dispatch uses priority windows, daily job caps, and auto-suspension based on verified technician ratings.
+                    </Typography>
+                  </Box>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={Boolean(rewardConfig.quality_governance_enabled)}
+                        onChange={(e) => setRewardConfig({ ...rewardConfig, quality_governance_enabled: e.target.checked })}
+                        color="primary"
+                      />
+                    }
+                    label={
+                      <Typography variant="body2" sx={{ fontWeight: 700, color: rewardConfig.quality_governance_enabled ? 'primary.main' : 'text.secondary' }}>
+                        {rewardConfig.quality_governance_enabled ? 'Active Governance' : 'Governance Disabled'}
+                      </Typography>
+                    }
+                  />
+                </Box>
+
+                <Grid container spacing={2}>
+                  {/* Priority Lead Window */}
+                  <Grid item xs={12} sm={6} md={3}>
+                    <FieldCard
+                      label="PRIORITY MIN RATING (STARS)"
+                      helper="Technicians at or above this rating receive immediate 0s lead broadcasts."
+                    >
+                      <AddonInput
+                        type="number"
+                        step="0.1"
+                        min="1.0"
+                        max="5.0"
+                        prefix="★"
+                        value={rewardConfig.quality_priority_min_rating ?? 4.5}
+                        onChange={(e) => setRewardConfig({ ...rewardConfig, quality_priority_min_rating: parseFloat(e.target.value) || 4.5 })}
+                      />
+                    </FieldCard>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6} md={3}>
+                    <FieldCard
+                      label="PRIORITY ADVANTAGE (SECONDS)"
+                      helper="Delay before lower-rated technicians can view and claim newly scheduled leads."
+                    >
+                      <AddonInput
+                        type="number"
+                        prefix="SEC"
+                        value={rewardConfig.quality_priority_window_seconds ?? 90}
+                        onChange={(e) => setRewardConfig({ ...rewardConfig, quality_priority_window_seconds: parseInt(e.target.value, 10) || 0 })}
+                      />
+                    </FieldCard>
+                  </Grid>
+
+                  {/* Throttle Settings */}
+                  <Grid item xs={12} sm={6} md={3}>
+                    <FieldCard
+                      label="THROTTLE RATING THRESHOLD"
+                      helper="Partners rated below this star score are restricted to avoid customer escalations."
+                    >
+                      <AddonInput
+                        type="number"
+                        step="0.1"
+                        min="1.0"
+                        max="5.0"
+                        prefix="★"
+                        value={rewardConfig.quality_throttle_rating ?? 4.0}
+                        onChange={(e) => setRewardConfig({ ...rewardConfig, quality_throttle_rating: parseFloat(e.target.value) || 4.0 })}
+                      />
+                    </FieldCard>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6} md={3}>
+                    <FieldCard
+                      label="THROTTLED DAILY JOB CAP"
+                      helper="Maximum completed jobs per day allowed while partner is under throttle threshold."
+                    >
+                      <AddonInput
+                        type="number"
+                        min="1"
+                        max="5"
+                        prefix="JOBS"
+                        value={rewardConfig.quality_throttle_daily_cap ?? 1}
+                        onChange={(e) => setRewardConfig({ ...rewardConfig, quality_throttle_daily_cap: parseInt(e.target.value, 10) || 1 })}
+                      />
+                    </FieldCard>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6} md={3}>
+                    <FieldCard
+                      label="MIN REVIEWS FOR THROTTLE"
+                      helper="New partners with fewer reviews are exempt so they have fair opportunity to build rating."
+                    >
+                      <AddonInput
+                        type="number"
+                        min="1"
+                        prefix="REVIEWS"
+                        value={rewardConfig.quality_throttle_min_reviews ?? 3}
+                        onChange={(e) => setRewardConfig({ ...rewardConfig, quality_throttle_min_reviews: parseInt(e.target.value, 10) || 3 })}
+                      />
+                    </FieldCard>
+                  </Grid>
+
+                  {/* Auto-Suspension Settings */}
+                  <Grid item xs={12} sm={6} md={3}>
+                    <FieldCard
+                      label="AUTO-SUSPENSION THRESHOLD"
+                      helper="Technicians below this rating cannot claim leads autonomously; admin dispatch required."
+                    >
+                      <AddonInput
+                        type="number"
+                        step="0.1"
+                        min="1.0"
+                        max="5.0"
+                        prefix="★"
+                        value={rewardConfig.quality_suspension_rating ?? 3.5}
+                        onChange={(e) => setRewardConfig({ ...rewardConfig, quality_suspension_rating: parseFloat(e.target.value) || 3.5 })}
+                      />
+                    </FieldCard>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6} md={3}>
+                    <FieldCard
+                      label="MIN REVIEWS FOR SUSPENSION"
+                      helper="Requires at least this many verified customer reviews before locking autonomous claiming."
+                    >
+                      <AddonInput
+                        type="number"
+                        min="1"
+                        prefix="REVIEWS"
+                        value={rewardConfig.quality_suspension_min_reviews ?? 5}
+                        onChange={(e) => setRewardConfig({ ...rewardConfig, quality_suspension_min_reviews: parseInt(e.target.value, 10) || 5 })}
+                      />
+                    </FieldCard>
+                  </Grid>
+                </Grid>
+              </Box>
+
               {/* Business Policy Preview Strip */}
               <Box
                 sx={{
@@ -5207,6 +5366,18 @@ export default function AdminDashboardPage() {
                   <Chip size="small" variant="outlined" label={`Gateway Fee: ${rewardConfig.payment_gateway_fee_percent}%`} sx={{ bgcolor: '#FFFFFF', borderColor: 'slate.300', fontWeight: 600, fontSize: '11px' }} />
                   <Chip size="small" variant="outlined" label={`Referral Waiver: ₹${rewardConfig.referee_discount_amount || 50} Coupon`} sx={{ bgcolor: '#FFFFFF', borderColor: 'slate.300', fontWeight: 600, fontSize: '11px' }} />
                   <Chip size="small" variant="outlined" label={`Tech Referral: ₹${rewardConfig.partner_referral_incentive || 100}`} sx={{ bgcolor: '#FFFFFF', borderColor: 'slate.300', fontWeight: 600, fontSize: '11px' }} />
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    label={rewardConfig.quality_governance_enabled ? `Quality Safeguards: Active (Throttle <${rewardConfig.quality_throttle_rating}★, Suspend <${rewardConfig.quality_suspension_rating}★)` : 'Quality Safeguards: Disabled'}
+                    sx={{
+                      bgcolor: rewardConfig.quality_governance_enabled ? '#F0FDF4' : '#F8FAFC',
+                      borderColor: rewardConfig.quality_governance_enabled ? '#BBF7D0' : 'slate.300',
+                      color: rewardConfig.quality_governance_enabled ? '#15803D' : 'slate.600',
+                      fontWeight: 600,
+                      fontSize: '11px'
+                    }}
+                  />
                 </Box>
                 <Chip
                   label="Real-time DB Sync"

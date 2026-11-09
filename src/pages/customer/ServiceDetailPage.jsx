@@ -135,6 +135,7 @@ export default function ServiceDetailPage({ onStartBooking }) {
     onlineTechnicians: 0,
     isTemporarilyClosed: false,
     notice: null,
+    coveredLocalities: [],
     dates: {}
   });
 
@@ -231,7 +232,8 @@ export default function ServiceDetailPage({ onStartBooking }) {
 
         // Fetch Domain Technician Availability & Capacity
         try {
-          const availRes = await fetch(`${API_V1_URL}/services/${serviceId || 'ac'}/availability`);
+          const locQuery = userLocation?.locality ? `?locality=${encodeURIComponent(userLocation.locality)}` : '';
+          const availRes = await fetch(`${API_V1_URL}/services/${serviceId || 'ac'}/availability${locQuery}`);
           const availData = await availRes.json();
           if (availData.success) {
             setDomainAvailability({
@@ -241,6 +243,9 @@ export default function ServiceDetailPage({ onStartBooking }) {
               onlineTechnicians: availData.onlineTechnicians || 0,
               isTemporarilyClosed: Boolean(availData.isTemporarilyClosed),
               notice: availData.notice || null,
+              coveredLocalities: Array.isArray(availData.coveredLocalities) ? availData.coveredLocalities : [],
+              isLocalityCovered: availData.isLocalityCovered !== false,
+              localityNotice: availData.localityNotice || null,
               dates: availData.dates || {}
             });
           }
@@ -400,6 +405,20 @@ export default function ServiceDetailPage({ onStartBooking }) {
   const currentDateStatus = domainAvailability.dates?.[selectedDateISO] || null;
   const isSelectedDateFull = Boolean(currentDateStatus?.isFullyBooked);
   const isDomainTemporarilyClosed = domainAvailability.loaded && !domainAvailability.hasTechniciansInDomain;
+
+  const customerLocality = (userLocation?.locality || '').trim();
+  const coveredLocalities = domainAvailability.coveredLocalities || [];
+  const isLocalityOutOfCoverage = Boolean(
+    domainAvailability.loaded &&
+    domainAvailability.hasTechniciansInDomain &&
+    customerLocality &&
+    coveredLocalities.length > 0 &&
+    !coveredLocalities.some(loc => {
+      const l = loc.toLowerCase();
+      const cl = customerLocality.toLowerCase();
+      return l.includes(cl) || cl.includes(l);
+    })
+  );
 
   const checkSalemPincode = () => {
     if (!userLocation || !userLocation.address) {
@@ -870,6 +889,36 @@ export default function ServiceDetailPage({ onStartBooking }) {
             </Paper>
           );
         })()}
+
+        {/* Locality Out-of-Coverage Travel Fee Notice Banner */}
+        {isLocalityOutOfCoverage && (
+          <Paper
+            elevation={0}
+            sx={{
+              p: 1.6,
+              mb: 1.8,
+              borderRadius: 2,
+              bgcolor: '#FFFBEB',
+              border: '1px solid #FCD34D',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 1.2
+            }}
+          >
+            <WarningAmberIcon sx={{ color: '#D97706', fontSize: 22, mt: 0.2, flexShrink: 0 }} />
+            <Box>
+              <Typography sx={{ fontWeight: 700, fontSize: { xs: '13px', sm: '14px' }, color: '#92400E', lineHeight: 1.3 }}>
+                No technician directly available in {customerLocality}
+              </Typography>
+              <Typography sx={{ fontSize: { xs: '12px', sm: '12.5px' }, color: '#B45309', mt: 0.4, lineHeight: 1.4 }}>
+                We will arrange a technician for you, but an additional travel fee may apply.
+              </Typography>
+              <Typography sx={{ fontSize: '11px', color: '#92400E', mt: 0.5, fontStyle: 'italic', opacity: 0.9 }}>
+                {customerLocality} பகுதியில் தொழில்நுட்ப வல்லுநர் நேரடியாக ஒதுக்கப்படவில்லை. உங்களுக்காக பிரத்யேகமாக தொழில்நுட்ப வல்லுநர் ஏற்பாடு செய்யப்படும், ஆனால் கூடுதல் பயணக் கட்டணம் பொருந்தக்கூடும்.
+              </Typography>
+            </Box>
+          </Paper>
+        )}
 
         {/* Dedicated Direct Specialist Reservation Banner if chosen from Homepage */}
         {requestedTechnician && (
@@ -1981,18 +2030,20 @@ export default function ServiceDetailPage({ onStartBooking }) {
             <Typography
               variant="caption"
               sx={{
-                color: bookingMode === 'scheduled' ? '#0066CC' : couponApplied ? '#16A34A' : '#64748B',
+                color: isLocalityOutOfCoverage ? '#D97706' : (bookingMode === 'scheduled' ? '#0066CC' : couponApplied ? '#16A34A' : '#64748B'),
                 fontSize: { xs: '11px', sm: '12.5px' },
-                fontWeight: 600,
+                fontWeight: isLocalityOutOfCoverage ? 700 : 600,
                 display: 'block',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis'
               }}
             >
-              {bookingMode === 'scheduled'
-                ? `${getFormattedDateString()} • ${getEffectiveSlot().split('-')[0].trim()}`
-                : couponApplied ? `₹${couponDiscount} discount applied` : (userLocation?.locality ? `Service in ${userLocation.locality}` : 'Set Service Location')}
+              {isLocalityOutOfCoverage
+                ? `Travel fee may apply for ${customerLocality}`
+                : (bookingMode === 'scheduled'
+                  ? `${getFormattedDateString()} • ${getEffectiveSlot().split('-')[0].trim()}`
+                  : couponApplied ? `₹${couponDiscount} discount applied` : (userLocation?.locality ? `Service in ${userLocation.locality}` : 'Set Service Location'))}
             </Typography>
           </Box>
 

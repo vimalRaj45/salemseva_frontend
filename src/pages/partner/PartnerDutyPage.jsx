@@ -331,6 +331,7 @@ export default function PartnerDutyPage() {
         const techId = activeTech?.id || user?.id || '';
         const cleanDigits = techPhone ? String(techPhone).replace(/[^0-9]/g, '').slice(-10) : '';
         const res = await fetch(`${API_V1_URL}/partner/duty?phone=${encodeURIComponent(cleanDigits)}&technicianId=${encodeURIComponent(techId)}`);
+        if (res.status === 404) return;
         const data = await res.json();
         if (!isMounted) return;
 
@@ -1021,16 +1022,24 @@ export default function PartnerDutyPage() {
     localStorage.removeItem('shazuone_partner_active_job');
   };
 
+  const dutyNotFoundRef = useRef(false);
+
   // Poll real active job & synchronized duty state from Neon DB
   useEffect(() => {
+    dutyNotFoundRef.current = false;
     let isMounted = true;
 
     const fetchDuty = async () => {
       try {
+        if (dutyNotFoundRef.current) return;
         const phone = activeTech?.phone || user?.phone || '';
         const techId = activeTech?.id || user?.id || '';
         if (!phone && !techId) return;
         const res = await fetch(`${API_V1_URL}/partner/duty?phone=${encodeURIComponent(phone)}&technicianId=${encodeURIComponent(techId)}`);
+        if (res.status === 404) {
+          dutyNotFoundRef.current = true;
+          return;
+        }
         const data = await res.json();
         if (data.success && isMounted) {
           if (data.technician && typeof data.technician.is_online === 'boolean') {

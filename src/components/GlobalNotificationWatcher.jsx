@@ -70,7 +70,13 @@ export default function GlobalNotificationWatcher() {
             let digits = partnerPhone.replace(/[^\d]/g, '');
             let cleanPhone = digits ? (digits.length === 10 ? digits : digits.slice(-10)) : '';
             const syncRes = await fetch(`${API_BASE_URL}/api/v1/partner/duty/sync?phone=${encodeURIComponent(cleanPhone)}`);
+            if (syncRes.status === 404) {
+              return;
+            }
             const syncData = await syncRes.json();
+            if (syncData.notFound) {
+              return;
+            }
 
             if (syncData.success && syncData.activeJob && isMounted) {
               const job = syncData.activeJob;
@@ -162,7 +168,18 @@ export default function GlobalNotificationWatcher() {
           // C. Customer / Technician: Track Live Order Status transitions
           try {
             const trackRes = await fetch(`${API_BASE_URL}/api/v1/bookings/${activeBookingId}/track`);
+            if (trackRes.status === 404) {
+              // Booking no longer exists in DB - clean up localStorage to prevent 404 polling loop
+              localStorage.removeItem('shazuone_active_booking');
+              localStorage.removeItem('shazuone_partner_active_job');
+              return;
+            }
             const trackData = await trackRes.json();
+            if (!trackData.success || !trackData.booking) {
+              localStorage.removeItem('shazuone_active_booking');
+              localStorage.removeItem('shazuone_partner_active_job');
+              return;
+            }
             if (trackData.success && trackData.booking && isMounted) {
               const currentStatus = trackData.booking.status;
               const prevStatus = lastSeenBookingStatusRef.current[activeBookingId];

@@ -33,6 +33,8 @@ import ShieldIcon from '@mui/icons-material/Shield';
 import PrintIcon from '@mui/icons-material/Print';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import RateReviewIcon from '@mui/icons-material/RateReview';
 import { resolveMediaUrl } from '../../utils/mediaUtils';
 import { API_V1_URL, PARTNER_COMMISSION_PERCENT } from '../../config';
 
@@ -42,6 +44,7 @@ export default function AdminTechnicianDossierPage() {
 
   const [tech, setTech] = useState(null);
   const [jobsHistory, setJobsHistory] = useState([]);
+  const [reviewsHistory, setReviewsHistory] = useState([]);
   const [financials, setFinancials] = useState({ lifetimeEarnings: 0, grossJobVolume: 0 });
   const [loading, setLoading] = useState(true);
   const [actionNotice, setActionNotice] = useState('');
@@ -54,6 +57,7 @@ export default function AdminTechnicianDossierPage() {
       if (data.success) {
         setTech(data.technician);
         setJobsHistory(data.jobs || []);
+        setReviewsHistory(data.reviews || []);
         setFinancials(data.financials || { lifetimeEarnings: 0, grossJobVolume: 0 });
       }
     } catch (err) {
@@ -472,6 +476,35 @@ export default function AdminTechnicianDossierPage() {
               </Grid>
             </Grid>
 
+            {/* Quality Governance Standing Banners */}
+            {Number(tech.rating_avg) > 0 && Number(tech.rating_avg) < 3.5 && (Number(tech.rating_count) >= 5 || reviewsHistory.length >= 5) && (
+              <Paper elevation={0} sx={{ p: 2, mb: 2.5, bgcolor: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '12px', display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
+                <WarningAmberIcon sx={{ color: '#DC2626', fontSize: 24, mt: 0.2, flexShrink: 0 }} />
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#991B1B' }}>
+                    Quality Lock Enforced: Autonomous Lead Acceptance Suspended
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#B91C1C', display: 'block', mt: 0.5, lineHeight: 1.4 }}>
+                    This technician's average customer rating ({Number(tech.rating_avg).toFixed(1)} / 5.0) has dropped below the platform standard (3.5). The system has automatically locked direct job claiming to prevent customer churn. Review customer feedback below and initiate quality training or administrative suspension.
+                  </Typography>
+                </Box>
+              </Paper>
+            )}
+
+            {Number(tech.rating_avg) >= 3.5 && Number(tech.rating_avg) < 4.0 && (Number(tech.rating_count) >= 3 || reviewsHistory.length >= 3) && (
+              <Paper elevation={0} sx={{ p: 2, mb: 2.5, bgcolor: '#FFFBEB', border: '1px solid #FCD34D', borderRadius: '12px', display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
+                <WarningAmberIcon sx={{ color: '#D97706', fontSize: 24, mt: 0.2, flexShrink: 0 }} />
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#92400E' }}>
+                    Quality Throttle Active: 1 Job Per Day Maximum
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#B45309', display: 'block', mt: 0.5, lineHeight: 1.4 }}>
+                    Technician rating ({Number(tech.rating_avg).toFixed(1)} / 5.0) is under 4.0. The automated dispatch engine has capped daily capacity to 1 job per day and delayed fresh lead visibility by 90 seconds until ratings recover.
+                  </Typography>
+                </Box>
+              </Paper>
+            )}
+
             {/* Service History Table */}
             <Paper elevation={0} sx={{ p: 2.5, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '14px', boxShadow: '0 2px 12px rgba(15, 23, 42, 0.04)' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -522,6 +555,87 @@ export default function AdminTechnicianDossierPage() {
                           </TableCell>
                         </TableRow>
                       ))}
+                    </TableBody>
+                  </Table>
+                </Box>
+              )}
+            </Paper>
+
+            {/* Customer Reviews & Feedback Ratings Ledger */}
+            <Paper elevation={0} sx={{ p: 2.5, mt: 3, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '14px', boxShadow: '0 2px 12px rgba(15, 23, 42, 0.04)' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <RateReviewIcon sx={{ color: '#0284C7', fontSize: 22 }} />
+                  <Box>
+                    <Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '16px' }}>
+                      Customer Ratings & Performance Feedback
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#64748B' }}>
+                      Direct customer feedback recorded in PostgreSQL reviews ledger
+                    </Typography>
+                  </Box>
+                </Box>
+                <Chip 
+                  label={`${reviewsHistory.length} Verified Reviews`} 
+                  size="small" 
+                  sx={{ bgcolor: '#EFF6FF', color: '#0284C7', fontWeight: 800 }} 
+                />
+              </Box>
+
+              {reviewsHistory.length === 0 ? (
+                <Box sx={{ p: 3, textAlign: 'center', bgcolor: '#F8FAFC', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+                  <Typography variant="body2" sx={{ color: '#64748B', fontWeight: 600 }}>
+                    No customer reviews recorded for this technician yet.
+                  </Typography>
+                </Box>
+              ) : (
+                <Box sx={{ width: '100%', overflowX: 'auto', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow sx={{ bgcolor: '#F8FAFC', '& th': { color: '#475569', fontWeight: 800, fontSize: '12px' } }}>
+                        <TableCell>Rating</TableCell>
+                        <TableCell>Customer Feedback & Comment</TableCell>
+                        <TableCell>Booking ID</TableCell>
+                        <TableCell>Customer & Locality</TableCell>
+                        <TableCell>Date</TableCell>
+                        <TableCell align="center">Quality Status</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {reviewsHistory.map(rev => {
+                        const isLow = Number(rev.rating) <= 3;
+                        return (
+                          <TableRow key={rev.id} hover sx={{ bgcolor: isLow ? '#FEF2F2' : 'inherit' }}>
+                            <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <StarIcon sx={{ fontSize: 16, color: isLow ? '#EF4444' : '#F59E0B' }} />
+                                <Typography sx={{ fontWeight: 800, color: isLow ? '#DC2626' : '#0F172A', fontSize: '13px' }}>
+                                  {Number(rev.rating).toFixed(1)}
+                                </Typography>
+                              </Box>
+                            </TableCell>
+                            <TableCell sx={{ maxWidth: 320, color: '#334155', fontSize: '13px', fontWeight: isLow ? 600 : 400 }}>
+                              {rev.comment || rev.review_text || rev.reviewComment || 'Service completed without detailed comment.'}
+                            </TableCell>
+                            <TableCell sx={{ fontWeight: 800, color: '#0284C7', fontSize: '12px' }}>
+                              #{rev.booking_id || rev.bookingId}
+                            </TableCell>
+                            <TableCell sx={{ color: '#475569', fontSize: '12px' }}>
+                              {rev.customer_name || 'Customer'} {rev.locality ? `(${rev.locality})` : ''}
+                            </TableCell>
+                            <TableCell sx={{ color: '#64748B', fontSize: '12px', whiteSpace: 'nowrap' }}>
+                              {new Date(rev.created_at).toLocaleDateString()}
+                            </TableCell>
+                            <TableCell align="center">
+                              {isLow ? (
+                                <Chip label="Escalated Complaint" size="small" sx={{ bgcolor: '#FEE2E2', color: '#991B1B', fontWeight: 800, fontSize: '10.5px' }} />
+                              ) : (
+                                <Chip label="Satisfied" size="small" sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 700, fontSize: '10.5px' }} />
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </Box>
