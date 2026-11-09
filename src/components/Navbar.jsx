@@ -1724,13 +1724,16 @@ export default function Navbar({
         logoutTech={logoutTech}
       />
 
-      {/* Cloudflare AI Support Agent Modal (Voice + Text + RAG) */}
+      {/* Cloudflare AI Support Agent Modal (Temporarily hidden while feature is in development) */}
+      {/* 
       <AiSupportModal
         open={isAiSupportOpen}
         onClose={() => setIsAiSupportOpen(false)}
       />
+      */}
 
-      {/* Floating Action Button: "Ask AI" (Restricted to logged-in users, hidden on /ask-ai) */}
+      {/* Floating Action Button: "Ask AI" (Temporarily hidden while feature is in development) */}
+      {/* 
       {location.pathname !== '/ask-ai' && (
       <button
         type="button"
@@ -1801,6 +1804,7 @@ export default function Navbar({
         />
       </button>
       )}
+      */}
     </header>
   );
 }

@@ -739,6 +739,8 @@ export default function SideNavbar({
                     onOpenLanguageModal();
                   }}
                 />
+                {/* Ask AI Assistant - temporarily hidden while in development */}
+                {/* 
                 <DrawerNavItem
                   icon={<Bot size={16} color="#2563EB" />}
                   label="Ask AI Assistant"
@@ -750,6 +752,7 @@ export default function SideNavbar({
                     if (onOpenAiSupportModal) onOpenAiSupportModal();
                   }}
                 />
+                */}
                 <DrawerNavItem
                   icon={<LifeBuoy size={15} color="#0A5CC4" />}
                   label="Support Desk & Ticket Tracking"

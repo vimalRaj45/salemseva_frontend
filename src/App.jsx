@@ -329,8 +329,9 @@ function MainLayout({ walletBalance, currentBooking, setCurrentBooking }) {
             <Route path="/language" element={<LanguageSelectionPage />} />
             <Route path="/feedback" element={<FeedbackPage />} />
             <Route path="/support" element={<SupportHubPage />} />
-            <Route path="/ask-ai" element={<AskAiPage />} />
-            <Route path="/support/ai" element={<Navigate to="/ask-ai" replace />} />
+            {/* Ask AI in development: redirecting to support hub */}
+            <Route path="/ask-ai" element={<Navigate to="/support" replace />} />
+            <Route path="/support/ai" element={<Navigate to="/support" replace />} />
             <Route path="/location" element={<LocationPickerPage />} />
             <Route path="/receipt/:bookingId" element={<BookingReceiptPage />} />
             <Route path="/booking/address" element={<BookingAddressPage />} />
