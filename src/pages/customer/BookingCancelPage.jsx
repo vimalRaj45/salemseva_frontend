@@ -53,6 +53,14 @@ export default function BookingCancelPage() {
             setBookingInfo(d.booking);
 
             // Pre-evaluate 24-hour cancellation cutoff window
+            // Free self-cancellation is always permitted BEFORE technician assignment (created / matching stage)
+            const isTechAssigned = Boolean(
+              d.booking.technician_id ||
+              d.booking.technicianName ||
+              d.booking.tech_name ||
+              !['created', 'matching'].includes(d.booking.status)
+            );
+
             const slotStr = String(d.booking.scheduled_slot || '').toLowerCase();
             const isUrgent = Boolean(d.booking.is_urgent_dispatch || slotStr.includes('emergency'));
             const dateMatch = slotStr.match(/\b(202\d)-(\d{2})-(\d{2})\b/);
@@ -68,12 +76,13 @@ export default function BookingCancelPage() {
               appointmentTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
             }
 
-            if (appointmentTime) {
+            // Only lock cancellation window if a technician has already been assigned
+            if (isTechAssigned && appointmentTime) {
               const hoursLeft = (appointmentTime.getTime() - Date.now()) / (1000 * 60 * 60);
               if (hoursLeft < 24) {
                 setIsWindowLocked(true);
                 setLockDetails({
-                  policyReason: 'Under Shazu One policy, cancellations are only available at least 24 hours prior to the scheduled service appointment.',
+                  policyReason: 'Under Shazu One policy, cancellations are only available at least 24 hours prior to the scheduled service appointment once a specialist technician is assigned.',
                   hoursRemaining: Math.max(0, Math.round(hoursLeft)),
                   opsContact: {
                     phone: '+918807099288',
