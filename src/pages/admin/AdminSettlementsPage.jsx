@@ -616,11 +616,11 @@ export default function AdminSettlementsPage() {
 
   // Filtered lists for the 4 streams
   const paymentsList = useMemo(() => {
-    return transactions.filter((t) => (t.grossAmount > 0 || t.status === 'SETTLED' || t.status === 'ESCROW_HELD') && t.status !== 'REFUNDED');
+    return transactions.filter((t) => (t.grossAmount > 0 || t.status === 'SETTLED' || t.status === 'ESCROW_HELD') && !['REFUNDED', 'REFUND_PENDING', 'CANCELLED_UNPAID'].includes(t.status));
   }, [transactions]);
 
   const refundsOnlyList = useMemo(() => {
-    return transactions.filter((t) => t.status === 'REFUNDED' || t.customerRefund > 0 || t.bookingStatus === 'cancelled');
+    return transactions.filter((t) => ['REFUNDED', 'REFUND_PENDING'].includes(t.status) || t.customerRefund > 0 || t.bookingStatus === 'cancelled');
   }, [transactions]);
 
   const techPayoutsList = useMemo(() => {
@@ -792,16 +792,20 @@ export default function AdminSettlementsPage() {
         align: 'center',
         minWidth: 140,
         renderCell: (r) => {
-          const isDone = String(r.refundStatus).toUpperCase() === 'REFUNDED';
+          const statusStr = String(r.refundStatus || '').toUpperCase();
+          const isDone = statusStr === 'REFUNDED';
+          const isUnverified = statusStr === 'UNVERIFIED_PAYMENT';
           return (
             <Chip
-              label={isDone ? 'REFUNDED' : 'PENDING DISBURSAL'}
+              label={isDone ? 'REFUNDED' : isUnverified ? 'UNVERIFIED (NO INFLOW)' : 'PENDING DISBURSAL'}
               size="small"
               sx={{
                 fontWeight: 800,
                 fontSize: '10px',
-                bgcolor: isDone ? '#DCFCE7' : '#FEF3C7',
-                color: isDone ? '#15803D' : '#B45309'
+                bgcolor: isDone ? '#F3E8FF' : isUnverified ? '#F1F5F9' : '#FEF3C7',
+                color: isDone ? '#6B21A8' : isUnverified ? '#64748B' : '#B45309',
+                border: '1px solid',
+                borderColor: isDone ? '#D8B4FE' : isUnverified ? '#CBD5E1' : '#FDE68A'
               }}
             />
           );
@@ -838,7 +842,18 @@ export default function AdminSettlementsPage() {
         align: 'center',
         minWidth: 180,
         renderCell: (r) => {
-          const isDone = String(r.refundStatus).toUpperCase() === 'REFUNDED';
+          const statusStr = String(r.refundStatus || '').toUpperCase();
+          const isDone = statusStr === 'REFUNDED';
+          const isUnverified = statusStr === 'UNVERIFIED_PAYMENT';
+
+          if (isUnverified) {
+            return (
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                No Inflow Verified
+              </Typography>
+            );
+          }
+
           return (
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.8 }}>
               {!isDone ? (
@@ -1210,7 +1225,7 @@ export default function AdminSettlementsPage() {
                   }}
                 />
               </Tooltip>
-            ) : (
+            ) : (Number(tx.techPayout || 0) > 0 && !tx.technicianName?.includes('Pre-Dispatch') && tx.bookingStatus !== 'cancelled') ? (
               <Button
                 variant="outlined"
                 size="small"
@@ -1229,6 +1244,10 @@ export default function AdminSettlementsPage() {
               >
                 + Enter UTR
               </Button>
+            ) : (
+              <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 600 }}>
+                —
+              </Typography>
             )}
           </Box>
         )
@@ -1246,42 +1265,51 @@ export default function AdminSettlementsPage() {
         align: 'center',
         sortable: false,
         minWidth: 230,
-        renderCell: (tx) => (
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.8 }}>
-            {/* Enter/Edit UTR */}
-            <Tooltip title="Manually Enter / Edit Bank UTR or Transaction ID">
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={() => handleOpenUtrModal(tx)}
-                sx={{
-                  fontSize: '11px',
-                  py: 0.3,
-                  px: 1,
-                  minHeight: 28,
-                  fontWeight: 700,
-                  textTransform: 'none',
-                  color: '#0F172A',
-                  borderColor: '#CBD5E1',
-                  bgcolor: '#FFFFFF',
-                  '&:hover': { bgcolor: '#F8FAFC', borderColor: '#94A3B8' }
-                }}
-              >
-                {tx.payoutUtr ? 'Edit UTR' : 'Enter UTR'}
-              </Button>
-            </Tooltip>
-
-            {/* WhatsApp Payout Receipt to Technician */}
-            <Tooltip title={tx.technicianPhone ? `Send WhatsApp Payout Confirmation to ${tx.technicianPhone}` : 'No phone number available'}>
-              <span>
+        renderCell: (tx) => {
+          const hasPayoutDue = Number(tx.techPayout || 0) > 0 && !tx.technicianName?.includes('Pre-Dispatch') && tx.bookingStatus !== 'cancelled';
+          if (!hasPayoutDue) {
+            return (
+              <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 600 }}>
+                No Payout Due
+              </Typography>
+            );
+          }
+          return (
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.8 }}>
+              {/* Enter/Edit UTR */}
+              <Tooltip title="Manually Enter / Edit Bank UTR or Transaction ID">
                 <Button
-                  variant="contained"
+                  variant="outlined"
                   size="small"
-                  onClick={() => handleSendWhatsApp(tx)}
-                  disabled={!tx.technicianPhone}
-                  startIcon={<MessageSquare size={13} />}
+                  onClick={() => handleOpenUtrModal(tx)}
                   sx={{
                     fontSize: '11px',
+                    py: 0.3,
+                    px: 1,
+                    minHeight: 28,
+                    fontWeight: 700,
+                    textTransform: 'none',
+                    color: '#0F172A',
+                    borderColor: '#CBD5E1',
+                    bgcolor: '#FFFFFF',
+                    '&:hover': { bgcolor: '#F8FAFC', borderColor: '#94A3B8' }
+                  }}
+                >
+                  {tx.payoutUtr ? 'Edit UTR' : 'Enter UTR'}
+                </Button>
+              </Tooltip>
+
+              {/* WhatsApp Payout Receipt to Technician */}
+              <Tooltip title={tx.technicianPhone ? `Send WhatsApp Payout Confirmation to ${tx.technicianPhone}` : 'No phone number available'}>
+                <span>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    onClick={() => handleSendWhatsApp(tx)}
+                    disabled={!tx.technicianPhone}
+                    startIcon={<MessageSquare size={13} />}
+                    sx={{
+                      fontSize: '11px',
                     py: 0.3,
                     px: 1,
                     minHeight: 28,
@@ -1347,11 +1375,12 @@ export default function AdminSettlementsPage() {
               </Button>
             )}
           </Box>
-        )
+        );
       }
-    ],
-    [navigate]
-  );
+    }
+  ],
+  [navigate]
+);
 
   // QR Verifications Table Columns
   const qrColumns = useMemo(
@@ -1913,7 +1942,7 @@ export default function AdminSettlementsPage() {
             </Box>
             <DataTable
               columns={columns}
-              data={transactions}
+              data={techPayoutsList}
               keyField="bookingId"
               isLoading={isLoading}
               searchPlaceholder="Search by technician name, booking ID, locality..."
