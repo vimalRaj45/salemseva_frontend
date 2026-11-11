@@ -31,7 +31,7 @@ const STATUS_CONFIGS = {
   offline: { label: 'Offline', color: '#64748B', bg: '#F8FAFC', border: '#E2E8F0' },
 
   // Payment Statuses
-  escrow_held: { label: 'Escrow Held', color: '#0A5CC4', bg: '#EFF6FF', border: '#BFDBFE' },
+  escrow_held: { label: 'Payment Held', color: '#0A5CC4', bg: '#EFF6FF', border: '#BFDBFE' },
   captured: { label: 'Captured', color: '#2B9236', bg: '#ECFDF5', border: '#A7F3D0' },
   settled: { label: 'Settled', color: '#2B9236', bg: '#ECFDF5', border: '#A7F3D0' },
   refunded: { label: 'Refunded', color: '#64748B', bg: '#F8FAFC', border: '#E2E8F0' },

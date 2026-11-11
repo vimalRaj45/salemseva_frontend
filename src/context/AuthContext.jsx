@@ -580,7 +580,7 @@ export function AuthProvider({ children }) {
     });
   };
 
-  const signupTechnician = async ({ name, phone, password, trade, secondaryTrades = [], aadhaar, serviceArea, dailyJobCapacity = 4 }) => {
+  const signupTechnician = async ({ name, phone, password, trade, secondaryTrades = [], aadhaar, serviceArea, dailyJobCapacity = 4, referralCode = '' }) => {
     const userResult = await registerAccount({
       name,
       phone,
@@ -591,6 +591,7 @@ export function AuthProvider({ children }) {
       serviceArea,
       locality: serviceArea || 'Fairlands, Salem',
       dailyJobCapacity: Math.min(4, Math.max(1, parseInt(dailyJobCapacity, 10) || 4)),
+      referralCode: (referralCode || '').trim(),
       role: 'technician'
     });
 
@@ -891,25 +892,8 @@ export function AuthProvider({ children }) {
   };
 
   const referTechnician = async ({ name, phone, trade, locality }) => {
-    const incentiveAmount = parseFloat(rewardSettings?.partner_referral_incentive || 100);
-    const newStarPoints = Math.min(30, (partnerIncentives.starPoints || 0) + 3);
-    const newTotal = (partnerIncentives.totalIncentiveEarned || 0) + incentiveAmount;
-    const newAvailable = (partnerIncentives.availablePayout || 0) + incentiveAmount;
-    const isZeroComm = newStarPoints >= 30;
-
-    const updated = {
-      ...partnerIncentives,
-      totalIncentiveEarned: newTotal,
-      availablePayout: newAvailable,
-      starPoints: newStarPoints,
-      zeroCommUnlocked: isZeroComm
-    };
-
-    setPartnerIncentives(updated);
-    localStorage.setItem('shazuone_partner_incentives', JSON.stringify(updated));
-
     try {
-      await fetch(`${API_BASE_URL}/api/v1/partner/refer`, {
+      const res = await fetch(`${API_BASE_URL}/api/v1/partner/refer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -920,9 +904,14 @@ export function AuthProvider({ children }) {
           referredLocality: locality
         })
       });
-    } catch (e) {}
-
-    return updated;
+      const data = await res.json();
+      if (data.success && user?.phone) {
+        await fetchPartnerIncentives(user.phone);
+      }
+      return data;
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
   };
 
   const fetchPartnerIncentives = useCallback(async (phoneOrId) => {

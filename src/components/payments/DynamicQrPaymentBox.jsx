@@ -1,6 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import QRCode from 'qrcode';
-import { createWorker } from 'tesseract.js';
 import {
   Box,
   Typography,
@@ -80,6 +78,7 @@ export default function DynamicQrPaymentBox({
         setMerchantName(data.businessMerchantName || '');
 
         // Generate QR Code data URL
+        const { default: QRCode } = await import('qrcode');
         const qrUrl = await QRCode.toDataURL(data.upiUri, {
           width: 220,
           margin: 1,
@@ -139,6 +138,7 @@ export default function DynamicQrPaymentBox({
 
       // Client-Side OCR with Tesseract Worker
       try {
+        const { createWorker } = await import('tesseract.js');
         const worker = await createWorker('eng');
         const ret = await worker.recognize(file);
         extractedText = ret.data.text || '';

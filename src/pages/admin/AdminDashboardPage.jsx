@@ -288,7 +288,7 @@ export default function AdminDashboardPage() {
     }
     if (action.customerId || action.search) {
       const target = action.search || action.customerId;
-      const foundCust = customersList.find(c => 
+      const foundCust = customersList.find(c =>
         (action.customerId && c.id === action.customerId) ||
         (c.customer_phone && c.customer_phone.includes(target)) ||
         (c.phone && c.phone.includes(target)) ||
@@ -641,7 +641,7 @@ export default function AdminDashboardPage() {
       let metaStr = '';
       try {
         metaStr = typeof log.metadata === 'string' ? log.metadata : JSON.stringify(log.metadata || {});
-      } catch (e) {}
+      } catch (e) { }
 
       const matchesSearch = !q || eventType.includes(q) || bookingId.includes(q) || actorId.includes(q) || metaStr.toLowerCase().includes(q);
 
@@ -945,7 +945,7 @@ export default function AdminDashboardPage() {
             localStorage.setItem('shazuone_tech_user', JSON.stringify(updatedTech));
             window.dispatchEvent(new Event('storage'));
           }
-        } catch (storageErr) {}
+        } catch (storageErr) { }
         fetchOverview(true);
       } else {
         setToast({ open: true, message: data.error || 'KYC update failed', severity: 'error' });
@@ -1386,10 +1386,10 @@ export default function AdminDashboardPage() {
     return trade || 'Technician';
   };
 
-  const activeFiltersCount = (searchQuery ? 1 : 0) + 
-    (selectedTrade !== 'all' ? 1 : 0) + 
-    (selectedLocality !== 'all' ? 1 : 0) + 
-    (selectedStatus !== 'all' ? 1 : 0) + 
+  const activeFiltersCount = (searchQuery ? 1 : 0) +
+    (selectedTrade !== 'all' ? 1 : 0) +
+    (selectedLocality !== 'all' ? 1 : 0) +
+    (selectedStatus !== 'all' ? 1 : 0) +
     (quickFilter !== 'all' ? 1 : 0) +
     (selectedAudioFilter !== 'all' ? 1 : 0) +
     (selectedDateFilter !== 'all' ? 1 : 0) +
@@ -1451,12 +1451,13 @@ export default function AdminDashboardPage() {
           maxHeight: '100dvh',
           overflowY: 'auto',
           overflowX: 'hidden',
-          p: { xs: 1.5, sm: 2, md: 3 },
-          pb: { xs: 14, md: 10 },
+          pt: { xs: 'calc(12px + var(--sat))', md: 3 },
+          px: { xs: 1.5, sm: 2, md: 3 },
+          pb: { xs: 'calc(64px + var(--sab))', md: 10 },
           WebkitOverflowScrolling: 'touch'
         }}
       >
-        
+
         {/* Responsive Mobile-First Top Header Bar */}
         <Box
           sx={{
@@ -1559,7 +1560,7 @@ export default function AdminDashboardPage() {
               onClick={() => navigate('/admin/settlements')}
               sx={{ color: '#0284C7', borderColor: '#CBD5E1', bgcolor: '#FFF', borderRadius: '10px', fontWeight: 700, textTransform: 'none', px: 2, minHeight: 40, fontSize: '13px' }}
             >
-              Escrow Settlements
+              . Settlements
             </Button>
             <Button
               variant="contained"
@@ -1708,7 +1709,7 @@ export default function AdminDashboardPage() {
                 sx={{ fontSize: '13px', fontWeight: 600, py: 1, gap: 1.25 }}
               >
                 <AccountBalanceWalletIcon sx={{ fontSize: 18, color: '#0284C7' }} />
-                Escrow Settlements
+                . Settlements
               </MenuItem>
               <Divider sx={{ my: 0.5 }} />
               <MenuItem
@@ -2060,7 +2061,7 @@ export default function AdminDashboardPage() {
             <KpiCard
               title="TODAY'S VOLUME"
               value={`₹${Number(metrics.financials?.totalRevenue || 0).toLocaleString()}`}
-              subtitle="Digital escrow settlements"
+              subtitle="Digital . settlements"
               icon={AccountBalanceWalletIcon}
               iconColor="#0D9488"
               iconBg="#F0FDFA"
@@ -2234,384 +2235,384 @@ export default function AdminDashboardPage() {
                 <Box sx={{ pt: 2, borderTop: '1px solid #E2E8F0', mt: 2 }}>
                   <Grid container spacing={2} sx={{ mb: 2 }}>
                     <Grid item xs={12} sm={6} md={6}>
-                  <FormControl fullWidth size="small">
-                    {/* ds-allow-native-select */}
-                    <Select
-                      value={selectedTrade}
-                      onChange={(e) => setSelectedTrade(e.target.value)}
-                      sx={{
-                        borderRadius: '12px',
-                        bgcolor: 'background.default',
-                        color: 'text.primary',
-                        fontSize: '13.5px',
-                        fontWeight: 700,
-                        border: '1px solid',
-                        borderColor: 'divider',
-                        '& .MuiSelect-select': { color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }
-                      }}
-                    >
-                      <MenuItem value="all">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <HandymanIcon sx={{ fontSize: 17, color: '#64748B' }} />
-                          <span>All Trade Categories</span>
-                        </Box>
-                      </MenuItem>
-                      <MenuItem value="ac">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <AcUnitIcon sx={{ fontSize: 17, color: '#0284C7' }} />
-                          <span>AC Repair & Service</span>
-                        </Box>
-                      </MenuItem>
-                      <MenuItem value="electr">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <ElectricalServicesIcon sx={{ fontSize: 17, color: '#D97706' }} />
-                          <span>Electrician & Wiring</span>
-                        </Box>
-                      </MenuItem>
-                      <MenuItem value="plumb">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <PlumbingIcon sx={{ fontSize: 17, color: '#0EA5E9' }} />
-                          <span>Plumber & Sanitary</span>
-                        </Box>
-                      </MenuItem>
-                      <MenuItem value="clean">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <CleaningServicesIcon sx={{ fontSize: 17, color: '#10B981' }} />
-                          <span>Home & Deep Cleaning</span>
-                        </Box>
-                      </MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
+                      <FormControl fullWidth size="small">
+                        {/* ds-allow-native-select */}
+                        <Select
+                          value={selectedTrade}
+                          onChange={(e) => setSelectedTrade(e.target.value)}
+                          sx={{
+                            borderRadius: '12px',
+                            bgcolor: 'background.default',
+                            color: 'text.primary',
+                            fontSize: '13.5px',
+                            fontWeight: 700,
+                            border: '1px solid',
+                            borderColor: 'divider',
+                            '& .MuiSelect-select': { color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }
+                          }}
+                        >
+                          <MenuItem value="all">
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <HandymanIcon sx={{ fontSize: 17, color: '#64748B' }} />
+                              <span>All Trade Categories</span>
+                            </Box>
+                          </MenuItem>
+                          <MenuItem value="ac">
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <AcUnitIcon sx={{ fontSize: 17, color: '#0284C7' }} />
+                              <span>AC Repair & Service</span>
+                            </Box>
+                          </MenuItem>
+                          <MenuItem value="electr">
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <ElectricalServicesIcon sx={{ fontSize: 17, color: '#D97706' }} />
+                              <span>Electrician & Wiring</span>
+                            </Box>
+                          </MenuItem>
+                          <MenuItem value="plumb">
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <PlumbingIcon sx={{ fontSize: 17, color: '#0EA5E9' }} />
+                              <span>Plumber & Sanitary</span>
+                            </Box>
+                          </MenuItem>
+                          <MenuItem value="clean">
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <CleaningServicesIcon sx={{ fontSize: 17, color: '#10B981' }} />
+                              <span>Home & Deep Cleaning</span>
+                            </Box>
+                          </MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
                     <Grid item xs={12} sm={6} md={6}>
-                  <FormControl fullWidth size="small">
-                    {/* ds-allow-native-select */}
-                    <Select
-                      value={selectedLocality}
-                      onChange={(e) => setSelectedLocality(e.target.value)}
-                      sx={{
-                        borderRadius: '12px',
-                        bgcolor: 'background.default',
-                        color: 'text.primary',
-                        fontSize: '13.5px',
-                        fontWeight: 700,
-                        border: '1px solid',
-                        borderColor: 'divider',
-                        '& .MuiSelect-select': { color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }
-                      }}
-                    >
-                      <MenuItem value="all">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <LocationCityIcon sx={{ fontSize: 17, color: '#64748B' }} />
-                          <span>All Salem Localities</span>
-                        </Box>
-                      </MenuItem>
-                      <MenuItem value="fairlands">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <LocationOnIcon sx={{ fontSize: 17, color: '#0284C7' }} />
-                          <span>Fairlands / Brindavan Rd</span>
-                        </Box>
-                      </MenuItem>
-                      <MenuItem value="hasthampatti">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <LocationOnIcon sx={{ fontSize: 17, color: '#0284C7' }} />
-                          <span>Hasthampatti / Foothills</span>
-                        </Box>
-                      </MenuItem>
-                      <MenuItem value="suramangalam">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <LocationOnIcon sx={{ fontSize: 17, color: '#0284C7' }} />
-                          <span>Suramangalam / Junction</span>
-                        </Box>
-                      </MenuItem>
-                      <MenuItem value="meyyanur">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <LocationOnIcon sx={{ fontSize: 17, color: '#0284C7' }} />
-                          <span>Meyyanur / New Bus Stand</span>
-                        </Box>
-                      </MenuItem>
-                      <MenuItem value="ammapet">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <LocationOnIcon sx={{ fontSize: 17, color: '#0284C7' }} />
-                          <span>Ammapet / Ponnamapet</span>
-                        </Box>
-                      </MenuItem>
-                      <MenuItem value="gugai">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <LocationOnIcon sx={{ fontSize: 17, color: '#0284C7' }} />
-                          <span>Gugai / Line Medu</span>
-                        </Box>
-                      </MenuItem>
-                      <MenuItem value="shevapet">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <LocationOnIcon sx={{ fontSize: 17, color: '#0284C7' }} />
-                          <span>Shevapet / Bazaar</span>
-                        </Box>
-                      </MenuItem>
-                      <MenuItem value="kondalampatti">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <LocationOnIcon sx={{ fontSize: 17, color: '#0284C7' }} />
-                          <span>Kondalampatti Bypass</span>
-                        </Box>
-                      </MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
+                      <FormControl fullWidth size="small">
+                        {/* ds-allow-native-select */}
+                        <Select
+                          value={selectedLocality}
+                          onChange={(e) => setSelectedLocality(e.target.value)}
+                          sx={{
+                            borderRadius: '12px',
+                            bgcolor: 'background.default',
+                            color: 'text.primary',
+                            fontSize: '13.5px',
+                            fontWeight: 700,
+                            border: '1px solid',
+                            borderColor: 'divider',
+                            '& .MuiSelect-select': { color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }
+                          }}
+                        >
+                          <MenuItem value="all">
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <LocationCityIcon sx={{ fontSize: 17, color: '#64748B' }} />
+                              <span>All Salem Localities</span>
+                            </Box>
+                          </MenuItem>
+                          <MenuItem value="fairlands">
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <LocationOnIcon sx={{ fontSize: 17, color: '#0284C7' }} />
+                              <span>Fairlands / Brindavan Rd</span>
+                            </Box>
+                          </MenuItem>
+                          <MenuItem value="hasthampatti">
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <LocationOnIcon sx={{ fontSize: 17, color: '#0284C7' }} />
+                              <span>Hasthampatti / Foothills</span>
+                            </Box>
+                          </MenuItem>
+                          <MenuItem value="suramangalam">
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <LocationOnIcon sx={{ fontSize: 17, color: '#0284C7' }} />
+                              <span>Suramangalam / Junction</span>
+                            </Box>
+                          </MenuItem>
+                          <MenuItem value="meyyanur">
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <LocationOnIcon sx={{ fontSize: 17, color: '#0284C7' }} />
+                              <span>Meyyanur / New Bus Stand</span>
+                            </Box>
+                          </MenuItem>
+                          <MenuItem value="ammapet">
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <LocationOnIcon sx={{ fontSize: 17, color: '#0284C7' }} />
+                              <span>Ammapet / Ponnamapet</span>
+                            </Box>
+                          </MenuItem>
+                          <MenuItem value="gugai">
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <LocationOnIcon sx={{ fontSize: 17, color: '#0284C7' }} />
+                              <span>Gugai / Line Medu</span>
+                            </Box>
+                          </MenuItem>
+                          <MenuItem value="shevapet">
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <LocationOnIcon sx={{ fontSize: 17, color: '#0284C7' }} />
+                              <span>Shevapet / Bazaar</span>
+                            </Box>
+                          </MenuItem>
+                          <MenuItem value="kondalampatti">
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <LocationOnIcon sx={{ fontSize: 17, color: '#0284C7' }} />
+                              <span>Kondalampatti Bypass</span>
+                            </Box>
+                          </MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
                   </Grid>
 
                   {/* Row 2: Date Window, Dispatch Mode, Audio Voice Note Filter */}
-              <Grid container spacing={2} sx={{ mb: 2 }}>
-                <Grid item xs={12} sm={4} md={4}>
-                  <FormControl fullWidth size="small">
-                    {/* ds-allow-native-select */}
-                    <Select
-                      value={selectedDateFilter}
-                      onChange={(e) => setSelectedDateFilter(e.target.value)}
-                      sx={{
-                        borderRadius: '12px',
-                        bgcolor: 'background.default',
-                        color: 'text.primary',
-                        fontSize: '13.5px',
-                        fontWeight: 700,
-                        border: '1px solid',
-                        borderColor: 'divider',
-                        '& .MuiSelect-select': { color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }
-                      }}
-                    >
-                      <MenuItem value="all">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <CalendarMonthIcon sx={{ fontSize: 17, color: '#64748B' }} />
-                          <span>All Time Dates</span>
-                        </Box>
-                      </MenuItem>
-                      <MenuItem value="today">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <AccessTimeIcon sx={{ fontSize: 17, color: '#0284C7' }} />
-                          <span>Today (Live)</span>
-                        </Box>
-                      </MenuItem>
-                      <MenuItem value="yesterday">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <AccessTimeIcon sx={{ fontSize: 17, color: '#475569' }} />
-                          <span>Yesterday</span>
-                        </Box>
-                      </MenuItem>
-                      <MenuItem value="week">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <CalendarTodayIcon sx={{ fontSize: 17, color: '#0D9488' }} />
-                          <span>Last 7 Days</span>
-                        </Box>
-                      </MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
+                  <Grid container spacing={2} sx={{ mb: 2 }}>
+                    <Grid item xs={12} sm={4} md={4}>
+                      <FormControl fullWidth size="small">
+                        {/* ds-allow-native-select */}
+                        <Select
+                          value={selectedDateFilter}
+                          onChange={(e) => setSelectedDateFilter(e.target.value)}
+                          sx={{
+                            borderRadius: '12px',
+                            bgcolor: 'background.default',
+                            color: 'text.primary',
+                            fontSize: '13.5px',
+                            fontWeight: 700,
+                            border: '1px solid',
+                            borderColor: 'divider',
+                            '& .MuiSelect-select': { color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }
+                          }}
+                        >
+                          <MenuItem value="all">
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <CalendarMonthIcon sx={{ fontSize: 17, color: '#64748B' }} />
+                              <span>All Time Dates</span>
+                            </Box>
+                          </MenuItem>
+                          <MenuItem value="today">
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <AccessTimeIcon sx={{ fontSize: 17, color: '#0284C7' }} />
+                              <span>Today (Live)</span>
+                            </Box>
+                          </MenuItem>
+                          <MenuItem value="yesterday">
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <AccessTimeIcon sx={{ fontSize: 17, color: '#475569' }} />
+                              <span>Yesterday</span>
+                            </Box>
+                          </MenuItem>
+                          <MenuItem value="week">
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <CalendarTodayIcon sx={{ fontSize: 17, color: '#0D9488' }} />
+                              <span>Last 7 Days</span>
+                            </Box>
+                          </MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
 
-                <Grid item xs={12} sm={4} md={4}>
-                  <FormControl fullWidth size="small">
-                    {/* ds-allow-native-select */}
-                    <Select
-                      value={selectedDispatchMode}
-                      onChange={(e) => setSelectedDispatchMode(e.target.value)}
-                      sx={{
-                        borderRadius: '12px',
-                        bgcolor: 'background.default',
-                        color: 'text.primary',
-                        fontSize: '13.5px',
-                        fontWeight: 700,
-                        border: '1px solid',
-                        borderColor: 'divider',
-                        '& .MuiSelect-select': { color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }
-                      }}
-                    >
-                      <MenuItem value="all">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <TuneIcon sx={{ fontSize: 17, color: '#64748B' }} />
-                          <span>All Dispatch Modes</span>
-                        </Box>
-                      </MenuItem>
-                      <MenuItem value="instant">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <BoltIcon sx={{ fontSize: 17, color: '#B45309' }} />
-                          <span>Instant (Prompt Slot)</span>
-                        </Box>
-                      </MenuItem>
-                      <MenuItem value="scheduled">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <EventIcon sx={{ fontSize: 17, color: '#1E40AF' }} />
-                          <span>Scheduled Slots</span>
-                        </Box>
-                      </MenuItem>
-                      <MenuItem value="urgent">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <BoltIcon sx={{ fontSize: 17, color: '#DC2626' }} />
-                          <span>Urgent 25-Min Surge</span>
-                        </Box>
-                      </MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
+                    <Grid item xs={12} sm={4} md={4}>
+                      <FormControl fullWidth size="small">
+                        {/* ds-allow-native-select */}
+                        <Select
+                          value={selectedDispatchMode}
+                          onChange={(e) => setSelectedDispatchMode(e.target.value)}
+                          sx={{
+                            borderRadius: '12px',
+                            bgcolor: 'background.default',
+                            color: 'text.primary',
+                            fontSize: '13.5px',
+                            fontWeight: 700,
+                            border: '1px solid',
+                            borderColor: 'divider',
+                            '& .MuiSelect-select': { color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }
+                          }}
+                        >
+                          <MenuItem value="all">
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <TuneIcon sx={{ fontSize: 17, color: '#64748B' }} />
+                              <span>All Dispatch Modes</span>
+                            </Box>
+                          </MenuItem>
+                          <MenuItem value="instant">
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <BoltIcon sx={{ fontSize: 17, color: '#B45309' }} />
+                              <span>Instant (Prompt Slot)</span>
+                            </Box>
+                          </MenuItem>
+                          <MenuItem value="scheduled">
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <EventIcon sx={{ fontSize: 17, color: '#1E40AF' }} />
+                              <span>Scheduled Slots</span>
+                            </Box>
+                          </MenuItem>
+                          <MenuItem value="urgent">
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <BoltIcon sx={{ fontSize: 17, color: '#DC2626' }} />
+                              <span>Urgent 25-Min Surge</span>
+                            </Box>
+                          </MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
 
-                <Grid item xs={12} sm={4} md={4}>
-                  <FormControl fullWidth size="small">
-                    {/* ds-allow-native-select */}
-                    <Select
-                      value={selectedAudioFilter}
-                      onChange={(e) => setSelectedAudioFilter(e.target.value)}
-                      sx={{
-                        borderRadius: '12px',
-                        bgcolor: 'background.default',
-                        color: 'text.primary',
-                        fontSize: '13.5px',
-                        fontWeight: 700,
-                        border: '1px solid',
-                        borderColor: 'divider',
-                        '& .MuiSelect-select': { color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }
-                      }}
-                    >
-                      <MenuItem value="all">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <VolumeUpIcon sx={{ fontSize: 17, color: '#64748B' }} />
-                          <span>All Bookings (Audio & Text)</span>
-                        </Box>
-                      </MenuItem>
-                      <MenuItem value="audio_only">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <VolumeUpIcon sx={{ fontSize: 17, color: '#0284C7' }} />
-                          <span>Has Voice Note Audio</span>
-                        </Box>
-                      </MenuItem>
-                      <MenuItem value="text_only">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <ArticleIcon sx={{ fontSize: 17, color: '#475569' }} />
-                          <span>Text Description Only</span>
-                        </Box>
-                      </MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-              </Grid>
+                    <Grid item xs={12} sm={4} md={4}>
+                      <FormControl fullWidth size="small">
+                        {/* ds-allow-native-select */}
+                        <Select
+                          value={selectedAudioFilter}
+                          onChange={(e) => setSelectedAudioFilter(e.target.value)}
+                          sx={{
+                            borderRadius: '12px',
+                            bgcolor: 'background.default',
+                            color: 'text.primary',
+                            fontSize: '13.5px',
+                            fontWeight: 700,
+                            border: '1px solid',
+                            borderColor: 'divider',
+                            '& .MuiSelect-select': { color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }
+                          }}
+                        >
+                          <MenuItem value="all">
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <VolumeUpIcon sx={{ fontSize: 17, color: '#64748B' }} />
+                              <span>All Bookings (Audio & Text)</span>
+                            </Box>
+                          </MenuItem>
+                          <MenuItem value="audio_only">
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <VolumeUpIcon sx={{ fontSize: 17, color: '#0284C7' }} />
+                              <span>Has Voice Note Audio</span>
+                            </Box>
+                          </MenuItem>
+                          <MenuItem value="text_only">
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <ArticleIcon sx={{ fontSize: 17, color: '#475569' }} />
+                              <span>Text Description Only</span>
+                            </Box>
+                          </MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                  </Grid>
 
-                  
 
-              {/* Active Filter Chips & Dismissal Bar */}
-              {activeFiltersCount > 0 && (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center', p: 1.5, bgcolor: '#F0F9FF', borderRadius: '12px', border: '1px solid #BAE6FD', mb: 2 }}>
-                  <Typography variant="caption" sx={{ fontWeight: 800, color: '#0369A1', mr: 0.5 }}>
-                    Active filters:
-                  </Typography>
 
-                  {searchQuery && (
-                    <Chip
-                      size="small"
-                      label={`Query: "${searchQuery}"`}
-                      onDelete={() => setSearchQuery('')}
-                      sx={{ bgcolor: '#FFFFFF', color: '#0369A1', fontWeight: 700, fontSize: '11px', border: '1px solid #BAE6FD' }}
-                    />
+                  {/* Active Filter Chips & Dismissal Bar */}
+                  {activeFiltersCount > 0 && (
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center', p: 1.5, bgcolor: '#F0F9FF', borderRadius: '12px', border: '1px solid #BAE6FD', mb: 2 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 800, color: '#0369A1', mr: 0.5 }}>
+                        Active filters:
+                      </Typography>
+
+                      {searchQuery && (
+                        <Chip
+                          size="small"
+                          label={`Query: "${searchQuery}"`}
+                          onDelete={() => setSearchQuery('')}
+                          sx={{ bgcolor: '#FFFFFF', color: '#0369A1', fontWeight: 700, fontSize: '11px', border: '1px solid #BAE6FD' }}
+                        />
+                      )}
+
+                      {selectedTrade !== 'all' && (
+                        <Chip
+                          size="small"
+                          label={`Trade: ${selectedTrade.toUpperCase()}`}
+                          onDelete={() => setSelectedTrade('all')}
+                          sx={{ bgcolor: '#FFFFFF', color: '#0369A1', fontWeight: 700, fontSize: '11px', border: '1px solid #BAE6FD' }}
+                        />
+                      )}
+
+                      {selectedLocality !== 'all' && (
+                        <Chip
+                          size="small"
+                          label={`Locality: ${selectedLocality}`}
+                          onDelete={() => setSelectedLocality('all')}
+                          sx={{ bgcolor: '#FFFFFF', color: '#0369A1', fontWeight: 700, fontSize: '11px', border: '1px solid #BAE6FD' }}
+                        />
+                      )}
+
+                      {selectedStatus !== 'all' && (
+                        <Chip
+                          size="small"
+                          label={`Status: ${selectedStatus.toUpperCase()}`}
+                          onDelete={() => setSelectedStatus('all')}
+                          sx={{ bgcolor: '#FFFFFF', color: '#0369A1', fontWeight: 700, fontSize: '11px', border: '1px solid #BAE6FD' }}
+                        />
+                      )}
+
+                      {selectedDateFilter !== 'all' && (
+                        <Chip
+                          size="small"
+                          label={`Date: ${selectedDateFilter.toUpperCase()}`}
+                          onDelete={() => setSelectedDateFilter('all')}
+                          sx={{ bgcolor: '#FFFFFF', color: '#0369A1', fontWeight: 700, fontSize: '11px', border: '1px solid #BAE6FD' }}
+                        />
+                      )}
+
+                      {selectedDispatchMode !== 'all' && (
+                        <Chip
+                          size="small"
+                          label={`Mode: ${selectedDispatchMode.toUpperCase()}`}
+                          onDelete={() => setSelectedDispatchMode('all')}
+                          sx={{ bgcolor: '#FFFFFF', color: '#0369A1', fontWeight: 700, fontSize: '11px', border: '1px solid #BAE6FD' }}
+                        />
+                      )}
+
+                      {selectedAudioFilter !== 'all' && (
+                        <Chip
+                          size="small"
+                          icon={<VolumeUpIcon sx={{ fontSize: '12px !important' }} />}
+                          label={selectedAudioFilter === 'audio_only' ? 'Audio Only' : 'Text Only'}
+                          onDelete={() => setSelectedAudioFilter('all')}
+                          sx={{ bgcolor: '#FFFFFF', color: '#0369A1', fontWeight: 700, fontSize: '11px', border: '1px solid #BAE6FD' }}
+                        />
+                      )}
+
+                      <Chip
+                        size="small"
+                        label="Clear all"
+                        onClick={handleResetFilters}
+                        sx={{ bgcolor: '#DC2626', color: '#FFFFFF', fontWeight: 800, fontSize: '10.5px', cursor: 'pointer', ml: 'auto' }}
+                      />
+                    </Box>
                   )}
 
-                  {selectedTrade !== 'all' && (
-                    <Chip
-                      size="small"
-                      label={`Trade: ${selectedTrade.toUpperCase()}`}
-                      onDelete={() => setSelectedTrade('all')}
-                      sx={{ bgcolor: '#FFFFFF', color: '#0369A1', fontWeight: 700, fontSize: '11px', border: '1px solid #BAE6FD' }}
-                    />
-                  )}
+                  {/* Quick Filter Pills */}
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
+                    <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 800, mr: 0.5 }}>
+                      Quick Filters:
+                    </Typography>
+                    {[
+                      { key: 'all', label: 'All Records', icon: <FilterListIcon sx={{ fontSize: 15 }} /> },
+                      { key: 'has_audio', label: 'Audio Voice Note Attached', icon: <VolumeUpIcon sx={{ fontSize: 15 }} /> },
+                      { key: 'urgent', label: 'Immediate Dispatch Needed', icon: <BoltIcon sx={{ fontSize: 15 }} /> },
+                      { key: 'scheduled', label: 'Scheduled Appointments', icon: <EventIcon sx={{ fontSize: 15 }} /> },
+                      { key: 'en_route', label: 'Techs En Route', icon: <DirectionsBikeIcon sx={{ fontSize: 15 }} /> },
+                      { key: 'quote', label: 'Quote Review Stage', icon: <ReceiptLongIcon sx={{ fontSize: 15 }} /> },
+                      { key: 'completed', label: 'Completed', icon: <TaskAltIcon sx={{ fontSize: 15 }} /> },
+                      { key: 'cancelled', label: 'Customer Cancelled', icon: <CancelOutlinedIcon sx={{ fontSize: 15 }} /> }
+                    ].map(pill => (
+                      <Chip
+                        key={pill.key}
+                        icon={pill.icon}
+                        label={pill.label}
+                        clickable
+                        onClick={() => setQuickFilter(pill.key)}
+                        size="small"
+                        sx={{
+                          fontWeight: 800,
+                          fontSize: '11px',
+                          borderRadius: '10px',
+                          bgcolor: quickFilter === pill.key ? '#0284C7' : '#F1F5F9',
+                          color: quickFilter === pill.key ? '#FFFFFF' : '#475569',
+                          '& .MuiChip-icon': {
+                            color: quickFilter === pill.key ? '#FFFFFF !important' : '#64748B !important'
+                          },
+                          '&:hover': {
+                            bgcolor: quickFilter === pill.key ? '#0369A1' : '#E2E8F0'
+                          }
+                        }}
+                      />
+                    ))}
+                  </Box>
 
-                  {selectedLocality !== 'all' && (
-                    <Chip
-                      size="small"
-                      label={`Locality: ${selectedLocality}`}
-                      onDelete={() => setSelectedLocality('all')}
-                      sx={{ bgcolor: '#FFFFFF', color: '#0369A1', fontWeight: 700, fontSize: '11px', border: '1px solid #BAE6FD' }}
-                    />
-                  )}
-
-                  {selectedStatus !== 'all' && (
-                    <Chip
-                      size="small"
-                      label={`Status: ${selectedStatus.toUpperCase()}`}
-                      onDelete={() => setSelectedStatus('all')}
-                      sx={{ bgcolor: '#FFFFFF', color: '#0369A1', fontWeight: 700, fontSize: '11px', border: '1px solid #BAE6FD' }}
-                    />
-                  )}
-
-                  {selectedDateFilter !== 'all' && (
-                    <Chip
-                      size="small"
-                      label={`Date: ${selectedDateFilter.toUpperCase()}`}
-                      onDelete={() => setSelectedDateFilter('all')}
-                      sx={{ bgcolor: '#FFFFFF', color: '#0369A1', fontWeight: 700, fontSize: '11px', border: '1px solid #BAE6FD' }}
-                    />
-                  )}
-
-                  {selectedDispatchMode !== 'all' && (
-                    <Chip
-                      size="small"
-                      label={`Mode: ${selectedDispatchMode.toUpperCase()}`}
-                      onDelete={() => setSelectedDispatchMode('all')}
-                      sx={{ bgcolor: '#FFFFFF', color: '#0369A1', fontWeight: 700, fontSize: '11px', border: '1px solid #BAE6FD' }}
-                    />
-                  )}
-
-                  {selectedAudioFilter !== 'all' && (
-                    <Chip
-                      size="small"
-                      icon={<VolumeUpIcon sx={{ fontSize: '12px !important' }} />}
-                      label={selectedAudioFilter === 'audio_only' ? 'Audio Only' : 'Text Only'}
-                      onDelete={() => setSelectedAudioFilter('all')}
-                      sx={{ bgcolor: '#FFFFFF', color: '#0369A1', fontWeight: 700, fontSize: '11px', border: '1px solid #BAE6FD' }}
-                    />
-                  )}
-
-                  <Chip
-                    size="small"
-                    label="Clear all"
-                    onClick={handleResetFilters}
-                    sx={{ bgcolor: '#DC2626', color: '#FFFFFF', fontWeight: 800, fontSize: '10.5px', cursor: 'pointer', ml: 'auto' }}
-                  />
-                </Box>
-              )}
-
-              {/* Quick Filter Pills */}
-              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
-                <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 800, mr: 0.5 }}>
-                  Quick Filters:
-                </Typography>
-                {[
-                  { key: 'all', label: 'All Records', icon: <FilterListIcon sx={{ fontSize: 15 }} /> },
-                  { key: 'has_audio', label: 'Audio Voice Note Attached', icon: <VolumeUpIcon sx={{ fontSize: 15 }} /> },
-                  { key: 'urgent', label: 'Immediate Dispatch Needed', icon: <BoltIcon sx={{ fontSize: 15 }} /> },
-                  { key: 'scheduled', label: 'Scheduled Appointments', icon: <EventIcon sx={{ fontSize: 15 }} /> },
-                  { key: 'en_route', label: 'Techs En Route', icon: <DirectionsBikeIcon sx={{ fontSize: 15 }} /> },
-                  { key: 'quote', label: 'Quote Review Stage', icon: <ReceiptLongIcon sx={{ fontSize: 15 }} /> },
-                  { key: 'completed', label: 'Completed', icon: <TaskAltIcon sx={{ fontSize: 15 }} /> },
-                  { key: 'cancelled', label: 'Customer Cancelled', icon: <CancelOutlinedIcon sx={{ fontSize: 15 }} /> }
-                ].map(pill => (
-                  <Chip
-                    key={pill.key}
-                    icon={pill.icon}
-                    label={pill.label}
-                    clickable
-                    onClick={() => setQuickFilter(pill.key)}
-                    size="small"
-                    sx={{
-                      fontWeight: 800,
-                      fontSize: '11px',
-                      borderRadius: '10px',
-                      bgcolor: quickFilter === pill.key ? '#0284C7' : '#F1F5F9',
-                      color: quickFilter === pill.key ? '#FFFFFF' : '#475569',
-                      '& .MuiChip-icon': {
-                        color: quickFilter === pill.key ? '#FFFFFF !important' : '#64748B !important'
-                      },
-                      '&:hover': {
-                        bgcolor: quickFilter === pill.key ? '#0369A1' : '#E2E8F0'
-                      }
-                    }}
-                  />
-                ))}
-              </Box>
-            
                 </Box>
               </Collapse>
             </Card>
@@ -2865,276 +2866,276 @@ export default function AdminDashboardPage() {
                     Swipe left/right to view full table details
                   </Typography>
                   <Table size="small" sx={{ minWidth: { xs: 580, md: '100%' } }}>
-                  <TableHead>
-                    <TableRow sx={{ bgcolor: '#F8FAFC', '& th': { color: '#475569', fontWeight: 800, borderColor: '#E2E8F0', py: 1.4 } }}>
-                      <TableCell>Booking ID</TableCell>
-                      <TableCell>Customer & Locality</TableCell>
-                      <TableCell>Service & Problem</TableCell>
-                      <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>Scheduled Slot / Window</TableCell>
-                      <TableCell>Assigned Technician</TableCell>
-                      <TableCell align="center">Live Stage</TableCell>
-                      <TableCell align="right">Amount</TableCell>
-                      <TableCell align="center">Operations Action</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {filteredBookings.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((job) => (
-                      <TableRow key={job.id} hover sx={{ '& td': { borderColor: '#E2E8F0', py: 1.5 } }}>
-                        <TableCell 
-                          sx={{ fontWeight: 800, color: '#0284C7', cursor: 'pointer', textDecoration: 'underline' }}
-                          onClick={() => handleOpenBookingTrace(job)}
-                          title="Click to inspect complete booking audit trail & traceability"
-                        >
-                          #{job.id}
-                        </TableCell>
-                        <TableCell>
-                          <Typography
-                            variant="body2"
+                    <TableHead>
+                      <TableRow sx={{ bgcolor: '#F8FAFC', '& th': { color: '#475569', fontWeight: 800, borderColor: '#E2E8F0', py: 1.4 } }}>
+                        <TableCell>Booking ID</TableCell>
+                        <TableCell>Customer & Locality</TableCell>
+                        <TableCell>Service & Problem</TableCell>
+                        <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>Scheduled Slot / Window</TableCell>
+                        <TableCell>Assigned Technician</TableCell>
+                        <TableCell align="center">Live Stage</TableCell>
+                        <TableCell align="right">Amount</TableCell>
+                        <TableCell align="center">Operations Action</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {filteredBookings.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((job) => (
+                        <TableRow key={job.id} hover sx={{ '& td': { borderColor: '#E2E8F0', py: 1.5 } }}>
+                          <TableCell
                             sx={{ fontWeight: 800, color: '#0284C7', cursor: 'pointer', textDecoration: 'underline' }}
-                            onClick={() => handleOpenCustomerHistory({ customer_name: job.customer_name, customer_phone: job.customer_phone, locality: job.locality, service_address: job.service_address })}
-                            title="Click to view Customer 360 profile"
+                            onClick={() => handleOpenBookingTrace(job)}
+                            title="Click to inspect complete booking audit trail & traceability"
                           >
-                            {job.customer_name || 'Customer'}
-                          </Typography>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3, mt: 0.2 }}>
-                            <LocationOnIcon sx={{ fontSize: 13, color: '#64748B' }} />
-                            <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 600 }}>
-                              {job.locality || 'Salem Central'}
-                            </Typography>
-                          </Box>
-                        </TableCell>
-                        <TableCell>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
-                            {getTradeIcon(job.service_id)}
-                            <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A' }}>
-                              {job.service_id?.toUpperCase() || 'GENERAL'}
-                            </Typography>
-                          </Box>
-                          {job.voice_note_url && (
-                            <Chip
-                              icon={<VolumeUpIcon sx={{ fontSize: '11px !important', color: '#0369A1 !important' }} />}
-                              label="Voice Note"
-                              size="small"
-                              onClick={() => handleOpenBookingTrace(job)}
-                              sx={{
-                                mt: 0.5,
-                                bgcolor: '#E0F2FE',
-                                color: '#0369A1',
-                                fontWeight: 800,
-                                fontSize: '9.5px',
-                                height: 18,
-                                cursor: 'pointer',
-                                '&:hover': { bgcolor: '#BAE6FD' }
-                              }}
-                            />
-                          )}
-                          {job.custom_issue_description && (
+                            #{job.id}
+                          </TableCell>
+                          <TableCell>
                             <Typography
-                              variant="caption"
-                              sx={{
-                                display: 'block',
-                                color: '#64748B',
-                                fontSize: '10.5px',
-                                mt: 0.3,
-                                maxWidth: 180,
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap'
-                              }}
-                              title={job.custom_issue_description}
+                              variant="body2"
+                              sx={{ fontWeight: 800, color: '#0284C7', cursor: 'pointer', textDecoration: 'underline' }}
+                              onClick={() => handleOpenCustomerHistory({ customer_name: job.customer_name, customer_phone: job.customer_phone, locality: job.locality, service_address: job.service_address })}
+                              title="Click to view Customer 360 profile"
                             >
-                              {job.custom_issue_description}
+                              {job.customer_name || 'Customer'}
                             </Typography>
-                          )}
-                        </TableCell>
-                        <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
-                          {job.scheduled_slot && job.scheduled_slot !== 'instant_now' && job.scheduled_slot !== 'priority_12h' ? (
-                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.3 }}>
-                              <Chip
-                                icon={<EventIcon sx={{ fontSize: '12px !important', color: '#1E40AF !important' }} />}
-                                label="SCHEDULED"
-                                size="small"
-                                sx={{ bgcolor: '#DBEAFE', color: '#1E40AF', fontWeight: 800, fontSize: '9.5px', height: 20, width: 'fit-content' }}
-                              />
-                              <Typography variant="caption" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '11px' }}>
-                                {job.scheduled_slot}
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3, mt: 0.2 }}>
+                              <LocationOnIcon sx={{ fontSize: 13, color: '#64748B' }} />
+                              <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 600 }}>
+                                {job.locality || 'Salem Central'}
                               </Typography>
                             </Box>
-                          ) : (
-                            <Chip
-                              icon={<BoltIcon sx={{ fontSize: '12px !important', color: '#B45309 !important' }} />}
-                              label="Instant (Prompt Slot)"
-                              size="small"
-                              sx={{ bgcolor: '#FEF3C7', color: '#B45309', fontWeight: 800, fontSize: '10px', height: 20 }}
-                            />
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {job.technician_name ? (
-                            <Box>
-                              <Typography 
-                                variant="body2" 
-                                sx={{ fontWeight: 700, color: '#0284C7', cursor: 'pointer', textDecoration: 'underline' }}
-                                onClick={() => {
-                                  const matched = technicians.find(t => t.id === job.technician_id || t.full_name === job.technician_name);
-                                  if (matched) handleOpenTechDossier(matched);
-                                }}
-                                title="Click to view technician performance dossier & KYC"
-                              >
-                                {job.technician_name}
+                          </TableCell>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
+                              {getTradeIcon(job.service_id)}
+                              <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A' }}>
+                                {job.service_id?.toUpperCase() || 'GENERAL'}
                               </Typography>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3 }}>
-                                <StarIcon sx={{ fontSize: 12, color: '#F59E0B' }} />
-                                <Typography variant="caption" sx={{ color: '#059669', fontWeight: 700 }}>
-                                  {job.technician_rating && Number(job.technician_rating) > 0 ? `${Number(job.technician_rating).toFixed(1)} Verified` : 'New Partner'}
+                            </Box>
+                            {job.voice_note_url && (
+                              <Chip
+                                icon={<VolumeUpIcon sx={{ fontSize: '11px !important', color: '#0369A1 !important' }} />}
+                                label="Voice Note"
+                                size="small"
+                                onClick={() => handleOpenBookingTrace(job)}
+                                sx={{
+                                  mt: 0.5,
+                                  bgcolor: '#E0F2FE',
+                                  color: '#0369A1',
+                                  fontWeight: 800,
+                                  fontSize: '9.5px',
+                                  height: 18,
+                                  cursor: 'pointer',
+                                  '&:hover': { bgcolor: '#BAE6FD' }
+                                }}
+                              />
+                            )}
+                            {job.custom_issue_description && (
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  display: 'block',
+                                  color: '#64748B',
+                                  fontSize: '10.5px',
+                                  mt: 0.3,
+                                  maxWidth: 180,
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap'
+                                }}
+                                title={job.custom_issue_description}
+                              >
+                                {job.custom_issue_description}
+                              </Typography>
+                            )}
+                          </TableCell>
+                          <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
+                            {job.scheduled_slot && job.scheduled_slot !== 'instant_now' && job.scheduled_slot !== 'priority_12h' ? (
+                              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.3 }}>
+                                <Chip
+                                  icon={<EventIcon sx={{ fontSize: '12px !important', color: '#1E40AF !important' }} />}
+                                  label="SCHEDULED"
+                                  size="small"
+                                  sx={{ bgcolor: '#DBEAFE', color: '#1E40AF', fontWeight: 800, fontSize: '9.5px', height: 20, width: 'fit-content' }}
+                                />
+                                <Typography variant="caption" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '11px' }}>
+                                  {job.scheduled_slot}
                                 </Typography>
                               </Box>
-                            </Box>
-                          ) : (
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              startIcon={<SendIcon sx={{ fontSize: 12 }} />}
-                              onClick={() => handleOpenDispatch(job)}
-                              sx={{
-                                color: '#DC2626',
-                                borderColor: '#FCA5A5',
-                                bgcolor: '#FEF2F2',
-                                fontSize: '11px',
-                                fontWeight: 800,
-                                borderRadius: '8px',
-                                textTransform: 'none',
-                                py: 0.2
-                              }}
-                            >
-                              Manual Dispatch
-                            </Button>
-                          )}
-                        </TableCell>
-                        <TableCell align="center">
-                          {getStatusChip(job.status)}
-                          {job.status === 'cancelled' && (
-                            <Box sx={{ mt: 0.8, p: 0.8, bgcolor: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '8px', textAlign: 'left', minWidth: 160, maxWidth: 220 }}>
-                              <Typography variant="caption" sx={{ color: '#991B1B', fontWeight: 800, display: 'block', fontSize: '10.5px', lineHeight: 1.25 }}>
-                                Reason: {job.cancellation_reason || 'Customer cancelled doorstep request'}
-                              </Typography>
-                              {job.cancellation_details && (
-                                <Typography variant="caption" sx={{ color: '#B91C1C', display: 'block', fontSize: '10px', fontStyle: 'italic', mt: 0.2 }}>
-                                  "{job.cancellation_details}"
-                                </Typography>
-                              )}
-                              <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontSize: '9px', mt: 0.2 }}>
-                                By {job.cancelled_by || 'Customer'} {job.cancelled_at ? `• ${new Date(job.cancelled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : ''}
-                              </Typography>
-                            </Box>
-                          )}
-                          {job.parts_bill_url && (
-                            <Box sx={{ mt: 0.5 }}>
+                            ) : (
                               <Chip
-                                icon={<ReceiptLongIcon sx={{ fontSize: '11px !important', color: '#0369A1 !important' }} />}
-                                label="View Bill"
+                                icon={<BoltIcon sx={{ fontSize: '12px !important', color: '#B45309 !important' }} />}
+                                label="Instant (Prompt Slot)"
                                 size="small"
-                                clickable
-                                onClick={() => handleOpenBillViewer(job)}
-                                sx={{ bgcolor: '#E0F2FE', color: '#0369A1', fontWeight: 800, fontSize: '9px', height: 18 }}
+                                sx={{ bgcolor: '#FEF3C7', color: '#B45309', fontWeight: 800, fontSize: '10px', height: 20 }}
                               />
-                            </Box>
-                          )}
-                        </TableCell>
-                        <TableCell align="right" sx={{ fontWeight: 900, color: '#0F172A', fontSize: '14px' }}>
-                          ₹{Number(job.final_amount || job.total_price || 299).toFixed(2)}
-                          {job.status === 'cancelled' && job.refund_amount > 0 && (
-                            <Typography variant="caption" sx={{ color: '#059669', display: 'block', fontSize: '10px', fontWeight: 700 }}>
-                              Refund: ₹{Number(job.refund_amount).toFixed(2)}
-                            </Typography>
-                          )}
-                        </TableCell>
-                        <TableCell align="center">
-                          <Box sx={{ display: 'flex', gap: 0.8, alignItems: 'center', justifyContent: 'center' }}>
-                            {['en_route', 'arrived', 'in_progress'].includes(job.status) ? (
-                              <Button
-                                variant="outlined"
-                                size="small"
-                                startIcon={<NavigationIcon sx={{ fontSize: 13 }} />}
-                                onClick={() => handleOpenTracking(job)}
-                                sx={{
-                                  borderRadius: '8px',
-                                  fontSize: '11px',
-                                  fontWeight: 800,
-                                  textTransform: 'none',
-                                  py: 0.4,
-                                  px: 1.2,
-                                  color: '#16A34A',
-                                  borderColor: '#BBF7D0',
-                                  bgcolor: '#F0FDF4',
-                                  '&:hover': { bgcolor: '#DCFCE7', borderColor: '#16A34A' }
-                                }}
-                              >
-                                Live Track
-                              </Button>
-                            ) : job.status === 'matching' ? (
-                              <Button
-                                variant="contained"
-                                size="small"
-                                startIcon={<SendIcon sx={{ fontSize: 12 }} />}
-                                onClick={() => handleOpenDispatch(job)}
-                                sx={{
-                                  borderRadius: '8px',
-                                  fontSize: '11px',
-                                  fontWeight: 800,
-                                  bgcolor: '#0284C7',
-                                  color: '#FFF',
-                                  textTransform: 'none',
-                                  py: 0.4,
-                                  px: 1.2,
-                                  '&:hover': { bgcolor: '#0369A1' }
-                                }}
-                              >
-                                Assign
-                              </Button>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {job.technician_name ? (
+                              <Box>
+                                <Typography
+                                  variant="body2"
+                                  sx={{ fontWeight: 700, color: '#0284C7', cursor: 'pointer', textDecoration: 'underline' }}
+                                  onClick={() => {
+                                    const matched = technicians.find(t => t.id === job.technician_id || t.full_name === job.technician_name);
+                                    if (matched) handleOpenTechDossier(matched);
+                                  }}
+                                  title="Click to view technician performance dossier & KYC"
+                                >
+                                  {job.technician_name}
+                                </Typography>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3 }}>
+                                  <StarIcon sx={{ fontSize: 12, color: '#F59E0B' }} />
+                                  <Typography variant="caption" sx={{ color: '#059669', fontWeight: 700 }}>
+                                    {job.technician_rating && Number(job.technician_rating) > 0 ? `${Number(job.technician_rating).toFixed(1)} Verified` : 'New Partner'}
+                                  </Typography>
+                                </Box>
+                              </Box>
                             ) : (
                               <Button
                                 variant="outlined"
                                 size="small"
-                                startIcon={<ArticleIcon sx={{ fontSize: 13 }} />}
-                                onClick={() => handleOpenBookingTrace(job)}
+                                startIcon={<SendIcon sx={{ fontSize: 12 }} />}
+                                onClick={() => handleOpenDispatch(job)}
                                 sx={{
-                                  borderRadius: '8px',
+                                  color: '#DC2626',
+                                  borderColor: '#FCA5A5',
+                                  bgcolor: '#FEF2F2',
                                   fontSize: '11px',
                                   fontWeight: 800,
+                                  borderRadius: '8px',
                                   textTransform: 'none',
-                                  py: 0.4,
-                                  px: 1.2,
-                                  color: '#0284C7',
-                                  borderColor: '#BAE6FD',
-                                  bgcolor: '#F0F9FF',
-                                  '&:hover': { bgcolor: '#E0F2FE', borderColor: '#0284C7' }
+                                  py: 0.2
                                 }}
                               >
-                                Trace
+                                Manual Dispatch
                               </Button>
                             )}
+                          </TableCell>
+                          <TableCell align="center">
+                            {getStatusChip(job.status)}
+                            {job.status === 'cancelled' && (
+                              <Box sx={{ mt: 0.8, p: 0.8, bgcolor: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '8px', textAlign: 'left', minWidth: 160, maxWidth: 220 }}>
+                                <Typography variant="caption" sx={{ color: '#991B1B', fontWeight: 800, display: 'block', fontSize: '10.5px', lineHeight: 1.25 }}>
+                                  Reason: {job.cancellation_reason || 'Customer cancelled doorstep request'}
+                                </Typography>
+                                {job.cancellation_details && (
+                                  <Typography variant="caption" sx={{ color: '#B91C1C', display: 'block', fontSize: '10px', fontStyle: 'italic', mt: 0.2 }}>
+                                    "{job.cancellation_details}"
+                                  </Typography>
+                                )}
+                                <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontSize: '9px', mt: 0.2 }}>
+                                  By {job.cancelled_by || 'Customer'} {job.cancelled_at ? `• ${new Date(job.cancelled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : ''}
+                                </Typography>
+                              </Box>
+                            )}
+                            {job.parts_bill_url && (
+                              <Box sx={{ mt: 0.5 }}>
+                                <Chip
+                                  icon={<ReceiptLongIcon sx={{ fontSize: '11px !important', color: '#0369A1 !important' }} />}
+                                  label="View Bill"
+                                  size="small"
+                                  clickable
+                                  onClick={() => handleOpenBillViewer(job)}
+                                  sx={{ bgcolor: '#E0F2FE', color: '#0369A1', fontWeight: 800, fontSize: '9px', height: 18 }}
+                                />
+                              </Box>
+                            )}
+                          </TableCell>
+                          <TableCell align="right" sx={{ fontWeight: 900, color: '#0F172A', fontSize: '14px' }}>
+                            ₹{Number(job.final_amount || job.total_price || 299).toFixed(2)}
+                            {job.status === 'cancelled' && job.refund_amount > 0 && (
+                              <Typography variant="caption" sx={{ color: '#059669', display: 'block', fontSize: '10px', fontWeight: 700 }}>
+                                Refund: ₹{Number(job.refund_amount).toFixed(2)}
+                              </Typography>
+                            )}
+                          </TableCell>
+                          <TableCell align="center">
+                            <Box sx={{ display: 'flex', gap: 0.8, alignItems: 'center', justifyContent: 'center' }}>
+                              {['en_route', 'arrived', 'in_progress'].includes(job.status) ? (
+                                <Button
+                                  variant="outlined"
+                                  size="small"
+                                  startIcon={<NavigationIcon sx={{ fontSize: 13 }} />}
+                                  onClick={() => handleOpenTracking(job)}
+                                  sx={{
+                                    borderRadius: '8px',
+                                    fontSize: '11px',
+                                    fontWeight: 800,
+                                    textTransform: 'none',
+                                    py: 0.4,
+                                    px: 1.2,
+                                    color: '#16A34A',
+                                    borderColor: '#BBF7D0',
+                                    bgcolor: '#F0FDF4',
+                                    '&:hover': { bgcolor: '#DCFCE7', borderColor: '#16A34A' }
+                                  }}
+                                >
+                                  Live Track
+                                </Button>
+                              ) : job.status === 'matching' ? (
+                                <Button
+                                  variant="contained"
+                                  size="small"
+                                  startIcon={<SendIcon sx={{ fontSize: 12 }} />}
+                                  onClick={() => handleOpenDispatch(job)}
+                                  sx={{
+                                    borderRadius: '8px',
+                                    fontSize: '11px',
+                                    fontWeight: 800,
+                                    bgcolor: '#0284C7',
+                                    color: '#FFF',
+                                    textTransform: 'none',
+                                    py: 0.4,
+                                    px: 1.2,
+                                    '&:hover': { bgcolor: '#0369A1' }
+                                  }}
+                                >
+                                  Assign
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="outlined"
+                                  size="small"
+                                  startIcon={<ArticleIcon sx={{ fontSize: 13 }} />}
+                                  onClick={() => handleOpenBookingTrace(job)}
+                                  sx={{
+                                    borderRadius: '8px',
+                                    fontSize: '11px',
+                                    fontWeight: 800,
+                                    textTransform: 'none',
+                                    py: 0.4,
+                                    px: 1.2,
+                                    color: '#0284C7',
+                                    borderColor: '#BAE6FD',
+                                    bgcolor: '#F0F9FF',
+                                    '&:hover': { bgcolor: '#E0F2FE', borderColor: '#0284C7' }
+                                  }}
+                                >
+                                  Trace
+                                </Button>
+                              )}
 
-                            <IconButton
-                              size="small"
-                              onClick={(e) => handleActionMenuOpen(e, job)}
-                              aria-label="Actions menu"
-                              sx={{
-                                border: '1px solid #E2E8F0',
-                                borderRadius: '8px',
-                                p: 0.5,
-                                color: '#475569',
-                                '&:hover': { bgcolor: '#F1F5F9', borderColor: '#CBD5E1' }
-                              }}
-                            >
-                              <MoreVertIcon sx={{ fontSize: 18 }} />
-                            </IconButton>
-                          </Box>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                              <IconButton
+                                size="small"
+                                onClick={(e) => handleActionMenuOpen(e, job)}
+                                aria-label="Actions menu"
+                                sx={{
+                                  border: '1px solid #E2E8F0',
+                                  borderRadius: '8px',
+                                  p: 0.5,
+                                  color: '#475569',
+                                  '&:hover': { bgcolor: '#F1F5F9', borderColor: '#CBD5E1' }
+                                }}
+                              >
+                                <MoreVertIcon sx={{ fontSize: 18 }} />
+                              </IconButton>
+                            </Box>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                   <TablePagination
                     rowsPerPageOptions={[10, 25, 50]}
                     component="div"
@@ -3148,8 +3149,8 @@ export default function AdminDashboardPage() {
                     }}
                     sx={{ borderTop: '1px solid #E2E8F0' }}
                   />
-              </Box>
-            )}
+                </Box>
+              )}
             </Card>
           </>
         )}
@@ -3200,128 +3201,128 @@ export default function AdminDashboardPage() {
                   Swipe left/right to view full table details
                 </Typography>
                 <Table size="small" sx={{ minWidth: { xs: 580, md: '100%' } }}>
-                <TableHead>
-                  <TableRow sx={{ bgcolor: '#F8FAFC', '& th': { color: '#475569', fontWeight: 800, borderColor: '#E2E8F0', py: 1.4 } }}>
-                    <TableCell>Customer Profile</TableCell>
-                    <TableCell>Phone & Contact</TableCell>
-                    <TableCell>Salem Locality</TableCell>
-                    <TableCell align="center">Total Orders Placed</TableCell>
-                    <TableCell align="center">Completed / Active</TableCell>
-                    <TableCell align="right">Lifetime Spend (GMV)</TableCell>
-                    <TableCell align="center">Account Status</TableCell>
-                    <TableCell align="center">Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {filteredCustomers.map((cust, idx) => (
-                    <TableRow key={idx} hover sx={{ '& td': { borderColor: '#E2E8F0', py: 1.5 } }}>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
-                          <Avatar sx={{ bgcolor: '#0284C7', width: 34, height: 34, fontWeight: 800, fontSize: '13px' }}>
-                            {cust.customer_name?.substring(0, 2) || 'SC'}
-                          </Avatar>
-                          <Box>
-                            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A' }}>
-                              {cust.customer_name}
-                            </Typography>
-                            <Typography variant="caption" sx={{ color: '#64748B' }}>
-                              Last order: {cust.last_order_date ? new Date(cust.last_order_date).toLocaleDateString() : 'Recent'}
+                  <TableHead>
+                    <TableRow sx={{ bgcolor: '#F8FAFC', '& th': { color: '#475569', fontWeight: 800, borderColor: '#E2E8F0', py: 1.4 } }}>
+                      <TableCell>Customer Profile</TableCell>
+                      <TableCell>Phone & Contact</TableCell>
+                      <TableCell>Salem Locality</TableCell>
+                      <TableCell align="center">Total Orders Placed</TableCell>
+                      <TableCell align="center">Completed / Active</TableCell>
+                      <TableCell align="right">Lifetime Spend (GMV)</TableCell>
+                      <TableCell align="center">Account Status</TableCell>
+                      <TableCell align="center">Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {filteredCustomers.map((cust, idx) => (
+                      <TableRow key={idx} hover sx={{ '& td': { borderColor: '#E2E8F0', py: 1.5 } }}>
+                        <TableCell>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                            <Avatar sx={{ bgcolor: '#0284C7', width: 34, height: 34, fontWeight: 800, fontSize: '13px' }}>
+                              {cust.customer_name?.substring(0, 2) || 'SC'}
+                            </Avatar>
+                            <Box>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A' }}>
+                                {cust.customer_name}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: '#64748B' }}>
+                                Last order: {cust.last_order_date ? new Date(cust.last_order_date).toLocaleDateString() : 'Recent'}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </TableCell>
+                        <TableCell>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <PhoneIcon sx={{ fontSize: 13, color: '#64748B' }} />
+                            <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A' }}>
+                              {cust.customer_phone || '+91-94432'}
                             </Typography>
                           </Box>
-                        </Box>
-                      </TableCell>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                          <PhoneIcon sx={{ fontSize: 13, color: '#64748B' }} />
-                          <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A' }}>
-                            {cust.customer_phone || '+91-94432'}
-                          </Typography>
-                        </Box>
-                      </TableCell>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4 }}>
-                          <LocationOnIcon sx={{ fontSize: 14, color: '#0284C7' }} />
-                          <Typography variant="body2" sx={{ fontWeight: 700, color: '#475569' }}>
-                            {cust.locality || 'Fairlands'}
-                          </Typography>
-                        </Box>
-                      </TableCell>
-                      <TableCell align="center">
-                        <Chip
-                          icon={<ShoppingBagIcon sx={{ color: '#0284C7 !important', fontSize: '14px !important' }} />}
-                          label={`${cust.total_orders || 1} Orders`}
-                          size="small"
-                          sx={{ bgcolor: '#E0F2FE', color: '#0369A1', fontWeight: 900, fontSize: '11px' }}
-                        />
-                      </TableCell>
-                      <TableCell align="center">
-                        <Typography variant="body2" sx={{ fontWeight: 800, color: '#166534' }}>
-                          {cust.completed_orders || 0} done <span style={{ color: '#D97706' }}>({cust.active_orders || 0} live)</span>
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 900, color: '#059669', fontSize: '14px' }}>
-                        ₹{parseFloat(cust.total_spent || 0).toLocaleString()}
-                      </TableCell>
-                      <TableCell align="center">
-                        {cust.is_blocked ? (
+                        </TableCell>
+                        <TableCell>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4 }}>
+                            <LocationOnIcon sx={{ fontSize: 14, color: '#0284C7' }} />
+                            <Typography variant="body2" sx={{ fontWeight: 700, color: '#475569' }}>
+                              {cust.locality || 'Fairlands'}
+                            </Typography>
+                          </Box>
+                        </TableCell>
+                        <TableCell align="center">
                           <Chip
-                            label="BLOCKED"
+                            icon={<ShoppingBagIcon sx={{ color: '#0284C7 !important', fontSize: '14px !important' }} />}
+                            label={`${cust.total_orders || 1} Orders`}
                             size="small"
-                            title={cust.block_reason || 'Administrative restriction'}
-                            sx={{ bgcolor: '#FEF2F2', color: '#DC2626', fontWeight: 900, fontSize: '10px', height: 20 }}
+                            sx={{ bgcolor: '#E0F2FE', color: '#0369A1', fontWeight: 900, fontSize: '11px' }}
                           />
-                        ) : (
-                          <Chip
-                            label="ACTIVE"
-                            size="small"
-                            sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 800, fontSize: '10px', height: 20 }}
-                          />
-                        )}
-                      </TableCell>
-                      <TableCell align="center">
-                        <Box sx={{ display: 'flex', gap: 0.8, alignItems: 'center', justifyContent: 'center' }}>
-                          <Button
-                            variant="outlined"
-                            size="small"
-                            startIcon={<HistoryEduIcon sx={{ fontSize: 13 }} />}
-                            onClick={() => handleOpenCustomerHistory(cust)}
-                            sx={{
-                              borderRadius: '8px',
-                              fontSize: '11px',
-                              fontWeight: 800,
-                              color: '#0284C7',
-                              borderColor: '#BAE6FD',
-                              bgcolor: '#F0F9FF',
-                              textTransform: 'none',
-                              py: 0.4,
-                              px: 1.2,
-                              '&:hover': { bgcolor: '#E0F2FE' }
-                            }}
-                          >
-                            History
-                          </Button>
-                          <IconButton
-                            size="small"
-                            onClick={(e) => handleCustActionMenuOpen(e, cust)}
-                            aria-label="Customer actions"
-                            sx={{
-                              border: '1px solid #E2E8F0',
-                              borderRadius: '8px',
-                              p: 0.5,
-                              color: '#475569',
-                              '&:hover': { bgcolor: '#F1F5F9' }
-                            }}
-                          >
-                            <MoreVertIcon sx={{ fontSize: 18 }} />
-                          </IconButton>
-                        </Box>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Box>
-          )}
+                        </TableCell>
+                        <TableCell align="center">
+                          <Typography variant="body2" sx={{ fontWeight: 800, color: '#166534' }}>
+                            {cust.completed_orders || 0} done <span style={{ color: '#D97706' }}>({cust.active_orders || 0} live)</span>
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 900, color: '#059669', fontSize: '14px' }}>
+                          ₹{parseFloat(cust.total_spent || 0).toLocaleString()}
+                        </TableCell>
+                        <TableCell align="center">
+                          {cust.is_blocked ? (
+                            <Chip
+                              label="BLOCKED"
+                              size="small"
+                              title={cust.block_reason || 'Administrative restriction'}
+                              sx={{ bgcolor: '#FEF2F2', color: '#DC2626', fontWeight: 900, fontSize: '10px', height: 20 }}
+                            />
+                          ) : (
+                            <Chip
+                              label="ACTIVE"
+                              size="small"
+                              sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 800, fontSize: '10px', height: 20 }}
+                            />
+                          )}
+                        </TableCell>
+                        <TableCell align="center">
+                          <Box sx={{ display: 'flex', gap: 0.8, alignItems: 'center', justifyContent: 'center' }}>
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              startIcon={<HistoryEduIcon sx={{ fontSize: 13 }} />}
+                              onClick={() => handleOpenCustomerHistory(cust)}
+                              sx={{
+                                borderRadius: '8px',
+                                fontSize: '11px',
+                                fontWeight: 800,
+                                color: '#0284C7',
+                                borderColor: '#BAE6FD',
+                                bgcolor: '#F0F9FF',
+                                textTransform: 'none',
+                                py: 0.4,
+                                px: 1.2,
+                                '&:hover': { bgcolor: '#E0F2FE' }
+                              }}
+                            >
+                              History
+                            </Button>
+                            <IconButton
+                              size="small"
+                              onClick={(e) => handleCustActionMenuOpen(e, cust)}
+                              aria-label="Customer actions"
+                              sx={{
+                                border: '1px solid #E2E8F0',
+                                borderRadius: '8px',
+                                p: 0.5,
+                                color: '#475569',
+                                '&:hover': { bgcolor: '#F1F5F9' }
+                              }}
+                            >
+                              <MoreVertIcon sx={{ fontSize: 18 }} />
+                            </IconButton>
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Box>
+            )}
           </Card>
         )}
 
@@ -3363,210 +3364,210 @@ export default function AdminDashboardPage() {
                 Swipe left/right to view full table details
               </Typography>
               <Table size="small" sx={{ minWidth: 720 }}>
-              <TableHead>
-                <TableRow sx={{ bgcolor: '#F8FAFC', '& th': { color: '#475569', fontWeight: 800, borderColor: '#E2E8F0', py: 1.4 } }}>
-                  <TableCell>Technician Profile</TableCell>
-                  <TableCell>Primary Trade</TableCell>
-                  <TableCell>Contact & UPI</TableCell>
-                  <TableCell align="center">Aadhaar Document</TableCell>
-                  <TableCell align="center">Rating & Completed</TableCell>
-                  <TableCell align="center">KYC & Duty Status</TableCell>
-                  <TableCell align="center">Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredTechs.map((tech) => (
-                  <TableRow key={tech.id} hover sx={{ '& td': { borderColor: '#E2E8F0', py: 1.5 } }}>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
-                        <Avatar sx={{ bgcolor: tech.is_online ? '#0284C7' : '#94A3B8', width: 36, height: 36, fontWeight: 800, fontSize: '14px' }}>
-                          {tech.full_name?.substring(0, 2) || 'TK'}
-                        </Avatar>
-                        <Box>
-                          <Typography
-                            variant="subtitle2"
-                            sx={{ fontWeight: 800, color: '#0284C7', cursor: 'pointer', textDecoration: 'underline' }}
-                            onClick={() => handleOpenTechDossier(tech)}
-                          >
-                            {tech.full_name}
+                <TableHead>
+                  <TableRow sx={{ bgcolor: '#F8FAFC', '& th': { color: '#475569', fontWeight: 800, borderColor: '#E2E8F0', py: 1.4 } }}>
+                    <TableCell>Technician Profile</TableCell>
+                    <TableCell>Primary Trade</TableCell>
+                    <TableCell>Contact & UPI</TableCell>
+                    <TableCell align="center">Aadhaar Document</TableCell>
+                    <TableCell align="center">Rating & Completed</TableCell>
+                    <TableCell align="center">KYC & Duty Status</TableCell>
+                    <TableCell align="center">Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {filteredTechs.map((tech) => (
+                    <TableRow key={tech.id} hover sx={{ '& td': { borderColor: '#E2E8F0', py: 1.5 } }}>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                          <Avatar sx={{ bgcolor: tech.is_online ? '#0284C7' : '#94A3B8', width: 36, height: 36, fontWeight: 800, fontSize: '14px' }}>
+                            {tech.full_name?.substring(0, 2) || 'TK'}
+                          </Avatar>
+                          <Box>
+                            <Typography
+                              variant="subtitle2"
+                              sx={{ fontWeight: 800, color: '#0284C7', cursor: 'pointer', textDecoration: 'underline' }}
+                              onClick={() => handleOpenTechDossier(tech)}
+                            >
+                              {tech.full_name}
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: '#64748B', display: 'block' }}>
+                              {tech.years_experience != null ? `${tech.years_experience} Years Experience` : '0 Years Experience'}
+                            </Typography>
+                            {!tech.is_kyc_verified && (
+                              <Chip
+                                label="New Registration"
+                                size="small"
+                                sx={{ bgcolor: '#FEF3C7', color: '#92400E', fontWeight: 800, fontSize: '9px', height: 16, mt: 0.3 }}
+                              />
+                            )}
+                          </Box>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          {getTradeIcon(tech.primary_trade)}
+                          <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A' }}>
+                            {getTradeLabel(tech.primary_trade)}
                           </Typography>
-                          <Typography variant="caption" sx={{ color: '#64748B', display: 'block' }}>
-                            {tech.years_experience != null ? `${tech.years_experience} Years Experience` : '0 Years Experience'}
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A' }}>
+                          {tech.phone || 'No Phone'}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#64748B', display: 'block' }}>
+                          UPI: {tech.upi_vpa || 'Not Configured'}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#0284C7', fontWeight: 700, display: 'block', mt: 0.2 }}>
+                          Locality: {Array.isArray(tech.assigned_localities) && tech.assigned_localities.length > 0
+                            ? tech.assigned_localities.join(', ')
+                            : tech.service_area || tech.locality || 'Fairlands, Salem'}
+                        </Typography>
+                      </TableCell>
+
+                      {/* Aadhaar Document Column */}
+                      <TableCell align="center">
+                        {(tech.aadhaar_card_url || tech.aadhaarCardUrl) ? (
+                          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.4 }}>
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              startIcon={<VisibilityIcon sx={{ fontSize: 13 }} />}
+                              onClick={() => handleOpenAadhaarViewer(tech)}
+                              sx={{
+                                borderRadius: '8px',
+                                fontSize: '11px',
+                                fontWeight: 800,
+                                textTransform: 'none',
+                                py: 0.3,
+                                px: 1,
+                                color: '#0284C7',
+                                borderColor: '#BAE6FD',
+                                bgcolor: '#F0F9FF',
+                                '&:hover': { bgcolor: '#E0F2FE', borderColor: '#0284C7' }
+                              }}
+                            >
+                              View Aadhaar
+                            </Button>
+                            <Typography variant="caption" sx={{ color: '#0F172A', fontWeight: 800, fontSize: '10px', fontFamily: 'monospace' }}>
+                              {tech.aadhaar_number ? tech.aadhaar_number : 'Doc Attached'}
+                            </Typography>
+                          </Box>
+                        ) : (
+                          <Chip
+                            label="No Aadhaar Uploaded"
+                            size="small"
+                            sx={{ bgcolor: '#F1F5F9', color: '#64748B', fontWeight: 700, fontSize: '10px' }}
+                          />
+                        )}
+                      </TableCell>
+
+                      <TableCell align="center">
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.4, mb: 0.3 }}>
+                          <StarIcon sx={{ fontSize: 14, color: '#F59E0B' }} />
+                          <Typography variant="body2" sx={{ fontWeight: 900, color: '#0F172A' }}>
+                            {Number(tech.rating_avg) > 0 ? Number(tech.rating_avg).toFixed(1) : (Number(tech.jobs_completed_count) > 0 ? '5.0' : 'New')}
                           </Typography>
+                        </Box>
+                        <Chip
+                          icon={<WorkHistoryIcon sx={{ color: '#166534 !important', fontSize: '12px !important' }} />}
+                          label={`${Number(tech.jobs_completed_count) || 0} Jobs`}
+                          size="small"
+                          sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 800, fontSize: '10.5px', height: 20 }}
+                        />
+                      </TableCell>
+
+                      <TableCell align="center">
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.4, alignItems: 'center' }}>
+                          {tech.is_blocked ? (
+                            <Chip label="SUSPENDED" size="small" sx={{ bgcolor: '#FEF2F2', color: '#DC2626', fontWeight: 900, fontSize: '9.5px', height: 18 }} title={tech.block_reason || 'Suspended by admin'} />
+                          ) : tech.is_online ? (
+                            <Chip icon={<SensorsIcon sx={{ color: '#15803D !important', fontSize: '12px !important' }} />} label="ONLINE" size="small" sx={{ bgcolor: '#DCFCE7', color: '#15803D', fontWeight: 900, fontSize: '9.5px', height: 18 }} />
+                          ) : (
+                            <Chip icon={<PowerSettingsNewIcon sx={{ color: '#64748B !important', fontSize: '12px !important' }} />} label="OFFLINE" size="small" sx={{ bgcolor: '#F1F5F9', color: '#64748B', fontWeight: 800, fontSize: '9.5px', height: 18 }} />
+                          )}
+                          <Chip
+                            icon={<ShieldIcon sx={{ color: tech.is_kyc_verified ? '#10B981 !important' : '#F59E0B !important', fontSize: '11px !important' }} />}
+                            label={tech.is_kyc_verified ? 'DigiLocker KYC' : 'Pending KYC'}
+                            size="small"
+                            sx={{ bgcolor: tech.is_kyc_verified ? '#ECFDF5' : '#FFFBEB', color: tech.is_kyc_verified ? '#047857' : '#B45309', fontWeight: 800, fontSize: '9.5px', height: 18 }}
+                          />
                           {!tech.is_kyc_verified && (
                             <Chip
-                              label="New Registration"
+                              label="12h Review SLA"
                               size="small"
-                              sx={{ bgcolor: '#FEF3C7', color: '#92400E', fontWeight: 800, fontSize: '9px', height: 16, mt: 0.3 }}
+                              sx={{ bgcolor: '#FEF3C7', color: '#92400E', fontWeight: 800, fontSize: '9px', height: 16, border: '1px solid #FCD34D' }}
                             />
                           )}
                         </Box>
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        {getTradeIcon(tech.primary_trade)}
-                        <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A' }}>
-                          {getTradeLabel(tech.primary_trade)}
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A' }}>
-                        {tech.phone || 'No Phone'}
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: '#64748B', display: 'block' }}>
-                        UPI: {tech.upi_vpa || 'Not Configured'}
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: '#0284C7', fontWeight: 700, display: 'block', mt: 0.2 }}>
-                        Locality: {Array.isArray(tech.assigned_localities) && tech.assigned_localities.length > 0
-                          ? tech.assigned_localities.join(', ')
-                          : tech.service_area || tech.locality || 'Fairlands, Salem'}
-                      </Typography>
-                    </TableCell>
+                      </TableCell>
 
-                    {/* Aadhaar Document Column */}
-                    <TableCell align="center">
-                      {(tech.aadhaar_card_url || tech.aadhaarCardUrl) ? (
-                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.4 }}>
-                          <Button
-                            variant="outlined"
+                      <TableCell align="center">
+                        <Box sx={{ display: 'flex', gap: 0.8, alignItems: 'center', justifyContent: 'center' }}>
+                          {!tech.is_kyc_verified ? (
+                            <Button
+                              variant="contained"
+                              size="small"
+                              onClick={() => handleKycDecision(tech.id, 'approve')}
+                              sx={{
+                                bgcolor: '#16A34A',
+                                color: '#FFF',
+                                fontWeight: 800,
+                                fontSize: '11px',
+                                textTransform: 'none',
+                                borderRadius: '8px',
+                                py: 0.4,
+                                px: 1.2,
+                                '&:hover': { bgcolor: '#15803D' }
+                              }}
+                            >
+                              Approve KYC
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              startIcon={<HistoryEduIcon sx={{ fontSize: 13 }} />}
+                              onClick={() => handleOpenTechDossier(tech)}
+                              sx={{
+                                borderRadius: '8px',
+                                fontSize: '11px',
+                                fontWeight: 800,
+                                color: '#0284C7',
+                                borderColor: '#BAE6FD',
+                                bgcolor: '#F8FAFC',
+                                textTransform: 'none',
+                                py: 0.4,
+                                px: 1.2,
+                                '&:hover': { bgcolor: '#F1F5F9' }
+                              }}
+                            >
+                              Dossier
+                            </Button>
+                          )}
+                          <IconButton
                             size="small"
-                            startIcon={<VisibilityIcon sx={{ fontSize: 13 }} />}
-                            onClick={() => handleOpenAadhaarViewer(tech)}
+                            onClick={(e) => handleTechActionMenuOpen(e, tech)}
+                            aria-label="Technician actions"
                             sx={{
+                              border: '1px solid #E2E8F0',
                               borderRadius: '8px',
-                              fontSize: '11px',
-                              fontWeight: 800,
-                              textTransform: 'none',
-                              py: 0.3,
-                              px: 1,
-                              color: '#0284C7',
-                              borderColor: '#BAE6FD',
-                              bgcolor: '#F0F9FF',
-                              '&:hover': { bgcolor: '#E0F2FE', borderColor: '#0284C7' }
-                            }}
-                          >
-                            View Aadhaar
-                          </Button>
-                          <Typography variant="caption" sx={{ color: '#0F172A', fontWeight: 800, fontSize: '10px', fontFamily: 'monospace' }}>
-                            {tech.aadhaar_number ? tech.aadhaar_number : 'Doc Attached'}
-                          </Typography>
-                        </Box>
-                      ) : (
-                        <Chip
-                          label="No Aadhaar Uploaded"
-                          size="small"
-                          sx={{ bgcolor: '#F1F5F9', color: '#64748B', fontWeight: 700, fontSize: '10px' }}
-                        />
-                      )}
-                    </TableCell>
-
-                    <TableCell align="center">
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.4, mb: 0.3 }}>
-                        <StarIcon sx={{ fontSize: 14, color: '#F59E0B' }} />
-                        <Typography variant="body2" sx={{ fontWeight: 900, color: '#0F172A' }}>
-                          {Number(tech.rating_avg) > 0 ? Number(tech.rating_avg).toFixed(1) : (Number(tech.jobs_completed_count) > 0 ? '5.0' : 'New')}
-                        </Typography>
-                      </Box>
-                      <Chip
-                        icon={<WorkHistoryIcon sx={{ color: '#166534 !important', fontSize: '12px !important' }} />}
-                        label={`${Number(tech.jobs_completed_count) || 0} Jobs`}
-                        size="small"
-                        sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 800, fontSize: '10.5px', height: 20 }}
-                      />
-                    </TableCell>
-
-                    <TableCell align="center">
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.4, alignItems: 'center' }}>
-                        {tech.is_blocked ? (
-                          <Chip label="SUSPENDED" size="small" sx={{ bgcolor: '#FEF2F2', color: '#DC2626', fontWeight: 900, fontSize: '9.5px', height: 18 }} title={tech.block_reason || 'Suspended by admin'} />
-                        ) : tech.is_online ? (
-                          <Chip icon={<SensorsIcon sx={{ color: '#15803D !important', fontSize: '12px !important' }} />} label="ONLINE" size="small" sx={{ bgcolor: '#DCFCE7', color: '#15803D', fontWeight: 900, fontSize: '9.5px', height: 18 }} />
-                        ) : (
-                          <Chip icon={<PowerSettingsNewIcon sx={{ color: '#64748B !important', fontSize: '12px !important' }} />} label="OFFLINE" size="small" sx={{ bgcolor: '#F1F5F9', color: '#64748B', fontWeight: 800, fontSize: '9.5px', height: 18 }} />
-                        )}
-                        <Chip
-                          icon={<ShieldIcon sx={{ color: tech.is_kyc_verified ? '#10B981 !important' : '#F59E0B !important', fontSize: '11px !important' }} />}
-                          label={tech.is_kyc_verified ? 'DigiLocker KYC' : 'Pending KYC'}
-                          size="small"
-                          sx={{ bgcolor: tech.is_kyc_verified ? '#ECFDF5' : '#FFFBEB', color: tech.is_kyc_verified ? '#047857' : '#B45309', fontWeight: 800, fontSize: '9.5px', height: 18 }}
-                        />
-                        {!tech.is_kyc_verified && (
-                          <Chip
-                            label="12h Review SLA"
-                            size="small"
-                            sx={{ bgcolor: '#FEF3C7', color: '#92400E', fontWeight: 800, fontSize: '9px', height: 16, border: '1px solid #FCD34D' }}
-                          />
-                        )}
-                      </Box>
-                    </TableCell>
-
-                    <TableCell align="center">
-                      <Box sx={{ display: 'flex', gap: 0.8, alignItems: 'center', justifyContent: 'center' }}>
-                        {!tech.is_kyc_verified ? (
-                          <Button
-                            variant="contained"
-                            size="small"
-                            onClick={() => handleKycDecision(tech.id, 'approve')}
-                            sx={{
-                              bgcolor: '#16A34A',
-                              color: '#FFF',
-                              fontWeight: 800,
-                              fontSize: '11px',
-                              textTransform: 'none',
-                              borderRadius: '8px',
-                              py: 0.4,
-                              px: 1.2,
-                              '&:hover': { bgcolor: '#15803D' }
-                            }}
-                          >
-                            Approve KYC
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="outlined"
-                            size="small"
-                            startIcon={<HistoryEduIcon sx={{ fontSize: 13 }} />}
-                            onClick={() => handleOpenTechDossier(tech)}
-                            sx={{
-                              borderRadius: '8px',
-                              fontSize: '11px',
-                              fontWeight: 800,
-                              color: '#0284C7',
-                              borderColor: '#BAE6FD',
-                              bgcolor: '#F8FAFC',
-                              textTransform: 'none',
-                              py: 0.4,
-                              px: 1.2,
+                              p: 0.5,
+                              color: '#475569',
                               '&:hover': { bgcolor: '#F1F5F9' }
                             }}
                           >
-                            Dossier
-                          </Button>
-                        )}
-                        <IconButton
-                          size="small"
-                          onClick={(e) => handleTechActionMenuOpen(e, tech)}
-                          aria-label="Technician actions"
-                          sx={{
-                            border: '1px solid #E2E8F0',
-                            borderRadius: '8px',
-                            p: 0.5,
-                            color: '#475569',
-                            '&:hover': { bgcolor: '#F1F5F9' }
-                          }}
-                        >
-                          <MoreVertIcon sx={{ fontSize: 18 }} />
-                        </IconButton>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Box>
-        </Card>
+                            <MoreVertIcon sx={{ fontSize: 18 }} />
+                          </IconButton>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Box>
+          </Card>
         )}
 
         {/* ========================================================================= */}
@@ -3884,197 +3885,197 @@ export default function AdminDashboardPage() {
                   Swipe left/right to view full table details
                 </Typography>
                 <Table size="small" sx={{ minWidth: { xs: 580, md: '100%' } }}>
-                <TableHead>
-                  <TableRow sx={{ bgcolor: '#F8FAFC', '& th': { color: '#475569', fontWeight: 800, borderColor: '#E2E8F0', py: 1.4 } }}>
-                    <TableCell>User / Reporter</TableCell>
-                    <TableCell>Category & Subject</TableCell>
-                    <TableCell>Platform Rating</TableCell>
-                    <TableCell sx={{ minWidth: 260 }}>Feedback & Issue Details</TableCell>
-                    <TableCell>Submitted Time</TableCell>
-                    <TableCell align="center">Resolution Status</TableCell>
-                    <TableCell align="center">Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {filteredFeedbacks.map((item, idx) => {
-                    const isTech = (item.role || '').toLowerCase() === 'technician';
-                    const isResolved = (item.status || 'new').toLowerCase() === 'resolved';
-                    const userName = item.user_name || item.userName || (isTech ? 'Partner' : 'Customer');
-                    const userPhone = item.user_phone || item.userPhone || '—';
-                    const locality = item.locality || 'Salem';
-                    const ratingVal = parseInt(item.rating, 10) || 5;
-                    const categoryLabel = (item.feedback_type || item.feedbackType || 'General')
-                      .replace(/_/g, ' ')
-                      .toUpperCase();
-                    const createdAt = item.created_at ? new Date(item.created_at).toLocaleString() : 'Just now';
+                  <TableHead>
+                    <TableRow sx={{ bgcolor: '#F8FAFC', '& th': { color: '#475569', fontWeight: 800, borderColor: '#E2E8F0', py: 1.4 } }}>
+                      <TableCell>User / Reporter</TableCell>
+                      <TableCell>Category & Subject</TableCell>
+                      <TableCell>Platform Rating</TableCell>
+                      <TableCell sx={{ minWidth: 260 }}>Feedback & Issue Details</TableCell>
+                      <TableCell>Submitted Time</TableCell>
+                      <TableCell align="center">Resolution Status</TableCell>
+                      <TableCell align="center">Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {filteredFeedbacks.map((item, idx) => {
+                      const isTech = (item.role || '').toLowerCase() === 'technician';
+                      const isResolved = (item.status || 'new').toLowerCase() === 'resolved';
+                      const userName = item.user_name || item.userName || (isTech ? 'Partner' : 'Customer');
+                      const userPhone = item.user_phone || item.userPhone || '—';
+                      const locality = item.locality || 'Salem';
+                      const ratingVal = parseInt(item.rating, 10) || 5;
+                      const categoryLabel = (item.feedback_type || item.feedbackType || 'General')
+                        .replace(/_/g, ' ')
+                        .toUpperCase();
+                      const createdAt = item.created_at ? new Date(item.created_at).toLocaleString() : 'Just now';
 
-                    return (
-                      <TableRow key={item.id || idx} hover sx={{ '& td': { borderColor: '#E2E8F0', py: 1.6 } }}>
-                        {/* 1. User & Contact */}
-                        <TableCell>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
-                            <Avatar
-                              sx={{
-                                bgcolor: isTech ? '#10B981' : '#2563EB',
-                                width: 34,
-                                height: 34,
-                                fontWeight: 800,
-                                fontSize: '13px'
-                              }}
-                            >
-                              {userName.charAt(0).toUpperCase()}
-                            </Avatar>
-                            <Box>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
-                                <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A' }}>
-                                  {userName}
+                      return (
+                        <TableRow key={item.id || idx} hover sx={{ '& td': { borderColor: '#E2E8F0', py: 1.6 } }}>
+                          {/* 1. User & Contact */}
+                          <TableCell>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                              <Avatar
+                                sx={{
+                                  bgcolor: isTech ? '#10B981' : '#2563EB',
+                                  width: 34,
+                                  height: 34,
+                                  fontWeight: 800,
+                                  fontSize: '13px'
+                                }}
+                              >
+                                {userName.charAt(0).toUpperCase()}
+                              </Avatar>
+                              <Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
+                                  <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A' }}>
+                                    {userName}
+                                  </Typography>
+                                  <Chip
+                                    label={isTech ? 'Technician' : 'Customer'}
+                                    size="small"
+                                    sx={{
+                                      bgcolor: isTech ? '#ECFDF5' : '#EFF6FF',
+                                      color: isTech ? '#047857' : '#1E40AF',
+                                      fontWeight: 800,
+                                      fontSize: '9.5px',
+                                      height: 18
+                                    }}
+                                  />
+                                </Box>
+                                <Typography variant="caption" sx={{ color: '#64748B', display: 'block' }}>
+                                  {userPhone} • {locality}
                                 </Typography>
-                                <Chip
-                                  label={isTech ? 'Technician' : 'Customer'}
-                                  size="small"
-                                  sx={{
-                                    bgcolor: isTech ? '#ECFDF5' : '#EFF6FF',
-                                    color: isTech ? '#047857' : '#1E40AF',
-                                    fontWeight: 800,
-                                    fontSize: '9.5px',
-                                    height: 18
-                                  }}
-                                />
                               </Box>
-                              <Typography variant="caption" sx={{ color: '#64748B', display: 'block' }}>
-                                {userPhone} • {locality}
+                            </Box>
+                          </TableCell>
+
+                          {/* 2. Category & Subject */}
+                          <TableCell>
+                            <Chip
+                              label={categoryLabel}
+                              size="small"
+                              sx={{
+                                bgcolor: isTech ? '#F0FDF4' : '#F8FAFC',
+                                color: isTech ? '#15803D' : '#0369A1',
+                                fontWeight: 800,
+                                fontSize: '10px',
+                                border: '1px solid',
+                                borderColor: isTech ? '#BBF7D0' : '#BAE6FD',
+                                mb: 0.4
+                              }}
+                            />
+                            <Typography variant="body2" sx={{ fontWeight: 700, color: '#334155' }}>
+                              {item.subject || categoryLabel}
+                            </Typography>
+                          </TableCell>
+
+                          {/* 3. Rating */}
+                          <TableCell>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4 }}>
+                              <Box sx={{ display: 'flex' }}>
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                  <StarIcon
+                                    key={star}
+                                    sx={{
+                                      fontSize: 16,
+                                      color: star <= ratingVal ? '#F59E0B' : '#E2E8F0'
+                                    }}
+                                  />
+                                ))}
+                              </Box>
+                              <Typography variant="caption" sx={{ fontWeight: 800, color: '#0F172A', ml: 0.5 }}>
+                                {ratingVal}.0
                               </Typography>
                             </Box>
-                          </Box>
-                        </TableCell>
+                          </TableCell>
 
-                        {/* 2. Category & Subject */}
-                        <TableCell>
-                          <Chip
-                            label={categoryLabel}
-                            size="small"
-                            sx={{
-                              bgcolor: isTech ? '#F0FDF4' : '#F8FAFC',
-                              color: isTech ? '#15803D' : '#0369A1',
-                              fontWeight: 800,
-                              fontSize: '10px',
-                              border: '1px solid',
-                              borderColor: isTech ? '#BBF7D0' : '#BAE6FD',
-                              mb: 0.4
-                            }}
-                          />
-                          <Typography variant="body2" sx={{ fontWeight: 700, color: '#334155' }}>
-                            {item.subject || categoryLabel}
-                          </Typography>
-                        </TableCell>
+                          {/* 4. Feedback & Issue Details */}
+                          <TableCell>
+                            <Paper
+                              elevation={0}
+                              sx={{
+                                p: 1.2,
+                                bgcolor: isResolved ? '#F8FAFC' : '#FFFBEB',
+                                border: '1px solid',
+                                borderColor: isResolved ? '#E2E8F0' : '#FDE68A',
+                                borderRadius: '8px'
+                              }}
+                            >
+                              <Typography variant="body2" sx={{ color: '#1E293B', fontSize: '12.5px', whiteSpace: 'pre-wrap' }}>
+                                {item.message}
+                              </Typography>
+                            </Paper>
+                          </TableCell>
 
-                        {/* 3. Rating */}
-                        <TableCell>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4 }}>
-                            <Box sx={{ display: 'flex' }}>
-                              {[1, 2, 3, 4, 5].map((star) => (
-                                <StarIcon
-                                  key={star}
-                                  sx={{
-                                    fontSize: 16,
-                                    color: star <= ratingVal ? '#F59E0B' : '#E2E8F0'
-                                  }}
-                                />
-                              ))}
+                          {/* 5. Timestamp */}
+                          <TableCell sx={{ color: '#64748B', fontSize: '11.5px', whiteSpace: 'nowrap' }}>
+                            {createdAt}
+                          </TableCell>
+
+                          {/* 6. Resolution Status */}
+                          <TableCell align="center">
+                            {isResolved ? (
+                              <Chip
+                                icon={<CheckCircleIcon sx={{ color: '#166534 !important', fontSize: '13px !important' }} />}
+                                label="RESOLVED"
+                                size="small"
+                                sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 900, fontSize: '10px' }}
+                              />
+                            ) : (
+                              <Chip
+                                icon={<BugReportIcon sx={{ color: '#9A3412 !important', fontSize: '13px !important' }} />}
+                                label="ACTION REQUIRED"
+                                size="small"
+                                sx={{ bgcolor: '#FFEDD5', color: '#9A3412', fontWeight: 900, fontSize: '10px' }}
+                              />
+                            )}
+                          </TableCell>
+
+                          {/* 7. Action Buttons */}
+                          <TableCell align="center">
+                            <Box sx={{ display: 'flex', gap: 0.8, justifyContent: 'center', alignItems: 'center' }}>
+                              <Button
+                                variant="contained"
+                                size="small"
+                                onClick={() => handleUpdateFeedbackStatus(item.id, isResolved ? 'new' : 'resolved')}
+                                sx={{
+                                  bgcolor: isResolved ? '#64748B' : '#10B981',
+                                  color: '#FFFFFF',
+                                  fontWeight: 800,
+                                  fontSize: '11px',
+                                  textTransform: 'none',
+                                  borderRadius: '8px',
+                                  py: 0.4,
+                                  px: 1.2,
+                                  '&:hover': { bgcolor: isResolved ? '#475569' : '#059669' }
+                                }}
+                              >
+                                {isResolved ? 'Re-open' : 'Mark Resolved'}
+                              </Button>
+
+                              <IconButton
+                                size="small"
+                                title={`Call ${userName} (${userPhone})`}
+                                onClick={() => window.open(`tel:${userPhone}`, '_self')}
+                                sx={{
+                                  bgcolor: '#EFF6FF',
+                                  color: '#2563EB',
+                                  border: '1px solid #BFDBFE',
+                                  borderRadius: '8px',
+                                  p: 0.6
+                                }}
+                              >
+                                <PhoneIcon sx={{ fontSize: 14 }} />
+                              </IconButton>
                             </Box>
-                            <Typography variant="caption" sx={{ fontWeight: 800, color: '#0F172A', ml: 0.5 }}>
-                              {ratingVal}.0
-                            </Typography>
-                          </Box>
-                        </TableCell>
-
-                        {/* 4. Feedback & Issue Details */}
-                        <TableCell>
-                          <Paper
-                            elevation={0}
-                            sx={{
-                              p: 1.2,
-                              bgcolor: isResolved ? '#F8FAFC' : '#FFFBEB',
-                              border: '1px solid',
-                              borderColor: isResolved ? '#E2E8F0' : '#FDE68A',
-                              borderRadius: '8px'
-                            }}
-                          >
-                            <Typography variant="body2" sx={{ color: '#1E293B', fontSize: '12.5px', whiteSpace: 'pre-wrap' }}>
-                              {item.message}
-                            </Typography>
-                          </Paper>
-                        </TableCell>
-
-                        {/* 5. Timestamp */}
-                        <TableCell sx={{ color: '#64748B', fontSize: '11.5px', whiteSpace: 'nowrap' }}>
-                          {createdAt}
-                        </TableCell>
-
-                        {/* 6. Resolution Status */}
-                        <TableCell align="center">
-                          {isResolved ? (
-                            <Chip
-                              icon={<CheckCircleIcon sx={{ color: '#166534 !important', fontSize: '13px !important' }} />}
-                              label="RESOLVED"
-                              size="small"
-                              sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 900, fontSize: '10px' }}
-                            />
-                          ) : (
-                            <Chip
-                              icon={<BugReportIcon sx={{ color: '#9A3412 !important', fontSize: '13px !important' }} />}
-                              label="ACTION REQUIRED"
-                              size="small"
-                              sx={{ bgcolor: '#FFEDD5', color: '#9A3412', fontWeight: 900, fontSize: '10px' }}
-                            />
-                          )}
-                        </TableCell>
-
-                        {/* 7. Action Buttons */}
-                        <TableCell align="center">
-                          <Box sx={{ display: 'flex', gap: 0.8, justifyContent: 'center', alignItems: 'center' }}>
-                            <Button
-                              variant="contained"
-                              size="small"
-                              onClick={() => handleUpdateFeedbackStatus(item.id, isResolved ? 'new' : 'resolved')}
-                              sx={{
-                                bgcolor: isResolved ? '#64748B' : '#10B981',
-                                color: '#FFFFFF',
-                                fontWeight: 800,
-                                fontSize: '11px',
-                                textTransform: 'none',
-                                borderRadius: '8px',
-                                py: 0.4,
-                                px: 1.2,
-                                '&:hover': { bgcolor: isResolved ? '#475569' : '#059669' }
-                              }}
-                            >
-                              {isResolved ? 'Re-open' : 'Mark Resolved'}
-                            </Button>
-
-                            <IconButton
-                              size="small"
-                              title={`Call ${userName} (${userPhone})`}
-                              onClick={() => window.open(`tel:${userPhone}`, '_self')}
-                              sx={{
-                                bgcolor: '#EFF6FF',
-                                color: '#2563EB',
-                                border: '1px solid #BFDBFE',
-                                borderRadius: '8px',
-                                p: 0.6
-                              }}
-                            >
-                              <PhoneIcon sx={{ fontSize: 14 }} />
-                            </IconButton>
-                          </Box>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </Box>
-          )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </Box>
+            )}
           </Card>
         )}
 
@@ -4761,7 +4762,7 @@ export default function AdminDashboardPage() {
                     { id: 'kyc', label: 'Partner KYC & Onboarding' },
                     { id: 'dispatch', label: 'Dispatches & Matching' },
                     { id: 'quote', label: 'Quotes & Job Cards' },
-                    { id: 'payment', label: 'Payments & Escrow' }
+                    { id: 'payment', label: 'Payments & .' }
                   ].map(tab => (
                     <Chip
                       key={tab.id}
@@ -4823,139 +4824,139 @@ export default function AdminDashboardPage() {
                   Swipe left/right to view full table details
                 </Typography>
                 <Table size="small" sx={{ minWidth: { xs: 580, md: '100%' } }}>
-                <TableHead>
-                  <TableRow sx={{ bgcolor: '#F8FAFC', '& th': { color: '#475569', fontWeight: 800, borderColor: '#E2E8F0', py: 1.4 } }}>
-                    <TableCell>Timestamp (IST)</TableCell>
-                    <TableCell>Event Type</TableCell>
-                    <TableCell>Reference ID / Booking</TableCell>
-                    <TableCell>Actor & Role</TableCell>
-                    <TableCell sx={{ minWidth: 280 }}>Event Audit Metadata</TableCell>
-                    <TableCell align="center">Deep Inspection</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {filteredAuditLogs.map((log, idx) => {
-                    const eventType = log.event_type || 'EVENT';
-                    const isKycApproved = eventType === 'TECH_KYC_APPROVED';
-                    const isKycRejected = eventType === 'TECH_KYC_REJECTED';
-                    const isTechOnboard = eventType === 'TECH_ONBOARDED';
-                    const isDispatch = eventType === 'MANUAL_DISPATCH' || eventType === 'BOOKING_MATCHED';
-                    const isPayment = eventType.includes('PAYMENT') || eventType.includes('SETTLEMENT');
+                  <TableHead>
+                    <TableRow sx={{ bgcolor: '#F8FAFC', '& th': { color: '#475569', fontWeight: 800, borderColor: '#E2E8F0', py: 1.4 } }}>
+                      <TableCell>Timestamp (IST)</TableCell>
+                      <TableCell>Event Type</TableCell>
+                      <TableCell>Reference ID / Booking</TableCell>
+                      <TableCell>Actor & Role</TableCell>
+                      <TableCell sx={{ minWidth: 280 }}>Event Audit Metadata</TableCell>
+                      <TableCell align="center">Deep Inspection</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {filteredAuditLogs.map((log, idx) => {
+                      const eventType = log.event_type || 'EVENT';
+                      const isKycApproved = eventType === 'TECH_KYC_APPROVED';
+                      const isKycRejected = eventType === 'TECH_KYC_REJECTED';
+                      const isTechOnboard = eventType === 'TECH_ONBOARDED';
+                      const isDispatch = eventType === 'MANUAL_DISPATCH' || eventType === 'BOOKING_MATCHED';
+                      const isPayment = eventType.includes('PAYMENT') || eventType.includes('SETTLEMENT');
 
-                    let metaObj = {};
-                    try {
-                      metaObj = typeof log.metadata === 'string' ? JSON.parse(log.metadata) : (log.metadata || {});
-                    } catch (e) {
-                      metaObj = { raw: log.metadata };
-                    }
+                      let metaObj = {};
+                      try {
+                        metaObj = typeof log.metadata === 'string' ? JSON.parse(log.metadata) : (log.metadata || {});
+                      } catch (e) {
+                        metaObj = { raw: log.metadata };
+                      }
 
-                    const bookingId = log.booking_id || '';
-                    const isBookingLink = bookingId && !bookingId.startsWith('PARTNER') && !bookingId.startsWith('TECH-KYC');
+                      const bookingId = log.booking_id || '';
+                      const isBookingLink = bookingId && !bookingId.startsWith('PARTNER') && !bookingId.startsWith('TECH-KYC');
 
-                    return (
-                      <TableRow key={log.id || idx} hover sx={{ '& td': { borderColor: '#E2E8F0', py: 1.4 } }}>
-                        <TableCell sx={{ color: '#64748B', fontSize: '11px', whiteSpace: 'nowrap' }}>
-                          {log.created_at ? new Date(log.created_at).toLocaleString() : 'Just now'}
-                        </TableCell>
+                      return (
+                        <TableRow key={log.id || idx} hover sx={{ '& td': { borderColor: '#E2E8F0', py: 1.4 } }}>
+                          <TableCell sx={{ color: '#64748B', fontSize: '11px', whiteSpace: 'nowrap' }}>
+                            {log.created_at ? new Date(log.created_at).toLocaleString() : 'Just now'}
+                          </TableCell>
 
-                        <TableCell>
-                          <Chip
-                            label={eventType.replace(/_/g, ' ')}
-                            size="small"
-                            sx={{
-                              fontWeight: 900,
-                              fontSize: '9.5px',
-                              bgcolor: isKycApproved ? '#DCFCE7' : isKycRejected ? '#FEE2E2' : isTechOnboard ? '#EFF6FF' : isDispatch ? '#F3E8FF' : isPayment ? '#ECFDF5' : '#F1F5F9',
-                              color: isKycApproved ? '#166534' : isKycRejected ? '#991B1B' : isTechOnboard ? '#1E40AF' : isDispatch ? '#6B21A8' : isPayment ? '#065F46' : '#475569',
-                              border: '1px solid',
-                              borderColor: isKycApproved ? '#86EFAC' : isKycRejected ? '#FCA5A5' : isTechOnboard ? '#93C5FD' : isDispatch ? '#D8B4FE' : '#E2E8F0'
-                            }}
-                          />
-                        </TableCell>
-
-                        <TableCell>
-                          {isBookingLink ? (
-                            <Typography
-                              variant="body2"
-                              sx={{ fontWeight: 800, color: '#0284C7', cursor: 'pointer', textDecoration: 'underline', fontSize: '12.5px' }}
-                              onClick={() => handleOpenBookingTrace({ id: bookingId })}
-                              title="Click to deep trace this booking"
-                            >
-                              #{bookingId}
-                            </Typography>
-                          ) : (
-                            <Typography variant="body2" sx={{ fontWeight: 700, color: '#334155', fontSize: '12px' }}>
-                              {bookingId || 'SYSTEM'}
-                            </Typography>
-                          )}
-                        </TableCell>
-
-                        <TableCell>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
+                          <TableCell>
                             <Chip
-                              label={(log.actor_type || 'system').toUpperCase()}
+                              label={eventType.replace(/_/g, ' ')}
                               size="small"
-                              sx={{ bgcolor: '#F8FAFC', color: '#475569', fontWeight: 800, fontSize: '9px', height: 18 }}
-                            />
-                            <Typography variant="caption" sx={{ fontWeight: 700, color: '#0F172A' }}>
-                              {log.actor_id || 'system_worker'}
-                            </Typography>
-                          </Box>
-                        </TableCell>
-
-                        <TableCell>
-                          <Paper
-                            elevation={0}
-                            sx={{
-                              p: 1,
-                              bgcolor: '#F8FAFC',
-                              borderRadius: '6px',
-                              border: '1px solid #E2E8F0',
-                              fontFamily: 'monospace',
-                              fontSize: '11px',
-                              color: '#334155',
-                              maxHeight: 64,
-                              overflow: 'auto',
-                              wordBreak: 'break-all'
-                            }}
-                          >
-                            {JSON.stringify(metaObj, null, 1)}
-                          </Paper>
-                        </TableCell>
-
-                        <TableCell align="center">
-                          {isBookingLink ? (
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              startIcon={<ArticleIcon sx={{ fontSize: 13 }} />}
-                              onClick={() => handleOpenBookingTrace({ id: bookingId })}
                               sx={{
-                                borderRadius: '8px',
+                                fontWeight: 900,
+                                fontSize: '9.5px',
+                                bgcolor: isKycApproved ? '#DCFCE7' : isKycRejected ? '#FEE2E2' : isTechOnboard ? '#EFF6FF' : isDispatch ? '#F3E8FF' : isPayment ? '#ECFDF5' : '#F1F5F9',
+                                color: isKycApproved ? '#166534' : isKycRejected ? '#991B1B' : isTechOnboard ? '#1E40AF' : isDispatch ? '#6B21A8' : isPayment ? '#065F46' : '#475569',
+                                border: '1px solid',
+                                borderColor: isKycApproved ? '#86EFAC' : isKycRejected ? '#FCA5A5' : isTechOnboard ? '#93C5FD' : isDispatch ? '#D8B4FE' : '#E2E8F0'
+                              }}
+                            />
+                          </TableCell>
+
+                          <TableCell>
+                            {isBookingLink ? (
+                              <Typography
+                                variant="body2"
+                                sx={{ fontWeight: 800, color: '#0284C7', cursor: 'pointer', textDecoration: 'underline', fontSize: '12.5px' }}
+                                onClick={() => handleOpenBookingTrace({ id: bookingId })}
+                                title="Click to deep trace this booking"
+                              >
+                                #{bookingId}
+                              </Typography>
+                            ) : (
+                              <Typography variant="body2" sx={{ fontWeight: 700, color: '#334155', fontSize: '12px' }}>
+                                {bookingId || 'SYSTEM'}
+                              </Typography>
+                            )}
+                          </TableCell>
+
+                          <TableCell>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
+                              <Chip
+                                label={(log.actor_type || 'system').toUpperCase()}
+                                size="small"
+                                sx={{ bgcolor: '#F8FAFC', color: '#475569', fontWeight: 800, fontSize: '9px', height: 18 }}
+                              />
+                              <Typography variant="caption" sx={{ fontWeight: 700, color: '#0F172A' }}>
+                                {log.actor_id || 'system_worker'}
+                              </Typography>
+                            </Box>
+                          </TableCell>
+
+                          <TableCell>
+                            <Paper
+                              elevation={0}
+                              sx={{
+                                p: 1,
+                                bgcolor: '#F8FAFC',
+                                borderRadius: '6px',
+                                border: '1px solid #E2E8F0',
+                                fontFamily: 'monospace',
                                 fontSize: '11px',
-                                fontWeight: 800,
-                                textTransform: 'none',
-                                py: 0.3,
-                                px: 1,
-                                color: '#0284C7',
-                                borderColor: '#BAE6FD',
-                                bgcolor: '#F0F9FF',
-                                '&:hover': { bgcolor: '#E0F2FE', borderColor: '#0284C7' }
+                                color: '#334155',
+                                maxHeight: 64,
+                                overflow: 'auto',
+                                wordBreak: 'break-all'
                               }}
                             >
-                              Trace
-                            </Button>
-                          ) : (
-                            <Chip label="Log Only" size="small" sx={{ bgcolor: '#F1F5F9', color: '#64748B', fontSize: '10px' }} />
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </Box>
-          )}
+                              {JSON.stringify(metaObj, null, 1)}
+                            </Paper>
+                          </TableCell>
+
+                          <TableCell align="center">
+                            {isBookingLink ? (
+                              <Button
+                                variant="outlined"
+                                size="small"
+                                startIcon={<ArticleIcon sx={{ fontSize: 13 }} />}
+                                onClick={() => handleOpenBookingTrace({ id: bookingId })}
+                                sx={{
+                                  borderRadius: '8px',
+                                  fontSize: '11px',
+                                  fontWeight: 800,
+                                  textTransform: 'none',
+                                  py: 0.3,
+                                  px: 1,
+                                  color: '#0284C7',
+                                  borderColor: '#BAE6FD',
+                                  bgcolor: '#F0F9FF',
+                                  '&:hover': { bgcolor: '#E0F2FE', borderColor: '#0284C7' }
+                                }}
+                              >
+                                Trace
+                              </Button>
+                            ) : (
+                              <Chip label="Log Only" size="small" sx={{ bgcolor: '#F1F5F9', color: '#64748B', fontSize: '10px' }} />
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </Box>
+            )}
           </Card>
         )}
 
@@ -5846,16 +5847,16 @@ export default function AdminDashboardPage() {
         />
 
         {/* LEGACY: RELEASE TECHNICIAN (CUSTOMER UNRESPONSIVE) */}
-        
+
 
         {/* ── ADMIN CANCEL ORDER & RELEASE TECHNICIAN MODAL ─────────────────── */}
-        
+
 
         {/* IN-APP DOCUMENT VIEWER MODAL (AADHAAR CARD & PARTS BILL RECEIPT) */}
-        
+
 
         {/* DEEP BOOKING TRACEABILITY & AUDIT DOSSIER MODAL */}
-        
+
 
         {/* Smart Technician Dispatch Drawer ("give tech to customer requested") */}
         <AdminDispatchDrawer

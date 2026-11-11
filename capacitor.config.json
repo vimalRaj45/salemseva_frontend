@@ -24,7 +24,12 @@
     "StatusBar": {
       "style": "LIGHT",
       "backgroundColor": "#FFFFFF",
-      "overlays": false
+      "overlaysWebView": false
+    },
+    "SystemBars": {
+      "insetsHandling": "css",
+      "initialViewportFitValueHint": "cover",
+      "style": "LIGHT"
     }
   }
 }

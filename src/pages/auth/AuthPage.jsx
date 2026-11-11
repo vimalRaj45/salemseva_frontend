@@ -109,6 +109,7 @@ export default function AuthPage({ initialMode = 'login' }) {
 
   const queryParams = new URLSearchParams(location.search);
   const initialRoleParam = queryParams.get('role');
+  const initialReferralParam = (queryParams.get('ref') || queryParams.get('referral') || '').trim().toUpperCase();
   const redirectTarget = queryParams.get('redirect') || '/';
 
   // Flag to prevent immediate redirect while completing Step 3 (Passkey setup)
@@ -136,7 +137,7 @@ export default function AuthPage({ initialMode = 'login' }) {
   const [phone, setPhone] = useState('');
   const [locality, setLocality] = useState('Fairlands, Salem');
   const [trade, setTrade] = useState('ac');
-  const [referralCode, setReferralCode] = useState('');
+  const [referralCode, setReferralCode] = useState(initialReferralParam);
   const [referralStatus, setReferralStatus] = useState(null);
   const [isCheckingReferral, setIsCheckingReferral] = useState(false);
   const [registerPassword, setRegisterPassword] = useState('');
@@ -187,6 +188,7 @@ export default function AuthPage({ initialMode = 'login' }) {
         if (draft.aadhaarDocName) setAadhaarDocName(draft.aadhaarDocName);
         if (draft.aadhaarDocUrl) setAadhaarDocUrl(draft.aadhaarDocUrl);
         if (draft.upiId) setUpiId(draft.upiId);
+        if (draft.referralCode && !initialReferralParam) setReferralCode(draft.referralCode);
         if (draft.userPreferences && Array.isArray(draft.userPreferences)) {
           setUserPreferences(draft.userPreferences);
         }
@@ -212,6 +214,7 @@ export default function AuthPage({ initialMode = 'login' }) {
         aadhaarDocName,
         aadhaarDocUrl,
         upiId,
+        referralCode,
         userPreferences,
         notificationChannel,
         ...extra
@@ -450,19 +453,29 @@ export default function AuthPage({ initialMode = 'login' }) {
   };
 
   // Step 2 Continue - User (No location requested during signup)
-  const handleUserStep2Continue = (e) => {
+  const handleUserStep2Continue = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
     setErrorMessage('');
     if (!fullName.trim()) {
       setErrorMessage('Please enter your full name');
       return;
     }
+    if (referralCode.trim()) {
+      if (referralStatus && !referralStatus.valid) {
+        setErrorMessage(referralStatus.message);
+        return;
+      }
+      if (!referralStatus) {
+        const isValid = await handleVerifyReferralCode(referralCode);
+        if (!isValid) return;
+      }
+    }
     setRegisterStep(3);
-    saveDraft(3, { fullName: fullName.trim() });
+    saveDraft(3, { fullName: fullName.trim(), referralCode: referralCode.trim() });
   };
 
   // Step 2 Continue - Partner (All Salem locations validation)
-  const handlePartnerStep2Continue = (e) => {
+  const handlePartnerStep2Continue = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
     setErrorMessage('');
     if (!fullName.trim()) {
@@ -477,6 +490,16 @@ export default function AuthPage({ initialMode = 'login' }) {
       setErrorMessage('Please select at least one Salem service coverage area');
       return;
     }
+    if (referralCode.trim()) {
+      if (referralStatus && !referralStatus.valid) {
+        setErrorMessage(referralStatus.message);
+        return;
+      }
+      if (!referralStatus) {
+        const isValid = await handleVerifyReferralCode(referralCode);
+        if (!isValid) return;
+      }
+    }
     setRegisterStep(3);
     saveDraft(3, {
       fullName: fullName.trim(),
@@ -484,7 +507,8 @@ export default function AuthPage({ initialMode = 'login' }) {
       secondaryTrades: secondaryTrades.filter((t) => t && t !== trade),
       yearsExperience,
       dailyJobCapacity,
-      partnerLocalities
+      partnerLocalities,
+      referralCode: referralCode.trim()
     });
   };
 
@@ -492,7 +516,7 @@ export default function AuthPage({ initialMode = 'login' }) {
     const code = (codeToVerify !== undefined ? codeToVerify : referralCode).trim().toUpperCase();
     if (!code) {
       setReferralStatus(null);
-      return;
+      return true;
     }
     setIsCheckingReferral(true);
     try {
@@ -501,17 +525,22 @@ export default function AuthPage({ initialMode = 'login' }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           referralCode: code,
-          phone: (phone || '').replace(/[^0-9]/g, '').slice(-10)
+          phone: (phone || '').replace(/[^0-9]/g, '').slice(-10),
+          role: selectedRole
         })
       });
       const data = await res.json();
       if (data.valid) {
         setReferralStatus({ valid: true, message: data.message || `Valid referral from ${data.referrerName}!` });
+        return true;
       } else {
-        setReferralStatus({ valid: false, message: data.error || `Wrong referral code "${code}".` });
+        const errMsg = data.error || `Wrong referral code "${code}".`;
+        setReferralStatus({ valid: false, message: errMsg });
+        return false;
       }
     } catch (e) {
       setReferralStatus(null);
+      return true;
     } finally {
       setIsCheckingReferral(false);
     }
@@ -642,7 +671,8 @@ export default function AuthPage({ initialMode = 'login' }) {
         upiId: upiId.trim(),
         experienceYears: yearsExperience,
         dailyJobCapacity: Math.min(4, Math.max(1, parseInt(dailyJobCapacity, 10) || 4)),
-        assignedLocalities: partnerLocalities
+        assignedLocalities: partnerLocalities,
+        referralCode: referralCode.trim()
       });
       clearDraft();
       setIsLoading(false);
@@ -794,6 +824,73 @@ export default function AuthPage({ initialMode = 'login' }) {
   const brandSoftBg = isTech ? '#ECFDF5' : '#F0F9FF';
   const brandBorder = isTech ? '#A7F3D0' : '#BAE6FD';
 
+  useEffect(() => {
+    setReferralStatus(null);
+  }, [selectedRole]);
+
+  const renderReferralCodeField = () => (
+    <Box sx={{ mb: 1.4 }}>
+      <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.primary', display: 'block', mb: 0.3, fontSize: '11px' }}>
+        Referral Code (Optional)
+      </Typography>
+      <Box sx={{ display: 'flex', gap: 1 }}>
+        <TextField
+          fullWidth
+          placeholder={isTech ? 'TECH-1234 or Partner Phone' : 'SEVA9482 or Friend Phone'}
+          value={referralCode}
+          onChange={(e) => {
+            const val = e.target.value.toUpperCase();
+            setReferralCode(val);
+            setReferralStatus(null);
+          }}
+          onBlur={() => {
+            if (referralCode.trim()) handleVerifyReferralCode(referralCode);
+          }}
+          error={Boolean(referralStatus && !referralStatus.valid)}
+          InputProps={{
+            sx: { borderRadius: '6px', bgcolor: 'background.paper', fontSize: '12.5px', height: '38px' }
+          }}
+        />
+        {referralCode.trim() && (
+          <Button
+            type="button"
+            variant="outlined"
+            size="small"
+            disabled={isCheckingReferral}
+            onClick={() => handleVerifyReferralCode(referralCode)}
+            sx={{
+              height: '38px',
+              borderRadius: '6px',
+              fontWeight: 700,
+              fontSize: '11px',
+              textTransform: 'none',
+              whiteSpace: 'nowrap',
+              px: 1.5
+            }}
+          >
+            {isCheckingReferral ? 'Checking...' : 'Verify'}
+          </Button>
+        )}
+      </Box>
+      {referralStatus ? (
+        <FormHelperText sx={{
+          fontSize: '11px',
+          fontWeight: 600,
+          color: referralStatus.valid ? '#059669' : '#DC2626',
+          m: '3px 0 0'
+        }}>
+          {referralStatus.message}
+        </FormHelperText>
+      ) : (
+        <FormHelperText sx={{ fontSize: '10.5px', color: 'text.secondary', m: '3px 0 0' }}>
+          {isTech
+            ? 'Enter a referring technician code or mobile number if a partner referred you.'
+            : 'Enter referral code or friend phone to get free ₹50 booking waiver.'}
+        </FormHelperText>
+      )}
+    </Box>
+  );
+
   return (
     <Box
       sx={{
@@ -837,7 +934,9 @@ export default function AuthPage({ initialMode = 'login' }) {
         {/* ===================== LEFT PANE: AUTH & ROLE INTERACTION ===================== */}
         <Box
           sx={{
-            p: { xs: 2.2, sm: 3, md: 3 },
+            pt: { xs: 'calc(14px + var(--sat))', md: 3 },
+            pb: { xs: 'calc(14px + var(--sab))', md: 3 },
+            px: { xs: 2, sm: 3, md: 3 },
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
@@ -1640,64 +1739,7 @@ export default function AuthPage({ initialMode = 'login' }) {
                           </FormHelperText>
                         </Box>
 
-                        <Box sx={{ mb: 1.4 }}>
-                          <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.primary', display: 'block', mb: 0.3, fontSize: '11px' }}>
-                            Referral Code (Optional)
-                          </Typography>
-                          <Box sx={{ display: 'flex', gap: 1 }}>
-                            <TextField
-                              fullWidth
-                              placeholder="SEVA9482 or Friend Phone"
-                              value={referralCode}
-                              onChange={(e) => {
-                                const val = e.target.value.toUpperCase();
-                                setReferralCode(val);
-                                if (!val) setReferralStatus(null);
-                              }}
-                              onBlur={() => {
-                                if (referralCode.trim()) handleVerifyReferralCode(referralCode);
-                              }}
-                              error={Boolean(referralStatus && !referralStatus.valid)}
-                              InputProps={{
-                                sx: { borderRadius: '6px', bgcolor: 'background.paper', fontSize: '12.5px', height: '38px' }
-                              }}
-                            />
-                            {referralCode.trim() && (
-                              <Button
-                                type="button"
-                                variant="outlined"
-                                size="small"
-                                disabled={isCheckingReferral}
-                                onClick={() => handleVerifyReferralCode(referralCode)}
-                                sx={{
-                                  height: '38px',
-                                  borderRadius: '6px',
-                                  fontWeight: 700,
-                                  fontSize: '11px',
-                                  textTransform: 'none',
-                                  whiteSpace: 'nowrap',
-                                  px: 1.5
-                                }}
-                              >
-                                {isCheckingReferral ? 'Checking...' : 'Verify'}
-                              </Button>
-                            )}
-                          </Box>
-                          {referralStatus ? (
-                            <FormHelperText sx={{
-                              fontSize: '11px',
-                              fontWeight: 600,
-                              color: referralStatus.valid ? '#059669' : '#DC2626',
-                              m: '3px 0 0'
-                            }}>
-                              {referralStatus.message}
-                            </FormHelperText>
-                          ) : (
-                            <FormHelperText sx={{ fontSize: '10.5px', color: 'text.secondary', m: '3px 0 0' }}>
-                              Enter referral code or friend phone to get free ₹50 booking waiver.
-                            </FormHelperText>
-                          )}
-                        </Box>
+                        {renderReferralCodeField()}
 
                         <Box sx={{ display: 'flex', gap: 1 }}>
                           <Button
@@ -1962,6 +2004,8 @@ export default function AuthPage({ initialMode = 'login' }) {
                             All recognized Salem operational zones. Choose all areas you are available to service.
                           </FormHelperText>
                         </Box>
+
+                        {renderReferralCodeField()}
 
                         <Box sx={{ display: 'flex', gap: 1 }}>
                           <Button
@@ -2856,7 +2900,7 @@ export default function AuthPage({ initialMode = 'login' }) {
         >
           <Box
             component="img"
-            src="/illustrations/auth_showcase.jpg"
+            src="/illustrations/auth_showcase.webp"
             alt="Salem Doorstep Services Specialist"
             sx={{
               position: 'absolute',

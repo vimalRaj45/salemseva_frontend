@@ -226,10 +226,11 @@ export default function AdvancePaymentPage() {
           position: 'sticky',
           top: 0,
           zIndex: 40,
-          bgcolor: '#FFFFFF',
-          borderBottom: '1px solid #E2E8F0',
-          py: 1.5,
-          px: { xs: 2, sm: 3 }
+          bgcolor: 'var(--cz-chrome-bg, #EBF3FE)',
+          borderBottom: '1px solid var(--cz-chrome-border, #C7DBF7)',
+          pt: 'calc(10px + var(--sat))',
+          pb: 1.25,
+          px: { xs: 1.5, sm: 3 }
         }}
       >
         <Container maxWidth="sm" disableGutters sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

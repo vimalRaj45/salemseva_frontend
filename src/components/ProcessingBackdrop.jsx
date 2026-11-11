@@ -13,7 +13,7 @@ export default function ProcessingBackdrop({
   let resolvedMode = mode;
   if (!resolvedMode) {
     const text = `${title || ''} ${subtitle || ''} ${badge || ''}`.toLowerCase();
-    if (text.includes('escrow') || text.includes('pay') || text.includes('razorpay')) {
+    if (text.includes('.') || text.includes('pay') || text.includes('razorpay')) {
       resolvedMode = 'payment';
     } else if (text.includes('dispatch') || text.includes('route') || text.includes('sync')) {
       resolvedMode = 'dispatch';

@@ -1,4 +1,5 @@
 import { API_V1_URL, PARTNER_COMMISSION_PERCENT } from '../../config';
+import { getCoordsForLocalityName } from '../../utils/geoUtils';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Container,
@@ -29,8 +30,6 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 
 // Professional Material UI Icons
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
-import PhoneIcon from '@mui/icons-material/Phone';
-import HeadsetIcon from '@mui/icons-material/Headset';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import StarIcon from '@mui/icons-material/Star';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
@@ -46,8 +45,6 @@ import BoltIcon from '@mui/icons-material/Bolt';
 import WbSunnyIcon from '@mui/icons-material/WbSunny';
 import BedtimeIcon from '@mui/icons-material/Bedtime';
 import ShieldIcon from '@mui/icons-material/Shield';
-import HourglassTopIcon from '@mui/icons-material/HourglassTop';
-import HubIcon from '@mui/icons-material/Hub';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import EditCalendarIcon from '@mui/icons-material/EditCalendar';
 
@@ -77,23 +74,8 @@ export default function TrackingPage() {
   const bookingId = urlBookingId || storedBookingId || '';
 
   const [chatOpen, setChatOpen] = useState(false);
-  const [callOpen, setCallOpen] = useState(false);
-  // Incoming call flag for VoIP modal
-  const [isIncomingCall, setIsIncomingCall] = useState(false);
-  // Guard against double escrow release
-  const escrowReleasedRef = useRef(false);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('autoAnswer') === 'true') {
-      navigate(`/call/${bookingId}?incoming=true&autoAnswer=true`);
-    }
-    const handleOpenActiveCall = () => {
-      navigate(`/call/${bookingId}?incoming=true`);
-    };
-    window.addEventListener('shazuone_open_active_call', handleOpenActiveCall);
-    return () => window.removeEventListener('shazuone_open_active_call', handleOpenActiveCall);
-  }, []);
+  // Guard against double settlement release
+  const settlementReleasedRef = useRef(false);
 
   const [incomingMessageToast, setIncomingMessageToast] = useState(null);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
@@ -110,7 +92,7 @@ export default function TrackingPage() {
   const [confirmCompletionModalOpen, setConfirmCompletionModalOpen] = useState(false);
   const [customerRating, setCustomerRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
-  const [isReleasingEscrow, setIsReleasingEscrow] = useState(false);
+  const [isReleasingPayment, setIsReleasingPayment] = useState(false);
   const [completionSuccessToast, setCompletionSuccessToast] = useState(false);
   const [billDetails, setBillDetails] = useState(null);
   const [viewBillModalOpen, setViewBillModalOpen] = useState(false);
@@ -199,7 +181,7 @@ export default function TrackingPage() {
   // Customer Marks Job Completed
   const handleCustomerCompleteJob = async () => {
     try {
-      setIsReleasingEscrow(true);
+      setIsReleasingPayment(true);
       const res = await fetch(`${API_V1_URL}/bookings/${bookingId}/customer-complete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -227,7 +209,7 @@ export default function TrackingPage() {
     } catch (err) {
       alert('Network error confirming job completion');
     } finally {
-      setIsReleasingEscrow(false);
+      setIsReleasingPayment(false);
     }
   };
 
@@ -251,7 +233,6 @@ export default function TrackingPage() {
             localStorage.removeItem('shazuone_active_booking');
             localStorage.removeItem('shazuone_booking_id');
             localStorage.removeItem('shazuone_quote_status_' + bookingId);
-            setCallOpen(false);
             setChatOpen(false);
             setQuoteAlertModalOpen(false);
           } else {
@@ -355,7 +336,7 @@ export default function TrackingPage() {
             lastMessageCountRef.current = msgs.length;
           }
         }
-      } catch (err) {}
+      } catch (err) { }
     };
 
     pollCommunications();
@@ -395,8 +376,8 @@ export default function TrackingPage() {
       const fullDateText = isToday
         ? `Today, ${dayNumber} ${monthName}`
         : isTomorrow
-        ? `Tomorrow, ${dayNumber} ${monthName}`
-        : `${d.toLocaleDateString('en-IN', { weekday: 'short' })}, ${dayNumber} ${monthName}`;
+          ? `Tomorrow, ${dayNumber} ${monthName}`
+          : `${d.toLocaleDateString('en-IN', { weekday: 'short' })}, ${dayNumber} ${monthName}`;
       return { offset: i, iso, dayName, dayNumber, monthName, fullDateText };
     });
   }, []);
@@ -466,8 +447,8 @@ export default function TrackingPage() {
 
   const bookingStatus = trackData?.booking?.status || 'matching';
   const booking = trackData?.booking || null;
-  const isScheduledBooking = trackData?.booking?.booking_type === 'scheduled' || 
-    (Boolean(trackData?.booking?.scheduled_slot) && trackData?.booking?.scheduled_slot !== 'instant_now') || 
+  const isScheduledBooking = trackData?.booking?.booking_type === 'scheduled' ||
+    (Boolean(trackData?.booking?.scheduled_slot) && trackData?.booking?.scheduled_slot !== 'instant_now') ||
     Boolean(trackData?.isScheduled);
 
   const isRideActive = ['assigned', 'technician_assigned', 'partner_assigned', 'en_route', 'arrived', 'inspecting', 'quote_presented', 'quote_approved', 'completed'].includes(bookingStatus);
@@ -486,7 +467,7 @@ export default function TrackingPage() {
           if (data.success && isMounted) {
             setBillDetails(data);
           }
-        } catch (_) {}
+        } catch (_) { }
       };
       fetchBill();
       const interval = setInterval(fetchBill, 2500);
@@ -502,16 +483,18 @@ export default function TrackingPage() {
   const hasQuote = ['quote_presented', 'quote_approved'].includes(bookingStatus);
 
   const getLiveDistanceAndEta = () => {
-    const custLat = parseFloat(trackData?.booking?.customer_lat) || 11.6643;
-    const custLng = parseFloat(trackData?.booking?.customer_lng) || 78.1460;
-    const techLat = parseFloat(tech?.lat) || 11.6780;
-    const techLng = parseFloat(tech?.lng) || 78.1580;
+    const custFallback = getCoordsForLocalityName(trackData?.booking?.locality || trackData?.booking?.service_address);
+    const custLat = parseFloat(trackData?.booking?.customer_lat) || custFallback.lat;
+    const custLng = parseFloat(trackData?.booking?.customer_lng) || custFallback.lng;
+    const techFallback = getCoordsForLocalityName(tech?.assignedLocalities || trackData?.booking?.locality);
+    const techLat = parseFloat(tech?.lat) || techFallback.lat;
+    const techLng = parseFloat(tech?.lng) || techFallback.lng;
 
     const dLat = (custLat - techLat) * (Math.PI / 180);
     const dLon = (custLng - techLng) * (Math.PI / 180);
     const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-              Math.cos(techLat * (Math.PI / 180)) * Math.cos(custLat * (Math.PI / 180)) * 
-              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      Math.cos(techLat * (Math.PI / 180)) * Math.cos(custLat * (Math.PI / 180)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     const dist = Math.max(0.3, parseFloat((6371 * c * 1.3).toFixed(1)));
     const etaMins = Math.max(2, Math.round((dist / 25) * 60));
@@ -548,8 +531,8 @@ export default function TrackingPage() {
       <SalemSeamlessLoader
         mode="payment"
         title="Your payment is processing..."
-        subtitle="Confirming with the bank and securing your escrow. This takes a few seconds, please keep this screen open."
-        badge="100% Safe Payment Guarantee"
+        subtitle="Confirming with the bank. Please keep this screen open."
+        badge="Safe Payment"
       />
     );
   }
@@ -665,8 +648,8 @@ export default function TrackingPage() {
 
   // Admin or System Cancellation Screen & Customer Release
   if (bookingStatus === 'cancelled') {
-    const cancelReason = trackData?.booking?.cancellation_reason || trackData?.booking?.cancellationReason || trackData?.cancellationReason || 'Cancelled by Shazu One Central Operations';
-    const cancelDetails = trackData?.booking?.cancellation_details || trackData?.booking?.cancellationDetails || trackData?.cancellationDetails || 'The service request has been closed. Any advance payment held in escrow has been automatically refunded to your Shazu One Wallet.';
+    const cancelReason = trackData?.booking?.cancellation_reason || trackData?.booking?.cancellationReason || trackData?.cancellationReason || 'Cancelled';
+    const cancelDetails = trackData?.booking?.cancellation_details || trackData?.booking?.cancellationDetails || trackData?.cancellationDetails || 'Your booking was cancelled. Any advance payment has been refunded to your Shazu One Wallet.';
     const cancelledBy = trackData?.booking?.cancelled_by || trackData?.booking?.cancelledBy || 'admin';
     const visitFee = trackData?.booking?.visit_fee || trackData?.booking?.visitFee || 49;
 
@@ -750,7 +733,7 @@ export default function TrackingPage() {
               )}
             </Paper>
 
-            {/* Escrow Refund Status Card */}
+            {/* . Refund Status Card */}
             <Box
               sx={{
                 p: 1.6,
@@ -792,8 +775,8 @@ export default function TrackingPage() {
                         ₹{displayRefund.toFixed(2)} Refund Initiated to Source Account
                       </Typography>
                       <Typography sx={{ fontSize: '11px', color: '#6EE7B7', lineHeight: 1.35, mt: 0.2 }}>
-                        {retainedFees > 0 
-                          ? `Initial payment of ₹${grossPaid.toFixed(2)} refunded after ₹${retainedFees.toFixed(2)} platform & gateway processing retention (3-5 business days).` 
+                        {retainedFees > 0
+                          ? `Initial payment of ₹${grossPaid.toFixed(2)} refunded after ₹${retainedFees.toFixed(2)} platform & gateway processing retention (3-5 business days).`
                           : 'Your advance visit payment has been released back to your original source account.'}
                       </Typography>
                     </>
@@ -854,28 +837,10 @@ export default function TrackingPage() {
     );
   }
 
-  const HELPDESK_PHONE = '+918807099277';
-  const currentBooking = trackData?.booking;
-  const currentTech = trackData?.technician;
-  const isDirectCallAllowed = Boolean(
-    currentTech &&
-    !['completed', 'cancelled', 'created'].includes(currentBooking?.status) &&
-    currentTech?.phone &&
-    !String(currentTech.phone).includes('***')
-  );
-
-  const handlePhoneCall = (forceHelpdesk = false) => {
-    const rawNumber = (!forceHelpdesk && isDirectCallAllowed)
-      ? (currentTech?.phone || HELPDESK_PHONE)
-      : HELPDESK_PHONE;
-    const cleanDigits = String(rawNumber).replace(/[^0-9+]/g, '');
-    window.location.href = `tel:${cleanDigits}`;
-  };
-
   return (
     <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100dvh', pb: 12 }}>
       <Container maxWidth="sm" sx={{ px: 2, pt: 2 }}>
-        
+
         {/* Technician Reschedule Proposal Alert Banner */}
         {trackData?.booking?.reschedule_status === 'pending_customer_approval' && (
           <Paper
@@ -979,8 +944,8 @@ export default function TrackingPage() {
         {!hasOnlineTech ? (
           <>
             {/* Top Status Alert */}
-            <Alert 
-              severity={isScheduledBooking ? (tech ? "success" : "info") : "info"} 
+            <Alert
+              severity={isScheduledBooking ? (tech ? "success" : "info") : "info"}
               icon={isScheduledBooking ? (tech ? <CheckCircleIcon sx={{ fontSize: 22 }} /> : <ScheduleIcon sx={{ fontSize: 22 }} />) : <ScheduleIcon sx={{ fontSize: 22 }} />}
               sx={{
                 mb: 2,
@@ -993,9 +958,9 @@ export default function TrackingPage() {
             >
               {isScheduledBooking
                 ? (tech
-                    ? `Technician Assigned: ${tech.name} is confirmed for your appointment. The technician will arrive directly at your doorstep during your scheduled window.`
-                    : `Booking #${bookingId} Confirmed: Your booking was sent to Shazu One Central Ops. They are looking for a certified technician for your scheduled window.`)
-                : `Booking #${bookingId} is confirmed and placed in Shazu One Central Ops queue.`
+                  ? `${tech.name} is confirmed for your scheduled slot.`
+                  : `Booking #${bookingId} confirmed. Finding a certified technician for your slot.`)
+                : `Booking #${bookingId} confirmed. Assigning a technician shortly.`
               }
             </Alert>
 
@@ -1049,318 +1014,61 @@ export default function TrackingPage() {
                   />
                 </Box>
 
-                <Box sx={{ bgcolor: '#F0FDF4', p: 1.5, borderRadius: '12px', border: '1px solid #DCFCE7', display: 'flex', alignItems: 'flex-start', gap: 1, mb: 1.5 }}>
-                  <NotificationsActiveIcon sx={{ color: '#16A34A', fontSize: 20, mt: 0.2, flexShrink: 0 }} />
-                  <Typography variant="caption" sx={{ color: '#166534', fontWeight: 700, lineHeight: 1.45 }}>
-                    Technician assigned and scheduled. The technician will arrive directly at your doorstep during your chosen service window.
+                <Box sx={{ bgcolor: '#F0FDF4', p: 1.2, borderRadius: '10px', border: '1px solid #DCFCE7', display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                  <NotificationsActiveIcon sx={{ color: '#16A34A', fontSize: 18, flexShrink: 0 }} />
+                  <Typography variant="caption" sx={{ color: '#166534', fontWeight: 700, lineHeight: 1.35 }}>
+                    Technician confirmed for your chosen slot.
                   </Typography>
                 </Box>
 
-                {/* Direct Call & Chat Action Buttons in Standby */}
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    startIcon={<ChatBubbleOutlineIcon sx={{ fontSize: 16 }} />}
-                    onClick={() => navigate(`/chat/${bookingId}`)}
-                    sx={{
-                      borderColor: '#CBD5E1',
-                      color: '#334155',
-                      borderRadius: '8px',
-                      py: 0.8,
-                      fontWeight: 700,
-                      fontSize: '12.5px',
-                      textTransform: 'none',
-                      '&:hover': { borderColor: '#94A3B8', bgcolor: '#F8FAFC' }
-                    }}
-                  >
-                    Masked chat
-                  </Button>
-
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    startIcon={<PhoneIcon sx={{ fontSize: 16 }} />}
-                    onClick={() => handlePhoneCall()}
-                    sx={{
-                      bgcolor: isDirectCallAllowed ? '#2563EB' : '#0F172A',
-                      borderRadius: '8px',
-                      py: 0.8,
-                      fontWeight: 700,
-                      fontSize: '12.5px',
-                      textTransform: 'none',
-                      '&:hover': { bgcolor: isDirectCallAllowed ? '#1D4ED8' : '#1E293B' }
-                    }}
-                  >
-                    {isDirectCallAllowed ? 'Call Specialist' : 'Call Ops Desk'}
-                  </Button>
-                </Box>
-
-                {/* Salem Safe Work Guarantee Banner */}
-                <Box sx={{ mt: 1.5, p: 1.2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <ShieldIcon sx={{ fontSize: 18, color: '#0284C7', flexShrink: 0 }} />
-                  <Typography variant="caption" sx={{ color: '#475569', fontSize: '11px', lineHeight: 1.3 }}>
-                    <strong>Salem Safe Service Policy:</strong> Platform protections and verified records apply strictly to services logged inside Shazu One. Direct offline arrangements void all platform protection.
-                  </Typography>
-                </Box>
+                {/* In-App Chat */}
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  startIcon={<ChatBubbleOutlineIcon sx={{ fontSize: 16 }} />}
+                  onClick={() => navigate(`/chat/${bookingId}`)}
+                  sx={{
+                    borderColor: '#CBD5E1',
+                    color: '#334155',
+                    borderRadius: '8px',
+                    py: 0.85,
+                    fontWeight: 700,
+                    fontSize: '12.5px',
+                    textTransform: 'none',
+                    '&:hover': { borderColor: '#94A3B8', bgcolor: '#F8FAFC' }
+                  }}
+                >
+                  Chat with Technician
+                </Button>
               </Card>
             )}
 
 
-            {/* Central Ops Assurance & Allocation Card */}
+            {/* Time Window & Cancel Card */}
             <Card
               elevation={0}
               sx={{
                 bgcolor: '#FFFFFF',
                 border: '1.5px solid #E2E8F0',
                 borderRadius: '16px',
-                p: 2.5,
+                p: 2,
                 mb: 2.5,
                 boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)'
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
-                  <Box sx={{ width: 42, height: 42, borderRadius: '10px', bgcolor: '#EFF6FF', color: '#0284C7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <HubIcon sx={{ fontSize: 24 }} />
-                  </Box>
-                  <Box>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0F172A', lineHeight: 1.2 }}>
-                      Shazu One Central Operations Desk
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: '#0284C7', fontWeight: 700 }}>
-                      சேலம் தலைமை செயல்பாட்டு மையம் • Fairlands Zone
-                    </Typography>
-                  </Box>
-                </Box>
-                <Chip
-                  label={(trackData?.booking?.booking_type === 'scheduled' || (!trackData?.booking?.is_urgent_dispatch && trackData?.booking?.scheduled_slot && trackData?.booking?.scheduled_slot !== 'instant_now')) ? 'SCHEDULED PROTOCOL' : 'DISPATCH QUEUE'}
-                  size="small"
-                  sx={{ bgcolor: '#EFF6FF', color: '#1D4ED8', fontWeight: 800, fontSize: '10px', height: 22 }}
-                />
-              </Box>
-
-              {(trackData?.booking?.booking_type === 'scheduled' || (!trackData?.booking?.is_urgent_dispatch && trackData?.booking?.scheduled_slot && trackData?.booking?.scheduled_slot !== 'instant_now')) ? (
-                /* 5-STAGE PROGRESSIVE CENTRAL OPS TRANSPARENCY PIPELINE */
-                <Box sx={{ mb: 2.5 }}>
-                  <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '10px', display: 'block', mb: 1.5 }}>
-                    LIVE OPERATIONS AUDIT TRAIL • நிகழ்நேர செயல்பாட்டு படிகள்
-                  </Typography>
-
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                    {/* Stage 1: Request & Escrow */}
-                    <Paper elevation={0} sx={{ p: 1.4, bgcolor: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '10px' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                          <CheckCircleIcon sx={{ color: '#10B981', fontSize: 18 }} />
-                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '12.5px' }}>
-                            1. Pre-Booking & Escrow Verified
-                          </Typography>
-                        </Box>
-                        <Chip label="COMPLETED" size="small" sx={{ bgcolor: '#ECFDF5', color: '#065F46', fontWeight: 800, fontSize: '9.5px', height: 18 }} />
-                      </Box>
-                      <Typography variant="caption" sx={{ color: '#64748B', display: 'block', pl: 3.2, fontSize: '11px', lineHeight: 1.4 }}>
-                        கோரிக்கை பதிவு செய்யப்பட்டது. வாடிக்கையாளர் ₹{Number(trackData?.booking?.final_amount ?? trackData?.booking?.visit_fee ?? 99).toFixed(2)} கட்டணம் Digital Escrow முறையில் பாதுகாப்பாக வைக்கப்பட்டுள்ளது.
-                      </Typography>
-                    </Paper>
-
-                    {/* Stage 2: Locality Feasibility & Spares Check */}
-                    <Paper elevation={0} sx={{ p: 1.4, bgcolor: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '10px' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                          <CheckCircleIcon sx={{ color: '#10B981', fontSize: 18 }} />
-                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '12.5px' }}>
-                            2. Locality Feasibility & Diagnostic Assessment
-                          </Typography>
-                        </Box>
-                        <Chip label="PASSED" size="small" sx={{ bgcolor: '#ECFDF5', color: '#065F46', fontWeight: 800, fontSize: '9.5px', height: 18 }} />
-                      </Box>
-                      <Typography variant="caption" sx={{ color: '#64748B', display: 'block', pl: 3.2, fontSize: '11px', lineHeight: 1.4 }}>
-                        சேலம் கட்டுப்பாட்டு மையம் உங்கள் பகுதிக்கான ({trackData?.booking?.locality || 'Fairlands, Salem'}) தொழில்நுட்ப சாத்தியக்கூறுகள் மற்றும் கருவிகளை உறுதி செய்துள்ளது.
-                      </Typography>
-                    </Paper>
-
-                    {/* Stage 3: Specialist Allocation */}
-                    <Paper 
-                      elevation={0} 
-                      sx={{ 
-                        p: 1.6, 
-                        bgcolor: tech ? '#F0FDF4' : '#FFFBEB', 
-                        border: tech ? '1.5px solid #86EFAC' : '1.5px solid #FDE68A', 
-                        borderRadius: '12px',
-                        transition: 'all 0.2s ease-in-out'
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.8 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                          {tech ? (
-                            <CheckCircleIcon sx={{ color: '#16A34A', fontSize: 18 }} />
-                          ) : (
-                            <HourglassTopIcon sx={{ color: '#D97706', fontSize: 18 }} />
-                          )}
-                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '12.5px' }}>
-                            3. Specialist Allocation & Matching
-                          </Typography>
-                        </Box>
-                        <Chip 
-                          label={tech ? "ALLOCATED • COMPLETED" : "IN PROGRESS"} 
-                          size="small" 
-                          sx={{ 
-                            bgcolor: tech ? '#DCFCE7' : '#FEF3C7', 
-                            color: tech ? '#15803D' : '#92400E', 
-                            fontWeight: 800, 
-                            fontSize: '9.5px', 
-                            height: 18 
-                          }} 
-                        />
-                      </Box>
-                      <Typography variant="caption" sx={{ color: '#475569', display: 'block', pl: 3.2, fontSize: '11px', lineHeight: 1.4 }}>
-                        {tech ? (
-                          <>நிபுணர் நியமிக்கப்பட்டுள்ளார்: <strong>{tech.name}</strong> ({tech.rating} ரேட்டிங் • {tech.primaryTrade?.toUpperCase() || 'SERVICE'}). வாடிக்கையாளர் மற்றும் நிபுணர் இடையேயான நேரடி அழைப்பு (Call) மற்றும் அரட்டை (Chat) சேவை இப்போது திறக்கப்பட்டுள்ளது.</>
-                        ) : (
-                          <>சேலம் தலைமை கட்டுப்பாட்டு அறை உங்கள் பகுதிக்கான சிறந்த ரேட்டிங் பெற்ற சான்றளிக்கப்பட்ட தொழில்நுட்ப நிபுணரை ஒதுக்கி வருகிறது.</>
-                        )}
-                      </Typography>
-
-                      {/* When Stage 3 is Done: Direct Customer-to-Technician Communication Panel */}
-                      {tech && (
-                        <Box sx={{ mt: 1.5, pl: 3.2 }}>
-                          <Box sx={{ 
-                            bgcolor: '#FFFFFF', 
-                            border: '1px solid #BBF7D0', 
-                            borderRadius: '10px', 
-                            p: 1.5,
-                            boxShadow: '0 2px 8px rgba(22, 163, 74, 0.08)'
-                          }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.2 }}>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Avatar 
-                                  sx={{ 
-                                    width: 36, 
-                                    height: 36, 
-                                    bgcolor: '#2563EB', 
-                                    fontSize: '13px', 
-                                    fontWeight: 800 
-                                  }}
-                                >
-                                  {tech.name ? tech.name.substring(0, 2).toUpperCase() : 'SP'}
-                                </Avatar>
-                                <Box>
-                                  <Typography sx={{ fontWeight: 800, fontSize: '13px', color: '#0F172A', lineHeight: 1.2 }}>
-                                    {tech.name}
-                                  </Typography>
-                                  <Typography sx={{ fontSize: '11px', color: '#64748B' }}>
-                                    Certified Expert • Rating {tech.rating || 5.0} / 5 ({tech.jobsCompleted || 0} jobs completed)
-                                  </Typography>
-                                </Box>
-                              </Box>
-                              <Chip
-                                icon={<CheckCircleIcon sx={{ fontSize: 12, color: '#16A34A !important' }} />}
-                                label="Govt KYC"
-                                size="small"
-                                sx={{ bgcolor: '#F0FDF4', color: '#166534', fontWeight: 700, fontSize: '9.5px', height: 20 }}
-                              />
-                            </Box>
-
-                            {/* Masked Communication Notice */}
-                            <Typography variant="caption" sx={{ display: 'block', color: '#166534', fontWeight: 600, fontSize: '10.5px', mb: 1.2, bgcolor: '#F0FDF4', p: 0.6, borderRadius: '6px' }}>
-                              Masked privacy relay active • Call & Chat directly with your technician
-                            </Typography>
-
-                            {/* Direct Communication Action Buttons */}
-                            <Box sx={{ display: 'flex', gap: 1 }}>
-                              <Button
-                                variant="outlined"
-                                fullWidth
-                                startIcon={<ChatBubbleOutlineIcon sx={{ fontSize: 15 }} />}
-                                onClick={() => navigate(`/chat/${bookingId}`)}
-                                sx={{
-                                  borderColor: '#CBD5E1',
-                                  color: '#334155',
-                                  borderRadius: '6px',
-                                  py: 0.8,
-                                  fontWeight: 700,
-                                  fontSize: '12px',
-                                  textTransform: 'none',
-                                  '&:hover': { borderColor: '#94A3B8', bgcolor: '#F8FAFC' }
-                                }}
-                              >
-                                Masked chat
-                              </Button>
-
-                              <Button
-                                variant="contained"
-                                fullWidth
-                                startIcon={<PhoneIcon sx={{ fontSize: 15 }} />}
-                                onClick={() => handlePhoneCall()}
-                                sx={{
-                                  bgcolor: isDirectCallAllowed ? '#2563EB' : '#0F172A',
-                                  borderRadius: '6px',
-                                  py: 0.8,
-                                  fontWeight: 700,
-                                  fontSize: '12px',
-                                  textTransform: 'none',
-                                  '&:hover': { bgcolor: isDirectCallAllowed ? '#1D4ED8' : '#1E293B' }
-                                }}
-                              >
-                                {isDirectCallAllowed ? 'Call Specialist' : 'Call Ops Desk'}
-                              </Button>
-                            </Box>
-                          </Box>
-                        </Box>
-                      )}
-                    </Paper>
-
-                    {/* Stage 4: Slot Confirmation & Staging */}
-                    <Paper elevation={0} sx={{ p: 1.4, bgcolor: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '10px' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                          <ScheduleIcon sx={{ color: '#0284C7', fontSize: 18 }} />
-                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '12.5px' }}>
-                            4. Slot Confirmed & Equipment Staging
-                          </Typography>
-                        </Box>
-                        <Chip label="CONFIRMED" size="small" sx={{ bgcolor: '#EFF6FF', color: '#1E40AF', fontWeight: 800, fontSize: '9.5px', height: 18 }} />
-                      </Box>
-                      <Typography variant="caption" sx={{ color: '#64748B', display: 'block', pl: 3.2, fontSize: '11px', lineHeight: 1.4 }}>
-                        தேர்வு செய்யப்பட்ட நேரம்: <strong>{getSlotLabel(trackData?.booking?.scheduled_slot)}</strong>. சேவைக்கான அத்தியாவசிய உபகரணங்கள் தயார் செய்யப்பட்டுள்ளன.
-                      </Typography>
-                    </Paper>
-
-                    {/* Stage 5: Doorstep Arrival & Inspection */}
-                    <Paper elevation={0} sx={{ p: 1.4, bgcolor: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '10px' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                          <TwoWheelerIcon sx={{ color: '#64748B', fontSize: 18 }} />
-                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '12.5px' }}>
-                            5. Doorstep Arrival & Inspection
-                          </Typography>
-                        </Box>
-                        <Chip label="QUEUED" size="small" sx={{ bgcolor: '#F1F5F9', color: '#475569', fontWeight: 800, fontSize: '9.5px', height: 18 }} />
-                      </Box>
-                      <Typography variant="caption" sx={{ color: '#64748B', display: 'block', pl: 3.2, fontSize: '11px', lineHeight: 1.4 }}>
-                        தேர்ந்தெடுக்கப்பட்ட நேரத்தில் டெக்னீசியன் உங்கள் வீட்டிற்கு நேரில் வந்து பரிசோதனை மற்றும் பழுதுநீக்கும் பணியைத் தொடங்குவார்.
-                      </Typography>
-                    </Paper>
-                  </Box>
-                </Box>
-              ) : (
-                /* Instant Booking Offline Notice */
-                <Paper elevation={0} sx={{ p: 2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '14px', mb: 2 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A', mb: 0.5 }}>
-                    Notice: All verified technicians are currently offline or busy.
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: '#475569', lineHeight: 1.5, display: 'block' }}>
-                    Your service request is actively monitored by Central Ops. A certified partner will be assigned within our 12-hour guarantee window or at your chosen scheduled slot.
+              {!(trackData?.booking?.booking_type === 'scheduled' || (!trackData?.booking?.is_urgent_dispatch && trackData?.booking?.scheduled_slot && trackData?.booking?.scheduled_slot !== 'instant_now')) && (
+                <Paper elevation={0} sx={{ p: 1.5, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', mb: 2 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 700, color: '#334155', display: 'block', lineHeight: 1.4 }}>
+                    All verified partners are currently busy. A technician will be assigned for your slot soon.
                   </Typography>
                 </Paper>
               )}
 
               {/* Current Scheduled Slot */}
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: '#F0F9FF', p: 1.5, borderRadius: '12px', border: '1px solid #BAE6FD', mb: 2 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: '#F0F9FF', p: 1.5, borderRadius: '12px', border: '1px solid #BAE6FD' }}>
                 <Box>
-                  <Typography variant="caption" sx={{ color: '#0369A1', fontWeight: 800, display: 'block' }}>
-                    CURRENT SELECTED TIME WINDOW:
+                  <Typography variant="caption" sx={{ color: '#0369A1', fontWeight: 800, display: 'block', fontSize: '10.5px' }}>
+                    SCHEDULED TIME WINDOW
                   </Typography>
                   <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0C4A6E' }}>
                     {getSlotLabel(trackData?.booking?.scheduled_slot)}
@@ -1383,78 +1091,6 @@ export default function TrackingPage() {
                   Change Slot
                 </Button>
               </Box>
-
-              {/* Direct Partner or Salem Central Hotline Desk */}
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 1.5,
-                  bgcolor: '#FFFFFF',
-                  border: tech ? '1.5px solid #BBF7D0' : '1px dashed #CBD5E1',
-                  borderRadius: '12px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  boxShadow: tech ? '0 2px 8px rgba(22, 163, 74, 0.06)' : 'none'
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  {tech ? (
-                    <Avatar sx={{ width: 34, height: 34, bgcolor: '#2563EB', fontSize: '13px', fontWeight: 800 }}>
-                      {tech.name ? tech.name[0] : 'T'}
-                    </Avatar>
-                  ) : (
-                    <HeadsetIcon sx={{ color: '#0284C7', fontSize: 20 }} />
-                  )}
-                  <Box>
-                    <Typography variant="caption" sx={{ fontWeight: 800, color: '#0F172A', display: 'block' }}>
-                      {tech ? `Assigned Specialist: ${tech.name}` : 'Shazu One Central Ops Desk: Anand'}
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: tech ? '#166534' : '#64748B', fontWeight: tech ? 700 : 500 }}>
-                      {tech ? 'Masked VoIP Call & Real-time Chat Active' : 'Direct Phone: 0427-2448888'}
-                    </Typography>
-                  </Box>
-                </Box>
-
-                <Box sx={{ display: 'flex', gap: 0.8 }}>
-                  {tech && (
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      startIcon={<ChatBubbleOutlineIcon sx={{ fontSize: 13 }} />}
-                      onClick={() => navigate(`/chat/${bookingId}`)}
-                      sx={{
-                        borderColor: '#CBD5E1',
-                        color: '#334155',
-                        borderRadius: '8px',
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        textTransform: 'none',
-                        '&:hover': { borderColor: '#94A3B8', bgcolor: '#F8FAFC' }
-                      }}
-                    >
-                      Chat
-                    </Button>
-                  )}
-                  <Button
-                    size="small"
-                    variant="contained"
-                    startIcon={<PhoneIcon sx={{ fontSize: 13 }} />}
-                    onClick={() => handlePhoneCall()}
-                    sx={{
-                      bgcolor: isDirectCallAllowed ? '#2563EB' : '#0F172A',
-                      color: '#FFF',
-                      borderRadius: '8px',
-                      fontSize: '11px',
-                      fontWeight: 800,
-                      textTransform: 'none',
-                      '&:hover': { bgcolor: isDirectCallAllowed ? '#1D4ED8' : '#1E293B' }
-                    }}
-                  >
-                    {isDirectCallAllowed ? 'Call Specialist' : 'Call Ops Desk'}
-                  </Button>
-                </Box>
-              </Paper>
 
               {/* Cancel Option for Queued Booking */}
               <Box sx={{ mt: 2, textAlign: 'center' }}>
@@ -1616,656 +1252,591 @@ export default function TrackingPage() {
             ) : (
               <>
                 {/* Real-time Status Alert based on Lifecycle */}
-            {bookingStatus === 'quote_presented' ? (
-              <Alert 
-                severity="info" 
-                icon={<NotificationsActiveIcon sx={{ fontSize: 18 }} />}
-                sx={{ mb: 2, borderRadius: '8px', fontWeight: 700, bgcolor: '#EFF6FF', color: '#1E40AF', border: '1px solid #BFDBFE', fontSize: '13px' }}
-              >
-                Technician {tech.name} has prepared your digital estimate. Review line items and approve to authorize service.
-              </Alert>
-            ) : bookingStatus === 'quote_approved' ? (
-              <Alert 
-                severity="success" 
-                icon={<CheckCircleIcon sx={{ fontSize: 18 }} />}
-                sx={{ mb: 2, borderRadius: '8px', fontWeight: 700, bgcolor: '#F0FDF4', color: '#166534', border: '1px solid #BBF7D0', fontSize: '13px' }}
-              >
-                Quote approved & payment secured in Cashless Escrow! Technician is performing the repair.
-              </Alert>
-            ) : bookingStatus === 'arrived' ? (
-              <Alert 
-                severity="info" 
-                icon={<NotificationsActiveIcon sx={{ fontSize: 18 }} />}
-                sx={{ mb: 2, borderRadius: '8px', fontWeight: 700, bgcolor: '#EFF6FF', color: '#1E40AF', border: '1px solid #BFDBFE', fontSize: '13px' }}
-              >
-                Technician {tech.name} has arrived at your doorstep! Ask for their 4-digit PIN below to verify identity before allowing entry.
-              </Alert>
-            ) : bookingStatus === 'inspecting' ? (
-              <Alert 
-                severity="warning" 
-                icon={<NotificationsActiveIcon sx={{ fontSize: 18 }} />}
-                sx={{ mb: 2, borderRadius: '8px', fontWeight: 700, bgcolor: '#FFFBEB', color: '#92400E', border: '1px solid #FDE68A', fontSize: '13px' }}
-              >
-                Technician {tech.name} has arrived and is conducting diagnostic inspection at your doorstep.
-              </Alert>
-            ) : bookingStatus === 'en_route' ? (
-              <Box sx={{ mb: 2 }}>
-                {/* LottieFiles Technician En Route Motorbike Animation */}
-                <SalemLottie
-                  name="bike"
-                  width={180}
-                  height={100}
-                  ariaLabel="Technician traveling to your doorstep in Salem"
-                  style={{ mb: 1 }}
-                />
-                <Alert 
-                  severity="info" 
-                  icon={<TwoWheelerIcon sx={{ fontSize: 18 }} />}
-                  sx={{ borderRadius: '8px', fontWeight: 600, bgcolor: '#F0F9FF', color: '#0369A1', border: '1px solid #BAE6FD', fontSize: '12.5px' }}
-                >
-                  Technician {tech.name} has started journey and is on the way to your home (ETA: {tech.eta || '8 mins'} • {tech.distanceKm || '1.8 km'}).
-                </Alert>
-              </Box>
-            ) : bookingStatus === 'preparing' ? (
-              <Box sx={{ mb: 2 }}>
-                <Alert 
-                  severity="info" 
-                  icon={<BuildIcon sx={{ fontSize: 18 }} />}
-                  sx={{ borderRadius: '8px', fontWeight: 600, bgcolor: '#F0FDF4', color: '#166534', border: '1px solid #BBF7D0', fontSize: '12.5px' }}
-                >
-                  Technician {tech?.name || 'Specialist'} is gathering diagnostic tools and spare parts. Preparing to depart for your location.
-                </Alert>
-              </Box>
-            ) : (
-              /* When bookingStatus is 'accepted' or 'assigned': Tech has accepted, getting ready */
-              <Box sx={{ mb: 2 }}>
-                <Alert 
-                  severity="success" 
-                  icon={<CheckCircleIcon sx={{ fontSize: 20 }} />}
-                  sx={{ borderRadius: '8px', fontWeight: 700, bgcolor: '#F0FDF4', color: '#166534', border: '1px solid #BBF7D0', fontSize: '13px' }}
-                >
-                  Technician {tech.name} has accepted your booking and is preparing equipment for departure. Call and chat are now active.
-                </Alert>
-              </Box>
-            )}
-
-
-
-
-
-            {/* Diagnostic Inspection Active Notice (when tech is inspecting) */}
-            {bookingStatus === 'inspecting' && (
-              <Card
-                elevation={0}
-                sx={{
-                  p: 2,
-                  bgcolor: '#FFFBEB',
-                  border: '1.5px solid #FCD34D',
-                  borderRadius: '12px',
-                  mb: 2
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.8 }}>
-                  <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#D97706', animation: 'pulse 1.5s infinite' }} />
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#92400E', fontSize: '13px' }}>
-                    Live Diagnostic Inspection in Progress
-                  </Typography>
-                </Box>
-                <Typography variant="caption" sx={{ color: '#78350F', fontSize: '11.5px', display: 'block', lineHeight: 1.5 }}>
-                  {tech.name} is currently inspecting your appliance at your doorstep. Once diagnosis is complete, you will receive an itemized digital job card and price estimate right here.
-                </Typography>
-              </Card>
-            )}
-
-            {/* Quote Presented Notification & Direct Review Card */}
-            {bookingStatus === 'quote_presented' && (
-              <Card
-                elevation={2}
-                sx={{
-                  bgcolor: '#FFFFFF',
-                  border: '2px solid #0284C7',
-                  borderRadius: '10px',
-                  p: 2,
-                  mb: 2,
-                  boxShadow: '0 4px 20px rgba(2, 132, 199, 0.15)'
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                    <ReceiptLongIcon sx={{ color: '#0284C7', fontSize: 22 }} />
-                    <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '14px' }}>
-                      Diagnostic Estimate Ready
-                    </Typography>
-                  </Box>
-                  <Chip 
-                    label={`₹${trackData?.booking?.quote_subtotal ? parseFloat(trackData.booking.quote_subtotal).toFixed(2) : '900.00'}`} 
-                    size="small" 
-                    sx={{ bgcolor: '#0284C7', color: '#FFF', fontWeight: 800, fontSize: '12px' }} 
-                  />
-                </Box>
-                <Typography variant="body2" sx={{ color: '#475569', fontSize: '12px', mb: 1.5, lineHeight: 1.4 }}>
-                  Technician {tech.name} has submitted the diagnosis and itemized OEM parts quote. Review parts and approve with cashless escrow protection.
-                </Typography>
-                <Button
-                  variant="contained"
-                  fullWidth
-                  endIcon={<ArrowForwardIcon sx={{ fontSize: 16 }} />}
-                  onClick={() => navigate(`/quote?bookingId=${bookingId}`)}
-                  sx={{ bgcolor: '#0284C7', color: '#FFF', borderRadius: '8px', py: 1.1, fontWeight: 800, fontSize: '13px', textTransform: 'none', '&:hover': { bgcolor: '#0369A1' } }}
-                >
-                  Review Digital Estimate & Job Card →
-                </Button>
-              </Card>
-            )}
-
-            {/* Doorstep Start / Completion Confirmation OTP Card */}
-            {bookingStatus !== 'completed' && (
-              <Paper
-                id="doorstep-otp-card"
-                elevation={0}
-                sx={{
-                  p: 2,
-                  bgcolor: isInspectingOrArrived
-                    ? '#F0FDF4' 
-                    : (bookingStatus === 'quote_approved' ? '#F0FDF4' : (bookingStatus === 'arrived' ? '#FEFCE8' : '#F8FAFC')),
-                  border: isInspectingOrArrived
-                    ? '1.5px solid #86EFAC' 
-                    : (bookingStatus === 'quote_approved' ? '1.5px solid #86EFAC' : (bookingStatus === 'arrived' ? '1.5px solid #FDE047' : '1.5px solid #CBD5E1')),
-                  borderRadius: '10px',
-                  mb: 2,
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
-                }}
-              >
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                    <ShieldIcon sx={{ color: (isInspectingOrArrived || bookingStatus === 'quote_approved') ? '#16A34A' : '#2563EB', fontSize: 18 }} />
-                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '13px' }}>
-                      {bookingStatus === 'quote_approved'
-                        ? 'Repair Work in Progress (வேலை நடைபெறுகிறது)'
-                        : (isInspectingOrArrived
-                            ? 'Technician Verified & Allowed Entry '
-                            : 'Doorstep Safety Verification (பாதுகாப்பு சரிபார்ப்பு)')}
-                    </Typography>
-                  </Box>
-
-                  <Chip 
-                    label={
-                      bookingStatus === 'quote_approved' 
-                        ? 'Work in Progress' 
-                        : (isInspectingOrArrived
-                            ? 'Verified & In Home' 
-                            : (bookingStatus === 'arrived' ? 'Tech at Doorstep - Ask PIN' : 'Ask Tech for PIN'))
-                    }
-                    size="small"
-                    sx={{
-                      bgcolor: (isInspectingOrArrived || bookingStatus === 'quote_approved') ? '#DCFCE7' : (bookingStatus === 'arrived' ? '#FEF3C7' : '#EFF6FF'),
-                      color: (isInspectingOrArrived || bookingStatus === 'quote_approved') ? '#166534' : (bookingStatus === 'arrived' ? '#92400E' : '#1D4ED8'),
-                      fontWeight: 800,
-                      fontSize: '10.5px'
-                    }}
-                  />
-                </Box>
-
-                {bookingStatus === 'arrived' && !isInspectingOrArrived && (
-                  <Alert severity="info" sx={{ mb: 1.2, py: 0.6, bgcolor: '#EFF6FF', color: '#1E40AF', border: '1px solid #BFDBFE', borderRadius: '6px', fontSize: '11.5px', fontWeight: 600 }}>
-                    Technician has arrived at your doorstep! Ask them for their 4-digit PIN and verify below before letting them in.
+                {bookingStatus === 'quote_presented' ? (
+                  <Alert
+                    severity="info"
+                    icon={<NotificationsActiveIcon sx={{ fontSize: 18 }} />}
+                    sx={{ mb: 2, borderRadius: '8px', fontWeight: 700, bgcolor: '#EFF6FF', color: '#1E40AF', border: '1px solid #BFDBFE', fontSize: '13px' }}
+                  >
+                    Technician {tech.name} has prepared your digital estimate. Review line items and approve to authorize service.
                   </Alert>
-                )}
-
-                {(isInspectingOrArrived && bookingStatus !== 'quote_approved') ? (
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: '#FFFFFF', p: 1.4, borderRadius: '8px', border: '1px solid #BBF7D0' }}>
-                    <CheckCircleIcon sx={{ color: '#16A34A', fontSize: 22 }} />
-                    <Box>
-                      <Typography variant="body2" sx={{ color: '#14532D', fontSize: '12.5px', fontWeight: 700 }}>
-                        Genuine Shazu One Technician Verified & Permitted Inside
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: '#166534', fontSize: '11px' }}>
-                        Diagnostic inspection and assessment of your appliance is in progress.
-                      </Typography>
-                    </Box>
-                  </Box>
                 ) : bookingStatus === 'quote_approved' ? (
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: '#FFFFFF', p: 1.4, borderRadius: '8px', border: '1px solid #BBF7D0' }}>
-                    <CheckCircleIcon sx={{ color: '#16A34A', fontSize: 22 }} />
-                    <Box>
-                      <Typography variant="body2" sx={{ color: '#14532D', fontSize: '12.5px', fontWeight: 700 }}>
-                        Repair Work in Progress • Escrow Payment Secured
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: '#166534', fontSize: '11px' }}>
-                        100% protected under Shazu One Escrow. Technician will test the appliance before completing the job.
-                      </Typography>
-                    </Box>
+                    <Alert
+                      severity="success"
+                      icon={<CheckCircleIcon sx={{ fontSize: 18 }} />}
+                      sx={{ mb: 2, borderRadius: '8px', fontWeight: 700, bgcolor: '#F0FDF4', color: '#166534', border: '1px solid #BBF7D0', fontSize: '13px' }}
+                    >
+                      Quote approved. Technician is completing the repair.
+                    </Alert>
+                ) : bookingStatus === 'arrived' ? (
+                  <Alert
+                    severity="info"
+                    icon={<NotificationsActiveIcon sx={{ fontSize: 18 }} />}
+                    sx={{ mb: 2, borderRadius: '8px', fontWeight: 700, bgcolor: '#EFF6FF', color: '#1E40AF', border: '1px solid #BFDBFE', fontSize: '13px' }}
+                  >
+                    Technician {tech.name} has arrived. Verify their 4-digit PIN below.
+                  </Alert>
+                ) : bookingStatus === 'inspecting' ? (
+                  <Alert
+                    severity="warning"
+                    icon={<NotificationsActiveIcon sx={{ fontSize: 18 }} />}
+                    sx={{ mb: 2, borderRadius: '8px', fontWeight: 700, bgcolor: '#FFFBEB', color: '#92400E', border: '1px solid #FDE68A', fontSize: '13px' }}
+                  >
+                    {tech.name} is inspecting your appliance.
+                  </Alert>
+                ) : bookingStatus === 'en_route' ? (
+                  <Box sx={{ mb: 2 }}>
+                    {/* LottieFiles Technician En Route Motorbike Animation */}
+                    <SalemLottie
+                      name="bike"
+                      width={180}
+                      height={100}
+                      ariaLabel="Technician traveling to your doorstep in Salem"
+                      style={{ mb: 1 }}
+                    />
+                    <Alert
+                      severity="info"
+                      icon={<TwoWheelerIcon sx={{ fontSize: 18 }} />}
+                      sx={{ borderRadius: '8px', fontWeight: 600, bgcolor: '#F0F9FF', color: '#0369A1', border: '1px solid #BAE6FD', fontSize: '12.5px' }}
+                    >
+                      {tech.name} is on the way (ETA: {tech.eta || '8 mins'} • {tech.distanceKm || '1.8 km'}).
+                    </Alert>
+                  </Box>
+                ) : bookingStatus === 'preparing' ? (
+                  <Box sx={{ mb: 2 }}>
+                    <Alert
+                      severity="info"
+                      icon={<BuildIcon sx={{ fontSize: 18 }} />}
+                      sx={{ borderRadius: '8px', fontWeight: 600, bgcolor: '#F0FDF4', color: '#166534', border: '1px solid #BBF7D0', fontSize: '12.5px' }}
+                    >
+                      {tech?.name || 'Technician'} is preparing tools to depart.
+                    </Alert>
                   </Box>
                 ) : (
-                  <Box>
-                    <Typography variant="body2" sx={{ color: '#334155', fontSize: '12px', mb: 1.2, lineHeight: 1.4 }}>
-                      <strong>For your family's safety:</strong> When the technician arrives at your door, ask them: <em>"What is your Shazu One Verification PIN?"</em> Enter their 4-digit reply below before opening the door or letting them in.
-                    </Typography>
-
-                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 1 }}>
-                      <input
-                        type="text"
-                        maxLength="4"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        placeholder="Type Tech's 4-digit PIN"
-                        value={enteredTechOtp}
-                        onChange={(e) => {
-                          const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 4);
-                          setEnteredTechOtp(val);
-                          if (techOtpError) setTechOtpError('');
-                        }}
-                        style={{
-                          flex: 1,
-                          padding: '8px 12px',
-                          fontSize: '16px',
-                          fontWeight: '800',
-                          letterSpacing: '3px',
-                          textAlign: 'center',
-                          borderRadius: '6px',
-                          border: techOtpError ? '1.5px solid #EF4444' : '1.5px solid #2563EB',
-                          outline: 'none',
-                          backgroundColor: '#FFFFFF',
-                          color: '#0F172A'
-                        }}
-                      />
-                      <Button
-                        variant="contained"
-                        disabled={isVerifyingTechOtp || enteredTechOtp.length !== 4}
-                        onClick={handleVerifyTechnicianOtp}
-                        sx={{
-                          bgcolor: '#2563EB',
-                          color: '#FFFFFF',
-                          fontWeight: 700,
-                          fontSize: '12px',
-                          textTransform: 'none',
-                          borderRadius: '6px',
-                          py: 1,
-                          px: 2,
-                          '&:hover': { bgcolor: '#1D4ED8' }
-                        }}
-                      >
-                        {isVerifyingTechOtp ? 'Verifying...' : 'Verify & Let In (அனுமதி) '}
-                      </Button>
-                    </Box>
-
-                    {techOtpError && (
-                      <Alert severity="error" sx={{ mt: 1, py: 0.2, fontSize: '11.5px', borderRadius: '6px' }}>
-                        {techOtpError}
-                      </Alert>
-                    )}
+                  /* When bookingStatus is 'accepted' or 'assigned': Tech has accepted, getting ready */
+                  <Box sx={{ mb: 2 }}>
+                    <Alert
+                      severity="success"
+                      icon={<CheckCircleIcon sx={{ fontSize: 20 }} />}
+                      sx={{ borderRadius: '8px', fontWeight: 700, bgcolor: '#F0FDF4', color: '#166534', border: '1px solid #BBF7D0', fontSize: '13px' }}
+                    >
+                      {tech.name} accepted your booking. Preparing to depart.
+                    </Alert>
                   </Box>
                 )}
-              </Paper>
-            )}
 
-            {/* 2. Technician Profile Card */}
-            <Card
-              elevation={0}
-              sx={{
-                bgcolor: '#FFFFFF',
-                border: '1px solid #E2E8F0',
-                borderRadius: '8px',
-                p: 2,
-                mb: 2
-              }}
-            >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
-                <Box sx={{ display: 'flex', gap: 1.2, alignItems: 'center' }}>
-                  <Box
+
+
+
+
+                {/* Diagnostic Inspection Active Notice (when tech is inspecting) */}
+                {bookingStatus === 'inspecting' && (
+                  <Card
+                    elevation={0}
                     sx={{
-                      width: 44,
-                      height: 44,
-                      borderRadius: '8px',
-                      bgcolor: '#EFF6FF',
-                      color: '#2563EB',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0
+                      p: 1.5,
+                      bgcolor: '#FFFBEB',
+                      border: '1.5px solid #FCD34D',
+                      borderRadius: '12px',
+                      mb: 2
                     }}
                   >
-                    <EngineeringIcon sx={{ fontSize: 24 }} />
-                  </Box>
-
-                  <Box>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '14px', lineHeight: 1.2 }}>
-                      {tech.name}
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: '#64748B', fontSize: '11.5px' }}>
-                      Certified Partner • {tech.primaryTrade?.toUpperCase() || 'TECHNICIAN'}
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.3 }}>
-                      {Number(tech.jobsCompleted) > 0 && Number(tech.rating) > 0 ? (
-                        <>
-                          <StarIcon sx={{ color: '#D97706', fontSize: 14 }} />
-                          <Typography variant="caption" sx={{ fontWeight: 600, color: '#0F172A', fontSize: '11.5px' }}>
-                            {tech.rating}
-                          </Typography>
-                          <Typography variant="caption" sx={{ color: '#2563EB', fontWeight: 500, fontSize: '11px' }}>
-                            ({tech.jobsCompleted} jobs)
-                          </Typography>
-                        </>
-                      ) : (
-                        <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 600, fontSize: '11px' }}>
-                          New Partner • {Number(tech.jobsCompleted) || 0} jobs completed
-                        </Typography>
-                      )}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#D97706', animation: 'pulse 1.5s infinite' }} />
+                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#92400E', fontSize: '13px' }}>
+                        Diagnostic Inspection in Progress
+                      </Typography>
                     </Box>
-                  </Box>
-                </Box>
+                  </Card>
+                )}
 
-                <Chip
-                  icon={<CheckCircleIcon sx={{ color: '#16A34A !important', fontSize: 13 }} />}
-                  label="Govt KYC"
-                  size="small"
-                  sx={{ bgcolor: '#F0FDF4', color: '#166534', fontWeight: 600, fontSize: '10px', height: 20, borderRadius: '4px' }}
-                />
-              </Box>
-
-              {/* Action Buttons: Chat & Call */}
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <Button
-                  variant="outlined"
-                  fullWidth
-                  startIcon={<ChatBubbleOutlineIcon sx={{ fontSize: 16 }} />}
-                  onClick={() => navigate(`/chat/${bookingId}`)}
-                  sx={{
-                    borderColor: '#CBD5E1',
-                    color: '#334155',
-                    borderRadius: '6px',
-                    py: 0.8,
-                    fontWeight: 600,
-                    fontSize: '12.5px',
-                    textTransform: 'none',
-                    '&:hover': { borderColor: '#94A3B8', bgcolor: '#F8FAFC' }
-                  }}
-                >
-                  Masked chat
-                </Button>
-
-                <Button
-                  variant="contained"
-                  fullWidth
-                  startIcon={<PhoneIcon sx={{ fontSize: 16 }} />}
-                  onClick={() => handlePhoneCall()}
-                  sx={{
-                    bgcolor: isDirectCallAllowed ? '#2563EB' : '#0F172A',
-                    borderRadius: '6px',
-                    py: 0.8,
-                    fontWeight: 600,
-                    fontSize: '12.5px',
-                    textTransform: 'none',
-                    '&:hover': { bgcolor: isDirectCallAllowed ? '#1D4ED8' : '#1E293B' }
-                  }}
-                >
-                  {isDirectCallAllowed ? 'Call Specialist' : 'Call Ops Desk'}
-                </Button>
-              </Box>
-              {/* 2-Part Payment Status Info */}
-              <Box sx={{ bgcolor: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '8px', p: 1.2, mt: 1.5 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography variant="caption" sx={{ color: '#166534', fontWeight: 700, fontSize: '11.5px' }}>
-                    Part 1 (Visit & Travel Fee): <strong>₹99 Paid</strong>
-                  </Typography>
-                  <Chip label="100% to Tech" size="small" sx={{ bgcolor: '#DCFCE7', color: '#15803D', fontWeight: 800, fontSize: '9.5px', height: 18 }} />
-                </Box>
-                <Typography variant="caption" sx={{ color: '#15803D', fontSize: '10.5px', display: 'block', mt: 0.3 }}>
-                  Part 2 (Repair quote) will be itemized only after physical inspection.
-                </Typography>
-              </Box>
-            </Card>
-
-
-
-            {/* 3. Dynamic Action Button based on Lifecycle Stage */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
-              {bookingStatus === 'quote_presented' ? (
-                <Button
-                  variant="contained"
-                  fullWidth
-                  size="large"
-                  endIcon={<ArrowForwardIcon sx={{ fontSize: 18 }} />}
-                  onClick={() => navigate(`/quote?bookingId=${bookingId}`)}
-                  sx={{
-                    bgcolor: '#0284C7',
-                    color: '#FFFFFF',
-                    borderRadius: '8px',
-                    py: 1.4,
-                    fontWeight: 800,
-                    fontSize: '14px',
-                    textTransform: 'none',
-                    boxShadow: '0 4px 14px rgba(2, 132, 199, 0.4)',
-                    '&:hover': { bgcolor: '#0369A1' }
-                  }}
-                >
-                  Review Digital Estimate & Job Card (₹900.00) →
-                </Button>
-              ) : bookingStatus === 'arrived' ? (
-                <Button
-                  variant="contained"
-                  fullWidth
-                  size="large"
-                  onClick={() => {
-                    const el = document.getElementById('doorstep-otp-card');
-                    if (el) el.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                  sx={{
-                    bgcolor: '#2563EB',
-                    color: '#FFFFFF',
-                    borderRadius: '8px',
-                    py: 1.3,
-                    fontWeight: 800,
-                    fontSize: '13.5px',
-                    textTransform: 'none',
-                    boxShadow: '0 4px 12px rgba(37,99,235,0.25)',
-                    '&:hover': { bgcolor: '#1D4ED8' }
-                  }}
-                >
-                  Tech Arrived • Verify Doorstep PIN Below ↓
-                </Button>
-              ) : bookingStatus === 'inspecting' ? (
-                <Button
-                  variant="contained"
-                  fullWidth
-                  size="large"
-                  disabled
-                  sx={{
-                    bgcolor: '#FFFBEB !important',
-                    color: '#92400E !important',
-                    border: '1.5px solid #FCD34D',
-                    borderRadius: '8px',
-                    py: 1.3,
-                    fontWeight: 700,
-                    fontSize: '13.5px',
-                    textTransform: 'none'
-                  }}
-                >
-                  Diagnosis in Progress • Quote arriving shortly...
-                </Button>
-              ) : bookingStatus === 'completed' ? (
-                <Button
-                  variant="contained"
-                  fullWidth
-                  size="large"
-                  startIcon={<StarIcon sx={{ fontSize: 20 }} />}
-                  onClick={() => {
-                    const el = document.getElementById('service-review-card');
-                    if (el) {
-                      el.scrollIntoView({ behavior: 'smooth' });
-                    } else {
-                      navigate('/history');
-                    }
-                  }}
-                  sx={{
-                    bgcolor: '#16A34A',
-                    color: '#FFFFFF',
-                    borderRadius: '8px',
-                    py: 1.4,
-                    fontWeight: 800,
-                    fontSize: '14px',
-                    textTransform: 'none',
-                    boxShadow: '0 4px 14px rgba(22, 163, 74, 0.3)',
-                    '&:hover': { bgcolor: '#15803D' }
-                  }}
-                >
-                  Rate Service & View Receipt (ரசீது) →
-                </Button>
-              ) : bookingStatus === 'quote_approved' ? (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  {/* Customer Exclusive Mark Job Complete Button */}
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    size="large"
-                    startIcon={<CheckCircleIcon sx={{ fontSize: 18 }} />}
-                    onClick={() => setConfirmCompletionModalOpen(true)}
+                {/* Quote Presented Notification & Direct Review Card */}
+                {bookingStatus === 'quote_presented' && (
+                  <Card
+                    elevation={2}
                     sx={{
-                      bgcolor: '#16A34A',
-                      color: '#FFFFFF',
-                      borderRadius: '8px',
-                      py: 1.4,
-                      fontWeight: 800,
-                      fontSize: '14px',
-                      textTransform: 'none',
-                      boxShadow: '0 4px 14px rgba(22, 163, 74, 0.35)',
-                      '&:hover': { bgcolor: '#15803D' }
+                      bgcolor: '#FFFFFF',
+                      border: '2px solid #0284C7',
+                      borderRadius: '10px',
+                      p: 2,
+                      mb: 2,
+                      boxShadow: '0 4px 20px rgba(2, 132, 199, 0.15)'
                     }}
                   >
-                    Mark Job Completed & Confirm Service (வேலை முடிந்தது)
-                  </Button>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                        <ReceiptLongIcon sx={{ color: '#0284C7', fontSize: 22 }} />
+                        <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '14px' }}>
+                          Diagnostic Estimate Ready
+                        </Typography>
+                      </Box>
+                      <Chip
+                        label={`₹${trackData?.booking?.quote_subtotal ? parseFloat(trackData.booking.quote_subtotal).toFixed(2) : '900.00'}`}
+                        size="small"
+                        sx={{ bgcolor: '#0284C7', color: '#FFF', fontWeight: 800, fontSize: '12px' }}
+                      />
+                    </Box>
+                    <Typography variant="body2" sx={{ color: '#475569', fontSize: '12px', mb: 1.5, lineHeight: 1.4 }}>
+                      {tech.name} sent the repair quote. Review items and approve to begin work.
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      fullWidth
+                      endIcon={<ArrowForwardIcon sx={{ fontSize: 16 }} />}
+                      onClick={() => navigate(`/quote?bookingId=${bookingId}`)}
+                      sx={{ bgcolor: '#0284C7', color: '#FFF', borderRadius: '8px', py: 1.1, fontWeight: 800, fontSize: '13px', textTransform: 'none', '&:hover': { bgcolor: '#0369A1' } }}
+                    >
+                      Review Digital Estimate & Job Card →
+                    </Button>
+                  </Card>
+                )}
 
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    size="large"
-                    onClick={() => navigate(`/checkout?bookingId=${bookingId}`)}
+                {/* Doorstep Start / Completion Confirmation OTP Card */}
+                {bookingStatus !== 'completed' && (
+                  <Paper
+                    id="doorstep-otp-card"
+                    elevation={0}
                     sx={{
-                      borderColor: '#0F172A',
-                      color: '#0F172A',
-                      borderRadius: '8px',
-                      py: 1.2,
-                      fontWeight: 700,
-                      fontSize: '13px',
-                      textTransform: 'none',
-                      '&:hover': { bgcolor: '#F8FAFC' }
+                      p: 2,
+                      bgcolor: isInspectingOrArrived
+                        ? '#F0FDF4'
+                        : (bookingStatus === 'quote_approved' ? '#F0FDF4' : (bookingStatus === 'arrived' ? '#FEFCE8' : '#F8FAFC')),
+                      border: isInspectingOrArrived
+                        ? '1.5px solid #86EFAC'
+                        : (bookingStatus === 'quote_approved' ? '1.5px solid #86EFAC' : (bookingStatus === 'arrived' ? '1.5px solid #FDE047' : '1.5px solid #CBD5E1')),
+                      borderRadius: '10px',
+                      mb: 2,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
                     }}
                   >
-                    Pay Final Bill Online (கட்டணம் செலுத்துக) →
-                  </Button>
-                  <Typography variant="caption" sx={{ color: '#475569', textAlign: 'center', fontWeight: 600, fontSize: '11.5px' }}>
-                    Inspect the appliance work and confirm completion. Payment settlement to technician requires Admin confirmation.
-                  </Typography>
-                </Box>
-              ) : bookingStatus === 'en_route' ? (
-                <Button
-                  variant="contained"
-                  fullWidth
-                  size="large"
-                  disabled
-                  sx={{
-                    bgcolor: '#F1F5F9 !important',
-                    color: '#64748B !important',
-                    border: '1px solid #CBD5E1',
-                    borderRadius: '8px',
-                    py: 1.3,
-                    fontWeight: 600,
-                    fontSize: '13.5px',
-                    textTransform: 'none'
-                  }}
-                >
-                  Technician En Route • Share OTP {trackData?.booking?.customer_otp || trackData?.booking?.customerOtp || '----'} at Doorstep
-                </Button>
-              ) : (
-                <Button
-                  variant="contained"
-                  fullWidth
-                  size="large"
-                  disabled
-                  sx={{
-                    bgcolor: '#F0FDF4 !important',
-                    color: '#166534 !important',
-                    border: '1px solid #BBF7D0',
-                    borderRadius: '8px',
-                    py: 1.3,
-                    fontWeight: 700,
-                    fontSize: '13.5px',
-                    textTransform: 'none'
-                  }}
-                >
-                  Technician Accepted • Preparing Departure (Call or Chat active)
-                </Button>
-              )}
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                        <ShieldIcon sx={{ color: (isInspectingOrArrived || bookingStatus === 'quote_approved') ? '#16A34A' : '#2563EB', fontSize: 18 }} />
+                        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '13px' }}>
+                          {bookingStatus === 'quote_approved'
+                            ? 'Repair Work in Progress (வேலை நடைபெறுகிறது)'
+                            : (isInspectingOrArrived
+                              ? 'Technician Verified & Allowed Entry '
+                              : 'Doorstep Safety Verification (பாதுகாப்பு சரிபார்ப்பு)')}
+                        </Typography>
+                      </Box>
 
-              {/* Cancellation Policy Safeguard: Once Quote is Approved and Parts Purchased, Self-Cancel is Disabled */}
-              {bookingStatus === 'quote_approved' ? (
-                <Paper
+                      <Chip
+                        label={
+                          bookingStatus === 'quote_approved'
+                            ? 'Work in Progress'
+                            : (isInspectingOrArrived
+                              ? 'Verified & In Home'
+                              : (bookingStatus === 'arrived' ? 'Tech at Doorstep - Ask PIN' : 'Ask Tech for PIN'))
+                        }
+                        size="small"
+                        sx={{
+                          bgcolor: (isInspectingOrArrived || bookingStatus === 'quote_approved') ? '#DCFCE7' : (bookingStatus === 'arrived' ? '#FEF3C7' : '#EFF6FF'),
+                          color: (isInspectingOrArrived || bookingStatus === 'quote_approved') ? '#166534' : (bookingStatus === 'arrived' ? '#92400E' : '#1D4ED8'),
+                          fontWeight: 800,
+                          fontSize: '10.5px'
+                        }}
+                      />
+                    </Box>
+
+                    {bookingStatus === 'arrived' && !isInspectingOrArrived && (
+                      <Alert severity="info" sx={{ mb: 1.2, py: 0.6, bgcolor: '#EFF6FF', color: '#1E40AF', border: '1px solid #BFDBFE', borderRadius: '6px', fontSize: '11.5px', fontWeight: 600 }}>
+                        Ask technician for their 4-digit PIN to confirm arrival.
+                      </Alert>
+                    )}
+
+                    {(isInspectingOrArrived && bookingStatus !== 'quote_approved') ? (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: '#FFFFFF', p: 1.2, borderRadius: '8px', border: '1px solid #BBF7D0' }}>
+                        <CheckCircleIcon sx={{ color: '#16A34A', fontSize: 20 }} />
+                        <Typography variant="body2" sx={{ color: '#14532D', fontSize: '12.5px', fontWeight: 700 }}>
+                          Technician Verified & Inspecting
+                        </Typography>
+                      </Box>
+                    ) : bookingStatus === 'quote_approved' ? (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: '#FFFFFF', p: 1.2, borderRadius: '8px', border: '1px solid #BBF7D0' }}>
+                        <CheckCircleIcon sx={{ color: '#16A34A', fontSize: 20 }} />
+                        <Typography variant="body2" sx={{ color: '#14532D', fontSize: '12.5px', fontWeight: 700 }}>
+                          Repair in Progress • Payment Secured
+                        </Typography>
+                      </Box>
+                    ) : (
+                      <Box>
+                        <Typography variant="body2" sx={{ color: '#334155', fontSize: '12px', mb: 1, lineHeight: 1.35 }}>
+                          Enter the technician's 4-digit PIN when they arrive:
+                        </Typography>
+
+                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 1 }}>
+                          <input
+                            type="text"
+                            maxLength="4"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            placeholder="Type Tech's 4-digit PIN"
+                            value={enteredTechOtp}
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 4);
+                              setEnteredTechOtp(val);
+                              if (techOtpError) setTechOtpError('');
+                            }}
+                            style={{
+                              flex: 1,
+                              padding: '8px 12px',
+                              fontSize: '16px',
+                              fontWeight: '800',
+                              letterSpacing: '3px',
+                              textAlign: 'center',
+                              borderRadius: '6px',
+                              border: techOtpError ? '1.5px solid #EF4444' : '1.5px solid #2563EB',
+                              outline: 'none',
+                              backgroundColor: '#FFFFFF',
+                              color: '#0F172A'
+                            }}
+                          />
+                          <Button
+                            variant="contained"
+                            disabled={isVerifyingTechOtp || enteredTechOtp.length !== 4}
+                            onClick={handleVerifyTechnicianOtp}
+                            sx={{
+                              bgcolor: '#2563EB',
+                              color: '#FFFFFF',
+                              fontWeight: 700,
+                              fontSize: '12px',
+                              textTransform: 'none',
+                              borderRadius: '6px',
+                              py: 1,
+                              px: 2,
+                              '&:hover': { bgcolor: '#1D4ED8' }
+                            }}
+                          >
+                            {isVerifyingTechOtp ? 'Verifying...' : 'Verify & Let In (அனுமதி) '}
+                          </Button>
+                        </Box>
+
+                        {techOtpError && (
+                          <Alert severity="error" sx={{ mt: 1, py: 0.2, fontSize: '11.5px', borderRadius: '6px' }}>
+                            {techOtpError}
+                          </Alert>
+                        )}
+                      </Box>
+                    )}
+                  </Paper>
+                )}
+
+                {/* 2. Technician Profile Card */}
+                <Card
                   elevation={0}
                   sx={{
-                    p: 1.5,
-                    bgcolor: '#FEF3C7',
-                    border: '1px dashed #D97706',
+                    bgcolor: '#FFFFFF',
+                    border: '1px solid #E2E8F0',
                     borderRadius: '8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: 1
+                    p: 2,
+                    mb: 2
                   }}
                 >
-                  <Box>
-                    <Typography variant="caption" sx={{ fontWeight: 800, color: '#92400E', display: 'block', fontSize: '11.5px' }}>
-                      OEM Parts Purchased & Service Authorized
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: '#B45309', fontSize: '10.5px' }}>
-                      Self-cancellation is locked to protect technician parts procurement. For emergency assistance:
-                    </Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
+                    <Box sx={{ display: 'flex', gap: 1.2, alignItems: 'center' }}>
+                      <Box
+                        sx={{
+                          width: 44,
+                          height: 44,
+                          borderRadius: '8px',
+                          bgcolor: '#EFF6FF',
+                          color: '#2563EB',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0
+                        }}
+                      >
+                        <EngineeringIcon sx={{ fontSize: 24 }} />
+                      </Box>
+
+                      <Box>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '14px', lineHeight: 1.2 }}>
+                          {tech.name}
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: '#64748B', fontSize: '11.5px' }}>
+                          Certified Partner • {tech.primaryTrade?.toUpperCase() || 'TECHNICIAN'}
+                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.3 }}>
+                          {Number(tech.jobsCompleted) > 0 && Number(tech.rating) > 0 ? (
+                            <>
+                              <StarIcon sx={{ color: '#D97706', fontSize: 14 }} />
+                              <Typography variant="caption" sx={{ fontWeight: 600, color: '#0F172A', fontSize: '11.5px' }}>
+                                {tech.rating}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: '#2563EB', fontWeight: 500, fontSize: '11px' }}>
+                                ({tech.jobsCompleted} jobs)
+                              </Typography>
+                            </>
+                          ) : (
+                            <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 600, fontSize: '11px' }}>
+                              New Partner • {Number(tech.jobsCompleted) || 0} jobs completed
+                            </Typography>
+                          )}
+                        </Box>
+                      </Box>
+                    </Box>
+
+                    <Chip
+                      icon={<CheckCircleIcon sx={{ color: '#16A34A !important', fontSize: 13 }} />}
+                      label="Govt KYC"
+                      size="small"
+                      sx={{ bgcolor: '#F0FDF4', color: '#166534', fontWeight: 600, fontSize: '10px', height: 20, borderRadius: '4px' }}
+                    />
                   </Box>
+
+                  {/* Action Button: Chat */}
                   <Button
-                    size="small"
                     variant="outlined"
-                    startIcon={<PhoneIcon sx={{ fontSize: 13 }} />}
-                    onClick={() => handlePhoneCall(true)}
+                    fullWidth
+                    startIcon={<ChatBubbleOutlineIcon sx={{ fontSize: 16 }} />}
+                    onClick={() => navigate(`/chat/${bookingId}`)}
                     sx={{
-                      borderColor: '#D97706',
-                      color: '#92400E',
+                      borderColor: '#CBD5E1',
+                      color: '#334155',
                       borderRadius: '6px',
-                      fontSize: '11px',
-                      fontWeight: 800,
+                      py: 0.85,
+                      fontWeight: 600,
+                      fontSize: '12.5px',
                       textTransform: 'none',
-                      whiteSpace: 'nowrap',
-                      '&:hover': { bgcolor: '#FDE68A' }
+                      '&:hover': { borderColor: '#94A3B8', bgcolor: '#F8FAFC' }
                     }}
                   >
-                    Call Ops Desk
+                    Chat with Technician
                   </Button>
-                </Paper>
-              ) : bookingStatus !== 'completed' ? (
-                /* Cancel Button in Active Tracking (Available before quote approval) */
-                <Button
-                  variant="outlined"
-                  fullWidth
-                  startIcon={<CancelOutlinedIcon sx={{ fontSize: 16 }} />}
-                  onClick={() => navigate(`/booking/${bookingId}/cancel`)}
-                  sx={{
-                    borderColor: '#FECACA',
-                    color: '#DC2626',
-                    borderRadius: '8px',
-                    py: 1,
-                    fontWeight: 600,
-                    fontSize: '12.5px',
-                    textTransform: 'none',
-                    bgcolor: '#FFF',
-                    '&:hover': { bgcolor: '#FEF2F2', borderColor: '#F87171' }
-                  }}
-                >
-                  Cancel booking request
-                </Button>
-              ) : null}
-            </Box>
+                  {/* 2-Part Payment Status Info */}
+                  <Box sx={{ bgcolor: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '8px', p: 1.2, mt: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="caption" sx={{ color: '#166534', fontWeight: 700, fontSize: '11.5px' }}>
+                      Visit Fee: <strong>₹99 Paid</strong>
+                    </Typography>
+                    <Chip label="100% to Tech" size="small" sx={{ bgcolor: '#DCFCE7', color: '#15803D', fontWeight: 800, fontSize: '9.5px', height: 18 }} />
+                  </Box>
+                </Card>
+
+
+
+                {/* 3. Dynamic Action Button based on Lifecycle Stage */}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
+                  {bookingStatus === 'quote_presented' ? (
+                    <Button
+                      variant="contained"
+                      fullWidth
+                      size="large"
+                      endIcon={<ArrowForwardIcon sx={{ fontSize: 18 }} />}
+                      onClick={() => navigate(`/quote?bookingId=${bookingId}`)}
+                      sx={{
+                        bgcolor: '#0284C7',
+                        color: '#FFFFFF',
+                        borderRadius: '8px',
+                        py: 1.4,
+                        fontWeight: 800,
+                        fontSize: '14px',
+                        textTransform: 'none',
+                        boxShadow: '0 4px 14px rgba(2, 132, 199, 0.4)',
+                        '&:hover': { bgcolor: '#0369A1' }
+                      }}
+                    >
+                      Review Digital Estimate & Job Card (₹900.00) →
+                    </Button>
+                  ) : bookingStatus === 'arrived' ? (
+                    <Button
+                      variant="contained"
+                      fullWidth
+                      size="large"
+                      onClick={() => {
+                        const el = document.getElementById('doorstep-otp-card');
+                        if (el) el.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                      sx={{
+                        bgcolor: '#2563EB',
+                        color: '#FFFFFF',
+                        borderRadius: '8px',
+                        py: 1.3,
+                        fontWeight: 800,
+                        fontSize: '13.5px',
+                        textTransform: 'none',
+                        boxShadow: '0 4px 12px rgba(37,99,235,0.25)',
+                        '&:hover': { bgcolor: '#1D4ED8' }
+                      }}
+                    >
+                      Tech Arrived • Verify Doorstep PIN Below ↓
+                    </Button>
+                  ) : bookingStatus === 'inspecting' ? (
+                    <Button
+                      variant="contained"
+                      fullWidth
+                      size="large"
+                      disabled
+                      sx={{
+                        bgcolor: '#FFFBEB !important',
+                        color: '#92400E !important',
+                        border: '1.5px solid #FCD34D',
+                        borderRadius: '8px',
+                        py: 1.3,
+                        fontWeight: 700,
+                        fontSize: '13.5px',
+                        textTransform: 'none'
+                      }}
+                    >
+                      Diagnosis in Progress • Quote arriving shortly...
+                    </Button>
+                  ) : bookingStatus === 'completed' ? (
+                    <Button
+                      variant="contained"
+                      fullWidth
+                      size="large"
+                      startIcon={<StarIcon sx={{ fontSize: 20 }} />}
+                      onClick={() => {
+                        const el = document.getElementById('service-review-card');
+                        if (el) {
+                          el.scrollIntoView({ behavior: 'smooth' });
+                        } else {
+                          navigate('/history');
+                        }
+                      }}
+                      sx={{
+                        bgcolor: '#16A34A',
+                        color: '#FFFFFF',
+                        borderRadius: '8px',
+                        py: 1.4,
+                        fontWeight: 800,
+                        fontSize: '14px',
+                        textTransform: 'none',
+                        boxShadow: '0 4px 14px rgba(22, 163, 74, 0.3)',
+                        '&:hover': { bgcolor: '#15803D' }
+                      }}
+                    >
+                      Rate Service & View Receipt (ரசீது) →
+                    </Button>
+                  ) : bookingStatus === 'quote_approved' ? (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      {/* Customer Exclusive Mark Job Complete Button */}
+                      <Button
+                        variant="contained"
+                        fullWidth
+                        size="large"
+                        startIcon={<CheckCircleIcon sx={{ fontSize: 18 }} />}
+                        onClick={() => setConfirmCompletionModalOpen(true)}
+                        sx={{
+                          bgcolor: '#16A34A',
+                          color: '#FFFFFF',
+                          borderRadius: '8px',
+                          py: 1.4,
+                          fontWeight: 800,
+                          fontSize: '14px',
+                          textTransform: 'none',
+                          boxShadow: '0 4px 14px rgba(22, 163, 74, 0.35)',
+                          '&:hover': { bgcolor: '#15803D' }
+                        }}
+                      >
+                        Mark Job Completed & Confirm Service (வேலை முடிந்தது)
+                      </Button>
+
+                      <Button
+                        variant="outlined"
+                        fullWidth
+                        size="large"
+                        onClick={() => navigate(`/checkout?bookingId=${bookingId}`)}
+                        sx={{
+                          borderColor: '#0F172A',
+                          color: '#0F172A',
+                          borderRadius: '8px',
+                          py: 1.2,
+                          fontWeight: 700,
+                          fontSize: '13px',
+                          textTransform: 'none',
+                          '&:hover': { bgcolor: '#F8FAFC' }
+                        }}
+                      >
+                        Pay Final Bill Online (கட்டணம் செலுத்துக) →
+                      </Button>
+                      <Typography variant="caption" sx={{ color: '#475569', textAlign: 'center', fontWeight: 600, fontSize: '11.5px' }}>
+                        Inspect work and confirm completion.
+                      </Typography>
+                    </Box>
+                  ) : bookingStatus === 'en_route' ? (
+                    <Button
+                      variant="contained"
+                      fullWidth
+                      size="large"
+                      disabled
+                      sx={{
+                        bgcolor: '#F1F5F9 !important',
+                        color: '#64748B !important',
+                        border: '1px solid #CBD5E1',
+                        borderRadius: '8px',
+                        py: 1.3,
+                        fontWeight: 600,
+                        fontSize: '13.5px',
+                        textTransform: 'none'
+                      }}
+                    >
+                      Technician En Route • Doorstep OTP {trackData?.booking?.customer_otp || trackData?.booking?.customerOtp || '----'}
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="contained"
+                      fullWidth
+                      size="large"
+                      disabled
+                      sx={{
+                        bgcolor: '#F0FDF4 !important',
+                        color: '#166534 !important',
+                        border: '1px solid #BBF7D0',
+                        borderRadius: '8px',
+                        py: 1.3,
+                        fontWeight: 700,
+                        fontSize: '13.5px',
+                        textTransform: 'none'
+                      }}
+                    >
+                      Technician Assigned • Preparing Departure
+                    </Button>
+                  )}
+
+                  {/* Cancellation locked after quote approval */}
+                  {bookingStatus === 'quote_approved' ? (
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 1.2,
+                        bgcolor: '#FEF3C7',
+                        border: '1px solid #FDE68A',
+                        borderRadius: '8px'
+                      }}
+                    >
+                      <Typography variant="caption" sx={{ fontWeight: 700, color: '#92400E', display: 'block', fontSize: '11.5px' }}>
+                        Service authorized — cancellation is locked while repair is in progress.
+                      </Typography>
+                    </Paper>
+                  ) : bookingStatus !== 'completed' ? (
+                    /* Cancel Button in Active Tracking (Available before quote approval) */
+                    <Button
+                      variant="outlined"
+                      fullWidth
+                      startIcon={<CancelOutlinedIcon sx={{ fontSize: 16 }} />}
+                      onClick={() => navigate(`/booking/${bookingId}/cancel`)}
+                      sx={{
+                        borderColor: '#FECACA',
+                        color: '#DC2626',
+                        borderRadius: '8px',
+                        py: 1,
+                        fontWeight: 600,
+                        fontSize: '12.5px',
+                        textTransform: 'none',
+                        bgcolor: '#FFF',
+                        '&:hover': { bgcolor: '#FEF2F2', borderColor: '#F87171' }
+                      }}
+                    >
+                      Cancel booking request
+                    </Button>
+                  ) : null}
+                </Box>
+              </>
+            )}
           </>
         )}
-      </>
-    )}
 
       </Container>
 
@@ -2308,7 +1879,7 @@ export default function TrackingPage() {
       {/* Customer Job Completion & Rating Dialog */}
       <Dialog
         open={confirmCompletionModalOpen}
-        onClose={() => !isReleasingEscrow && setConfirmCompletionModalOpen(false)}
+        onClose={() => !isReleasingPayment && setConfirmCompletionModalOpen(false)}
         maxWidth="xs"
         fullWidth
         PaperProps={{ sx: { borderRadius: '16px', p: 1 } }}
@@ -2352,7 +1923,7 @@ export default function TrackingPage() {
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button
             onClick={() => setConfirmCompletionModalOpen(false)}
-            disabled={isReleasingEscrow}
+            disabled={isReleasingPayment}
             sx={{ color: '#64748B', textTransform: 'none', fontWeight: 600 }}
           >
             Not Yet
@@ -2360,7 +1931,7 @@ export default function TrackingPage() {
           <Button
             variant="contained"
             onClick={handleCustomerCompleteJob}
-            disabled={isReleasingEscrow}
+            disabled={isReleasingPayment}
             sx={{
               bgcolor: '#16A34A',
               color: '#FFFFFF',
@@ -2370,7 +1941,7 @@ export default function TrackingPage() {
               '&:hover': { bgcolor: '#15803D' }
             }}
           >
-            {isReleasingEscrow ? 'Confirming...' : 'Confirm Work Completed'}
+            {isReleasingPayment ? 'Confirming...' : 'Confirm Work Completed'}
           </Button>
         </DialogActions>
       </Dialog>

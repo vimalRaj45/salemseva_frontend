@@ -29,6 +29,9 @@ public class MainActivity extends BridgeActivity {
             WebView webView = this.bridge.getWebView();
             WebSettings settings = webView.getSettings();
             
+            // Lock WebView text zoom to 100% so Android system font scaling does not distort UI typography
+            settings.setTextZoom(100);
+
             // Enable storage, JavaScript popups, and multi-window support for 3D Secure / Razorpay
             settings.setDomStorageEnabled(true);
             settings.setJavaScriptCanOpenWindowsAutomatically(true);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { subscribeUserToPush } from '../../services/pushSubscription';
+import { getCoordsForLocalityName } from '../../utils/geoUtils';
 import {
   Container,
   Box,
@@ -31,7 +32,6 @@ import { useNavigate, useSearchParams, Navigate } from 'react-router-dom';
 
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import StarIcon from '@mui/icons-material/Star';
-import PhoneIcon from '@mui/icons-material/Phone';
 import InputAdornment from '@mui/material/InputAdornment';
 import MapIcon from '@mui/icons-material/Map';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
@@ -112,7 +112,7 @@ import { resolveMediaUrl } from '../../utils/mediaUtils';
 const isLeadInTechnicianLocalities = (lead, localities) => {
   if (!lead) return false;
   if (!localities || !Array.isArray(localities) || localities.length === 0) return true;
-  
+
   const leadLoc = String(lead.locality || '').toLowerCase().trim();
   const leadAddr = String(lead.address || lead.service_address || lead.serviceAddress || '').toLowerCase().trim();
 
@@ -179,7 +179,6 @@ export default function PartnerDutyPage() {
   }, [activeTech, navigate]);
 
   const partnerIncentiveAmount = parseFloat(rewardSettings?.partner_referral_incentive || 100);
-  const partnerWelcomeBonus = parseFloat(rewardSettings?.partner_welcome_bonus || 50);
   const livePartnerCommPercent = parseFloat(rewardSettings?.partner_commission_percent ?? rewardSettings?.platform_commission_percent ?? PARTNER_COMMISSION_PERCENT);
   const livePartnerPayoutPercent = Math.max(0, 100 - livePartnerCommPercent);
   const VERIFIED_TECHNICIANS = dbTechnicians || [];
@@ -218,9 +217,8 @@ export default function PartnerDutyPage() {
   };
 
   const handleShareTechWhatsApp = () => {
-    const bonusText = partnerWelcomeBonus > 0 ? ` + ₹${partnerWelcomeBonus} வெல்கம் போனஸ்` : '';
     const text = encodeURIComponent(
-      `வணக்கம் நண்பா! சேலத்தில் தினசரி ₹1,500+ சம்பாதிக்க Shazu One-வில் டெக்னீசியனாக இணையுங்கள். \n\nஎனது ரெஃபரல் கோட் *${techReferralCode}* பயன்படுத்தி உடனே இணையுங்கள் (அதிகபட்சம் ₹${partnerIncentiveAmount} வரை ஊக்கத்தொகை போனஸ்${bonusText} - தகுதி அடிப்படையில்): ${window.location.origin}/partner/onboarding`
+      `வணக்கம் நண்பா! சேலத்தில் தினசரி ₹1,500+ சம்பாதிக்க Shazu One-வில் டெக்னீசியனாக இணையுங்கள். \n\nஎனது ரெஃபரல் கோட் *${techReferralCode}* பயன்படுத்தி உடனே இணையுங்கள் (முதல் சர்வீஸ் முடித்த பின் ₹${partnerIncentiveAmount} வரை ஊக்கத்தொகை): ${window.location.origin}/partner/onboarding`
     );
     window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
   };
@@ -395,50 +393,17 @@ export default function PartnerDutyPage() {
   }); // 1: Incoming Feed | 2: Active Trip | 3: Diagnostic & Quote
 
   const [chatOpen, setChatOpen] = useState(false);
-  const [callOpen, setCallOpen] = useState(false);
-  const [isIncomingCall, setIsIncomingCall] = useState(false);
   const [incomingMessageToast, setIncomingMessageToast] = useState(null);
   const [selectedCommunicationJob, setSelectedCommunicationJob] = useState(null);
 
   const [activeJob, setActiveJob] = useState(null);
   const storedPartnerJob = localStorage.getItem('shazuone_partner_active_job');
   const storedActiveBooking = localStorage.getItem('shazuone_active_booking');
-  const activeBookingId = (activeJob?.id && activeJob.id !== 'null') 
-    ? activeJob.id 
-    : ((paramBookingId && paramBookingId !== 'null') 
-      ? paramBookingId 
+  const activeBookingId = (activeJob?.id && activeJob.id !== 'null')
+    ? activeJob.id
+    : ((paramBookingId && paramBookingId !== 'null')
+      ? paramBookingId
       : (storedPartnerJob || storedActiveBooking || 'SLM-84920'));
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('autoAnswer') === 'true') {
-      const bId = params.get('bookingId') || activeBookingId;
-      if (bId) navigate(`/call/${bId}?incoming=true&autoAnswer=true`);
-    }
-    const handleOpenActiveCall = (e) => {
-      const job = e?.detail;
-      const bId = job?.id || job?.bookingId || activeBookingId;
-      if (bId) navigate(`/call/${bId}?incoming=true`);
-    };
-    window.addEventListener('shazuone_open_active_call', handleOpenActiveCall);
-    return () => window.removeEventListener('shazuone_open_active_call', handleOpenActiveCall);
-  }, [activeBookingId, navigate]);
-
-  const handleOpenCall = (job) => {
-    const target = job || activeJob;
-    const isCompletedOrCancelled = ['completed', 'cancelled'].includes(target?.status);
-    if (isCompletedOrCancelled) {
-      window.location.href = 'tel:+918807099277';
-      return;
-    }
-    const rawPhone = target?.customerPhone || target?.customer_phone;
-    if (rawPhone && !String(rawPhone).includes('***')) {
-      const cleanDigits = String(rawPhone).replace(/[^0-9+]/g, '');
-      window.location.href = `tel:${cleanDigits}`;
-    } else {
-      window.location.href = 'tel:+918807099277';
-    }
-  };
 
   const handleOpenChat = (job) => {
     const target = job || activeJob;
@@ -454,16 +419,20 @@ export default function PartnerDutyPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [loadingMsg, setLoadingMsg] = useState({ title: '', subtitle: '' });
 
-  // Live GPS Transmitter & Location Permission State
+  // Locality-first Location State (GPS requested only once when navigating to an accepted job)
   const [isGpsBroadcasting, setIsGpsBroadcasting] = useState(false);
-  const [locationPermission, setLocationPermission] = useState('prompt'); // 'prompt' | 'granted' | 'denied'
-  const [locationModalOpen, setLocationModalOpen] = useState(false);
-  const [liveGps, setLiveGps] = useState({
-    lat: 11.6780,
-    lng: 78.1580,
-    speed: 26,
-    locality: 'Hasthampatti Main Rd, Salem'
-  });
+  const assignedLocalityCoords = getCoordsForLocalityName(
+    activeTechLocalities.length > 0
+      ? activeTechLocalities
+      : (activeTech?.serviceArea || user?.serviceArea || 'Fairlands, Salem')
+  );
+  const [liveGps, setLiveGps] = useState(() => ({
+    lat: assignedLocalityCoords.lat,
+    lng: assignedLocalityCoords.lng,
+    speed: 0,
+    locality: `${assignedLocalityCoords.localityName}, Salem`,
+    isLiveGps: false
+  }));
   const [completionOtp, setCompletionOtp] = useState('');
   const [otpVerified, setOtpVerified] = useState(false);
   const [arrivalOtp, setArrivalOtp] = useState('');
@@ -524,7 +493,7 @@ export default function PartnerDutyPage() {
       gain.connect(ctx.destination);
       osc.start();
       osc.stop(ctx.currentTime + 0.4);
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const todayDateISO = new Date().toISOString().split('T')[0];
@@ -618,10 +587,10 @@ export default function PartnerDutyPage() {
     const dayLabel = isToday
       ? 'TODAY'
       : isYesterday
-      ? 'YEST'
-      : isTomorrow
-      ? 'TOM'
-      : d.toLocaleDateString('en-IN', { weekday: 'short' }).toUpperCase();
+        ? 'YEST'
+        : isTomorrow
+          ? 'TOM'
+          : d.toLocaleDateString('en-IN', { weekday: 'short' }).toUpperCase();
 
     const monthLabel = d.toLocaleDateString('en-IN', { month: 'short' }).toUpperCase();
     const fullDateString = d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
@@ -655,7 +624,7 @@ export default function PartnerDutyPage() {
   const jobMatchesDate = (job, targetIso) => {
     if (!job || !targetIso) return false;
     const slotStr = String(job.scheduledSlot || job.scheduled_slot || job.scheduledDate || job.scheduled_date || job.slot || '');
-    
+
     // Direct ISO match (e.g., '2026-10-29')
     if (slotStr.includes(targetIso)) return true;
     if (job.scheduledDate === targetIso || job.scheduled_date === targetIso) return true;
@@ -855,95 +824,50 @@ export default function PartnerDutyPage() {
           speed
         })
       });
-    } catch (e) {}
+    } catch (e) { }
   };
 
-  // Explicit Location Permission Request Flow (Only triggered when going ON DUTY)
-  const requestLocationPermission = () => {
+  // Keep non-live location synced to the technician's registered Salem locality when online/idle
+  useEffect(() => {
+    setLiveGps((prev) => {
+      if (prev?.isLiveGps) return prev;
+      return {
+        lat: assignedLocalityCoords.lat,
+        lng: assignedLocalityCoords.lng,
+        speed: 0,
+        locality: `${assignedLocalityCoords.localityName}, Salem`,
+        isLiveGps: false
+      };
+    });
+  }, [assignedLocalityCoords.lat, assignedLocalityCoords.lng, assignedLocalityCoords.localityName]);
+
+  // One-time non-blocking location snapshot (invoked only when accepting/navigating to a customer job)
+  const captureOneTimeLocation = (timeoutMs = 5000) => {
     return new Promise((resolve) => {
       if (!navigator.geolocation) {
-        setLocationPermission('granted');
-        resolve(true);
+        resolve(null);
         return;
       }
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          setLocationPermission('granted');
           const coords = {
             lat: pos.coords.latitude,
             lng: pos.coords.longitude,
-            speed: Math.round((pos.coords.speed || 0) * 3.6) || 26,
-            locality: 'Live Device GPS (Salem)'
+            speed: Math.round((pos.coords.speed || 0) * 3.6) || 25,
+            locality: 'Current Location (GPS)',
+            isLiveGps: true
           };
           setLiveGps(coords);
           broadcastLocation(coords.lat, coords.lng, coords.speed);
-          setTechToast('Location access granted. Realtime GPS is active.');
-          resolve(true);
+          resolve(coords);
         },
-        (err) => {
-          console.warn('Location permission denied or prompt required:', err);
-          setLocationPermission('denied');
-          setLocationModalOpen(true);
-          resolve(false);
+        () => {
+          resolve(null);
         },
-        { enableHighAccuracy: true, timeout: 6000 }
+        { enableHighAccuracy: true, timeout: timeoutMs, maximumAge: 60000 }
       );
     });
   };
-
-  // Real-Time GPS Broadcasting Effect (STRICT: Automatically runs in background when Working Mode / Duty is ON)
-  useEffect(() => {
-    if (!isOnline) {
-      return;
-    }
-
-    // Default stable Salem position for technician (Hasthampatti / Saradha College zone)
-    const defaultSalemLat = step === 3 ? 11.6643 : (step === 2 ? 11.6740 : 11.6780);
-    const defaultSalemLng = step === 3 ? 78.1460 : (step === 2 ? 78.1540 : 78.1580);
-    const defaultLocality = step === 3 ? 'Customer Doorstep (Fairlands, Salem)' : (step === 2 ? 'En Route (Saradha College Rd, Salem)' : 'Hasthampatti, Salem');
-
-    let watchId = null;
-    if (navigator.geolocation && locationPermission === 'granted') {
-      // First get immediate position
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const lat = pos.coords.latitude;
-          const lng = pos.coords.longitude;
-          const speed = Math.round((pos.coords.speed || 0) * 3.6) || 0;
-          setLiveGps({ lat, lng, speed, locality: 'Live Device GPS (Salem)' });
-          broadcastLocation(lat, lng, speed);
-        },
-        () => {
-          setLiveGps({ lat: defaultSalemLat, lng: defaultSalemLng, speed: 0, locality: defaultLocality });
-          broadcastLocation(defaultSalemLat, defaultSalemLng, 0);
-        },
-        { enableHighAccuracy: true, timeout: 5000 }
-      );
-
-      // Watch for actual physical device movement
-      watchId = navigator.geolocation.watchPosition(
-        (pos) => {
-          const lat = pos.coords.latitude;
-          const lng = pos.coords.longitude;
-          const speed = Math.round((pos.coords.speed || 0) * 3.6) || 0;
-          setLiveGps({ lat, lng, speed, locality: 'Live Device GPS (Salem)' });
-          broadcastLocation(lat, lng, speed);
-        },
-        (err) => {},
-        { enableHighAccuracy: true, maximumAge: 10000 }
-      );
-    } else {
-      // Stable Salem position broadcast
-      setLiveGps({ lat: defaultSalemLat, lng: defaultSalemLng, speed: 0, locality: defaultLocality });
-      broadcastLocation(defaultSalemLat, defaultSalemLng, 0);
-    }
-
-    return () => {
-      if (watchId !== null && navigator.geolocation) {
-        navigator.geolocation.clearWatch(watchId);
-      }
-    };
-  }, [isOnline, locationPermission, step, user?.phone, user?.id]);
 
   // Payout & Settlement History state for Tab 1
   const [partnerJobs, setPartnerJobs] = useState([]);
@@ -1143,7 +1067,7 @@ export default function PartnerDutyPage() {
             }
           } else if (data.technician?.is_online === false) {
             // Check if there is an in-transit or on-site job in myScheduledJobs first before clearing
-            const scheduledInTransit = (data.myScheduledJobs || []).find(j => 
+            const scheduledInTransit = (data.myScheduledJobs || []).find(j =>
               ['en_route', 'arrived', 'inspecting', 'quote_presented', 'quote_approved', 'in_progress'].includes(j.status)
             );
             if (scheduledInTransit) {
@@ -1168,7 +1092,7 @@ export default function PartnerDutyPage() {
             }
           } else {
             // Check if there is an in-transit or on-site job in myScheduledJobs
-            const scheduledInTransit = (data.myScheduledJobs || []).find(j => 
+            const scheduledInTransit = (data.myScheduledJobs || []).find(j =>
               ['en_route', 'arrived', 'inspecting', 'quote_presented', 'quote_approved', 'in_progress'].includes(j.status)
             );
             if (scheduledInTransit) {
@@ -1300,7 +1224,7 @@ export default function PartnerDutyPage() {
               }
             }
           }
-        } catch (e) {}
+        } catch (e) { }
       } else {
         setTechToast(data.error || data.message || 'Could not claim this booking. Please try another.');
         await fetchScheduledLeads();
@@ -1364,8 +1288,9 @@ export default function PartnerDutyPage() {
       localStorage.setItem('shazuone_partner_step', '2');
       setActiveJob(data.booking || { id: jobId, status: 'en_route', technician_id: techId });
       setStep(2);
-      setTechToast('பயணம் தொடங்கியது! நேரலை GPS வழித்தடம் திறக்கப்பட்டது (Journey started! GPS live navigation active).');
-      broadcastLocation(liveGps.lat, liveGps.lng, 25);
+      setTechToast('பயணம் தொடங்கியது! வாடிக்கையாளர் முகவரி வழித்தடம் தயாராக உள்ளது (Trip started! Tap Google Maps when ready to navigate).');
+      broadcastLocation(assignedLocalityCoords.lat, assignedLocalityCoords.lng, 25);
+      captureOneTimeLocation().catch(() => { });
     } catch (e) {
       console.warn('Start trip note:', e);
       setTechToast('Network error while starting transit');
@@ -1402,7 +1327,7 @@ export default function PartnerDutyPage() {
       }
       const updatedB = data.booking || {};
       const otp = updatedB.customer_otp || updatedB.customerOtp || activeJob?.customer_otp || activeJob?.customerOtp;
-      
+
       // Store arrival state and OTP persistently in localStorage so state never flickers or resets
       localStorage.setItem(`shazuone_partner_arrived_${jobId}`, 'true');
       localStorage.setItem('shazuone_partner_step', '2');
@@ -1417,7 +1342,7 @@ export default function PartnerDutyPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ isOnline: true, phone: techPhone })
-        }).catch(() => {});
+        }).catch(() => { });
       }
 
       setActiveJob(prev => ({
@@ -1563,7 +1488,7 @@ export default function PartnerDutyPage() {
             if (data.billAmount) setPartsBillAmount(String(data.billAmount));
           }
         })
-        .catch(() => {});
+        .catch(() => { });
     }
   }, [activeJob?.partsBillUrl, activeJob?.partsBillAmount, activeBookingId]);
 
@@ -1640,7 +1565,7 @@ export default function PartnerDutyPage() {
             lastMessageCountRef.current = msgs.length;
           }
         }
-      } catch (err) {}
+      } catch (err) { }
     };
 
     pollPartnerCommunications();
@@ -1659,27 +1584,28 @@ export default function PartnerDutyPage() {
     }
 
     if (checked) {
-      // 1. Ask device location permission when technician goes online
+      // 1. Go online immediately using technician's assigned Salem locality (no continuous GPS prompt)
       setIsOnline(true);
-      setIsGpsBroadcasting(true);
+      setIsGpsBroadcasting(false);
       localStorage.setItem('shazuone_partner_is_online', 'true');
       if (updateUser) {
         updateUser({ isOnline: true });
       }
-      requestLocationPermission();
+      broadcastLocation(assignedLocalityCoords.lat, assignedLocalityCoords.lng, 0);
+      setTechToast(`Duty turned ON for ${assignedLocalityCoords.localityName}, Salem.`);
 
       // Register high-priority background Web Push subscription for incoming jobs/calls
       const techPhone = user?.phone || localStorage.getItem('shazuone_partner_phone') || '';
-      subscribeUserToPush({ phone: techPhone, role: 'technician' }).catch(() => {});
+      subscribeUserToPush({ phone: techPhone, role: 'technician' }).catch(() => { });
     } else {
-      // 2. Going offline -> Stop location broadcasting immediately
+      // 2. Going offline
       setIsOnline(false);
       setIsGpsBroadcasting(false);
       localStorage.setItem('shazuone_partner_is_online', 'false');
       if (updateUser) {
         updateUser({ isOnline: false });
       }
-      setTechToast('Duty turned OFF. Location broadcasting stopped.');
+      setTechToast('Duty turned OFF.');
     }
 
     if (user?.phone) {
@@ -1792,7 +1718,7 @@ export default function PartnerDutyPage() {
   return (
     <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100dvh', pb: 10 }}>
       <Container maxWidth={false} sx={{ maxWidth: '1200px', px: { xs: 1.5, sm: 2.5, md: 3 }, pt: { xs: 2, sm: 3 } }}>
-        
+
         {/* Top Header Mode Toggle */}
         <Box sx={{ display: 'flex', gap: 0.8, mb: 2 }}>
           <Button
@@ -1997,32 +1923,32 @@ export default function PartnerDutyPage() {
                 <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: (isOnline && activeTech?.isKycVerified && activeTech?.status !== 'Pending Verification') ? '#16A34A' : '#DC2626' }} />
                 <Box>
                   <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#0F172A', fontSize: '13px' }}>
-                    {(!activeTech?.isKycVerified || activeTech?.status === 'Pending Verification') 
+                    {(!activeTech?.isKycVerified || activeTech?.status === 'Pending Verification')
                       ? 'Duty Locked • Complete KYC to Go Online'
                       : (isOnline ? 'Online • Ready for jobs' : 'Offline')}
                   </Typography>
                   <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontSize: '11px' }}>
-                    Zone: {activeTechLocalities.length > 0 
-                      ? (activeTechLocalities.length > 2 
-                          ? `${activeTechLocalities.slice(0, 2).join(', ')} +${activeTechLocalities.length - 2} more` 
-                          : activeTechLocalities.join(', ')) 
+                    Zone: {activeTechLocalities.length > 0
+                      ? (activeTechLocalities.length > 2
+                        ? `${activeTechLocalities.slice(0, 2).join(', ')} +${activeTechLocalities.length - 2} more`
+                        : activeTechLocalities.join(', '))
                       : (activeTech?.serviceArea || user?.serviceArea || 'Fairlands, Salem')}
                   </Typography>
                 </Box>
               </Box>
-              <Switch 
+              <Switch
                 disabled={!activeTech?.isKycVerified || activeTech?.status === 'Pending Verification' || step === 2 || step === 3}
-                checked={Boolean(isOnline && activeTech?.isKycVerified && activeTech?.status !== 'Pending Verification')} 
+                checked={Boolean(isOnline && activeTech?.isKycVerified && activeTech?.status !== 'Pending Verification')}
                 onChange={(e) => {
                   if (step === 2 || step === 3) return;
                   handleToggleOnline(e.target.checked);
-                }} 
-                color="primary" 
+                }}
+                color="primary"
               />
             </Paper>
 
 
-            {/* 1.2 Shazu One 3-Stage Escrow & Settlement Protocol Card */}
+            {/* 1.2 Shazu One 3-Stage . & Settlement Protocol Card */}
             <Paper
               elevation={0}
               sx={{
@@ -2074,19 +2000,19 @@ export default function PartnerDutyPage() {
 
             {/* Active In-Progress Lock Notice */}
             {(step === 2 || step === 3) && (
-              <Alert 
-                severity="info" 
-                sx={{ 
-                  mb: 1.5, 
-                  py: 0.6, 
-                  borderRadius: '8px', 
-                  fontSize: '11.5px', 
-                  bgcolor: '#EFF6FF', 
-                  color: '#1E40AF', 
-                  border: '1px solid #BFDBFE' 
+              <Alert
+                severity="info"
+                sx={{
+                  mb: 1.5,
+                  py: 0.6,
+                  borderRadius: '8px',
+                  fontSize: '11.5px',
+                  bgcolor: '#EFF6FF',
+                  color: '#1E40AF',
+                  border: '1px solid #BFDBFE'
                 }}
               >
-                <strong>Active Job Locked (Zero Disconnection):</strong> You are currently servicing customer #{activeBookingId}. Finish and mark work completed to unlock new leads or duty toggle.
+                <strong>Active Job Locked:</strong> Complete job #{activeBookingId} before going offline or taking new leads.
               </Alert>
             )}
 
@@ -2477,7 +2403,7 @@ export default function PartnerDutyPage() {
                             </Box>
 
                             <Alert severity="warning" sx={{ bgcolor: 'rgba(245, 158, 11, 0.12)', color: '#FCD34D', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '8px', fontSize: '12px', mb: 2, py: 0.6 }}>
-                              <strong>சேலம் தலைமை அலுவலக அறிவிப்பு:</strong> வாடிக்கையாளருக்கு அவசர உதவி தேவைப்படுகிறது. நீங்கள் இந்த வேலையை ஏற்றுக்கொண்டால் உங்கள் நிலை <strong>தானாகவே ONLINE</strong> ஆக மாற்றப்பட்டு வாடிக்கையாளர் முகவரி திறக்கப்படும்.
+                              Accepting switches your duty to <strong>ONLINE</strong> and unlocks customer address.
                             </Alert>
 
                             {/* Job Overview */}
@@ -2668,217 +2594,196 @@ export default function PartnerDutyPage() {
                         )
                       ) : (
                         <Box>
-                        {/* UPCOMING / TODAY'S SCHEDULED APPOINTMENT BANNER */}
-                        {myScheduledJobs && myScheduledJobs.length > 0 && (() => {
-                          const activeScheduledJobs = myScheduledJobs.filter(j => !['completed', 'cancelled'].includes(j.status));
-                          if (activeScheduledJobs.length === 0) return null;
-                          const todayJob = activeScheduledJobs.find(j => isSlotToday(j.scheduledSlot));
-                          const nextJob = todayJob || activeScheduledJobs[0];
-                          if (activeJob && String(activeJob.id) === String(nextJob.id)) return null;
-                          const isToday = Boolean(todayJob || isSlotToday(nextJob.scheduledSlot));
+                          {/* UPCOMING / TODAY'S SCHEDULED APPOINTMENT BANNER */}
+                          {myScheduledJobs && myScheduledJobs.length > 0 && (() => {
+                            const activeScheduledJobs = myScheduledJobs.filter(j => !['completed', 'cancelled'].includes(j.status));
+                            if (activeScheduledJobs.length === 0) return null;
+                            const todayJob = activeScheduledJobs.find(j => isSlotToday(j.scheduledSlot));
+                            const nextJob = todayJob || activeScheduledJobs[0];
+                            if (activeJob && String(activeJob.id) === String(nextJob.id)) return null;
+                            const isToday = Boolean(todayJob || isSlotToday(nextJob.scheduledSlot));
 
-                          return (
+                            return (
+                              <Card
+                                elevation={0}
+                                sx={{
+                                  bgcolor: isToday ? '#064E3B' : '#0F172A',
+                                  color: '#FFFFFF',
+                                  borderRadius: '12px',
+                                  p: 2,
+                                  mb: 2,
+                                  border: isToday ? '2px solid #10B981' : '1.5px solid #0284C7',
+                                  boxShadow: isToday ? '0 4px 20px rgba(16, 185, 129, 0.3)' : '0 4px 16px rgba(2, 132, 199, 0.2)'
+                                }}
+                              >
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.2, flexWrap: 'wrap', gap: 0.8 }}>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                                    <EventIcon sx={{ color: isToday ? '#34D399' : '#38BDF8', fontSize: 20 }} />
+                                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: isToday ? '#A7F3D0' : '#E0F2FE', fontSize: 'clamp(0.8125rem, 1.8vw, 0.9375rem)' }}>
+                                      {isToday ? "TODAY'S SCHEDULED APPOINTMENT • இன்றைய பணி" : "UPCOMING SCHEDULED BOOKING • முன்பதிவு"}
+                                    </Typography>
+                                  </Box>
+                                  <Chip
+                                    icon={<ScheduleIcon sx={{ fontSize: '13px !important', color: isToday ? '#065F46 !important' : '#0369A1 !important' }} />}
+                                    label={nextJob.scheduledSlot || 'Scheduled'}
+                                    size="small"
+                                    sx={{
+                                      bgcolor: isToday ? '#A7F3D0' : '#BAE6FD',
+                                      color: isToday ? '#064E3B' : '#0C4A6E',
+                                      fontWeight: 800,
+                                      fontSize: '11px',
+                                      height: 22
+                                    }}
+                                  />
+                                </Box>
+
+                                <Typography variant="body2" sx={{ color: '#F1F5F9', mb: 1, fontWeight: 700, fontSize: 'clamp(0.8125rem, 1.8vw, 0.9rem)' }}>
+                                  {nextJob.customerName && !/^\+?[0-9]{10,13}$/.test(String(nextJob.customerName).replace(/[\s\-]/g, '')) ? nextJob.customerName : 'Customer (Doorstep)'} • <span style={{ color: isToday ? '#6EE7B7' : '#7DD3FC' }}>{nextJob.locality || 'Fairlands, Salem'}</span>
+                                </Typography>
+
+                                <Typography variant="caption" sx={{ color: '#CBD5E1', display: 'block', mb: 1.5, fontSize: '11.5px' }}>
+                                  <strong>Issue:</strong> {nextJob.issueDescription || 'Diagnostic Inspection'} • <strong style={{ color: '#FDE047' }}>₹{nextJob.visitFee || 99} Guaranteed & Paid</strong>
+                                </Typography>
+
+                                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                                  {isToday ? (
+                                    <Button
+                                      variant="contained"
+                                      fullWidth
+                                      onClick={() => handleStartTripForJob(nextJob.id)}
+                                      startIcon={<NavigationIcon sx={{ fontSize: 18 }} />}
+                                      sx={{
+                                        bgcolor: '#10B981',
+                                        color: '#FFFFFF',
+                                        fontWeight: 800,
+                                        fontSize: 'clamp(0.8125rem, 1.8vw, 0.9rem)',
+                                        py: 1,
+                                        borderRadius: '8px',
+                                        textTransform: 'none',
+                                        boxShadow: '0 4px 12px rgba(16, 185, 129, 0.4)',
+                                        '&:hover': { bgcolor: '#059669' }
+                                      }}
+                                    >
+                                      Start Ride Now • சவாரி தொடங்கு (Live GPS)
+                                    </Button>
+                                  ) : (
+                                    <>
+                                      <Button
+                                        disabled
+                                        variant="contained"
+                                        startIcon={<LockIcon sx={{ fontSize: 16 }} />}
+                                        sx={{
+                                          flex: 1,
+                                          bgcolor: '#1E293B !important',
+                                          color: '#94A3B8 !important',
+                                          border: '1px solid #334155',
+                                          fontWeight: 700,
+                                          fontSize: 'clamp(0.75rem, 1.5vw, 0.8125rem)',
+                                          textTransform: 'none',
+                                          py: 0.8,
+                                          borderRadius: '8px'
+                                        }}
+                                      >
+                                        Ride Unlocks on Appointment Day ({nextJob.scheduledSlot?.split('•')?.[0] || 'Scheduled Date'})
+                                      </Button>
+                                      <Button
+                                        variant="outlined"
+                                        size="small"
+                                        onClick={() => setActiveDutyTab('scheduled')}
+                                        sx={{
+                                          color: '#38BDF8',
+                                          borderColor: '#0284C7',
+                                          fontWeight: 800,
+                                          textTransform: 'none',
+                                          borderRadius: '8px',
+                                          fontSize: '11px',
+                                          px: 1.5
+                                        }}
+                                      >
+                                        View All ({myScheduledJobs.length})
+                                      </Button>
+                                    </>
+                                  )}
+                                </Box>
+                              </Card>
+                            );
+                          })()}
+                          {activeJob && activeJob.status === 'accepted' ? (
+                            /* ACCEPTED & CONFIRMED JOB READY FOR TRANSIT */
                             <Card
                               elevation={0}
                               sx={{
-                                bgcolor: isToday ? '#064E3B' : '#0F172A',
+                                bgcolor: '#0F172A',
                                 color: '#FFFFFF',
                                 borderRadius: '12px',
-                                p: 2,
+                                p: 2.5,
                                 mb: 2,
-                                border: isToday ? '2px solid #10B981' : '1.5px solid #0284C7',
-                                boxShadow: isToday ? '0 4px 20px rgba(16, 185, 129, 0.3)' : '0 4px 16px rgba(2, 132, 199, 0.2)'
+                                border: '2px solid #10B981',
+                                boxShadow: '0 4px 24px rgba(16, 185, 129, 0.25)'
                               }}
                             >
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.2, flexWrap: 'wrap', gap: 0.8 }}>
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5, flexWrap: 'wrap', gap: 1 }}>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                                  <EventIcon sx={{ color: isToday ? '#34D399' : '#38BDF8', fontSize: 20 }} />
-                                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: isToday ? '#A7F3D0' : '#E0F2FE', fontSize: 'clamp(0.8125rem, 1.8vw, 0.9375rem)' }}>
-                                    {isToday ? "TODAY'S SCHEDULED APPOINTMENT • இன்றைய பணி" : "UPCOMING SCHEDULED BOOKING • முன்பதிவு"}
+                                  <CheckCircleIcon sx={{ color: '#10B981', fontSize: 22 }} />
+                                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#FFFFFF', fontSize: 'clamp(0.875rem, 1.8vw, 1rem)' }}>
+                                    பணி உறுதி செய்யப்பட்டது (Job Accepted & Confirmed)
                                   </Typography>
                                 </Box>
                                 <Chip
-                                  icon={<ScheduleIcon sx={{ fontSize: '13px !important', color: isToday ? '#065F46 !important' : '#0369A1 !important' }} />}
-                                  label={nextJob.scheduledSlot || 'Scheduled'}
+                                  icon={<CheckCircleIcon sx={{ fontSize: '14px !important', color: '#065F46 !important' }} />}
+                                  label={`Ready • ₹${activeJob.visit_fee || activeJob.visitFee || 99} Visit Fee`}
                                   size="small"
-                                  sx={{
-                                    bgcolor: isToday ? '#A7F3D0' : '#BAE6FD',
-                                    color: isToday ? '#064E3B' : '#0C4A6E',
-                                    fontWeight: 800,
-                                    fontSize: '11px',
-                                    height: 22
-                                  }}
+                                  sx={{ bgcolor: '#D1FAE5', color: '#064E3B', fontWeight: 800, fontSize: '11px', height: 24 }}
                                 />
                               </Box>
 
-                              <Typography variant="body2" sx={{ color: '#F1F5F9', mb: 1, fontWeight: 700, fontSize: 'clamp(0.8125rem, 1.8vw, 0.9rem)' }}>
-                                {nextJob.customerName && !/^\+?[0-9]{10,13}$/.test(String(nextJob.customerName).replace(/[\s\-]/g, '')) ? nextJob.customerName : 'Customer (Doorstep)'} • <span style={{ color: isToday ? '#6EE7B7' : '#7DD3FC' }}>{nextJob.locality || 'Fairlands, Salem'}</span>
-                              </Typography>
-                              
-                              <Typography variant="caption" sx={{ color: '#CBD5E1', display: 'block', mb: 1.5, fontSize: '11.5px' }}>
-                                <strong>Issue:</strong> {nextJob.issueDescription || 'Diagnostic Inspection'} • <strong style={{ color: '#FDE047' }}>₹{nextJob.visitFee || 99} Guaranteed & Paid</strong>
-                              </Typography>
-
-                              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                                {isToday ? (
-                                  <Button
-                                    variant="contained"
-                                    fullWidth
-                                    onClick={() => handleStartTripForJob(nextJob.id)}
-                                    startIcon={<NavigationIcon sx={{ fontSize: 18 }} />}
-                                    sx={{
-                                      bgcolor: '#10B981',
-                                      color: '#FFFFFF',
-                                      fontWeight: 800,
-                                      fontSize: 'clamp(0.8125rem, 1.8vw, 0.9rem)',
-                                      py: 1,
-                                      borderRadius: '8px',
-                                      textTransform: 'none',
-                                      boxShadow: '0 4px 12px rgba(16, 185, 129, 0.4)',
-                                      '&:hover': { bgcolor: '#059669' }
-                                    }}
-                                  >
-                                    Start Ride Now • சவாரி தொடங்கு (Live GPS)
-                                  </Button>
-                                ) : (
-                                  <>
-                                    <Button
-                                      disabled
-                                      variant="contained"
-                                      startIcon={<LockIcon sx={{ fontSize: 16 }} />}
-                                      sx={{
-                                        flex: 1,
-                                        bgcolor: '#1E293B !important',
-                                        color: '#94A3B8 !important',
-                                        border: '1px solid #334155',
-                                        fontWeight: 700,
-                                        fontSize: 'clamp(0.75rem, 1.5vw, 0.8125rem)',
-                                        textTransform: 'none',
-                                        py: 0.8,
-                                        borderRadius: '8px'
-                                      }}
-                                    >
-                                      Ride Unlocks on Appointment Day ({nextJob.scheduledSlot?.split('•')?.[0] || 'Scheduled Date'})
-                                    </Button>
-                                    <Button
-                                      variant="outlined"
-                                      size="small"
-                                      onClick={() => setActiveDutyTab('scheduled')}
-                                      sx={{
-                                        color: '#38BDF8',
-                                        borderColor: '#0284C7',
-                                        fontWeight: 800,
-                                        textTransform: 'none',
-                                        borderRadius: '8px',
-                                        fontSize: '11px',
-                                        px: 1.5
-                                      }}
-                                    >
-                                      View All ({myScheduledJobs.length})
-                                    </Button>
-                                  </>
-                                )}
-                              </Box>
-                            </Card>
-                          );
-                        })()}
-                        {activeJob && activeJob.status === 'accepted' ? (
-                          /* ACCEPTED & CONFIRMED JOB READY FOR TRANSIT */
-                          <Card
-                            elevation={0}
-                            sx={{
-                              bgcolor: '#0F172A',
-                              color: '#FFFFFF',
-                              borderRadius: '12px',
-                              p: 2.5,
-                              mb: 2,
-                              border: '2px solid #10B981',
-                              boxShadow: '0 4px 24px rgba(16, 185, 129, 0.25)'
-                            }}
-                          >
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5, flexWrap: 'wrap', gap: 1 }}>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                                <CheckCircleIcon sx={{ color: '#10B981', fontSize: 22 }} />
-                                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#FFFFFF', fontSize: 'clamp(0.875rem, 1.8vw, 1rem)' }}>
-                                  பணி உறுதி செய்யப்பட்டது (Job Accepted & Confirmed)
-                                </Typography>
-                              </Box>
-                              <Chip
-                                icon={<CheckCircleIcon sx={{ fontSize: '14px !important', color: '#065F46 !important' }} />}
-                                label={`Ready • ₹${activeJob.visit_fee || activeJob.visitFee || 99} Visit Fee`}
-                                size="small"
-                                sx={{ bgcolor: '#D1FAE5', color: '#064E3B', fontWeight: 800, fontSize: '11px', height: 24 }}
-                              />
-                            </Box>
-
-                            <Box sx={{ bgcolor: '#1E293B', borderRadius: '10px', p: 1.8, mb: 2, border: '1px solid #334155' }}>
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                                <Box>
-                                  <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '11px' }}>
-                                    Booking #{activeJob.id} • {activeJob.bookingType || 'Instant Dispatch'}
-                                  </Typography>
-                                  <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#F8FAFC', fontSize: '15px' }}>
-                                    {activeJob.customerName && !/^\+?[0-9]{10,13}$/.test(String(activeJob.customerName).replace(/[\s\-]/g, '')) ? activeJob.customerName : 'Customer (Doorstep)'}
+                              <Box sx={{ bgcolor: '#1E293B', borderRadius: '10px', p: 1.8, mb: 2, border: '1px solid #334155' }}>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                                  <Box>
+                                    <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '11px' }}>
+                                      Booking #{activeJob.id} • {activeJob.bookingType || 'Instant Dispatch'}
+                                    </Typography>
+                                    <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#F8FAFC', fontSize: '15px' }}>
+                                      {activeJob.customerName && !/^\+?[0-9]{10,13}$/.test(String(activeJob.customerName).replace(/[\s\-]/g, '')) ? activeJob.customerName : 'Customer (Doorstep)'}
+                                    </Typography>
+                                  </Box>
+                                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#34D399', fontSize: '15px' }}>
+                                    ₹{Number(activeJob.visit_fee || activeJob.visitFee || 99).toFixed(2)}
                                   </Typography>
                                 </Box>
-                                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#34D399', fontSize: '15px' }}>
-                                  ₹{Number(activeJob.visit_fee || activeJob.visitFee || 99).toFixed(2)}
+                                <Typography variant="body2" sx={{ color: '#CBD5E1', display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.8, fontSize: '13px' }}>
+                                  <LocationOnIcon sx={{ color: '#F59E0B', fontSize: 16 }} />
+                                  {activeJob.address || activeJob.locality || 'Fairlands, Salem'}
+                                </Typography>
+                                <Typography variant="caption" sx={{ color: '#94A3B8', display: 'block', fontSize: '12px' }}>
+                                  <strong>Issue:</strong> {activeJob.issueDescription || 'Doorstep Service & Diagnostic Inspection'}
                                 </Typography>
                               </Box>
-                              <Typography variant="body2" sx={{ color: '#CBD5E1', display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.8, fontSize: '13px' }}>
-                                <LocationOnIcon sx={{ color: '#F59E0B', fontSize: 16 }} />
-                                {activeJob.address || activeJob.locality || 'Fairlands, Salem'}
-                              </Typography>
-                              <Typography variant="caption" sx={{ color: '#94A3B8', display: 'block', fontSize: '12px' }}>
-                                <strong>Issue:</strong> {activeJob.issueDescription || 'Doorstep Service & Diagnostic Inspection'}
-                              </Typography>
-                            </Box>
 
-                            {/* Start Ride Primary Action */}
-                            <Button
-                              variant="contained"
-                              fullWidth
-                              size="large"
-                              onClick={() => handleStartTripForJob(activeJob.id)}
-                              startIcon={<NavigationIcon sx={{ fontSize: 20 }} />}
-                              sx={{
-                                bgcolor: '#10B981',
-                                color: '#FFFFFF',
-                                fontWeight: 800,
-                                fontSize: 'clamp(0.875rem, 1.8vw, 0.95rem)',
-                                py: 1.2,
-                                borderRadius: '8px',
-                                textTransform: 'none',
-                                mb: 1.5,
-                                boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)',
-                                '&:hover': { bgcolor: '#059669' }
-                              }}
-                            >
-                              Start Ride Now - கிளம்புகிறேன் (Live GPS)
-                            </Button>
-
-                            {/* Direct Communication Actions - Strictly Masked WebRTC In-App VoIP */}
-                            <Box sx={{ display: 'flex', gap: 1 }}>
+                              {/* Start Ride Primary Action */}
                               <Button
-                                variant="outlined"
+                                variant="contained"
                                 fullWidth
-                                size="small"
-                                onClick={() => handleOpenCall(activeJob)}
-                                startIcon={<PhoneIcon sx={{ fontSize: 16 }} />}
+                                size="large"
+                                onClick={() => handleStartTripForJob(activeJob.id)}
+                                startIcon={<NavigationIcon sx={{ fontSize: 20 }} />}
                                 sx={{
-                                  borderColor: '#0284C7',
-                                  color: '#38BDF8',
-                                  fontWeight: 700,
-                                  borderRadius: '6px',
-                                  py: 0.8,
-                                  fontSize: 'clamp(0.75rem, 1.5vw, 0.8125rem)',
+                                  bgcolor: '#10B981',
+                                  color: '#FFFFFF',
+                                  fontWeight: 800,
+                                  fontSize: 'clamp(0.875rem, 1.8vw, 0.95rem)',
+                                  py: 1.2,
+                                  borderRadius: '8px',
                                   textTransform: 'none',
-                                  '&:hover': { bgcolor: 'rgba(2, 132, 199, 0.1)', borderColor: '#38BDF8' }
+                                  mb: 1.5,
+                                  boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)',
+                                  '&:hover': { bgcolor: '#059669' }
                                 }}
                               >
-                                Call Customer (Direct Mobile)
+                                Start Ride Now - கிளம்புகிறேன் (Live GPS)
                               </Button>
 
+                              {/* In-App Chat */}
                               <Button
                                 variant="outlined"
                                 fullWidth
@@ -2896,369 +2801,367 @@ export default function PartnerDutyPage() {
                                   '&:hover': { bgcolor: 'rgba(71, 85, 105, 0.2)', borderColor: '#94A3B8' }
                                 }}
                               >
-                                Chat
+                                Chat with Customer
                               </Button>
-                            </Box>
-                          </Card>
-                        ) : activeJob ? (
-                          /* Active Incoming Lead Requested by Customer */
-                          <Card
-                            elevation={0}
-                            sx={{
-                              bgcolor: '#0F172A',
-                              color: '#FFFFFF',
-                              borderRadius: '12px',
-                              p: 2.2,
-                              mb: 2,
-                              border: '2px solid #2563EB',
-                              boxShadow: '0 4px 20px rgba(37, 99, 235, 0.25)'
-                            }}
-                          >
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                                <WhatshotIcon sx={{ color: '#F59E0B', fontSize: 18 }} />
-                                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#FEF08A', fontSize: 'clamp(0.8125rem, 1.8vw, 0.9375rem)' }}>
-                                  Incoming dispatch request ({countdown}s)
-                                </Typography>
-                              </Box>
-                              <Chip
-                                label={`${livePartnerPayoutPercent}% tech share`}
-                                size="small"
-                                sx={{ bgcolor: '#1E293B', color: '#FEF08A', border: '1px solid #334155', fontWeight: 700, fontSize: '10px' }}
-                              />
-                            </Box>
-
-                            <Typography variant="caption" sx={{ color: '#94A3B8', display: 'block', mb: 1.5, fontSize: 'clamp(0.75rem, 1.5vw, 0.8125rem)' }}>
-                              Direct bank settlement upon customer confirmation + ₹40 travel allowance.
-                            </Typography>
-
-                            {/* Lead Item */}
-                            <Paper
-                              elevation={0}
-                              sx={{
-                                p: 1.8,
-                                bgcolor: '#1E293B',
-                                color: '#FFFFFF',
-                                borderRadius: '10px',
-                                border: '1px solid #334155',
-                                mb: 1
-                              }}
-                            >
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.2 }}>
-                                <Box sx={{ flex: 1, pr: 1 }}>
-                                  <Box sx={{ display: 'flex', gap: 0.8, alignItems: 'center', mb: 0.5, flexWrap: 'wrap' }}>
-                                    <Chip label={`#${activeJob.id}`} size="small" sx={{ bgcolor: '#2563EB', color: '#FFFFFF', fontWeight: 800, fontSize: '10.5px', height: 20 }} />
-                                    {activeJob.bookingType === 'scheduled' || activeJob.scheduledSlot ? (
-                                      <Chip
-                                        icon={<CalendarMonthIcon sx={{ fontSize: '13px !important', color: '#FDE047 !important' }} />}
-                                        label={`Scheduled: ${activeJob.scheduledSlot || 'Advance Slot'}`}
-                                        size="small"
-                                        sx={{ bgcolor: 'rgba(234, 179, 8, 0.15)', color: '#FEF08A', border: '1px solid #CA8A04', fontWeight: 700, fontSize: '10.5px', height: 20 }}
-                                      />
-                                    ) : (
-                                      <Chip
-                                        icon={<BoltIcon sx={{ fontSize: '13px !important', color: '#38BDF8 !important' }} />}
-                                        label="Live Instant Dispatch"
-                                        size="small"
-                                        sx={{ bgcolor: 'rgba(56, 189, 248, 0.15)', color: '#7DD3FC', border: '1px solid #0284C7', fontWeight: 700, fontSize: '10.5px', height: 20 }}
-                                      />
-                                    )}
-                                    {activeJob.serviceId && (
-                                      activeJob.serviceId === (activeTech?.trade || user?.trade) ? (
-                                        <Chip
-                                          label="Primary Specialty"
-                                          size="small"
-                                          sx={{ bgcolor: 'rgba(234, 179, 8, 0.2)', color: '#FDE047', border: '1px solid #CA8A04', fontWeight: 800, fontSize: '10px', height: 20 }}
-                                        />
-                                      ) : (
-                                        <Chip
-                                          label={`Additional Skill • ${activeJob.serviceId.toUpperCase()}`}
-                                          size="small"
-                                          sx={{ bgcolor: 'rgba(168, 85, 247, 0.2)', color: '#D8B4FE', border: '1px solid #9333EA', fontWeight: 800, fontSize: '10px', height: 20 }}
-                                        />
-                                      )
-                                    )}
-                                  </Box>
-
-                                  <Typography variant="caption" sx={{ color: '#38BDF8', fontWeight: 700, display: 'block', fontSize: 'clamp(0.75rem, 1.5vw, 0.8125rem)' }}>
-                                    Customer: {activeJob.customerName || 'Customer'} • In-App VoIP Call Only
-                                  </Typography>
-                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4, mt: 0.3 }}>
-                                    <LocationOnIcon sx={{ color: '#F59E0B', fontSize: 14 }} />
-                                    <Typography variant="caption" sx={{ color: '#CBD5E1', fontSize: 'clamp(0.75rem, 1.5vw, 0.8125rem)' }}>
-                                      {activeJob.address || activeJob.locality || 'Fairlands, Salem'}
-                                    </Typography>
-                                  </Box>
-                                </Box>
-
-                                <Box sx={{ textAlign: 'right' }}>
-                                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#34D399', fontSize: 'clamp(0.875rem, 1.8vw, 1rem)' }}>
-                                    ₹{activeJob.visitFee ? `${activeJob.visitFee} - ₹1,400` : '₹750 - ₹1,400'}
-                                  </Typography>
-                                  <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '10px' }}>
-                                    Est. payout
-                                  </Typography>
-                                </Box>
-                              </Box>
-
-                              {/* Customer Detailed Problem Request Box */}
-                              <Paper elevation={0} sx={{ p: 1.5, bgcolor: '#0F172A', borderRadius: '8px', border: '1px solid #334155', my: 1.2 }}>
-                                <Typography variant="caption" sx={{ color: '#38BDF8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '10px', display: 'block', mb: 0.4 }}>
-                                  Customer Problem Description (விவரிக்கப்பட்ட பிரச்சனை):
-                                </Typography>
-                                <Typography variant="body1" sx={{ color: '#F8FAFC', fontWeight: 700, fontSize: 'clamp(0.875rem, 1.8vw, 0.95rem)', lineHeight: 1.5 }}>
-                                  {activeJob.issueDescription || 'Doorstep Service & Diagnostic Inspection'}
-                                </Typography>
-                                {(activeJob.customIssueDescription || activeJob.custom_issue_description) && (
-                                  <Box sx={{ mt: 0.8, p: 1, bgcolor: '#1E293B', borderRadius: '6px', border: '1px solid #334155' }}>
-                                    <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '10px', textTransform: 'uppercase', fontWeight: 700, display: 'block', mb: 0.2 }}>
-                                      Customer Stated Notes:
-                                    </Typography>
-                                    <Typography variant="body2" sx={{ color: '#E2E8F0', fontStyle: 'italic', fontSize: '12.5px' }}>
-                                      "{activeJob.customIssueDescription || activeJob.custom_issue_description}"
-                                    </Typography>
-                                  </Box>
-                                )}
-                              </Paper>
-
-                              {/* Customer Voice Note Player (if customer recorded problem audio) */}
-                              {activeJob.voiceNoteUrl && (
-                                <Box sx={{ my: 1.2, p: 1.4, bgcolor: '#0F172A', borderRadius: '8px', border: '1.5px solid #0284C7' }}>
-                                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.8 }}>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                                      <VolumeUpIcon sx={{ color: '#38BDF8', fontSize: 18 }} />
-                                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#E0F2FE', fontSize: '12px' }}>
-                                        Customer Audio Voice Note
-                                      </Typography>
-                                    </Box>
-                                    <Chip label="LISTEN FIRST" size="small" sx={{ bgcolor: '#0284C7', color: '#FFFFFF', fontWeight: 900, fontSize: '9px', height: 18 }} />
-                                  </Box>
-                                  <LeadAudioPlayer audioSrc={activeJob.voiceNoteUrl} />
-                                  <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '11px', display: 'block', mt: 0.6 }}>
-                                    Customer recorded this explanation of the issue. Listen before accepting or rejecting.
-                                  </Typography>
-                                </Box>
-                              )}
-
-                              <Divider sx={{ borderColor: '#334155', my: 1.2 }} />
-
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
-                                <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: 'clamp(0.75rem, 1.5vw, 0.8125rem)' }}>
-                                  Response window: <strong>3 mins</strong>
-                                </Typography>
-
-                                <Box sx={{ display: 'flex', gap: 1 }}>
-                                  {/* Reject / Pass Lead Button */}
-                                  <Button
-                                    variant="outlined"
-                                    size="small"
-                                    onClick={async () => {
-                                      const leadId = activeJob.id;
-                                      try {
-                                        await fetch(`${API_V1_URL}/partner/bookings/${leadId}/reject`, {
-                                          method: 'POST',
-                                          headers: { 'Content-Type': 'application/json' },
-                                          body: JSON.stringify({
-                                            technicianId: user?.id,
-                                            reason: 'Technician declined request'
-                                          })
-                                        });
-                                      } catch (err) {
-                                        console.warn('Pass lead note:', err);
-                                      }
-                                      setActiveJob(null);
-                                      setStep(1);
-                                      setIsProcessing(false);
-                                      setTechToast('Request declined. This customer will not be shown to you for the rest of today. Other customer dispatches remain active.');
-                                    }}
-                                    sx={{
-                                      borderColor: '#475569',
-                                      color: '#CBD5E1',
-                                      borderRadius: '6px',
-                                      fontWeight: 700,
-                                      fontSize: 'clamp(0.75rem, 1.5vw, 0.8125rem)',
-                                      px: 1.8,
-                                      py: 0.6,
-                                      textTransform: 'none',
-                                      '&:hover': { bgcolor: '#334155', borderColor: '#94A3B8', color: '#FFFFFF' }
-                                    }}
-                                  >
-                                    Pass / Reject
-                                  </Button>
-
-                                  {/* Accept Lead Button */}
-                                  <Button
-                                    variant="contained"
-                                    size="small"
-                                    onClick={async () => {
-                                      setIsProcessing(true);
-                                      setLoadingMsg({
-                                        title: 'ஏற்கப்படுகிறது (Accepting dispatch)...',
-                                        subtitle: 'Assigning order and opening live GPS navigation map'
-                                      });
-                                      try {
-                                        const techId = activeTech?.id || user?.id;
-                                        const techPhone = activeTech?.phone || user?.phone;
-                                        await fetch(`${API_V1_URL}/bookings/${activeJob.id}/status`, {
-                                          method: 'POST',
-                                          headers: { 'Content-Type': 'application/json' },
-                                          body: JSON.stringify({
-                                            status: 'en_route',
-                                            technicianId: techId,
-                                            technicianPhone: techPhone
-                                          })
-                                        });
-                                        const updatedJob = { ...activeJob, status: 'en_route', technician_id: techId };
-                                        setActiveJob(updatedJob);
-                                        setIsOnline(true);
-                                        setIsGpsBroadcasting(true);
-                                        localStorage.setItem('shazuone_partner_is_online', 'true');
-                                        localStorage.setItem('shazuone_partner_active_job', activeJob.id);
-                                        localStorage.setItem('shazuone_partner_step', '2');
-                                        setStep(2);
-                                        setTechToast('கோரிக்கை ஏற்கப்பட்டது! நேரலை GPS வழித்தடம் திறக்கப்பட்டது (Order accepted! Live map and navigation active).');
-                                        if (broadcastLocation && liveGps?.lat) {
-                                          broadcastLocation(liveGps.lat, liveGps.lng, 25);
-                                        }
-                                        try {
-                                          if (techPhone || techId) {
-                                            const dRes = await fetch(`${API_V1_URL}/partner/duty?phone=${encodeURIComponent(techPhone || '')}&technicianId=${encodeURIComponent(techId || '')}`);
-                                            const dJson = await dRes.json();
-                                            if (dJson.success) {
-                                              if (dJson.myScheduledJobs) setMyScheduledJobs(dJson.myScheduledJobs);
-                                              if (dJson.activeJob) setActiveJob(dJson.activeJob);
-                                            }
-                                          }
-                                        } catch (e) {}
-                                      } catch (err) {
-                                        console.warn('Status update fallback:', err);
-                                        setActiveJob(prev => prev ? { ...prev, status: 'en_route' } : null);
-                                        setStep(2);
-                                        localStorage.setItem('shazuone_partner_step', '2');
-                                      } finally {
-                                        setIsProcessing(false);
-                                      }
-                                    }}
-                                    sx={{
-                                      bgcolor: '#16A34A',
-                                      borderRadius: '6px',
-                                      fontWeight: 800,
-                                      fontSize: 'clamp(0.75rem, 1.5vw, 0.85rem)',
-                                      px: 2.2,
-                                      py: 0.6,
-                                      textTransform: 'none',
-                                      '&:hover': { bgcolor: '#15803D' }
-                                    }}
-                                  >
-                                    Accept request
-                                  </Button>
-                                </Box>
-                              </Box>
-                            </Paper>
-                          </Card>
-                        ) : (
-                          /* Idle Radar State: Waiting for real customer request */
-                          <Box>
-                            {/* Proactive Banner for Open Scheduled Requests */}
-                            {openScheduledLeads.length > 0 && (
-                              <Card
-                                elevation={0}
-                                sx={{
-                                  bgcolor: '#0F172A',
-                                  border: '1.5px solid #0284C7',
-                                  borderRadius: '12px',
-                                  p: 2,
-                                  mb: 2,
-                                  boxShadow: '0 4px 16px rgba(2, 132, 199, 0.15)'
-                                }}
-                              >
-                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}>
-                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
-                                    <Box sx={{ p: 1, borderRadius: '8px', bgcolor: 'rgba(2, 132, 199, 0.15)', color: '#38BDF8' }}>
-                                      <CalendarMonthIcon sx={{ fontSize: 24 }} />
-                                    </Box>
-                                    <Box>
-                                      <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#FFFFFF', fontSize: 'clamp(0.875rem, 1.8vw, 1rem)' }}>
-                                        {openScheduledLeads.length} Open Scheduled {openScheduledLeads.length === 1 ? 'Booking' : 'Bookings'} Available
-                                      </Typography>
-                                      <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: 'clamp(0.75rem, 1.5vw, 0.85rem)', display: 'block' }}>
-                                        Salem customers requested scheduled slots for your trade. You can directly claim and reserve them for your day!
-                                      </Typography>
-                                    </Box>
-                                  </Box>
-                                  <Button
-                                    variant="contained"
-                                    size="small"
-                                    onClick={() => setActiveDutyTab('scheduled')}
-                                    endIcon={<ArrowForwardIcon sx={{ fontSize: 16 }} />}
-                                    sx={{
-                                      bgcolor: '#0284C7',
-                                      fontWeight: 800,
-                                      fontSize: 'clamp(0.75rem, 1.5vw, 0.85rem)',
-                                      borderRadius: '8px',
-                                      textTransform: 'none',
-                                      px: 2,
-                                      py: 0.8,
-                                      '&:hover': { bgcolor: '#0369A1' }
-                                    }}
-                                  >
-                                    View & Claim Slots
-                                  </Button>
-                                </Box>
-                              </Card>
-                            )}
-
+                            </Card>
+                          ) : activeJob ? (
+                            /* Active Incoming Lead Requested by Customer */
                             <Card
                               elevation={0}
                               sx={{
                                 bgcolor: '#0F172A',
                                 color: '#FFFFFF',
                                 borderRadius: '12px',
-                                p: 3,
+                                p: 2.2,
                                 mb: 2,
-                                border: '1px solid #1E293B',
-                                textAlign: 'center'
+                                border: '2px solid #2563EB',
+                                boxShadow: '0 4px 20px rgba(37, 99, 235, 0.25)'
                               }}
                             >
-                              <SalemLottie
-                                name="radar"
-                                width={150}
-                                height={150}
-                                ariaLabel="Radar actively scanning for incoming Salem doorstep service dispatches"
-                                style={{ mb: 1.5 }}
-                              />
-
-                              <Chip
-                                icon={<CheckCircleIcon sx={{ color: '#34D399 !important', fontSize: 13 }} />}
-                                label={`Online • Radar Active across ${activeTechLocalities.length > 0 ? (activeTechLocalities.length >= 12 ? `All ${activeTechLocalities.length} Salem Localities` : `${activeTechLocalities.length} Localities (${activeTechLocalities.join(', ')})`) : 'Salem'}`}
-                                size="small"
-                                sx={{ bgcolor: '#1E293B', color: '#34D399', fontWeight: 700, fontSize: '11px', mb: 1.5 }}
-                              />
-
-                              <Typography variant="h6" sx={{ fontWeight: 800, color: '#FFFFFF', fontSize: 'clamp(0.9375rem, 2vw, 1.125rem)', mb: 0.5 }}>
-                                புதிய ஆர்டர்களுக்காக காத்திருக்கிறது (Waiting for Customer Requests)
-                              </Typography>
-                              <Typography variant="body2" sx={{ color: '#94A3B8', fontSize: 'clamp(0.75rem, 1.5vw, 0.85rem)', maxWidth: 380, mx: 'auto', mb: 2, lineHeight: 1.5 }}>
-                                No customer has requested a live instant dispatch right now in your zone. When a nearby customer places a booking, it will pop up here immediately with an audio alert.
-                              </Typography>
-
-                              <Paper elevation={0} sx={{ p: 1.5, bgcolor: '#1E293B', borderRadius: '8px', border: '1px solid #334155', textAlign: 'left' }}>
-                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.6 }}>
-                                  <Typography variant="caption" sx={{ color: '#FEF08A', fontWeight: 700, fontSize: '11px' }}>
-                                    High Search Traffic Zones:
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                                  <WhatshotIcon sx={{ color: '#F59E0B', fontSize: 18 }} />
+                                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#FEF08A', fontSize: 'clamp(0.8125rem, 1.8vw, 0.9375rem)' }}>
+                                    Incoming dispatch request ({countdown}s)
                                   </Typography>
-                                  <Chip label="Surge +₹40" size="small" sx={{ bgcolor: '#334155', color: '#38BDF8', fontWeight: 700, fontSize: '10px', height: 18 }} />
                                 </Box>
-                                <Typography variant="caption" sx={{ color: '#CBD5E1', display: 'block', fontSize: '11px' }}>
-                                  Fairlands, Hasthampatti & Suramangalam areas are active. Keep your app open to receive instant priority dispatch.
-                                </Typography>
+                                <Chip
+                                  label={`${livePartnerPayoutPercent}% tech share`}
+                                  size="small"
+                                  sx={{ bgcolor: '#1E293B', color: '#FEF08A', border: '1px solid #334155', fontWeight: 700, fontSize: '10px' }}
+                                />
+                              </Box>
+
+                              <Typography variant="caption" sx={{ color: '#94A3B8', display: 'block', mb: 1.5, fontSize: 'clamp(0.75rem, 1.5vw, 0.8125rem)' }}>
+                                Direct bank settlement upon customer confirmation + ₹40 travel allowance.
+                              </Typography>
+
+                              {/* Lead Item */}
+                              <Paper
+                                elevation={0}
+                                sx={{
+                                  p: 1.8,
+                                  bgcolor: '#1E293B',
+                                  color: '#FFFFFF',
+                                  borderRadius: '10px',
+                                  border: '1px solid #334155',
+                                  mb: 1
+                                }}
+                              >
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.2 }}>
+                                  <Box sx={{ flex: 1, pr: 1 }}>
+                                    <Box sx={{ display: 'flex', gap: 0.8, alignItems: 'center', mb: 0.5, flexWrap: 'wrap' }}>
+                                      <Chip label={`#${activeJob.id}`} size="small" sx={{ bgcolor: '#2563EB', color: '#FFFFFF', fontWeight: 800, fontSize: '10.5px', height: 20 }} />
+                                      {activeJob.bookingType === 'scheduled' || activeJob.scheduledSlot ? (
+                                        <Chip
+                                          icon={<CalendarMonthIcon sx={{ fontSize: '13px !important', color: '#FDE047 !important' }} />}
+                                          label={`Scheduled: ${activeJob.scheduledSlot || 'Advance Slot'}`}
+                                          size="small"
+                                          sx={{ bgcolor: 'rgba(234, 179, 8, 0.15)', color: '#FEF08A', border: '1px solid #CA8A04', fontWeight: 700, fontSize: '10.5px', height: 20 }}
+                                        />
+                                      ) : (
+                                        <Chip
+                                          icon={<BoltIcon sx={{ fontSize: '13px !important', color: '#38BDF8 !important' }} />}
+                                          label="Live Instant Dispatch"
+                                          size="small"
+                                          sx={{ bgcolor: 'rgba(56, 189, 248, 0.15)', color: '#7DD3FC', border: '1px solid #0284C7', fontWeight: 700, fontSize: '10.5px', height: 20 }}
+                                        />
+                                      )}
+                                      {activeJob.serviceId && (
+                                        activeJob.serviceId === (activeTech?.trade || user?.trade) ? (
+                                          <Chip
+                                            label="Primary Specialty"
+                                            size="small"
+                                            sx={{ bgcolor: 'rgba(234, 179, 8, 0.2)', color: '#FDE047', border: '1px solid #CA8A04', fontWeight: 800, fontSize: '10px', height: 20 }}
+                                          />
+                                        ) : (
+                                          <Chip
+                                            label={`Additional Skill • ${activeJob.serviceId.toUpperCase()}`}
+                                            size="small"
+                                            sx={{ bgcolor: 'rgba(168, 85, 247, 0.2)', color: '#D8B4FE', border: '1px solid #9333EA', fontWeight: 800, fontSize: '10px', height: 20 }}
+                                          />
+                                        )
+                                      )}
+                                    </Box>
+
+                                    <Typography variant="caption" sx={{ color: '#38BDF8', fontWeight: 700, display: 'block', fontSize: 'clamp(0.75rem, 1.5vw, 0.8125rem)' }}>
+                                      Customer: {activeJob.customerName || 'Customer'} • In-App VoIP Call Only
+                                    </Typography>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4, mt: 0.3 }}>
+                                      <LocationOnIcon sx={{ color: '#F59E0B', fontSize: 14 }} />
+                                      <Typography variant="caption" sx={{ color: '#CBD5E1', fontSize: 'clamp(0.75rem, 1.5vw, 0.8125rem)' }}>
+                                        {activeJob.address || activeJob.locality || 'Fairlands, Salem'}
+                                      </Typography>
+                                    </Box>
+                                  </Box>
+
+                                  <Box sx={{ textAlign: 'right' }}>
+                                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#34D399', fontSize: 'clamp(0.875rem, 1.8vw, 1rem)' }}>
+                                      ₹{activeJob.visitFee ? `${activeJob.visitFee} - ₹1,400` : '₹750 - ₹1,400'}
+                                    </Typography>
+                                    <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '10px' }}>
+                                      Est. payout
+                                    </Typography>
+                                  </Box>
+                                </Box>
+
+                                {/* Customer Detailed Problem Request Box */}
+                                <Paper elevation={0} sx={{ p: 1.5, bgcolor: '#0F172A', borderRadius: '8px', border: '1px solid #334155', my: 1.2 }}>
+                                  <Typography variant="caption" sx={{ color: '#38BDF8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '10px', display: 'block', mb: 0.4 }}>
+                                    Customer Problem Description (விவரிக்கப்பட்ட பிரச்சனை):
+                                  </Typography>
+                                  <Typography variant="body1" sx={{ color: '#F8FAFC', fontWeight: 700, fontSize: 'clamp(0.875rem, 1.8vw, 0.95rem)', lineHeight: 1.5 }}>
+                                    {activeJob.issueDescription || 'Doorstep Service & Diagnostic Inspection'}
+                                  </Typography>
+                                  {(activeJob.customIssueDescription || activeJob.custom_issue_description) && (
+                                    <Box sx={{ mt: 0.8, p: 1, bgcolor: '#1E293B', borderRadius: '6px', border: '1px solid #334155' }}>
+                                      <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '10px', textTransform: 'uppercase', fontWeight: 700, display: 'block', mb: 0.2 }}>
+                                        Customer Stated Notes:
+                                      </Typography>
+                                      <Typography variant="body2" sx={{ color: '#E2E8F0', fontStyle: 'italic', fontSize: '12.5px' }}>
+                                        "{activeJob.customIssueDescription || activeJob.custom_issue_description}"
+                                      </Typography>
+                                    </Box>
+                                  )}
+                                </Paper>
+
+                                {/* Customer Voice Note Player (if customer recorded problem audio) */}
+                                {activeJob.voiceNoteUrl && (
+                                  <Box sx={{ my: 1.2, p: 1.4, bgcolor: '#0F172A', borderRadius: '8px', border: '1.5px solid #0284C7' }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.8 }}>
+                                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                                        <VolumeUpIcon sx={{ color: '#38BDF8', fontSize: 18 }} />
+                                        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#E0F2FE', fontSize: '12px' }}>
+                                          Customer Audio Voice Note
+                                        </Typography>
+                                      </Box>
+                                      <Chip label="LISTEN FIRST" size="small" sx={{ bgcolor: '#0284C7', color: '#FFFFFF', fontWeight: 900, fontSize: '9px', height: 18 }} />
+                                    </Box>
+                                    <LeadAudioPlayer audioSrc={activeJob.voiceNoteUrl} />
+                                    <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '11px', display: 'block', mt: 0.6 }}>
+                                      Customer recorded this explanation of the issue. Listen before accepting or rejecting.
+                                    </Typography>
+                                  </Box>
+                                )}
+
+                                <Divider sx={{ borderColor: '#334155', my: 1.2 }} />
+
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+                                  <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: 'clamp(0.75rem, 1.5vw, 0.8125rem)' }}>
+                                    Response window: <strong>3 mins</strong>
+                                  </Typography>
+
+                                  <Box sx={{ display: 'flex', gap: 1 }}>
+                                    {/* Reject / Pass Lead Button */}
+                                    <Button
+                                      variant="outlined"
+                                      size="small"
+                                      onClick={async () => {
+                                        const leadId = activeJob.id;
+                                        try {
+                                          await fetch(`${API_V1_URL}/partner/bookings/${leadId}/reject`, {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({
+                                              technicianId: user?.id,
+                                              reason: 'Technician declined request'
+                                            })
+                                          });
+                                        } catch (err) {
+                                          console.warn('Pass lead note:', err);
+                                        }
+                                        setActiveJob(null);
+                                        setStep(1);
+                                        setIsProcessing(false);
+                                        setTechToast('Request declined. This customer will not be shown to you for the rest of today. Other customer dispatches remain active.');
+                                      }}
+                                      sx={{
+                                        borderColor: '#475569',
+                                        color: '#CBD5E1',
+                                        borderRadius: '6px',
+                                        fontWeight: 700,
+                                        fontSize: 'clamp(0.75rem, 1.5vw, 0.8125rem)',
+                                        px: 1.8,
+                                        py: 0.6,
+                                        textTransform: 'none',
+                                        '&:hover': { bgcolor: '#334155', borderColor: '#94A3B8', color: '#FFFFFF' }
+                                      }}
+                                    >
+                                      Pass / Reject
+                                    </Button>
+
+                                    {/* Accept Lead Button */}
+                                    <Button
+                                      variant="contained"
+                                      size="small"
+                                      onClick={async () => {
+                                        setIsProcessing(true);
+                                        setLoadingMsg({
+                                          title: 'ஏற்கப்படுகிறது (Accepting dispatch)...',
+                                          subtitle: 'Assigning order and opening live GPS navigation map'
+                                        });
+                                        try {
+                                          const techId = activeTech?.id || user?.id;
+                                          const techPhone = activeTech?.phone || user?.phone;
+                                          await fetch(`${API_V1_URL}/bookings/${activeJob.id}/status`, {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({
+                                              status: 'en_route',
+                                              technicianId: techId,
+                                              technicianPhone: techPhone
+                                            })
+                                          });
+                                          const updatedJob = { ...activeJob, status: 'en_route', technician_id: techId };
+                                          setActiveJob(updatedJob);
+                                          setIsOnline(true);
+                                          setIsGpsBroadcasting(true);
+                                          localStorage.setItem('shazuone_partner_is_online', 'true');
+                                          localStorage.setItem('shazuone_partner_active_job', activeJob.id);
+                                          localStorage.setItem('shazuone_partner_step', '2');
+                                          setStep(2);
+                                          setTechToast('கோரிக்கை ஏற்கப்பட்டது! வாடிக்கையாளர் முகவரி வழித்தடம் திறக்கப்பட்டது (Order accepted! Tap Google Maps to navigate).');
+                                          broadcastLocation(assignedLocalityCoords.lat, assignedLocalityCoords.lng, 25);
+                                          captureOneTimeLocation().catch(() => { });
+                                          try {
+                                            if (techPhone || techId) {
+                                              const dRes = await fetch(`${API_V1_URL}/partner/duty?phone=${encodeURIComponent(techPhone || '')}&technicianId=${encodeURIComponent(techId || '')}`);
+                                              const dJson = await dRes.json();
+                                              if (dJson.success) {
+                                                if (dJson.myScheduledJobs) setMyScheduledJobs(dJson.myScheduledJobs);
+                                                if (dJson.activeJob) setActiveJob(dJson.activeJob);
+                                              }
+                                            }
+                                          } catch (e) { }
+                                        } catch (err) {
+                                          console.warn('Status update fallback:', err);
+                                          setActiveJob(prev => prev ? { ...prev, status: 'en_route' } : null);
+                                          setStep(2);
+                                          localStorage.setItem('shazuone_partner_step', '2');
+                                        } finally {
+                                          setIsProcessing(false);
+                                        }
+                                      }}
+                                      sx={{
+                                        bgcolor: '#16A34A',
+                                        borderRadius: '6px',
+                                        fontWeight: 800,
+                                        fontSize: 'clamp(0.75rem, 1.5vw, 0.85rem)',
+                                        px: 2.2,
+                                        py: 0.6,
+                                        textTransform: 'none',
+                                        '&:hover': { bgcolor: '#15803D' }
+                                      }}
+                                    >
+                                      Accept request
+                                    </Button>
+                                  </Box>
+                                </Box>
                               </Paper>
                             </Card>
-                          </Box>
-                        )}
-                      </Box>
-                    )
-                  )}
+                          ) : (
+                            /* Idle Radar State: Waiting for real customer request */
+                            <Box>
+                              {/* Proactive Banner for Open Scheduled Requests */}
+                              {openScheduledLeads.length > 0 && (
+                                <Card
+                                  elevation={0}
+                                  sx={{
+                                    bgcolor: '#0F172A',
+                                    border: '1.5px solid #0284C7',
+                                    borderRadius: '12px',
+                                    p: 2,
+                                    mb: 2,
+                                    boxShadow: '0 4px 16px rgba(2, 132, 199, 0.15)'
+                                  }}
+                                >
+                                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                                      <Box sx={{ p: 1, borderRadius: '8px', bgcolor: 'rgba(2, 132, 199, 0.15)', color: '#38BDF8' }}>
+                                        <CalendarMonthIcon sx={{ fontSize: 24 }} />
+                                      </Box>
+                                      <Box>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#FFFFFF', fontSize: 'clamp(0.875rem, 1.8vw, 1rem)' }}>
+                                          {openScheduledLeads.length} Open Scheduled {openScheduledLeads.length === 1 ? 'Booking' : 'Bookings'} Available
+                                        </Typography>
+                                        <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: 'clamp(0.75rem, 1.5vw, 0.85rem)', display: 'block' }}>
+                                          Salem customers requested scheduled slots for your trade. You can directly claim and reserve them for your day!
+                                        </Typography>
+                                      </Box>
+                                    </Box>
+                                    <Button
+                                      variant="contained"
+                                      size="small"
+                                      onClick={() => setActiveDutyTab('scheduled')}
+                                      endIcon={<ArrowForwardIcon sx={{ fontSize: 16 }} />}
+                                      sx={{
+                                        bgcolor: '#0284C7',
+                                        fontWeight: 800,
+                                        fontSize: 'clamp(0.75rem, 1.5vw, 0.85rem)',
+                                        borderRadius: '8px',
+                                        textTransform: 'none',
+                                        px: 2,
+                                        py: 0.8,
+                                        '&:hover': { bgcolor: '#0369A1' }
+                                      }}
+                                    >
+                                      View & Claim Slots
+                                    </Button>
+                                  </Box>
+                                </Card>
+                              )}
+
+                              <Card
+                                elevation={0}
+                                sx={{
+                                  bgcolor: '#0F172A',
+                                  color: '#FFFFFF',
+                                  borderRadius: '12px',
+                                  p: 3,
+                                  mb: 2,
+                                  border: '1px solid #1E293B',
+                                  textAlign: 'center'
+                                }}
+                              >
+                                <SalemLottie
+                                  name="radar"
+                                  width={150}
+                                  height={150}
+                                  ariaLabel="Radar actively scanning for incoming Salem doorstep service dispatches"
+                                  style={{ mb: 1.5 }}
+                                />
+
+                                <Chip
+                                  icon={<CheckCircleIcon sx={{ color: '#34D399 !important', fontSize: 13 }} />}
+                                  label={`Online • Radar Active across ${activeTechLocalities.length > 0 ? (activeTechLocalities.length >= 12 ? `All ${activeTechLocalities.length} Salem Localities` : `${activeTechLocalities.length} Localities (${activeTechLocalities.join(', ')})`) : 'Salem'}`}
+                                  size="small"
+                                  sx={{ bgcolor: '#1E293B', color: '#34D399', fontWeight: 700, fontSize: '11px', mb: 1.5 }}
+                                />
+
+                                <Typography variant="h6" sx={{ fontWeight: 800, color: '#FFFFFF', fontSize: 'clamp(0.9375rem, 2vw, 1.125rem)', mb: 0.5 }}>
+                                  புதிய ஆர்டர்களுக்காக காத்திருக்கிறது (Waiting for Customer Requests)
+                                </Typography>
+                                <Typography variant="body2" sx={{ color: '#94A3B8', fontSize: 'clamp(0.75rem, 1.5vw, 0.85rem)', maxWidth: 380, mx: 'auto', mb: 2, lineHeight: 1.5 }}>
+                                  No customer has requested a live instant dispatch right now in your zone. When a nearby customer places a booking, it will pop up here immediately with an audio alert.
+                                </Typography>
+
+                                <Paper elevation={0} sx={{ p: 1.5, bgcolor: '#1E293B', borderRadius: '8px', border: '1px solid #334155', textAlign: 'left' }}>
+                                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.6 }}>
+                                    <Typography variant="caption" sx={{ color: '#FEF08A', fontWeight: 700, fontSize: '11px' }}>
+                                      High Search Traffic Zones:
+                                    </Typography>
+                                    <Chip label="Surge +₹40" size="small" sx={{ bgcolor: '#334155', color: '#38BDF8', fontWeight: 700, fontSize: '10px', height: 18 }} />
+                                  </Box>
+                                  <Typography variant="caption" sx={{ color: '#CBD5E1', display: 'block', fontSize: '11px' }}>
+                                    Fairlands, Hasthampatti & Suramangalam areas are active. Keep your app open to receive instant priority dispatch.
+                                  </Typography>
+                                </Paper>
+                              </Card>
+                            </Box>
+                          )}
+                        </Box>
+                      )
+                    )}
 
                     {/* TAB 2: SCHEDULED REQUESTS (AUTONOMOUS DIRECT ACCEPTANCE) */}
                     {activeDutyTab === 'scheduled' && (
@@ -3698,42 +3601,23 @@ export default function PartnerDutyPage() {
                                   )}
 
                                   {job.customerPhone && (
-                                    <Box sx={{ display: 'flex', gap: 0.8 }}>
-                                      <Button
-                                        variant="outlined"
-                                        onClick={() => handleOpenCall(job)}
-                                        startIcon={<PhoneIcon sx={{ fontSize: 14 }} />}
-                                        sx={{
-                                          borderColor: '#38BDF8',
-                                          color: '#38BDF8',
-                                          fontWeight: 700,
-                                          fontSize: '11.5px',
-                                          py: 0.7,
-                                          borderRadius: '8px',
-                                          textTransform: 'none',
-                                          '&:hover': { bgcolor: 'rgba(56, 189, 248, 0.1)', borderColor: '#7DD3FC' }
-                                        }}
-                                      >
-                                        Call (In-App)
-                                      </Button>
-                                      <Button
-                                        variant="outlined"
-                                        onClick={() => handleOpenChat(job)}
-                                        startIcon={<ChatBubbleOutlineIcon sx={{ fontSize: 14 }} />}
-                                        sx={{
-                                          borderColor: '#10B981',
-                                          color: '#34D399',
-                                          fontWeight: 700,
-                                          fontSize: '11.5px',
-                                          py: 0.7,
-                                          borderRadius: '8px',
-                                          textTransform: 'none',
-                                          '&:hover': { bgcolor: 'rgba(16, 185, 129, 0.1)', borderColor: '#6EE7B7' }
-                                        }}
-                                      >
-                                        Chat
-                                      </Button>
-                                    </Box>
+                                    <Button
+                                      variant="outlined"
+                                      onClick={() => handleOpenChat(job)}
+                                      startIcon={<ChatBubbleOutlineIcon sx={{ fontSize: 14 }} />}
+                                      sx={{
+                                        borderColor: '#10B981',
+                                        color: '#34D399',
+                                        fontWeight: 700,
+                                        fontSize: '11.5px',
+                                        py: 0.7,
+                                        borderRadius: '8px',
+                                        textTransform: 'none',
+                                        '&:hover': { bgcolor: 'rgba(16, 185, 129, 0.1)', borderColor: '#6EE7B7' }
+                                      }}
+                                    >
+                                      Chat
+                                    </Button>
                                   )}
                                 </Box>
                               </Card>
@@ -3980,33 +3864,33 @@ export default function PartnerDutyPage() {
                                     bgcolor: isSelected
                                       ? '#0284C7'
                                       : hasAssigned
-                                      ? 'linear-gradient(180deg, #064E3B 0%, #022C22 100%)'
-                                      : hasCancelledOnly
-                                      ? '#1E293B'
-                                      : hasOpen
-                                      ? 'linear-gradient(180deg, #0C4A6E 0%, #082F49 100%)'
-                                      : d.isToday
-                                      ? '#0F172A'
-                                      : '#1E293B',
+                                        ? 'linear-gradient(180deg, #064E3B 0%, #022C22 100%)'
+                                        : hasCancelledOnly
+                                          ? '#1E293B'
+                                          : hasOpen
+                                            ? 'linear-gradient(180deg, #0C4A6E 0%, #082F49 100%)'
+                                            : d.isToday
+                                              ? '#0F172A'
+                                              : '#1E293B',
                                     color: isSelected ? '#FFFFFF' : hasAssigned ? '#FFFFFF' : '#CBD5E1',
                                     border: isSelected
                                       ? '2px solid #38BDF8'
                                       : hasAssigned
-                                      ? '2px solid #10B981'
-                                      : hasCancelledOnly
-                                      ? '1px solid #7F1D1D'
-                                      : hasOpen
-                                      ? '2px solid #38BDF8'
-                                      : d.isToday
-                                      ? '1.5px solid #10B981'
-                                      : '1px solid #334155',
+                                        ? '2px solid #10B981'
+                                        : hasCancelledOnly
+                                          ? '1px solid #7F1D1D'
+                                          : hasOpen
+                                            ? '2px solid #38BDF8'
+                                            : d.isToday
+                                              ? '1.5px solid #10B981'
+                                              : '1px solid #334155',
                                     boxShadow: isSelected
                                       ? '0 4px 16px rgba(2, 132, 199, 0.45)'
                                       : hasAssigned
-                                      ? '0 4px 16px rgba(16, 185, 129, 0.35)'
-                                      : hasOpen
-                                      ? '0 4px 14px rgba(56, 189, 248, 0.25)'
-                                      : 'none',
+                                        ? '0 4px 16px rgba(16, 185, 129, 0.35)'
+                                        : hasOpen
+                                          ? '0 4px 14px rgba(56, 189, 248, 0.25)'
+                                          : 'none',
                                     opacity: d.isPast && !isSelected && !hasAny ? 0.75 : 1,
                                     '&:hover': {
                                       bgcolor: isSelected ? '#0284C7' : hasAssigned ? '#065F46' : '#334155',
@@ -4066,14 +3950,14 @@ export default function PartnerDutyPage() {
                                       color: isSelected
                                         ? '#E0F2FE'
                                         : hasAssigned
-                                        ? '#34D399'
-                                        : hasCancelledOnly
-                                        ? '#F87171'
-                                        : hasOpen
-                                        ? '#38BDF8'
-                                        : d.isToday
-                                        ? '#34D399'
-                                        : '#94A3B8'
+                                          ? '#34D399'
+                                          : hasCancelledOnly
+                                            ? '#F87171'
+                                            : hasOpen
+                                              ? '#38BDF8'
+                                              : d.isToday
+                                                ? '#34D399'
+                                                : '#94A3B8'
                                     }}
                                   >
                                     {d.dayLabel}
@@ -4289,10 +4173,10 @@ export default function PartnerDutyPage() {
                                             border: isCancelled
                                               ? '1.5px solid #991B1B'
                                               : isToday
-                                              ? '2px solid #10B981'
-                                              : isCompleted
-                                              ? '1.5px solid #059669'
-                                              : '1.5px solid #0284C7',
+                                                ? '2px solid #10B981'
+                                                : isCompleted
+                                                  ? '1.5px solid #059669'
+                                                  : '1.5px solid #0284C7',
                                             borderRadius: '12px'
                                           }}
                                         >
@@ -4360,44 +4244,24 @@ export default function PartnerDutyPage() {
                                             </Box>
 
                                             {job.customerPhone && !isCancelled && !isCompleted && (
-                                              <Box sx={{ display: 'flex', gap: 0.8, alignItems: 'center' }}>
-                                                <Button
-                                                  size="small"
-                                                  variant="outlined"
-                                                  onClick={() => handleOpenCall(job)}
-                                                  startIcon={<PhoneIcon sx={{ fontSize: 13 }} />}
-                                                  sx={{
-                                                    borderColor: '#38BDF8',
-                                                    color: '#38BDF8',
-                                                    fontWeight: 700,
-                                                    fontSize: '11px',
-                                                    textTransform: 'none',
-                                                    borderRadius: '6px',
-                                                    py: 0.4,
-                                                    '&:hover': { bgcolor: 'rgba(56, 189, 248, 0.1)' }
-                                                  }}
-                                                >
-                                                  Call (In-App)
-                                                </Button>
-                                                <Button
-                                                  size="small"
-                                                  variant="outlined"
-                                                  onClick={() => handleOpenChat(job)}
-                                                  startIcon={<ChatBubbleOutlineIcon sx={{ fontSize: 13 }} />}
-                                                  sx={{
-                                                    borderColor: '#10B981',
-                                                    color: '#34D399',
-                                                    fontWeight: 700,
-                                                    fontSize: '11px',
-                                                    textTransform: 'none',
-                                                    borderRadius: '6px',
-                                                    py: 0.4,
-                                                    '&:hover': { bgcolor: 'rgba(16, 185, 129, 0.1)' }
-                                                  }}
-                                                >
-                                                  Chat
-                                                </Button>
-                                              </Box>
+                                              <Button
+                                                size="small"
+                                                variant="outlined"
+                                                onClick={() => handleOpenChat(job)}
+                                                startIcon={<ChatBubbleOutlineIcon sx={{ fontSize: 13 }} />}
+                                                sx={{
+                                                  borderColor: '#10B981',
+                                                  color: '#34D399',
+                                                  fontWeight: 700,
+                                                  fontSize: '11px',
+                                                  textTransform: 'none',
+                                                  borderRadius: '6px',
+                                                  py: 0.4,
+                                                  '&:hover': { bgcolor: 'rgba(16, 185, 129, 0.1)' }
+                                                }}
+                                              >
+                                                Chat
+                                              </Button>
                                             )}
                                           </Box>
 
@@ -4650,10 +4514,10 @@ export default function PartnerDutyPage() {
                         </Typography>
                       </Box>
                     </Box>
-                    <Chip 
-                      label="2-Wheeler Route" 
-                      size="small" 
-                      sx={{ bgcolor: '#EFF6FF', color: '#0284C7', fontWeight: 800, fontSize: '10.5px' }} 
+                    <Chip
+                      label="2-Wheeler Route"
+                      size="small"
+                      sx={{ bgcolor: '#EFF6FF', color: '#0284C7', fontWeight: 800, fontSize: '10.5px' }}
                     />
                   </Box>
 
@@ -4667,13 +4531,15 @@ export default function PartnerDutyPage() {
                       </Box>
                       <Box sx={{ flex: 1 }}>
                         <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700, fontSize: '10px', textTransform: 'uppercase', display: 'block' }}>
-                          From (Your Current Location / உங்கள் இருப்பிடம்):
+                          From (Your Starting Location / உங்கள் இருப்பிடம்):
                         </Typography>
                         <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '12px' }}>
-                          {liveGps.locality || 'Saradha College Rd / Hasthampatti, Salem'}
+                          {liveGps.locality || `${assignedLocalityCoords.localityName}, Salem`}
                         </Typography>
                         <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '10px' }}>
-                          GPS: {liveGps.lat ? liveGps.lat.toFixed(4) : '11.6780'}, {liveGps.lng ? liveGps.lng.toFixed(4) : '78.1580'}
+                          {liveGps.isLiveGps
+                            ? `GPS: ${liveGps.lat.toFixed(4)}, ${liveGps.lng.toFixed(4)}`
+                            : `Assigned Salem Zone (${assignedLocalityCoords.localityName})`}
                         </Typography>
                       </Box>
                     </Box>
@@ -4691,26 +4557,44 @@ export default function PartnerDutyPage() {
                           {activeJob?.address || activeJob?.locality || '14/2, 5th Cross, Fairlands, Salem - 636016'}
                         </Typography>
                         <Typography variant="caption" sx={{ color: '#64748B', fontSize: '10.5px' }}>
-                          Locality: <strong>{activeJob?.locality || 'Fairlands'}</strong> • Distance: <strong>1.8 km (approx 8 mins)</strong>
+                          Locality: <strong>{activeJob?.locality || 'Fairlands'}</strong>
                         </Typography>
                       </Box>
                     </Box>
                   </Paper>
 
-                  {/* Primary 1-Tap Google Maps Navigation Button */}
+                  {/* Primary 1-Tap Google Maps Navigation Button (asks location once & routes to customer home) */}
                   <Button
                     variant="contained"
                     fullWidth
                     size="large"
                     startIcon={<NavigationIcon sx={{ fontSize: 18 }} />}
                     endIcon={<ArrowForwardIcon sx={{ fontSize: 16 }} />}
-                    onClick={() => {
-                      const tLat = liveGps.lat || 11.6780;
-                      const tLng = liveGps.lng || 78.1580;
-                      const cLat = parseFloat(activeJob?.customerLat || activeJob?.lat || 11.6643);
-                      const cLng = parseFloat(activeJob?.customerLng || activeJob?.lng || 78.1460);
-                      const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${tLat},${tLng}&destination=${cLat},${cLng}&travelmode=two_wheeler`;
-                      window.open(googleMapsUrl, '_blank');
+                    onClick={async () => {
+                      const destFallback = getCoordsForLocalityName(activeJob?.locality || activeJob?.address);
+                      const cLat = parseFloat(activeJob?.customerLat || activeJob?.lat) || destFallback.lat;
+                      const cLng = parseFloat(activeJob?.customerLng || activeJob?.lng) || destFallback.lng;
+                      const buildMapsUrl = (originCoords) => {
+                        const base = `https://www.google.com/maps/dir/?api=1&destination=${cLat},${cLng}&travelmode=two_wheeler`;
+                        if (originCoords?.lat && originCoords?.lng) {
+                          return `${base}&origin=${originCoords.lat},${originCoords.lng}`;
+                        }
+                        return base;
+                      };
+
+                      if (liveGps?.isLiveGps && liveGps.lat && liveGps.lng) {
+                        window.open(buildMapsUrl(liveGps), '_blank');
+                        return;
+                      }
+
+                      const mapTab = window.open('', '_blank');
+                      const captured = await captureOneTimeLocation(4000);
+                      const targetUrl = buildMapsUrl(captured);
+                      if (mapTab) {
+                        mapTab.location.href = targetUrl;
+                      } else {
+                        window.location.assign(targetUrl);
+                      }
                     }}
                     sx={{
                       bgcolor: '#0284C7',
@@ -4787,33 +4671,20 @@ export default function PartnerDutyPage() {
                   )}
 
                   <Alert severity="success" sx={{ mb: 1.5, bgcolor: '#ECFDF5', color: '#065F46', border: '1px solid #A7F3D0', borderRadius: '8px', fontSize: '11.5px', py: 0.5 }}>
-                    <strong>₹{Number(activeJob?.visit_fee || activeJob?.visitFee || 99).toFixed(2)} Payment Confirmed via Direct UPI Escrow:</strong> 100% credited to your wallet for Salem travel & fuel allowance. Call, Message, and GPS directions are now unlocked.
+                    <strong>₹{Number(activeJob?.visit_fee || activeJob?.visitFee || 99).toFixed(2)} Visit Fee Paid</strong> (100% travel allowance).
                   </Alert>
 
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                      <Button
-                        variant="contained"
-                        fullWidth
-                        size="small"
-                        startIcon={<PhoneIcon sx={{ fontSize: 16 }} />}
-                        onClick={() => handleOpenCall(activeJob)}
-                        sx={{ bgcolor: '#16A34A', borderRadius: '6px', py: 0.8, fontWeight: 600, fontSize: '12px', textTransform: 'none', '&:hover': { bgcolor: '#15803D' } }}
-                      >
-                        Direct Call (Mobile)
-                      </Button>
-
-                      <Button
-                        variant="contained"
-                        fullWidth
-                        size="small"
-                        startIcon={<ChatBubbleOutlineIcon sx={{ fontSize: 16 }} />}
-                        onClick={() => handleOpenChat(activeJob)}
-                        sx={{ bgcolor: '#2563EB', borderRadius: '6px', py: 0.8, fontWeight: 600, fontSize: '12px', textTransform: 'none', '&:hover': { bgcolor: '#1D4ED8' } }}
-                      >
-                        In-App Chat
-                      </Button>
-                    </Box>
+                    <Button
+                      variant="contained"
+                      fullWidth
+                      size="small"
+                      startIcon={<ChatBubbleOutlineIcon sx={{ fontSize: 16 }} />}
+                      onClick={() => handleOpenChat(activeJob)}
+                      sx={{ bgcolor: '#2563EB', borderRadius: '6px', py: 0.85, fontWeight: 600, fontSize: '12px', textTransform: 'none', '&:hover': { bgcolor: '#1D4ED8' } }}
+                    >
+                      In-App Chat
+                    </Button>
 
                     {/* Doorstep Arrival / Safety Verification PIN Section */}
                     {!(activeJob?.status === 'arrived' || (activeJob?.id && localStorage.getItem(`shazuone_partner_arrived_${activeJob.id}`) === 'true') || (activeBookingId && localStorage.getItem(`shazuone_partner_arrived_${activeBookingId}`) === 'true')) ? (
@@ -4876,8 +4747,8 @@ export default function PartnerDutyPage() {
                             <Chip label="Tell to Customer" size="small" sx={{ bgcolor: '#DBEAFE', color: '#1D4ED8', fontWeight: 800, fontSize: '10px' }} />
                           </Box>
 
-                          <Typography variant="caption" sx={{ color: '#1E40AF', fontSize: '11.5px', display: 'block', mb: 1.5, lineHeight: 1.4 }}>
-                            When you reach the customer's house, the customer will ask you: <em>"What is your Shazu One PIN?"</em>. Tell them the 4 digits below so they can verify your identity on their screen and let you inside.
+                          <Typography variant="caption" sx={{ color: '#1E40AF', fontSize: '11.5px', display: 'block', mb: 1, lineHeight: 1.35 }}>
+                            Share this 4-digit PIN with the customer at their doorstep:
                           </Typography>
 
                           {/* Prominent 4-Digit Display for Tech */}
@@ -4908,7 +4779,7 @@ export default function PartnerDutyPage() {
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, bgcolor: '#FFFFFF', p: 1, borderRadius: '6px', border: '1px solid #BFDBFE' }}>
                             <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#22C55E', animation: 'pulse 1.5s infinite' }} />
                             <Typography variant="caption" sx={{ color: '#475569', fontSize: '11px', fontWeight: 600 }}>
-                              Awaiting customer doorstep confirmation... Once customer verifies your PIN, inspection mode will unlock automatically.
+                              Waiting for customer PIN confirmation.
                             </Typography>
                           </Box>
                         </Paper>
@@ -4939,15 +4810,15 @@ export default function PartnerDutyPage() {
                         Diagnostic inspection & quote
                       </Typography>
                     </Box>
-                    <Chip 
-                      label={activeJob?.status === 'quote_approved' ? 'Payment Approved' : (quoteSent || activeJob?.status === 'quote_presented' ? 'Awaiting Customer' : 'Live Inspection')} 
-                      size="small" 
-                      sx={{ 
-                        bgcolor: activeJob?.status === 'quote_approved' ? '#DCFCE7' : (quoteSent || activeJob?.status === 'quote_presented' ? '#FEF3C7' : '#EFF6FF'), 
-                        color: activeJob?.status === 'quote_approved' ? '#166534' : (quoteSent || activeJob?.status === 'quote_presented' ? '#B45309' : '#2563EB'), 
-                        fontWeight: 700, 
-                        fontSize: '10px' 
-                      }} 
+                    <Chip
+                      label={activeJob?.status === 'quote_approved' ? 'Payment Approved' : (quoteSent || activeJob?.status === 'quote_presented' ? 'Awaiting Customer' : 'Live Inspection')}
+                      size="small"
+                      sx={{
+                        bgcolor: activeJob?.status === 'quote_approved' ? '#DCFCE7' : (quoteSent || activeJob?.status === 'quote_presented' ? '#FEF3C7' : '#EFF6FF'),
+                        color: activeJob?.status === 'quote_approved' ? '#166534' : (quoteSent || activeJob?.status === 'quote_presented' ? '#B45309' : '#2563EB'),
+                        fontWeight: 700,
+                        fontSize: '10px'
+                      }}
                     />
                   </Box>
 
@@ -4981,27 +4852,17 @@ export default function PartnerDutyPage() {
                     )}
                   </Paper>
 
-                  {/* In-App Direct Communication during Diagnostic Inspection */}
-                  <Box sx={{ display: 'flex', gap: 1, mb: 1.5 }}>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      startIcon={<PhoneIcon sx={{ fontSize: 14 }} />}
-                      onClick={() => handleOpenCall(activeJob)}
-                      sx={{ flex: 1, borderColor: '#16A34A', color: '#16A34A', fontWeight: 700, fontSize: '11px', textTransform: 'none', py: 0.5, '&:hover': { bgcolor: 'rgba(22, 163, 74, 0.08)' } }}
-                    >
-                      Call Customer (Direct Mobile)
-                    </Button>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      startIcon={<ChatBubbleOutlineIcon sx={{ fontSize: 14 }} />}
-                      onClick={() => handleOpenChat(activeJob)}
-                      sx={{ flex: 1, borderColor: '#2563EB', color: '#2563EB', fontWeight: 700, fontSize: '11px', textTransform: 'none', py: 0.5, '&:hover': { bgcolor: 'rgba(37, 99, 235, 0.08)' } }}
-                    >
-                      Chat with Customer (In-App)
-                    </Button>
-                  </Box>
+                  {/* In-App Chat during Diagnostic Inspection */}
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    fullWidth
+                    startIcon={<ChatBubbleOutlineIcon sx={{ fontSize: 14 }} />}
+                    onClick={() => handleOpenChat(activeJob)}
+                    sx={{ mb: 1.5, borderColor: '#2563EB', color: '#2563EB', fontWeight: 700, fontSize: '11.5px', textTransform: 'none', py: 0.6, '&:hover': { bgcolor: 'rgba(37, 99, 235, 0.08)' } }}
+                  >
+                    Chat with Customer
+                  </Button>
 
                   <Paper elevation={0} sx={{ p: 1.2, bgcolor: '#F8FAFC', borderRadius: '6px', border: '1px solid #E2E8F0', mb: 1.5 }}>
                     {step3Quote?.items && step3Quote.items.length > 0 ? (
@@ -5110,11 +4971,11 @@ export default function PartnerDutyPage() {
                   {/* STAGE B: WAITING FOR CUSTOMER APPROVAL */}
                   {(quoteSent || activeJob?.status === 'quote_presented') && activeJob?.status !== 'quote_approved' && (
                     <Box sx={{ mb: 2 }}>
-                      <Alert 
-                        severity="info" 
+                      <Alert
+                        severity="info"
                         sx={{ borderRadius: '8px', fontSize: '12px', mb: 1.5, bgcolor: '#F0F9FF', color: '#0369A1', border: '1px solid #BAE6FD' }}
                       >
-                        Digital quote (₹{step3Quote?.subtotal ? parseFloat(step3Quote.subtotal).toFixed(2) : '0.00'}) sent to customer. Waiting for customer approval and payment confirmation.
+                        Quote (₹{step3Quote?.subtotal ? parseFloat(step3Quote.subtotal).toFixed(2) : '0.00'}) sent. Waiting for customer approval.
                       </Alert>
                       <Button
                         variant="outlined"
@@ -5146,18 +5007,18 @@ export default function PartnerDutyPage() {
                   {/* STAGE C: CUSTOMER APPROVED WORK CHARGE -> DIRECT WORK COMPLETION */}
                   {(activeJob?.status === 'quote_approved') && (
                     <Box sx={{ mb: 2 }}>
-                      <Alert 
-                        severity="success" 
+                      <Alert
+                        severity="success"
                         sx={{ borderRadius: '8px', fontSize: '12px', mb: 1.5, bgcolor: '#F0FDF4', color: '#166534', border: '1px solid #BBF7D0' }}
                       >
-                        வாடிக்கையாளர் ஒப்புதல் அளித்தார்! (Customer Approved & Payment Protected). உதிரிபாகங்கள் ஏதும் தேவைப்பட்டால் வாடிக்கையாளருடன் நேரடியாக முடிக்கவும். பழுதுபார்க்கும் வேலை முடிந்ததும் கீழே முடிக்கவும்.
+                        Customer approved quote & payment secured. Complete repair below.
                       </Alert>
 
                       {/* Labor Summary Box */}
                       <Card
                         elevation={0}
                         sx={{
-                          p: 2,
+                          p: 1.8,
                           mb: 1.5,
                           bgcolor: '#F8FAFC',
                           border: '1.5px solid #0284C7',
@@ -5165,11 +5026,11 @@ export default function PartnerDutyPage() {
                           boxShadow: '0 2px 10px rgba(2, 132, 199, 0.08)'
                         }}
                       >
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.6 }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
                             <BuildIcon sx={{ color: '#0284C7', fontSize: 20 }} />
                             <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A' }}>
-                              வேலைக் கட்டணம் & தீர்வு (Direct Labor Execution)
+                              Direct Labor Execution
                             </Typography>
                           </Box>
                           <Chip
@@ -5184,8 +5045,8 @@ export default function PartnerDutyPage() {
                           />
                         </Box>
 
-                        <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mb: 1, lineHeight: 1.4 }}>
-                          ஷாசு ஒன் தளம் {livePartnerCommPercent}% கமிஷனை உங்கள் <strong>வேலைக் கட்டணத்திற்கு மட்டுமே</strong> கணக்கிடுகிறது. உதிரிபாகங்கள் விற்பனை தளத்தில் இல்லை.
+                        <Typography variant="caption" sx={{ color: '#64748B', display: 'block', lineHeight: 1.35 }}>
+                          {livePartnerCommPercent}% commission applies to labor only.
                         </Typography>
                       </Card>
                     </Box>
@@ -5195,25 +5056,25 @@ export default function PartnerDutyPage() {
                   <Card
                     elevation={0}
                     sx={{
-                      p: 2,
+                      p: 1.8,
                       bgcolor: '#EFF6FF',
                       border: '1.5px solid #93C5FD',
                       borderRadius: '12px'
                     }}
                   >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                      <HourglassTopIcon sx={{ color: '#2563EB', fontSize: 20 }} />
-                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1E40AF', fontSize: '13.5px' }}>
-                        Customer Inspection & Completion Required (வாடிக்கையாளர் பணி நிறைவு)
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.8 }}>
+                      <HourglassTopIcon sx={{ color: '#2563EB', fontSize: 18 }} />
+                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1E40AF', fontSize: '13px' }}>
+                        Customer Confirmation Required
                       </Typography>
                     </Box>
-                    <Typography variant="body2" sx={{ color: '#1E3A8A', fontSize: '12px', lineHeight: 1.5, mb: 1.5 }}>
-                      பழுதுபார்க்கும் வேலை முடிந்ததும், வாடிக்கையாளரை தங்கள் திரையில் வேலையை சரிபார்த்து &quot;Mark Job Complete&quot; உறுதி செய்யுமாறு கேட்கவும். வாடிக்கையாளர் உறுதி செய்தவுடன் மத்திய நிர்வாகி (Admin) சரிபார்த்து உங்கள் UPI-க்கு பணம் உடனடியாக அனுப்புவார்.
+                    <Typography variant="body2" sx={{ color: '#1E3A8A', fontSize: '12px', lineHeight: 1.4, mb: 1 }}>
+                      Ask the customer to tap <strong>Mark Job Complete</strong> on their screen after repair.
                     </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, bgcolor: '#FFFFFF', p: 1, borderRadius: '8px', border: '1px solid #BFDBFE' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, bgcolor: '#FFFFFF', p: 0.9, borderRadius: '8px', border: '1px solid #BFDBFE' }}>
                       <CheckCircleIcon sx={{ color: '#16A34A', fontSize: 16 }} />
                       <Typography variant="caption" sx={{ color: '#0F172A', fontWeight: 600, fontSize: '11px' }}>
-                        Settlement goes directly to UPI: {activeTech?.upi_vpa || 'Direct Bank Settlement'} after Admin confirmation
+                        Payout to UPI: {activeTech?.upi_vpa || 'Bank Account'}
                       </Typography>
                     </Box>
                   </Card>
@@ -5385,7 +5246,7 @@ export default function PartnerDutyPage() {
               />
 
               <Typography variant="caption" sx={{ color: '#64748B', display: 'block', fontSize: '11px', lineHeight: 1.4 }}>
-                {(partnerIncentives?.starPoints || 0) >= 30 
+                {(partnerIncentives?.starPoints || 0) >= 30
                   ? 'Quest Complete! ₹500 Fixed Cash Incentive credited to your available payout balance.'
                   : `Earn ${Math.max(0, 30 - (partnerIncentives?.starPoints || 0))} more Star Points to unlock ₹500 Fixed Cash Bonus! (+2 pts per 5-star rating, +3 pts per referred technician).`}
               </Typography>
@@ -5417,8 +5278,8 @@ export default function PartnerDutyPage() {
                 />
               </Box>
 
-              <Typography variant="body2" sx={{ color: '#475569', fontSize: '12px', lineHeight: 1.45, mb: 1.8 }}>
-                Know skilled AC specialists, master electricians, or plumbers in Salem? Invite them with your partner code. You can earn an incentive of <strong>up to ₹{partnerIncentiveAmount}</strong> upon their document & trade verification (incentive amount is performance and verification-based, not guaranteed flat ₹100){partnerWelcomeBonus > 0 ? `, and they receive a ₹${partnerWelcomeBonus} Welcome Tool Kit Bonus` : ''}!
+              <Typography variant="body2" sx={{ color: '#475569', fontSize: '12px', lineHeight: 1.4, mb: 1.5 }}>
+                Invite technicians with your code and earn <strong>₹{partnerIncentiveAmount}</strong> once your referred technician completes their <strong>1st service job</strong>.
               </Typography>
 
               {/* Technician Referral Code Box */}
@@ -5483,14 +5344,9 @@ export default function PartnerDutyPage() {
               </Paper>
 
               {/* Policy Disclaimer Note */}
-              <Box sx={{ p: 1.2, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', mt: 1 }}>
-                <Typography variant="caption" sx={{ color: '#475569', fontSize: '10.5px', display: 'block', lineHeight: 1.4 }}>
-                  * <strong>குறிப்பு:</strong> டெக்னீசியன் பரிந்துரை ஊக்கத்தொகை அதிகபட்சம் ₹100 வரை மட்டுமே வழங்கப்படும். ஆவண சரிபார்ப்பு, தொழில் தகுதி மற்றும் நிர்வாக ஒப்புதல் அடிப்படையில் மட்டுமே இது நிர்ணயிக்கப்படும்.
-                </Typography>
-                <Typography variant="caption" sx={{ color: '#64748B', fontSize: '10px', display: 'block', mt: 0.5, lineHeight: 1.3 }}>
-                  * Note: Referral incentive is provided up to ₹100 maximum based on trade verification and onboarding approval. Not guaranteed flat ₹100.
-                </Typography>
-              </Box>
+              <Typography variant="caption" sx={{ color: '#64748B', fontSize: '10.5px', display: 'block', mt: 1 }}>
+                * Referral incentive of ₹{partnerIncentiveAmount} is credited only after the referred technician completes their 1st service job.
+              </Typography>
             </Card>
 
             {/* 4. Referred Technicians Roster List */}
@@ -5554,7 +5410,13 @@ export default function PartnerDutyPage() {
                         Up to +₹{Number(t.incentiveAmount || partnerIncentiveAmount || 0).toFixed(2)}
                       </Typography>
                       <Chip
-                        label={t.payoutStatus === 'SETTLED_TO_PHONE' || t.payoutStatus === 'SETTLED_TO_UPI' ? 'Paid to Phone' : 'Ready to Claim'}
+                        label={
+                          t.payoutStatus === 'SETTLED_TO_PHONE' || t.payoutStatus === 'SETTLED_TO_UPI'
+                            ? 'Paid to Phone'
+                            : (t.payoutStatus === 'READY_TO_CLAIM' || t.payoutStatus === 'AVAILABLE_FOR_PAYOUT'
+                              ? 'Ready to Claim'
+                              : 'Awaiting 1st Job')
+                        }
                         size="small"
                         sx={{
                           bgcolor: (t.payoutStatus === 'SETTLED_TO_PHONE' || t.payoutStatus === 'SETTLED_TO_UPI') ? '#DCFCE7' : '#FEF3C7',
@@ -5653,7 +5515,7 @@ export default function PartnerDutyPage() {
                     பணம் நிலுவை (Payment Pending)
                   </Typography>
                   <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#FBBF24', fontSize: '13.5px' }}>
-                    ₹{partnerJobs.filter(j => j.settlementStatus === 'PAYMENT_PENDING' || j.settlementStatus === 'ESCROW_HELD').reduce((sum, j) => sum + (j.techPayout || 0), 0).toFixed(2)}
+                    ₹{partnerJobs.filter(j => j.settlementStatus === 'PAYMENT_PENDING' || j.settlementStatus === '._HELD').reduce((sum, j) => sum + (j.techPayout || 0), 0).toFixed(2)}
                   </Typography>
                 </Paper>
               </Box>
@@ -5690,7 +5552,7 @@ export default function PartnerDutyPage() {
             <Box sx={{ display: 'flex', gap: 0.8, mb: 1.5 }}>
               {[
                 { id: 'all', label: `All Jobs (${partnerJobs.length})` },
-                { id: 'pending', label: `Payment Pending (${partnerJobs.filter(j => j.settlementStatus === 'PAYMENT_PENDING' || j.settlementStatus === 'ESCROW_HELD').length})` },
+                { id: 'pending', label: `Payment Pending (${partnerJobs.filter(j => j.settlementStatus === 'PAYMENT_PENDING' || j.settlementStatus === '._HELD').length})` },
                 { id: 'settled', label: `Settled to Bank (${partnerJobs.filter(j => j.settlementStatus === 'SETTLED_TO_BANK').length})` }
               ].map(f => (
                 <Chip
@@ -5728,7 +5590,7 @@ export default function PartnerDutyPage() {
                 partnerJobs
                   .filter((job) => {
                     if (settlementFilter === 'settled') return job.settlementStatus === 'SETTLED_TO_BANK';
-                    if (settlementFilter === 'pending') return job.settlementStatus === 'PAYMENT_PENDING' || job.settlementStatus === 'ESCROW_HELD';
+                    if (settlementFilter === 'pending') return job.settlementStatus === 'PAYMENT_PENDING' || job.settlementStatus === '._HELD';
                     return true;
                   })
                   .map((job) => (
@@ -5791,12 +5653,12 @@ export default function PartnerDutyPage() {
                         sx={{
                           p: 0.8,
                           px: 1.2,
-                          bgcolor: job.settlementStatus === 'SETTLED_TO_BANK' 
-                            ? '#F0FDF4' 
+                          bgcolor: job.settlementStatus === 'SETTLED_TO_BANK'
+                            ? '#F0FDF4'
                             : (job.settlementStatus === 'PAYMENT_PENDING' ? '#FFFBEB' : '#EFF6FF'),
                           border: '1px solid',
-                          borderColor: job.settlementStatus === 'SETTLED_TO_BANK' 
-                            ? '#BBF7D0' 
+                          borderColor: job.settlementStatus === 'SETTLED_TO_BANK'
+                            ? '#BBF7D0'
                             : (job.settlementStatus === 'PAYMENT_PENDING' ? '#FCD34D' : '#BFDBFE'),
                           borderRadius: '6px',
                           display: 'flex',
@@ -5815,17 +5677,17 @@ export default function PartnerDutyPage() {
                             variant="caption"
                             sx={{
                               fontWeight: 700,
-                              color: job.settlementStatus === 'SETTLED_TO_BANK' 
-                                ? '#166534' 
+                              color: job.settlementStatus === 'SETTLED_TO_BANK'
+                                ? '#166534'
                                 : (job.settlementStatus === 'PAYMENT_PENDING' ? '#92400E' : '#1E40AF'),
                               fontSize: '11px'
                             }}
                           >
-                            {job.settlementStatus === 'SETTLED_TO_BANK' 
-                              ? `Settled to Bank (UPI: ${job.settlementUpi})` 
-                              : (job.settlementStatus === 'PAYMENT_PENDING' 
-                                  ? 'Payment Pending • Awaiting Admin Confirmation' 
-                                  : 'Held in Escrow')}
+                            {job.settlementStatus === 'SETTLED_TO_BANK'
+                              ? `Settled to Bank (UPI: ${job.settlementUpi})`
+                              : (job.settlementStatus === 'PAYMENT_PENDING'
+                                ? 'Payment Pending • Awaiting Admin Confirmation'
+                                : 'Held in .')}
                           </Typography>
                         </Box>
                         <Typography variant="caption" sx={{ color: '#64748B', fontSize: '10px', fontWeight: 600 }}>
@@ -5866,70 +5728,6 @@ export default function PartnerDutyPage() {
                     </Card>
                   ))
               )}
-            </Box>
-          </Box>
-        )}
-
-        {/* ===================== TAB 2: HELP (உதவி) ===================== */}
-        {bottomNav === 2 && (
-          <Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Typography variant="h6" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '18px' }}>
-                டெக்னீசியன் உதவி மையம் (Technician support)
-              </Typography>
-              <Chip label="Salem hub available" size="small" sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 600, fontSize: '11px', borderRadius: '4px' }} />
-            </Box>
-
-            <Box sx={{ display: 'flex', gap: 1, mb: 2.5, flexDirection: { xs: 'column', sm: 'row' } }}>
-              <Button
-                variant="contained"
-                fullWidth
-                size="large"
-                startIcon={<PhoneIcon />}
-                onClick={() => {
-                  handleOpenCall({
-                    id: activeBookingId || 'SLM-OPS-HELP',
-                    customerName: 'Shazu One Central Ops Desk (Anand)',
-                    customerPhone: '0427-2448888'
-                  });
-                }}
-                sx={{
-                  bgcolor: '#2563EB',
-                  borderRadius: '8px',
-                  py: 1.2,
-                  fontWeight: 600,
-                  fontSize: '14px',
-                  textTransform: 'none',
-                  '&:hover': { bgcolor: '#1D4ED8' }
-                }}
-              >
-                மேனேஜருக்கு அழைக்கவும் (In-App Call)
-              </Button>
-              <Button
-                variant="outlined"
-                fullWidth
-                size="large"
-                startIcon={<ChatBubbleOutlineIcon />}
-                onClick={() => {
-                  handleOpenChat({
-                    id: activeBookingId || 'SLM-OPS-HELP',
-                    customerName: 'Shazu One Central Ops Desk (Anand)',
-                    customerPhone: '0427-2448888'
-                  });
-                }}
-                sx={{
-                  borderColor: '#2563EB',
-                  color: '#2563EB',
-                  borderRadius: '8px',
-                  py: 1.2,
-                  fontWeight: 600,
-                  fontSize: '14px',
-                  textTransform: 'none',
-                  '&:hover': { bgcolor: 'rgba(37, 99, 235, 0.08)' }
-                }}
-              >
-                உதவி அரட்டை (In-App Chat)
-              </Button>
             </Box>
           </Box>
         )}
@@ -6000,10 +5798,10 @@ export default function PartnerDutyPage() {
                     <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#FFFFFF', fontSize: '16px' }}>
                       {user?.name || 'Partner'}
                     </Typography>
-                    <Chip 
-                      label={Number(user?.jobsCompleted || user?.jobs_completed_count) > 0 ? 'Gold Partner' : 'New Partner'} 
-                      size="small" 
-                      sx={{ bgcolor: '#FEF3C7', color: '#92400E', fontWeight: 800, fontSize: '10px', height: 18 }} 
+                    <Chip
+                      label={Number(user?.jobsCompleted || user?.jobs_completed_count) > 0 ? 'Gold Partner' : 'New Partner'}
+                      size="small"
+                      sx={{ bgcolor: '#FEF3C7', color: '#92400E', fontWeight: 800, fontSize: '10px', height: 18 }}
                     />
                   </Box>
                   <Typography variant="body2" sx={{ color: '#38BDF8', fontWeight: 600, fontSize: '12px', mt: 0.2 }}>
@@ -6102,7 +5900,7 @@ export default function PartnerDutyPage() {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
                   <PersonIcon sx={{ color: '#2563EB', fontSize: 18 }} />
                   <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '13.5px' }}>
-                    தனிப்பட்ட & தொடர்பு விவரங்கள் (Contact Details)
+                    Profile Details
                   </Typography>
                 </Box>
                 <Button size="small" onClick={handleOpenEditProfile} startIcon={<EditIcon sx={{ fontSize: 14 }} />} sx={{ fontSize: '11px', textTransform: 'none', py: 0, color: '#0284C7', fontWeight: 700 }}>
@@ -6348,19 +6146,19 @@ export default function PartnerDutyPage() {
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                    <Chip 
-                      label={user?.isKycVerified ? 'Verified' : user?.aadhaarCardUrl ? 'Under Review' : 'Action Required'} 
-                      size="small" 
-                      sx={{ 
-                        bgcolor: user?.isKycVerified ? '#DCFCE7' : user?.aadhaarCardUrl ? '#E0F2FE' : '#FEF3C7', 
-                        color: user?.isKycVerified ? '#166534' : user?.aadhaarCardUrl ? '#0369A1' : '#92400E', 
-                        fontWeight: 700, 
-                        fontSize: '10px', 
-                        height: 20 
-                      }} 
+                    <Chip
+                      label={user?.isKycVerified ? 'Verified' : user?.aadhaarCardUrl ? 'Under Review' : 'Action Required'}
+                      size="small"
+                      sx={{
+                        bgcolor: user?.isKycVerified ? '#DCFCE7' : user?.aadhaarCardUrl ? '#E0F2FE' : '#FEF3C7',
+                        color: user?.isKycVerified ? '#166534' : user?.aadhaarCardUrl ? '#0369A1' : '#92400E',
+                        fontWeight: 700,
+                        fontSize: '10px',
+                        height: 20
+                      }}
                     />
-                    <Button 
-                      size="small" 
+                    <Button
+                      size="small"
                       onClick={handleOpenEditProfile}
                       sx={{ fontSize: '10.5px', textTransform: 'none', py: 0.2, px: 0.8, minWidth: 'auto', fontWeight: 700, color: '#0284C7' }}
                     >
@@ -6501,12 +6299,12 @@ export default function PartnerDutyPage() {
       </Snackbar>
 
       {/* Bottom Navigation */}
-      <Paper elevation={3} sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, bgcolor: '#FFFFFF', borderTop: '1px solid #E2E8F0', zIndex: 1000, display: { xs: 'block', md: 'none' } }}>
+      <Paper elevation={3} sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, bgcolor: 'var(--cz-chrome-bg, #EBF3FE)', borderTop: '1px solid var(--cz-chrome-border, #C7DBF7)', pb: 'var(--sab)', zIndex: 1000, display: { xs: 'block', md: 'none' } }}>
         <BottomNavigation
           showLabels
           value={bottomNav}
           onChange={(e, val) => setBottomNav(val)}
-          sx={{ height: 56, '& .Mui-selected': { color: '#059669', fontWeight: 700 } }}
+          sx={{ height: 56, bgcolor: 'transparent', '& .Mui-selected': { color: '#059669', fontWeight: 700 } }}
         >
           <BottomNavigationAction label="Duty" icon={<TwoWheelerIcon sx={{ fontSize: 20 }} />} />
           <BottomNavigationAction label="Incentives" icon={<CardGiftcardIcon sx={{ fontSize: 20 }} />} />
@@ -6571,68 +6369,6 @@ export default function PartnerDutyPage() {
           >
             Acknowledge and continue duty
           </Button>
-        </Paper>
-      )}
-
-      {/* Location Permission Request Banner (Non-modal) */}
-      {locationModalOpen && (
-        <Paper
-          elevation={4}
-          sx={{
-            position: 'fixed',
-            bottom: { xs: 70, md: 24 },
-            left: { xs: 16, sm: 24 },
-            right: { xs: 16, sm: 24 },
-            maxWidth: 500,
-            mx: 'auto',
-            zIndex: 1200,
-            p: 2.5,
-            borderRadius: '16px',
-            border: '1px solid #BAE6FD',
-            bgcolor: '#FFFFFF',
-            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)'
-          }}
-        >
-          <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', mb: 0.5, fontSize: '16px' }}>
-            Location access required
-          </Typography>
-          <Typography variant="body2" sx={{ color: '#64748B', mb: 1.5, fontSize: '13px', lineHeight: 1.5 }}>
-            Shazu One requires device location only while on duty to calculate live customer ETAs and dispatch nearby Salem jobs.
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 1.5 }}>
-            <Button
-              onClick={() => {
-                setLocationModalOpen(false);
-                setIsOnline(false);
-                setIsGpsBroadcasting(false);
-              }}
-              sx={{ color: '#64748B', fontWeight: 600, textTransform: 'none', height: 44, flex: 1 }}
-            >
-              Stay offline
-            </Button>
-            <Button
-              variant="contained"
-              onClick={() => {
-                setLocationModalOpen(false);
-                setLocationPermission('granted');
-                setIsOnline(true);
-                setIsGpsBroadcasting(true);
-                requestLocationPermission();
-              }}
-              sx={{
-                bgcolor: '#0A66C2',
-                color: '#FFF',
-                fontWeight: 700,
-                borderRadius: '12px',
-                height: 44,
-                flex: 1.5,
-                textTransform: 'none',
-                '&:hover': { bgcolor: '#084e96' }
-              }}
-            >
-              Allow and go online
-            </Button>
-          </Box>
         </Paper>
       )}
 

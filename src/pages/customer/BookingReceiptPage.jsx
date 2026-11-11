@@ -101,8 +101,8 @@ export default function BookingReceiptPage() {
   const grossPaid = booking?.final_amount != null
     ? parseFloat(booking.final_amount)
     : (booking?.gross_paid_amount != null
-        ? parseFloat(booking.gross_paid_amount)
-        : parseFloat(booking?.visit_fee || 99.0));
+      ? parseFloat(booking.gross_paid_amount)
+      : parseFloat(booking?.visit_fee || 99.0));
   const refundAmount = parseFloat(booking?.refund_amount || 0);
   const platformFeeRetained = parseFloat(booking?.refund_platform_fee || 0);
   const gatewayFeeRetained = parseFloat(booking?.refund_gateway_fee || 0);
@@ -114,13 +114,14 @@ export default function BookingReceiptPage() {
       {/* Top Header Bar */}
       <Box
         sx={{
-          bgcolor: '#FFFFFF',
-          borderBottom: '1px solid #E2E8F0',
+          bgcolor: 'var(--cz-chrome-bg, #EBF3FE)',
+          borderBottom: '1px solid var(--cz-chrome-border, #C7DBF7)',
           position: 'sticky',
           top: 0,
           zIndex: 10,
-          px: { xs: 2, sm: 3 },
-          py: 1.5,
+          px: { xs: 1.5, sm: 3 },
+          pt: 'calc(10px + var(--sat))',
+          pb: 1.25,
           display: 'flex',
           alignItems: 'center',
           gap: 1.5,
@@ -339,10 +340,10 @@ export default function BookingReceiptPage() {
             </Box>
             <Box>
               <Typography sx={{ fontSize: '13px', fontWeight: 800, color: isCancelled ? '#0369A1' : '#166534' }}>
-                {isCancelled ? 'Digital Escrow Refund Initiated' : 'Verified Doorstep Service Completed'}
+                {isCancelled ? 'Digital . Refund Initiated' : 'Verified Doorstep Service Completed'}
               </Typography>
               <Typography sx={{ fontSize: '11.5px', color: isCancelled ? '#0284C7' : '#15803D', lineHeight: 1.4 }}>
-                {isCancelled 
+                {isCancelled
                   ? 'Your net refund has been dispatched via automated banking route and will reflect in your source account within 3 to 5 business days.'
                   : 'Work inspected and verified on site. For new queries or assistance, contact Salem Operations support.'}
               </Typography>

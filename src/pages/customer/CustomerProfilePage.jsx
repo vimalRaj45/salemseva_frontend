@@ -192,7 +192,7 @@ export default function CustomerProfilePage() {
   return (
     <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100dvh', pb: 10 }}>
       {/* Top Header Bar */}
-      <Box sx={{ bgcolor: '#FFFFFF', borderBottom: '1px solid #E2E8F0', py: 1.5, px: 2, position: 'sticky', top: 0, zIndex: 100 }}>
+      <Box sx={{ bgcolor: 'var(--cz-chrome-bg, #EBF3FE)', borderBottom: '1px solid var(--cz-chrome-border, #C7DBF7)', py: 1.5, px: 2, position: 'sticky', top: 0, zIndex: 100 }}>
         <Container maxWidth="sm" sx={{ p: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <IconButton onClick={() => navigate(-1)} size="small" sx={{ color: '#0F172A', p: 0.5 }}>

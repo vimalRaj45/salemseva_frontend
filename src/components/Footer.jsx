@@ -29,7 +29,6 @@ export default function Footer() {
     location.pathname === '/technician/login' ||
     location.pathname === '/welcome' ||
     location.pathname === '/how-it-works' ||
-    location.pathname.startsWith('/call/') ||
     location.pathname.startsWith('/chat/') ||
     location.pathname.startsWith('/partner') ||
     location.pathname.startsWith('/admin');
@@ -86,10 +85,10 @@ export default function Footer() {
     <Box
       component="footer"
       sx={{
-        bgcolor: '#FFFFFF',
+        bgcolor: 'var(--cz-chrome-bg, #EBF3FE)',
         color: '#0F172A',
         mt: 'auto',
-        borderTop: '1px solid #E2E8F0',
+        borderTop: '1px solid var(--cz-chrome-border, #C7DBF7)',
         position: 'relative',
         zIndex: 10
       }}
@@ -519,9 +518,9 @@ export default function Footer() {
       {/* ── 3. Bottom Bar (3-Part Flex Row, 24px vertical padding, Top Border) ── */}
       <Box
         sx={{
-          borderTop: '1px solid #E2E8F0',
+          borderTop: '1px solid var(--cz-chrome-border, #C7DBF7)',
           py: '24px',
-          bgcolor: '#F8FAFC'
+          bgcolor: 'var(--cz-chrome-bg, #EBF3FE)'
         }}
       >
         <Container maxWidth={false} sx={{ maxWidth: '1200px', mx: 'auto', px: { xs: 2, sm: 3 } }}>

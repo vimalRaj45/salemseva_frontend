@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -68,8 +68,8 @@ export default function LegalLayout({
           position: 'sticky',
           top: 0,
           zIndex: 100,
-          backgroundColor: '#FFFFFF',
-          borderBottom: '1px solid #E2E8F0',
+          backgroundColor: 'var(--cz-chrome-bg, #EBF3FE)',
+          borderBottom: '1px solid var(--cz-chrome-border, #C7DBF7)',
           boxShadow: '0 1px 2px rgba(0,0,0,0.03)'
         }}
       >

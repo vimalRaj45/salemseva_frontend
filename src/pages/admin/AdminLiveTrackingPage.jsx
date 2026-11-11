@@ -128,7 +128,7 @@ export default function AdminLiveTrackingPage() {
 
   return (
     <Box sx={{ minHeight: '100dvh', bgcolor: 'background.default', display: 'flex', flexDirection: 'column' }}>
-      <Container maxWidth="md" sx={{ flex: 1, py: { xs: 2.5, sm: 3.5 } }}>
+      <Container maxWidth="md" sx={{ flex: 1, pt: { xs: 'calc(16px + var(--sat))', sm: 'calc(24px + var(--sat))' }, pb: 'calc(24px + var(--sab))' }}>
         <PageHeader
           title="Admin Live Tracking Console"
           subtitle={`Booking #${bookingId} • ${booking?.service_name || booking?.service_id || 'Service Duty'}`}

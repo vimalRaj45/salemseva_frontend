@@ -243,3 +243,34 @@ export async function getLiveAccurateLocation() {
     );
   });
 }
+
+/**
+ * Resolves a Salem locality string or array of localities into { lat, lng, localityName }
+ * without invoking browser GPS.
+ */
+export function getCoordsForLocalityName(localityInput, fallback = SALEM_CENTER) {
+  const candidates = Array.isArray(localityInput) ? localityInput : [localityInput];
+  for (const raw of candidates) {
+    if (!raw) continue;
+    const text = String(raw).trim().toLowerCase();
+    if (!text) continue;
+
+    for (const loc of SALEM_LOCALITIES) {
+      const fullName = loc.name.toLowerCase();
+      const shortName = fullName.split('/')[0].split('(')[0].trim();
+      if (
+        text === fullName ||
+        text.includes(shortName) ||
+        shortName.includes(text) ||
+        (loc.pin && text.includes(loc.pin))
+      ) {
+        return { lat: loc.lat, lng: loc.lng, localityName: loc.name };
+      }
+    }
+  }
+  return {
+    lat: fallback?.lat ?? SALEM_CENTER.lat,
+    lng: fallback?.lng ?? SALEM_CENTER.lng,
+    localityName: fallback?.name ?? 'Salem'
+  };
+}

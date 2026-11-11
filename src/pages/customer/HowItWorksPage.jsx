@@ -64,13 +64,13 @@ const CUSTOMER_STAGES = [
     id: 'quote',
     stageNumber: 4,
     badge: 'Stage 4: Transparent Estimate',
-    title: 'Upfront Labour Quote & Escrow Lock',
+    title: 'Upfront Labour Quote & Price Lock',
     desc: 'Physical inspection on arrival with a digital job card quote. Buying spare parts is 100% your choice.',
     illustration: ILLUSTRATIONS.transparentPricing,
     points: [
       'Strictly labour billing - Shazu One never sells products',
       'Any spare parts needed are 100% your choice to buy or provide',
-      'Payment held safely in digital escrow until you approve'
+      'Payment held safely in digital account until you approve'
     ]
   },
   {
@@ -177,22 +177,18 @@ export default function HowItWorksPage() {
         flexDirection: 'column'
       }}
     >
-      <Container
-        maxWidth="sm"
+      {/* Full-Width Light-Tinted Top Header */}
+      <Box
         sx={{
-          height: '100%',
-          maxHeight: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          pt: { xs: 'max(env(safe-area-inset-top, 0px), 8px)', sm: 'max(env(safe-area-inset-top, 0px), 12px)' },
-          pb: { xs: 'max(env(safe-area-inset-bottom, 0px), 10px)', sm: 'max(env(safe-area-inset-bottom, 0px), 14px)' },
-          px: { xs: 1.5, sm: 2.5 },
-          boxSizing: 'border-box'
+          flexShrink: 0,
+          bgcolor: 'var(--cz-chrome-bg, #EBF3FE)',
+          borderBottom: '1px solid var(--cz-chrome-border, #C7DBF7)',
+          pt: 'calc(8px + var(--sat))',
+          pb: 1,
+          px: { xs: 1.5, sm: 2.5 }
         }}
       >
-        {/* Professional Header: Logo on left, compact pill switcher in center, Exit on right */}
-        <Box sx={{ flexShrink: 0, mb: 1 }}>
+        <Container maxWidth="sm" disableGutters>
           <Box
             sx={{
               display: 'flex',
@@ -219,7 +215,7 @@ export default function HowItWorksPage() {
                 onError={(e) => { e.currentTarget.src = '/logo.png'; }}
                 alt="Shazu One"
                 sx={{
-                  height: { xs: 26, sm: 30 },
+                  height: { xs: 24, sm: 28 },
                   width: 'auto',
                   objectFit: 'contain'
                 }}
@@ -230,10 +226,10 @@ export default function HowItWorksPage() {
             <Box
               sx={{
                 display: 'flex',
-                bgcolor: '#F1F5F9',
-                p: 0.35,
+                bgcolor: '#DCE8FB',
+                p: 0.3,
                 borderRadius: '8px',
-                border: '1px solid #E2E8F0',
+                border: '1px solid var(--cz-chrome-border, #C7DBF7)',
                 flexShrink: 0
               }}
             >
@@ -243,18 +239,18 @@ export default function HowItWorksPage() {
                   setRole('customer');
                   setCurrentStage(0);
                 }}
-                startIcon={<PersonIcon sx={{ fontSize: 14 }} />}
+                startIcon={<PersonIcon sx={{ fontSize: 13 }} />}
                 sx={{
-                  py: 0.35,
-                  px: { xs: 1, sm: 1.3 },
-                  fontSize: '11.5px',
+                  py: 0.3,
+                  px: { xs: 0.9, sm: 1.2 },
+                  fontSize: '11px',
                   fontWeight: 700,
                   borderRadius: '6px',
                   textTransform: 'none',
                   bgcolor: role === 'customer' ? '#FFFFFF' : 'transparent',
-                  color: role === 'customer' ? '#0066CC' : '#64748B',
+                  color: role === 'customer' ? '#0066CC' : '#334155',
                   boxShadow: role === 'customer' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-                  minHeight: 28,
+                  minHeight: 26,
                   transition: 'all 0.15s ease'
                 }}
               >
@@ -266,18 +262,18 @@ export default function HowItWorksPage() {
                   setRole('partner');
                   setCurrentStage(0);
                 }}
-                startIcon={<HandymanIcon sx={{ fontSize: 14 }} />}
+                startIcon={<HandymanIcon sx={{ fontSize: 13 }} />}
                 sx={{
-                  py: 0.35,
-                  px: { xs: 1, sm: 1.3 },
-                  fontSize: '11.5px',
+                  py: 0.3,
+                  px: { xs: 0.9, sm: 1.2 },
+                  fontSize: '11px',
                   fontWeight: 700,
                   borderRadius: '6px',
                   textTransform: 'none',
                   bgcolor: role === 'partner' ? '#FFFFFF' : 'transparent',
-                  color: role === 'partner' ? '#059669' : '#64748B',
+                  color: role === 'partner' ? '#059669' : '#334155',
                   boxShadow: role === 'partner' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-                  minHeight: 28,
+                  minHeight: 26,
                   transition: 'all 0.15s ease'
                 }}
               >
@@ -291,18 +287,18 @@ export default function HowItWorksPage() {
               onClick={() => navigate('/')}
               aria-label="Exit Walkthrough"
               sx={{
-                width: 28,
-                height: 28,
+                width: 26,
+                height: 26,
                 borderRadius: '7px',
                 bgcolor: '#FFFFFF',
-                color: '#64748B',
-                border: '1px solid #E2E8F0',
+                color: '#475569',
+                border: '1px solid var(--cz-chrome-border, #C7DBF7)',
                 boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
                 '&:hover': { bgcolor: '#F8FAFC', color: '#0F172A' },
                 flexShrink: 0
               }}
             >
-              <CloseIcon sx={{ fontSize: 16 }} />
+              <CloseIcon sx={{ fontSize: 15 }} />
             </IconButton>
           </Box>
 
@@ -312,14 +308,29 @@ export default function HowItWorksPage() {
             sx={{
               height: 3.5,
               borderRadius: 2,
-              bgcolor: '#E2E8F0',
+              bgcolor: '#D3E3FC',
               '& .MuiLinearProgress-bar': {
                 bgcolor: role === 'customer' ? '#0066CC' : '#059669',
                 borderRadius: 2
               }
             }}
           />
-        </Box>
+        </Container>
+      </Box>
+
+      {/* Main Content Stage */}
+      <Container
+        maxWidth="sm"
+        sx={{
+          flex: 1,
+          minHeight: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          py: { xs: 1, sm: 1.5 },
+          px: { xs: 1.5, sm: 2.5 },
+          boxSizing: 'border-box'
+        }}
+      >
 
         {/* Stage Content Card: Edge-to-edge full width illustration */}
         <Card
@@ -460,24 +471,36 @@ export default function HowItWorksPage() {
             </Box>
           </Box>
         </Card>
+      </Container>
 
-        {/* Bottom Actions Dock */}
-        <Box sx={{ flexShrink: 0, display: 'flex', gap: 1.2, pt: 0.4 }}>
+      {/* Full-Width Light-Tinted Bottom Footer Dock */}
+      <Box
+        sx={{
+          flexShrink: 0,
+          bgcolor: 'var(--cz-chrome-bg, #EBF3FE)',
+          borderTop: '1px solid var(--cz-chrome-border, #C7DBF7)',
+          pt: 1.1,
+          pb: 'calc(10px + var(--sab))',
+          px: { xs: 1.5, sm: 2.5 }
+        }}
+      >
+        <Container maxWidth="sm" disableGutters sx={{ display: 'flex', gap: 1.2 }}>
           <Button
             variant="outlined"
             onClick={handlePrev}
             disabled={currentStage === 0}
-            startIcon={<ArrowBackIcon sx={{ fontSize: 16 }} />}
+            startIcon={<ArrowBackIcon sx={{ fontSize: 15 }} />}
             sx={{
               flex: 1,
-              height: { xs: 40, sm: 44 },
+              height: { xs: 38, sm: 42 },
               borderRadius: '9px',
-              borderColor: '#CBD5E1',
+              bgcolor: '#FFFFFF',
+              borderColor: 'var(--cz-chrome-border, #C7DBF7)',
               color: '#334155',
               fontWeight: 700,
-              fontSize: { xs: '13px', sm: '13.5px' },
+              fontSize: { xs: '12.5px', sm: '13.5px' },
               textTransform: 'none',
-              '&:disabled': { opacity: 0.35 }
+              '&:disabled': { opacity: 0.4, bgcolor: '#FFFFFF' }
             }}
           >
             Previous
@@ -486,15 +509,15 @@ export default function HowItWorksPage() {
           <Button
             variant="contained"
             onClick={handleNext}
-            endIcon={<ArrowForwardIcon sx={{ fontSize: 16 }} />}
+            endIcon={<ArrowForwardIcon sx={{ fontSize: 15 }} />}
             sx={{
               flex: 1.8,
-              height: { xs: 40, sm: 44 },
+              height: { xs: 38, sm: 42 },
               borderRadius: '9px',
               bgcolor: role === 'customer' ? '#0066CC' : '#059669',
               color: '#FFFFFF',
               fontWeight: 800,
-              fontSize: { xs: '13px', sm: '13.5px' },
+              fontSize: { xs: '12.5px', sm: '13.5px' },
               textTransform: 'none',
               boxShadow: role === 'customer' ? '0 4px 14px rgba(0, 102, 204, 0.25)' : '0 4px 14px rgba(5, 150, 105, 0.25)',
               '&:hover': {
@@ -505,11 +528,11 @@ export default function HowItWorksPage() {
             {currentStage < stages.length - 1
               ? 'Next Stage'
               : role === 'customer'
-              ? 'Book Service Now'
-              : 'Start Partner Duty'}
+                ? 'Book Service Now'
+                : 'Start Partner Duty'}
           </Button>
-        </Box>
-      </Container>
+        </Container>
+      </Box>
     </Box>
   );
 }

@@ -36,7 +36,6 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import SideNavbar from './SideNavbar';
-import AiSupportModal from './support/AiSupportModal';
 import { SUPPORTED_LANGUAGES, getCurrentLanguage } from '../services/languageService';
 import { getLiveAccurateLocation } from '../utils/geoUtils';
 import { APP_DOWNLOAD_URL } from '../config';
@@ -123,7 +122,6 @@ export default function Navbar({
   const [isPartnerMenuOpen, setIsPartnerMenuOpen] = useState(false);
   const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isAiSupportOpen, setIsAiSupportOpen] = useState(false);
 
   // Drawer State
   const [isSideNavOpen, setIsSideNavOpen] = useState(false);
@@ -292,10 +290,11 @@ export default function Navbar({
         right: 0,
         zIndex: 1100,
         width: '100%',
-        height: isMobile ? '56px' : '72px',
+        paddingTop: 'var(--sat)',
+        height: isMobile ? 'calc(52px + var(--sat))' : 'calc(72px + var(--sat))',
         boxSizing: 'border-box',
-        backgroundColor: '#FFFFFF',
-        borderBottom: '1px solid #E2E8F0',
+        backgroundColor: 'var(--cz-chrome-bg, #EBF3FE)',
+        borderBottom: '1px solid var(--cz-chrome-border, #C7DBF7)',
         boxShadow: hasScrolled
           ? '0 4px 12px -2px rgba(15, 23, 42, 0.08)'
           : '0 1px 3px rgba(15, 23, 42, 0.04)',
@@ -330,10 +329,10 @@ export default function Navbar({
         style={{
           maxWidth: '1400px',
           width: '100%',
-          height: isMobile ? '56px' : '72px',
+          height: isMobile ? '52px' : '72px',
           boxSizing: 'border-box',
           margin: '0 auto',
-          padding: isMobile ? '0 16px' : '0 24px',
+          padding: isMobile ? '0 12px' : '0 24px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -346,7 +345,7 @@ export default function Navbar({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            height: isMobile ? '56px' : '72px',
+            height: isMobile ? '52px' : '72px',
             gap: isMobile ? '8px' : '12px',
             width: '100%',
             boxSizing: 'border-box'
@@ -363,7 +362,7 @@ export default function Navbar({
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: isMobile ? '8px' : '10px',
+                gap: isMobile ? '7px' : '10px',
                 cursor: 'pointer',
                 userSelect: 'none'
               }}
@@ -372,8 +371,8 @@ export default function Navbar({
               <div
                 className="brand-logo-shine"
                 style={{
-                  width: isMobile ? '34px' : '38px',
-                  height: isMobile ? '34px' : '38px',
+                  width: isMobile ? '30px' : '38px',
+                  height: isMobile ? '30px' : '38px',
                   borderRadius: '8px',
                   display: 'flex',
                   alignItems: 'center',
@@ -397,7 +396,7 @@ export default function Navbar({
               {/* Dynamic Wordmark */}
               <span
                 style={{
-                  fontSize: isMobile ? '18px' : '20px',
+                  fontSize: isMobile ? '16px' : '20px',
                   fontWeight: 900,
                   letterSpacing: '-0.4px',
                   lineHeight: 1,
@@ -1119,8 +1118,8 @@ export default function Navbar({
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  width: isMobile ? '34px' : '40px',
-                  height: isMobile ? '34px' : '40px',
+                  width: isMobile ? '30px' : '40px',
+                  height: isMobile ? '30px' : '40px',
                   borderRadius: '8px',
                   backgroundColor: '#F8FAFC',
                   border: '1px solid #E2E8F0',
@@ -1190,8 +1189,8 @@ export default function Navbar({
                   height: '40px',
                   padding: '0 12px',
                   borderRadius: '8px',
-                  backgroundColor: '#F8FAFC',
-                  border: '1px solid #CBD5E1',
+                  backgroundColor: '#FFFFFF',
+                  border: '1px solid var(--cz-chrome-border, #C7DBF7)',
                   color: '#0F172A',
                   cursor: 'pointer',
                   fontSize: '13px',
@@ -1658,11 +1657,11 @@ export default function Navbar({
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '6px',
-                  height: '34px',
-                  padding: user ? '0 8px 0 5px' : '0 8px',
+                  height: '30px',
+                  padding: user ? '0 7px 0 4px' : '0 7px',
                   borderRadius: user ? '18px' : '8px',
-                  backgroundColor: '#F8FAFC',
-                  border: '1px solid #CBD5E1',
+                  backgroundColor: '#FFFFFF',
+                  border: '1px solid var(--cz-chrome-border, #C7DBF7)',
                   color: '#0F172A',
                   cursor: 'pointer',
                   flexShrink: 0
@@ -1672,13 +1671,13 @@ export default function Navbar({
                   <>
                     <div
                       style={{
-                        width: '24px',
-                        height: '24px',
+                        width: '21px',
+                        height: '21px',
                         borderRadius: '50%',
                         backgroundColor: isTechnician ? '#2B9236' : isAdmin ? '#D97706' : '#0A5CC4',
                         color: '#FFFFFF',
                         fontWeight: 800,
-                        fontSize: '11px',
+                        fontSize: '10px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center'
@@ -1686,10 +1685,10 @@ export default function Navbar({
                     >
                       {initial}
                     </div>
-                    <Menu size={16} />
+                    <Menu size={15} />
                   </>
                 ) : (
-                  <Menu size={18} />
+                  <Menu size={16} />
                 )}
               </button>
             )}
@@ -1712,99 +1711,9 @@ export default function Navbar({
         onOpenLanguageModal={() => navigate('/language')}
         onOpenFeedbackModal={() => navigate('/feedback')}
         onOpenSupportTicketModal={() => navigate('/support')}
-        onOpenAiSupportModal={() => {
-          if (!user && !techUser) {
-            if (typeof openAuthModal === 'function') openAuthModal();
-            else navigate('/login');
-            return;
-          }
-          navigate('/ask-ai');
-        }}
         logout={logout}
         logoutTech={logoutTech}
       />
-
-      {/* Cloudflare AI Support Agent Modal (Temporarily hidden while feature is in development) */}
-      {/* 
-      <AiSupportModal
-        open={isAiSupportOpen}
-        onClose={() => setIsAiSupportOpen(false)}
-      />
-      */}
-
-      {/* Floating Action Button: "Ask AI" (Temporarily hidden while feature is in development) */}
-      {/* 
-      {location.pathname !== '/ask-ai' && (
-      <button
-        type="button"
-        onClick={() => {
-          if (!user && !techUser) {
-            if (typeof openAuthModal === 'function') openAuthModal();
-            else navigate('/login');
-            return;
-          }
-          navigate('/ask-ai');
-        }}
-        title="Ask AI Assistant (Voice & Text)"
-        aria-label="Ask AI Assistant"
-        style={{
-          position: 'fixed',
-          bottom: '24px',
-          right: '24px',
-          zIndex: 1200,
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '8px',
-          height: '46px',
-          padding: '0 18px',
-          borderRadius: '9999px',
-          background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
-          color: '#FFFFFF',
-          border: '1.5px solid rgba(255, 255, 255, 0.15)',
-          boxShadow: '0 10px 25px -4px rgba(15, 23, 42, 0.35), 0 6px 12px -2px rgba(15, 23, 42, 0.2)',
-          cursor: 'pointer',
-          fontSize: '13.5px',
-          fontWeight: 700,
-          letterSpacing: '0.2px',
-          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-          outline: 'none'
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'translateY(-2px) scale(1.03)';
-          e.currentTarget.style.boxShadow = '0 14px 28px -4px rgba(37, 99, 235, 0.4)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'translateY(0) scale(1)';
-          e.currentTarget.style.boxShadow = '0 10px 25px -4px rgba(15, 23, 42, 0.35)';
-        }}
-      >
-        <div
-          style={{
-            width: '24px',
-            height: '24px',
-            borderRadius: '50%',
-            backgroundColor: '#2563EB',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 0 10px rgba(37, 99, 235, 0.5)'
-          }}
-        >
-          <Sparkles size={13} color="#FFFFFF" />
-        </div>
-        <span>Ask AI</span>
-        <span
-          style={{
-            width: '7px',
-            height: '7px',
-            borderRadius: '50%',
-            backgroundColor: '#10B981',
-            boxShadow: '0 0 6px #10B981'
-          }}
-        />
-      </button>
-      )}
-      */}
     </header>
   );
 }

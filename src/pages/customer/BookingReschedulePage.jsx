@@ -124,10 +124,11 @@ export default function BookingReschedulePage() {
       {/* Top Header */}
       <Box
         sx={{
-          bgcolor: '#FFFFFF',
+          bgcolor: 'var(--cz-chrome-bg, #EBF3FE)',
           px: 2,
-          py: 1.5,
-          borderBottom: '1px solid #E2E8F0',
+          pt: 'calc(10px + var(--sat))',
+          pb: 1.25,
+          borderBottom: '1px solid var(--cz-chrome-border, #C7DBF7)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',

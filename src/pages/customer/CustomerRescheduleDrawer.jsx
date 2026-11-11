@@ -154,7 +154,7 @@ export default function CustomerRescheduleDrawer({
           </Paper>
         )}
 
-        {/* Escrow Guarantee Banner */}
+        {/* . Guarantee Banner */}
         <Box
           sx={{
             display: 'flex',
@@ -169,10 +169,10 @@ export default function CustomerRescheduleDrawer({
           <ShieldIcon sx={{ color: '#166534', fontSize: 22, mt: 0.2 }} />
           <Box>
             <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#166534', fontSize: '13px' }}>
-              100% Escrow Protection: Zero Reschedule Fee
+              100% . Protection: Zero Reschedule Fee
             </Typography>
             <Typography variant="caption" sx={{ color: '#15803D', fontSize: '12px', display: 'block', mt: 0.3 }}>
-              Your inspection visit fee remains safely reserved in escrow. No additional charges or cancellation deductions apply.
+              Your inspection visit fee remains safely reserved in .. No additional charges or cancellation deductions apply.
             </Typography>
           </Box>
         </Box>

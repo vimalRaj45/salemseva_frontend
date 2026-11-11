@@ -1,25 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { NativeNotifier } from '../services/nativeNotify';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Capacitor } from '@capacitor/core';
 import { API_BASE_URL } from '../config';
-import FocusCallOverlay from './FocusCallOverlay';
 import { subscribeUserToPush } from '../services/pushSubscription';
 
 export default function GlobalNotificationWatcher() {
   const navigate = useNavigate();
-  const location = useLocation();
   const { user } = useAuth();
-  const [incomingCall, setIncomingCall] = useState(null);
   const lastNotifiedJobRef = useRef(null);
-  const lastNotifiedCallRef = useRef(null);
   const lastSeenMsgCountRef = useRef({});
   const lastSeenBookingStatusRef = useRef({});
-
-  // Suppress overlay if the user is already on the dedicated full-screen VoIP calling page
-  const isOnCallScreen = location.pathname.startsWith('/call');
 
   // Auto-subscribe to Web Push for background/cleared app wake-up if permissions are granted
   useEffect(() => {
@@ -37,9 +30,7 @@ export default function GlobalNotificationWatcher() {
     if (Capacitor.isNativePlatform()) {
       LocalNotifications.addListener('localNotificationActionPerformed', (event) => {
         const extra = event.notification?.extra || {};
-        if (extra.type === 'call') {
-          navigate(`/call/${extra.bookingId}?incoming=true&autoAnswer=true`);
-        } else if (extra.type === 'chat') {
+        if (extra.type === 'chat') {
           if (extra.role === 'Customer' || extra.role === 'customer') {
             navigate(`/track?bookingId=${extra.bookingId}`);
           } else {
@@ -95,50 +86,8 @@ export default function GlobalNotificationWatcher() {
           } catch (e) {}
         }
 
-        // B. Active Booking: Check for VoIP Calls & Chat Messages
+        // B. Active Booking: Check for Chat Messages
         if (activeBookingId) {
-          if (isOnCallScreen) {
-            // Already on dedicated calling screen; clear any overlay state
-            if (incomingCall) {
-              setIncomingCall(null);
-              NativeNotifier.stopCallRingtone();
-            }
-          } else {
-            // Check VoIP Calls
-            try {
-              const callRes = await fetch(`${API_BASE_URL}/api/v1/webrtc/call/status?bookingId=${activeBookingId}`);
-              const callData = await callRes.json();
-
-              if (callData.success && callData.call && isMounted) {
-                const call = callData.call;
-                const isPartner = userRole === 'technician';
-                const isIncomingForMe = isPartner ? call.caller === 'customer' : call.caller === 'technician';
-
-                if (call.active && call.status === 'RINGING' && isIncomingForMe) {
-                  const callKey = `${activeBookingId}-${call.startedAt}`;
-                  if (lastNotifiedCallRef.current !== callKey) {
-                    lastNotifiedCallRef.current = callKey;
-                    NativeNotifier.notifyIncomingCall({
-                      callerName: call.callerName || (isPartner ? 'Customer' : 'Shazu One Specialist'),
-                      bookingId: activeBookingId,
-                      role: isPartner ? 'Technician' : 'Customer'
-                    });
-                  }
-                  setIncomingCall({
-                    bookingId: activeBookingId,
-                    callerName: call.callerName || (isPartner ? 'Customer' : 'Shazu One Specialist'),
-                    role: isPartner ? 'Technician' : 'Customer',
-                    locality: 'Doorstep Service, Salem'
-                  });
-                } else if (!call.active || call.status !== 'RINGING') {
-                  if (incomingCall) {
-                    setIncomingCall(null);
-                    NativeNotifier.stopCallRingtone();
-                  }
-                }
-              }
-            } catch (e) {}
-          }
 
           // Check Chat Messages
           try {
@@ -246,46 +195,8 @@ export default function GlobalNotificationWatcher() {
     return () => {
       isMounted = false;
       clearInterval(interval);
-      NativeNotifier.stopCallRingtone();
     };
-  }, [user, incomingCall]);
+  }, [user]);
 
-  const handleAcceptCall = () => {
-    if (!incomingCall) return;
-    NativeNotifier.stopCallRingtone();
-    const targetBookingId = incomingCall.bookingId;
-    setIncomingCall(null);
-
-    // Direct navigation to dedicated VoIP call screen with autoAnswer flag
-    navigate(`/call/${targetBookingId}?incoming=true&autoAnswer=true`);
-  };
-
-  const handleDeclineCall = async () => {
-    if (!incomingCall) return;
-    NativeNotifier.stopCallRingtone();
-    const targetBookingId = incomingCall.bookingId;
-    const targetRole = incomingCall.role;
-    setIncomingCall(null);
-
-    try {
-      await fetch(`${API_BASE_URL}/api/v1/webrtc/call/end`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bookingId: targetBookingId, role: targetRole })
-      });
-    } catch (e) {}
-  };
-
-  // If user is already on the dedicated VoIP call screen, never render an overlay modal
-  if (isOnCallScreen) {
-    return null;
-  }
-
-  return (
-    <FocusCallOverlay
-      incomingCall={incomingCall}
-      onAccept={handleAcceptCall}
-      onDecline={handleDeclineCall}
-    />
-  );
+  return null;
 }

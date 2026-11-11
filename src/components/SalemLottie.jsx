@@ -1,17 +1,15 @@
-﻿import React, { useEffect, useRef } from 'react';
-import lottie from 'lottie-web';
+import React, { useEffect, useRef } from 'react';
+import lottie from 'lottie-web/build/player/lottie_light';
 import { Box } from '@mui/material';
 
 import radarScan from '../assets/lottie/radarScan.json';
 import bikeEnRoute from '../assets/lottie/bikeEnRoute.json';
-import shieldEscrow from '../assets/lottie/shieldEscrow.json';
 import bookingSuccess from '../assets/lottie/bookingSuccess.json';
 
 const LOCAL_ANIMATIONS = {
   radar: radarScan,
   ss_radar: radarScan,
   bike: bikeEnRoute,
-  shield: shieldEscrow,
   success: bookingSuccess
 };
 

@@ -183,7 +183,7 @@ export default function AdminPaymentOverridePage() {
 
   return (
     <Box sx={{ minHeight: '100dvh', bgcolor: 'background.default', pb: 8 }}>
-      <Container maxWidth="sm" sx={{ pt: 3, px: { xs: 2, sm: 3 } }}>
+      <Container maxWidth="sm" sx={{ pt: 'calc(16px + var(--sat))', px: { xs: 2, sm: 3 } }}>
         <PageHeader
           title="Payment Override & Ledger Settlement"
           subtitle={`Booking #${booking?.id || bookingId} • ${booking?.customer_name || 'Customer'} (${booking?.locality || 'Salem'})`}
@@ -353,7 +353,7 @@ export default function AdminPaymentOverridePage() {
           {/* Payout Calculation Ledger */}
           <Paper elevation={0} sx={{ p: 2, borderRadius: '12px', border: '1px solid #BBF7D0', bgcolor: '#F0FDF4' }}>
             <Typography sx={{ fontSize: '12px', fontWeight: 800, color: '#166534', mb: 1 }}>
-              Automatic Escrow & Split Allocation
+              Automatic . & Split Allocation
             </Typography>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', mb: 0.5 }}>
               <Typography sx={{ color: '#166534' }}>Technician Net Disbursal ({PARTNER_PAYOUT_PERCENT}%):</Typography>

@@ -186,37 +186,7 @@ class NativeNotificationService {
     }
   }
 
-  // 1. Incoming VoIP Call (Continuous Ringing & Full Alerts)
-  async notifyIncomingCall({ callerName, bookingId, role }) {
-    RingtoneService.startRinging();
-
-    const targetUrl = `/call/${bookingId}?incoming=true&autoAnswer=true`;
-
-    await this.showSystemNotification({
-      title: `Incoming Call: ${callerName || 'Salem Specialist'}`,
-      body: `Incoming audio call for Booking #${bookingId}. Tap to answer.`,
-      tag: `call-${bookingId}`,
-      requireInteraction: true,
-      vibrate: [400, 150, 400, 1800, 400, 150, 400],
-      actions: [
-        { action: 'answer', title: 'Answer Call' },
-        { action: 'decline', title: 'Decline' }
-      ],
-      data: {
-        bookingId,
-        role,
-        type: 'call',
-        url: targetUrl
-      }
-    });
-  }
-
-  // Stop Ringtone Audio
-  stopCallRingtone() {
-    RingtoneService.stopRinging();
-  }
-
-  // 2. Customer Order Status Update (e.g. "Order is on its way!", "Partner Arrived")
+  // 1. Customer Order Status Update (e.g. "Order is on its way!", "Partner Arrived")
   async notifyOrderStatusUpdate({ title, message, bookingId, status, technicianName, eta }) {
     RingtoneService.playOrderStatusChime();
 

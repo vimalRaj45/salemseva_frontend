@@ -10,7 +10,7 @@ import {
   CircularProgress,
   Button
 } from '@mui/material';
-import { ArrowLeft, Phone, Lock, Send, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Lock, Send, ShieldCheck } from 'lucide-react';
 import { API_V1_URL } from '../../config';
 import { useAuth } from '../../context/AuthContext';
 
@@ -158,10 +158,11 @@ export default function BookingChatPage() {
       {/* App Bar / Top Navigation */}
       <Box
         sx={{
-          bgcolor: '#FFFFFF',
+          bgcolor: 'var(--cz-chrome-bg, #EBF3FE)',
           px: 2,
-          py: 1.25,
-          borderBottom: '1px solid #E2E8F0',
+          pt: 'calc(10px + var(--sat))',
+          pb: 1.25,
+          borderBottom: '1px solid var(--cz-chrome-border, #C7DBF7)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -221,23 +222,6 @@ export default function BookingChatPage() {
             </Typography>
           </Box>
         </Box>
-
-        <IconButton
-          onClick={() => navigate(`/call/${bookingId}`)}
-          size="small"
-          aria-label="Start audio call"
-          sx={{
-            bgcolor: '#EFF6FF',
-            color: '#0A66C2',
-            border: '1px solid #BFDBFE',
-            borderRadius: '10px',
-            width: 38,
-            height: 38,
-            '&:hover': { bgcolor: '#DBEAFE' }
-          }}
-        >
-          <Phone size={18} />
-        </IconButton>
       </Box>
 
       {/* Privacy Notice Banner */}
@@ -416,9 +400,11 @@ export default function BookingChatPage() {
       {/* Message Composer */}
       <Box
         sx={{
-          p: 1.5,
-          bgcolor: '#FFFFFF',
-          borderTop: '1px solid #E2E8F0',
+          px: 1.5,
+          pt: 1.5,
+          pb: 'calc(12px + var(--sab))',
+          bgcolor: 'var(--cz-chrome-bg, #EBF3FE)',
+          borderTop: '1px solid var(--cz-chrome-border, #C7DBF7)',
           display: 'flex',
           alignItems: 'center',
           gap: 1,

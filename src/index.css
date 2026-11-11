@@ -11,18 +11,18 @@
   --salem-orange: #F7931E;
   --salem-green: #2E7D32;
   --salem-teal: #0D9488;
-  --sat: env(safe-area-inset-top, 0px);
-  --sab: env(safe-area-inset-bottom, 0px);
+  --sat: max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px));
+  --sab: max(env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px));
 
-  /* Fluid Responsive Typography Scale */
-  --font-xs: clamp(0.75rem, 0.72rem + 0.1vw, 0.8125rem); /* 12px - 13px */
-  --font-sm: clamp(0.875rem, 0.825rem + 0.15vw, 0.95rem); /* 14px - 15.2px */
-  --font-base: clamp(0.9375rem, 0.9rem + 0.2vw, 1.05rem); /* 15px - 16.8px */
-  --font-md: clamp(1.05rem, 0.98rem + 0.35vw, 1.25rem); /* 16.8px - 20px */
-  --font-lg: clamp(1.2rem, 1.05rem + 0.6vw, 1.5rem); /* 19.2px - 24px */
-  --font-xl: clamp(1.4rem, 1.15rem + 1.1vw, 2rem); /* 22.4px - 32px */
-  --font-2xl: clamp(1.75rem, 1.3rem + 1.8vw, 2.5rem); /* 28px - 40px */
-  --font-3xl: clamp(2.1rem, 1.6rem + 2.5vw, 3.5rem); /* 33.6px - 56px */
+  /* Fluid Responsive Typography Scale (Compact Mobile-First) */
+  --font-xs: clamp(0.6875rem, 0.66rem + 0.08vw, 0.75rem);      /* 11px - 12px */
+  --font-sm: clamp(0.75rem, 0.72rem + 0.12vw, 0.85rem);        /* 12px - 13.6px */
+  --font-base: clamp(0.8125rem, 0.78rem + 0.15vw, 0.9375rem);  /* 13px - 15px */
+  --font-md: clamp(0.9375rem, 0.88rem + 0.25vw, 1.125rem);     /* 15px - 18px */
+  --font-lg: clamp(1.0625rem, 0.96rem + 0.45vw, 1.35rem);      /* 17px - 21.6px */
+  --font-xl: clamp(1.25rem, 1.05rem + 0.85vw, 1.75rem);        /* 20px - 28px */
+  --font-2xl: clamp(1.5rem, 1.2rem + 1.3vw, 2.2rem);           /* 24px - 35.2px */
+  --font-3xl: clamp(1.85rem, 1.45rem + 1.8vw, 2.9rem);         /* 29.6px - 46.4px */
   --fluid-gap: clamp(0.75rem, 2vw, 1.75rem);
   --fluid-pad: clamp(1rem, 3vw, 2.5rem);
   --fluid-card: clamp(1rem, 2.5vw, 2rem);
@@ -168,18 +168,18 @@ button, input, select, textarea {
 
 /* Safe Area Insets for Modern Mobile Devices (Notch & Home Bar) */
 .safe-bottom {
-  padding-bottom: max(16px, env(safe-area-inset-bottom)) !important;
+  padding-bottom: max(16px, var(--sab)) !important;
 }
 
 /* Small Screens Tweaks (< 600px) */
 @media (max-width: 600px) {
   .MuiContainer-root {
-    padding-left: 12px !important;
-    padding-right: 12px !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
   }
   
-  .MuiButton-root {
-    min-height: 42px;
+  .MuiButton-root:not(.MuiButton-sizeSmall) {
+    min-height: 38px;
   }
 }
 
@@ -492,6 +492,12 @@ div:has(> [data-hot-toast]),
   --cz-brand-soft: #EFF5FF;
   --cz-brand-line: #CFE0FB;
 
+  /* Light-tinted chrome for top headers and bottom bars (distinct from #FFFFFF phone system bars & #F8FAFC body) */
+  --cz-chrome-bg: #EBF3FE;
+  --cz-chrome-bg-translucent: rgba(235, 243, 254, 0.96);
+  --cz-chrome-border: #C7DBF7;
+  --cz-chrome-pill: #FFFFFF;
+
   --cz-radius-sm: 10px;
   --cz-radius-md: 14px;
   --cz-radius-lg: 18px;
@@ -557,10 +563,10 @@ html {
   height: var(--cz-tabbar-space);
   padding: 0 4px var(--sab);
   box-sizing: border-box;
-  background: rgba(255, 255, 255, 0.96);
+  background: var(--cz-chrome-bg-translucent);
   -webkit-backdrop-filter: saturate(180%) blur(14px);
   backdrop-filter: saturate(180%) blur(14px);
-  border-top: 1px solid var(--cz-line);
+  border-top: 1px solid var(--cz-chrome-border);
 }
 
 .cz-tabbar__item {
@@ -574,7 +580,7 @@ html {
   gap: 3px;
   border: 0;
   background: transparent;
-  color: var(--cz-muted);
+  color: var(--cz-ink-2);
   font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.01em;
@@ -585,7 +591,7 @@ html {
 }
 
 .cz-tabbar__item:hover {
-  color: var(--cz-ink-2);
+  color: var(--cz-ink);
 }
 
 .cz-tabbar__item[aria-current="page"] {
@@ -604,11 +610,13 @@ html {
 }
 
 .cz-tabbar__item[aria-current="page"] .cz-tabbar__icon {
-  background: var(--cz-brand-soft);
+  background: var(--cz-chrome-pill);
+  border: 1px solid var(--cz-chrome-border);
+  box-shadow: 0 1px 2px rgba(10, 92, 196, 0.12);
 }
 
 .cz-tabbar__item:active .cz-tabbar__icon {
-  background: var(--cz-line);
+  background: var(--cz-chrome-border);
 }
 
 .cz-tabbar__dot {
@@ -619,7 +627,7 @@ html {
   height: 7px;
   border-radius: 50%;
   background: #DC2626;
-  box-shadow: 0 0 0 2px #FFFFFF;
+  box-shadow: 0 0 0 2px var(--cz-chrome-bg);
 }
 
 @media (min-width: 900px) {
@@ -695,23 +703,32 @@ html {
 /* ---------- Touch targets ------------------------------------------------- */
 /* Only on touch-sized viewports, so dense desktop tables keep their density. */
 @media (pointer: coarse) and (max-width: 899px) {
-  .MuiButton-root {
-    min-height: 44px;
+  .MuiButton-root:not(.MuiButton-sizeSmall) {
+    min-height: 40px;
   }
 
   .MuiOutlinedInput-root,
   .MuiInputBase-root.MuiOutlinedInput-root {
-    min-height: 48px;
+    min-height: 42px;
   }
 
-  /* iOS zooms the whole page when a focused input is under 16px, so it is 16px here */
   .MuiInputBase-input,
   .MuiSelect-select {
-    font-size: 16px !important;
+    font-size: 13px !important;
   }
 
   .MuiTouchRipple-root {
     display: none;
+  }
+}
+
+/* iOS zooms the whole page when a focused input is under 16px; scope 16px strictly to iOS WebKit */
+@supports (-webkit-touch-callout: none) {
+  @media (pointer: coarse) and (max-width: 899px) {
+    .MuiInputBase-input,
+    .MuiSelect-select {
+      font-size: 16px !important;
+    }
   }
 }
 

@@ -1,29 +1,29 @@
-﻿// Shazu One Visual Assets Registry
+// Shazu One Visual Assets Registry
 // Verified Undraw SVG Illustrations & Lottie Micro-Animations
 
 export const ILLUSTRATIONS = {
-  // Local Shazu One Generated High-Res Illustrations
-  customerBooking: '/assets/illustrations/customer_booking.jpg',
-  partnerService: '/assets/illustrations/partner_service.jpg',
-  transparentPricing: '/assets/illustrations/transparent_pricing.jpg',
-  safetyVerification: '/assets/illustrations/safety_verification.jpg',
+  // Local Shazu One Generated High-Res Illustrations (Optimized WebP)
+  customerBooking: '/assets/illustrations/customer_booking.webp',
+  partnerService: '/assets/illustrations/partner_service.webp',
+  transparentPricing: '/assets/illustrations/transparent_pricing.webp',
+  safetyVerification: '/assets/illustrations/safety_verification.webp',
 
   // Hub & Field Partner Network
-  connectingTeams: '/assets/illustrations/partner_service.jpg',
+  connectingTeams: '/assets/illustrations/partner_service.webp',
   // Verified Partners Onboarding
-  verifiedPartners: '/assets/illustrations/safety_verification.jpg',
+  verifiedPartners: '/assets/illustrations/safety_verification.webp',
   // Doorstep Courier & Delivery
-  delivery: '/assets/illustrations/customer_booking.jpg',
+  delivery: '/assets/illustrations/customer_booking.webp',
   // Technician En Route Driving
-  technicianEnRoute: '/assets/illustrations/partner_service.jpg',
+  technicianEnRoute: '/assets/illustrations/partner_service.webp',
   // Salem Live Service Map
-  salemMap: '/assets/illustrations/customer_booking.jpg',
+  salemMap: '/assets/illustrations/customer_booking.webp',
   // Booking Confirmed with OTP
-  orderConfirmed: '/assets/illustrations/transparent_pricing.jpg',
-  // Shazu One Escrow Wallet & Cash
-  wallet: '/assets/illustrations/transparent_pricing.jpg',
-  // 100% Escrow Protection & Safety
-  security: '/assets/illustrations/safety_verification.jpg',
+  orderConfirmed: '/assets/illustrations/transparent_pricing.webp',
+  // Shazu One . Wallet & Cash
+  wallet: '/assets/illustrations/transparent_pricing.webp',
+  // 100% . Protection & Safety
+  security: '/assets/illustrations/safety_verification.webp',
   // Masked VoIP Phone Call
   calling: 'https://raw.githubusercontent.com/mkhairi/undraw/master/vendor/assets/images/undraw/calling.svg',
   // In-App Secure Messaging

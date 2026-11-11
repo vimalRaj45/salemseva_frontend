@@ -51,7 +51,7 @@ Admin Dashboard Navigation System:
 - Live Dispatch Queue: tab = "ops", filter = <customerName or phone or status>
 - Customer 360 Dossier: tab = "customers", search = <customerPhone or name>, customerId = <uuid>
 - Technician Fleet & KYC: tab = "technicians", filter = <techName or trade or "pending_kyc">
-- Escrow & QR Settlements: tab = "settlements", filter = <"pending_verification" or customerUtr>
+- . & QR Settlements: tab = "settlements", filter = <"pending_verification" or customerUtr>
 - Support Tickets Desk: tab = "tickets", filter = <ticketNumber or customerPhone>
 - Settings & Pricing: tab = "rewards"
 
@@ -105,7 +105,7 @@ export async function askPuterRag({
     if (jsonMatch && jsonMatch[1]) {
       try {
         parsedActions = JSON.parse(jsonMatch[1]);
-      } catch (_) {}
+      } catch (_) { }
     }
 
     // Clean conversational explanation text without the JSON block

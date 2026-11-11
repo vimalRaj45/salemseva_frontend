@@ -52,7 +52,6 @@ export default function SideNavbar({
   onOpenLanguageModal,
   onOpenFeedbackModal,
   onOpenSupportTicketModal,
-  onOpenAiSupportModal,
   logout,
   logoutTech
 }) {
@@ -174,12 +173,12 @@ export default function SideNavbar({
         {/* Drawer Header */}
         <div
           style={{
-            padding: 'calc(14px + env(safe-area-inset-top, 16px)) 16px 14px 16px',
-            borderBottom: '1px solid #E2E8F0',
+            padding: 'calc(14px + var(--sat)) 16px 14px 16px',
+            borderBottom: '1px solid var(--cz-chrome-border, #C7DBF7)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            backgroundColor: '#F8FAFC',
+            backgroundColor: 'var(--cz-chrome-bg, #EBF3FE)',
             flexShrink: 0
           }}
         >
@@ -739,20 +738,6 @@ export default function SideNavbar({
                     onOpenLanguageModal();
                   }}
                 />
-                {/* Ask AI Assistant - temporarily hidden while in development */}
-                {/* 
-                <DrawerNavItem
-                  icon={<Bot size={16} color="#2563EB" />}
-                  label="Ask AI Assistant"
-                  sublabel="Voice & text assistant • Salem Ops live link"
-                  badge="AI"
-                  badgeColor="#2563EB"
-                  onClick={() => {
-                    onClose();
-                    if (onOpenAiSupportModal) onOpenAiSupportModal();
-                  }}
-                />
-                */}
                 <DrawerNavItem
                   icon={<LifeBuoy size={15} color="#0A5CC4" />}
                   label="Support Desk & Ticket Tracking"
@@ -812,9 +797,9 @@ export default function SideNavbar({
         {/* Drawer Bottom Actions */}
         <div
           style={{
-            padding: '12px 14px calc(14px + env(safe-area-inset-bottom, 14px)) 14px',
-            borderTop: '1px solid #E2E8F0',
-            backgroundColor: '#F8FAFC',
+            padding: '12px 14px calc(14px + var(--sab)) 14px',
+            borderTop: '1px solid var(--cz-chrome-border, #C7DBF7)',
+            backgroundColor: 'var(--cz-chrome-bg, #EBF3FE)',
             flexShrink: 0
           }}
         >

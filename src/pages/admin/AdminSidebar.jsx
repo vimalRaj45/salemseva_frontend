@@ -130,9 +130,9 @@ const navSections = [
       },
       {
         id: 'settlements',
-        label: 'Escrow & Settlements',
+        label: '. & Settlements',
         icon: AccountBalanceWalletIcon,
-        badgeText: 'Escrow',
+        badgeText: '.',
         badgeColor: '#1D6FE5',
         badgeBg: '#EFF6FF'
       }
@@ -176,9 +176,9 @@ export default function AdminSidebar({
   onSelectTab,
   badgeData = {},
   currentRole = 'super_admin',
-  onRoleChange = () => {},
+  onRoleChange = () => { },
   mobileOpen = false,
-  onCloseMobile = () => {}
+  onCloseMobile = () => { }
 }) {
   const { logoutAdmin, adminUser } = useAuth();
 
@@ -512,7 +512,7 @@ export default function AdminSidebar({
                     Support & Quality (Reviews & Logs)
                   </MenuItem>
                   <MenuItem value="finance_officer" sx={{ fontSize: '12px', fontWeight: 600 }}>
-                    Finance Officer (Pricing & Escrow)
+                    Finance Officer (Pricing & .)
                   </MenuItem>
                 </Select>
               </FormControl>

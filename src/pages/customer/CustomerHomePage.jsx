@@ -63,7 +63,7 @@ export default function CustomerHomePage() {
     try {
       const saved = localStorage.getItem('shazuone_user_location');
       if (saved) return JSON.parse(saved);
-    } catch (_) {}
+    } catch (_) { }
     return null;
   });
 
@@ -74,7 +74,7 @@ export default function CustomerHomePage() {
       } else {
         const saved = localStorage.getItem('shazuone_user_location');
         if (saved) {
-          try { setUserLocation(JSON.parse(saved)); } catch {}
+          try { setUserLocation(JSON.parse(saved)); } catch { }
         }
       }
     };
@@ -282,15 +282,15 @@ export default function CustomerHomePage() {
 
   const activeServicesList = (services && services.length > 0)
     ? CORE_SERVICES.map(core => {
-        const found = services.find(s => s.id === core.id);
-        return found ? { ...core, ...found, visitFee: found.visitFee || core.visitFee } : core;
-      })
+      const found = services.find(s => s.id === core.id);
+      return found ? { ...core, ...found, visitFee: found.visitFee || core.visitFee } : core;
+    })
     : CORE_SERVICES;
 
   return (
     <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100dvh', pb: { xs: 6, md: 4 } }}>
       <Container maxWidth={false} sx={{ maxWidth: '1200px', mx: 'auto', px: { xs: 2, sm: 3 }, pt: { xs: 2, md: 3 } }}>
-        
+
         {/* Top Context Deck: User Account / Guest Status */}
         {!user ? (
           <Paper
@@ -436,7 +436,7 @@ export default function CustomerHomePage() {
           } else if (status === 'quote_approved') {
             resumeUrl = `/checkout?bookingId=${bId}`;
             statusTitle = 'Work in Progress / Payment Ready';
-            statusSubtitle = 'Digital escrow checkout';
+            statusSubtitle = 'Digital . checkout';
             btnText = 'Go to Pay';
             dotColor = '#10B981';
           } else if (status === 'completed') {
@@ -546,10 +546,10 @@ export default function CustomerHomePage() {
             }}
           />
 
-          <CardContent sx={{ p: { xs: 2.25, sm: 3 }, '&:last-child': { pb: { xs: 2.25, sm: 3 } }, position: 'relative', zIndex: 1 }}>
-            <Grid container spacing={{ xs: 2, sm: 3 }} alignItems="center">
+          <CardContent sx={{ p: { xs: 1.75, sm: 3 }, '&:last-child': { pb: { xs: 1.75, sm: 3 } }, position: 'relative', zIndex: 1 }}>
+            <Grid container spacing={{ xs: 1.5, sm: 3 }} alignItems="center">
               <Grid item xs={12} sm={8}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.8 }}>
                   <Chip
                     label="Special Offer"
                     size="small"
@@ -558,11 +558,11 @@ export default function CustomerHomePage() {
                       color: '#FDE68A',
                       border: '1px solid rgba(253, 230, 138, 0.3)',
                       fontWeight: 800,
-                      fontSize: '10px',
-                      height: 20
+                      fontSize: '9.5px',
+                      height: 19
                     }}
                   />
-                  <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '11px' }}>
+                  <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: { xs: '10px', sm: '11px' } }}>
                     Valid for all Salem residences
                   </Typography>
                 </Box>
@@ -571,18 +571,19 @@ export default function CustomerHomePage() {
                   variant="h2"
                   sx={{
                     color: '#FFFFFF',
-                    mb: 1,
+                    fontSize: { xs: '1.25rem', sm: '1.75rem' },
+                    mb: 0.75,
                     maxWidth: '18ch'
                   }}
                 >
                   ₹100 off your first home service
                 </Typography>
 
-                <Typography variant="body2" sx={{ color: '#CBD5E1', fontSize: { xs: '13px', sm: '13.5px' }, mb: 2.25, maxWidth: '48ch', lineHeight: 1.6 }}>
+                <Typography variant="body2" sx={{ color: '#CBD5E1', fontSize: { xs: '11.5px', sm: '13.5px' }, mb: 1.75, maxWidth: '48ch', lineHeight: 1.5 }}>
                   Apply code <Box component="span" sx={{ bgcolor: 'rgba(255,255,255,0.12)', px: 0.8, py: 0.2, borderRadius: '4px', fontWeight: 800, color: '#FFFFFF', letterSpacing: '0.5px' }}>SALEM100</Box> at checkout. Includes verified background-checked technicians and transparent upfront pricing.
                 </Typography>
 
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, flexWrap: 'wrap' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                   <Button
                     size="small"
                     variant="contained"
@@ -595,9 +596,9 @@ export default function CustomerHomePage() {
                       bgcolor: '#2E90FA',
                       color: '#FFFFFF',
                       borderRadius: '10px',
-                      height: '44px',
-                      px: 2.5,
-                      fontSize: '13.5px',
+                      height: { xs: '36px', sm: '42px' },
+                      px: { xs: 1.8, sm: 2.5 },
+                      fontSize: { xs: '12px', sm: '13.5px' },
                       fontWeight: 700,
                       textTransform: 'none',
                       boxShadow: 'none',
@@ -618,9 +619,9 @@ export default function CustomerHomePage() {
                       color: '#E2E8F0',
                       borderColor: 'rgba(255, 255, 255, 0.28)',
                       borderRadius: '10px',
-                      height: '44px',
-                      px: 2,
-                      fontSize: '13px',
+                      height: { xs: '36px', sm: '42px' },
+                      px: { xs: 1.5, sm: 2 },
+                      fontSize: { xs: '11.5px', sm: '13px' },
                       fontWeight: 600,
                       textTransform: 'none',
                       '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.08)', borderColor: '#FFFFFF' }
@@ -914,9 +915,9 @@ export default function CustomerHomePage() {
                     {/* 2. Content Area */}
                     <Box
                       sx={{
-                        pt: { xs: '16px', sm: '26px' },
-                        px: { xs: '10px', sm: '20px' },
-                        pb: { xs: '12px', sm: '20px' },
+                        pt: { xs: '14px', sm: '26px' },
+                        px: { xs: '8px', sm: '20px' },
+                        pb: { xs: '10px', sm: '20px' },
                         display: 'flex',
                         flexDirection: 'column',
                         flex: 1
@@ -926,13 +927,13 @@ export default function CustomerHomePage() {
                       <Typography
                         variant="h6"
                         sx={{
-                          fontSize: { xs: '13px', sm: '18px' },
+                          fontSize: { xs: '12px', sm: '17px' },
                           fontWeight: 800,
                           color: '#0F172A',
                           letterSpacing: '-0.3px',
                           lineHeight: 1.25,
                           mb: { xs: 0.3, sm: 0.8 },
-                          minHeight: { xs: '32px', sm: 'auto' }
+                          minHeight: { xs: '30px', sm: 'auto' }
                         }}
                       >
                         {meta.name}
@@ -942,10 +943,10 @@ export default function CustomerHomePage() {
                       <Typography
                         variant="body2"
                         sx={{
-                          fontSize: { xs: '10.5px', sm: '14px' },
+                          fontSize: { xs: '10px', sm: '13.5px' },
                           color: '#475569',
                           lineHeight: 1.35,
-                          mb: { xs: 1, sm: 2 },
+                          mb: { xs: 0.8, sm: 2 },
                           minHeight: { xs: '26px', sm: '40px' },
                           display: '-webkit-box',
                           WebkitLineClamp: 2,
@@ -1054,7 +1055,7 @@ export default function CustomerHomePage() {
                           </Typography>
                           <Typography
                             sx={{
-                              fontSize: { xs: '14px', sm: '20px' },
+                              fontSize: { xs: '13px', sm: '19px' },
                               fontWeight: 900,
                               color: '#0F172A',
                               letterSpacing: '-0.3px',
@@ -1072,7 +1073,7 @@ export default function CustomerHomePage() {
                           variant="contained"
                           className="service-book-btn"
                           size="small"
-                          endIcon={<ArrowForwardIcon sx={{ fontSize: { xs: '11px !important', sm: '15px !important' }, ml: { xs: '3px !important', sm: '8px !important' } }} />}
+                          endIcon={<ArrowForwardIcon sx={{ fontSize: { xs: '10.5px !important', sm: '14px !important' }, ml: { xs: '2px !important', sm: '6px !important' } }} />}
                           onClick={(e) => {
                             e.stopPropagation();
                             navigate(`/book/${svc.id}`, { state: { service: svc } });
@@ -1082,13 +1083,16 @@ export default function CustomerHomePage() {
                             overflow: 'hidden',
                             bgcolor: '#0066CC',
                             color: '#FFFFFF',
-                            height: { xs: '28px', sm: '40px' },
-                            px: { xs: 1, sm: 2 },
+                            minWidth: 0,
+                            minHeight: { xs: '27px', sm: '38px' },
+                            height: { xs: '27px', sm: '38px' },
+                            px: { xs: 0.85, sm: 1.8 },
                             borderRadius: { xs: '7px', sm: '10px' },
-                            fontSize: { xs: '10.5px', sm: '13.5px' },
+                            fontSize: { xs: '10px', sm: '13px' },
                             fontWeight: 700,
                             textTransform: 'none',
                             whiteSpace: 'nowrap',
+                            flexShrink: 0,
                             boxShadow: 'none',
                             transition: 'background-color 200ms ease',
                             '&:hover': {
@@ -1136,10 +1140,10 @@ export default function CustomerHomePage() {
             <Box sx={{ mb: 3.5 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5, flexWrap: 'wrap', gap: 1 }}>
                 <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 900, color: '#0F172A', fontSize: '17px', letterSpacing: '-0.3px', lineHeight: 1.2 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 900, color: '#0F172A', fontSize: { xs: '14.5px', sm: '17px' }, letterSpacing: '-0.3px', lineHeight: 1.2 }}>
                     Active Specialists On Duty
                   </Typography>
-                  <Typography variant="caption" sx={{ color: '#64748B', fontSize: '12px' }}>
+                  <Typography variant="caption" sx={{ color: '#64748B', fontSize: { xs: '11px', sm: '12px' } }}>
                     Certified Salem technicians available for appointment slots today & this week
                   </Typography>
                 </Box>

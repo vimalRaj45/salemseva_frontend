@@ -138,7 +138,7 @@ export default function AdminCouponEditorPage() {
 
   return (
     <Box sx={{ minHeight: '100dvh', bgcolor: 'background.default', pb: 10 }}>
-      <Container maxWidth="md" sx={{ pt: 3, px: { xs: 2, sm: 3 } }}>
+      <Container maxWidth="md" sx={{ pt: 'calc(16px + var(--sat))', px: { xs: 2, sm: 3 } }}>
         <PageHeader
           title={isEditMode ? `Edit Coupon: ${formData.code}` : 'Create Promotional Coupon'}
           subtitle="Configure discounts applicable during doorstep service checkout across Salem"

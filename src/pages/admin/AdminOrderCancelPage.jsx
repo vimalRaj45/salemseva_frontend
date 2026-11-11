@@ -121,7 +121,7 @@ export default function AdminOrderCancelPage() {
 
   return (
     <Box sx={{ minHeight: '100dvh', bgcolor: 'background.default', pb: 8 }}>
-      <Container maxWidth="sm" sx={{ pt: 3, px: { xs: 2, sm: 3 } }}>
+      <Container maxWidth="sm" sx={{ pt: 'calc(16px + var(--sat))', px: { xs: 2, sm: 3 } }}>
         <PageHeader
           title="Cancel Order & Release Technician"
           subtitle={`Booking #${bookingId} • Emergency central ops override`}

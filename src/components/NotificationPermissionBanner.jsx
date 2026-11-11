@@ -60,7 +60,9 @@ export default function NotificationPermissionBanner() {
       sx={{
         bgcolor: '#0F172A',
         color: '#FFFFFF',
-        p: { xs: 1.2, sm: 1.5 },
+        px: { xs: 1.2, sm: 1.5 },
+        pb: { xs: 1.2, sm: 1.5 },
+        pt: { xs: 'calc(10px + var(--sat))', sm: 'calc(12px + var(--sat))' },
         borderBottom: '1px solid #1E293B',
         display: 'flex',
         alignItems: 'center',

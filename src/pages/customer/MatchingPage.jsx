@@ -83,7 +83,7 @@ export default function MatchingPage() {
   // Real Verified Technicians from PostgreSQL Neon Database
   const { user, dbTechnicians = [] } = useAuth();
   const currentServiceId = trackData?.booking?.service_id || searchParams.get('serviceId') || 'ac';
-  
+
   // Match verified online/active technicians from database by trade
   const matchedDbTechs = dbTechnicians.filter(t => (t.trade || '').toLowerCase() === currentServiceId.toLowerCase());
   const technicianCandidates = matchedDbTechs.length > 0 ? matchedDbTechs : dbTechnicians;
@@ -277,7 +277,7 @@ export default function MatchingPage() {
         }
       }
 
-      // Direct fallback / 1-Click Escrow Wallet verification
+      // Direct fallback / 1-Click . Wallet verification
       await finalizePayment(`pay_rzp_${Date.now()}`, orderId, '');
 
     } catch (err) {
@@ -290,7 +290,7 @@ export default function MatchingPage() {
   async function finalizePayment(paymentId, orderId, signature) {
     setIsProcessing(true);
     try {
-      // 1. Record Part 1 Payment in Neon Payments Escrow Ledger
+      // 1. Record Part 1 Payment in Neon Payments . Ledger
       await fetch(`${API_V1_URL}/payments/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -402,10 +402,10 @@ export default function MatchingPage() {
                 matchingState === 'dispatching'
                   ? `Finding partner (${formatTimer(secondsRemaining)})`
                   : matchingState === 'accepted'
-                  ? `Pay Part 1 ₹99 (${formatTimer(paymentSecondsRemaining)})`
-                  : matchingState === 'payment_timeout'
-                  ? 'Payment timed out'
-                  : 'Ops schedule'
+                    ? `Pay Part 1 ₹99 (${formatTimer(paymentSecondsRemaining)})`
+                    : matchingState === 'payment_timeout'
+                      ? 'Payment timed out'
+                      : 'Ops schedule'
               }
               size="small"
               sx={{
@@ -930,14 +930,14 @@ export default function MatchingPage() {
 
               {/* Payment Method Selector */}
               <Typography variant="caption" sx={{ color: '#475569', fontWeight: 700, display: 'block', mb: 1, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '11px' }}>
-                Select Payment Mode (Escrow Protected):
+                Select Payment Mode (. Protected):
               </Typography>
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.8, mb: 2 }}>
                 {[
                   { id: 'upi', label: 'Instant UPI (Google Pay / PhonePe / Paytm / BHIM)', desc: 'Fastest 1-tap confirmation', icon: <QrCodeIcon sx={{ fontSize: 18, color: '#2563EB' }} /> },
                   { id: 'card', label: 'Debit / Credit Card / NetBanking', desc: 'All Indian cards supported', icon: <CreditCardIcon sx={{ fontSize: 18, color: '#0F172A' }} /> },
-                  { id: 'wallet', label: 'Shazu One Wallet / 1-Click Escrow', desc: 'Zero gateway fees', icon: <AccountBalanceWalletIcon sx={{ fontSize: 18, color: '#16A34A' }} /> }
+                  { id: 'wallet', label: 'Shazu One Wallet / 1-Click .', desc: 'Zero gateway fees', icon: <AccountBalanceWalletIcon sx={{ fontSize: 18, color: '#16A34A' }} /> }
                 ].map(mode => {
                   const isSelected = selectedPayMethod === mode.id;
                   return (
@@ -997,7 +997,7 @@ export default function MatchingPage() {
                     '&:hover': { bgcolor: '#15803D' }
                   }}
                 >
-                  {isPayingFee ? 'Securing Escrow & Starting Ride...' : 'Pay ₹99 & Start Tech Ride (Live GPS)'}
+                  {isPayingFee ? 'Securing . & Starting Ride...' : 'Pay ₹99 & Start Tech Ride (Live GPS)'}
                 </Button>
 
                 <Button
@@ -1132,7 +1132,7 @@ export default function MatchingPage() {
         mode="payment"
         title="Your payment is processing..."
         subtitle="Verifying payment & connecting to live GPS tracking..."
-        badge="100% Safe Escrow Payment"
+        badge="100% Safe . Payment"
       />
 
       {/* Navigation lives in the global CustomerTabBar rendered by App.jsx. */}

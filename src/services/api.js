@@ -27,7 +27,7 @@ export const ApiService = {
     }
   },
 
-  // 3. Create Real Razorpay Order for Escrow
+  // 3. Create Real Razorpay Order for .
   async createRazorpayOrder(bookingData) {
     try {
       const res = await fetch(`${BASE_URL}/payments/create-order`, {
@@ -98,23 +98,7 @@ export const ApiService = {
     }
   },
 
-  // 7. WebRTC ICE Servers (Cloudflare TURN/STUN)
-  async getIceServers() {
-    try {
-      const res = await fetch(`${BASE_URL}/webrtc/ice-servers`);
-      return await res.json();
-    } catch (err) {
-      return {
-        success: true,
-        iceServers: [
-          { urls: 'stun:stun.cloudflare.com:3478' },
-          { urls: 'stun:stun.l.google.com:19302' }
-        ]
-      };
-    }
-  },
-
-  // 8. Fetch Real Customer Reviews & Stats
+  // 7. Fetch Real Customer Reviews & Stats
   async fetchReviews(params = {}) {
     try {
       const query = new URLSearchParams(params).toString();

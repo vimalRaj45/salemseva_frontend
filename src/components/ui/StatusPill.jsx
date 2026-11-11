@@ -50,12 +50,12 @@ export default function StatusPill({
     borderColor = '#BAE6FD';
     Icon = AutorenewIcon;
     text = label || (norm === 'en_route' ? 'En Route' : 'In Progress');
-  } else if (['escrow_held', 'held_in_escrow'].includes(norm)) {
+  } else if (['._held', 'held_in_.'].includes(norm)) {
     color = '#0284C7';
     bgcolor = '#E0F2FE';
     borderColor = '#BAE6FD';
     Icon = VerifiedIcon;
-    text = label || 'Escrow Held';
+    text = label || '. Held';
   } else if (['unverified', 'pending_verification'].includes(norm)) {
     color = '#C2410C';
     bgcolor = '#FFEDD5';

@@ -110,13 +110,14 @@ export default function AuthHelpPage() {
       {/* Top Header Bar */}
       <Box
         sx={{
-          bgcolor: '#FFFFFF',
-          borderBottom: '1px solid #E2E8F0',
+          bgcolor: 'var(--cz-chrome-bg, #EBF3FE)',
+          borderBottom: '1px solid var(--cz-chrome-border, #C7DBF7)',
           position: 'sticky',
           top: 0,
           zIndex: 10,
-          px: { xs: 2, sm: 3 },
-          py: 1.5,
+          px: { xs: 1.5, sm: 3 },
+          pt: 'calc(10px + var(--sat))',
+          pb: 1.25,
           display: 'flex',
           alignItems: 'center',
           gap: 1.5

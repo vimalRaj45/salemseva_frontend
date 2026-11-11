@@ -484,7 +484,7 @@ export default function AdminSettlementsPage() {
       if (data.success) {
         setQrVerifications((prev) =>
           prev.map((p) =>
-            p.id === paymentId ? { ...p, verification_status: 'verified', status: 'escrow_held' } : p
+            p.id === paymentId ? { ...p, verification_status: 'verified', status: '._held' } : p
           )
         );
         fetchLedger();
@@ -616,7 +616,7 @@ export default function AdminSettlementsPage() {
 
   // Filtered lists for the 4 streams
   const paymentsList = useMemo(() => {
-    return transactions.filter((t) => (t.grossAmount > 0 || t.status === 'SETTLED' || t.status === 'ESCROW_HELD') && !['REFUNDED', 'REFUND_PENDING', 'CANCELLED_UNPAID'].includes(t.status));
+    return transactions.filter((t) => (t.grossAmount > 0 || t.status === 'SETTLED' || t.status === '._HELD') && !['REFUNDED', 'REFUND_PENDING', 'CANCELLED_UNPAID'].includes(t.status));
   }, [transactions]);
 
   const refundsOnlyList = useMemo(() => {
@@ -1310,77 +1310,77 @@ export default function AdminSettlementsPage() {
                     startIcon={<MessageSquare size={13} />}
                     sx={{
                       fontSize: '11px',
-                    py: 0.3,
-                    px: 1,
-                    minHeight: 28,
-                    fontWeight: 700,
-                    textTransform: 'none',
-                    bgcolor: '#16A34A',
-                    color: '#FFFFFF',
-                    boxShadow: 'none',
-                    '&:hover': { bgcolor: '#15803D' },
-                    '&.Mui-disabled': { bgcolor: '#E2E8F0', color: '#94A3B8' }
-                  }}
-                >
-                  WhatsApp
-                </Button>
-              </span>
-            </Tooltip>
+                      py: 0.3,
+                      px: 1,
+                      minHeight: 28,
+                      fontWeight: 700,
+                      textTransform: 'none',
+                      bgcolor: '#16A34A',
+                      color: '#FFFFFF',
+                      boxShadow: 'none',
+                      '&:hover': { bgcolor: '#15803D' },
+                      '&.Mui-disabled': { bgcolor: '#E2E8F0', color: '#94A3B8' }
+                    }}
+                  >
+                    WhatsApp
+                  </Button>
+                </span>
+              </Tooltip>
 
-            {/* Direct SMS Option */}
-            <Tooltip title={tx.technicianPhone ? `Send Direct SMS to ${tx.technicianPhone}` : 'No phone number available'}>
-              <span>
-                <IconButton
+              {/* Direct SMS Option */}
+              <Tooltip title={tx.technicianPhone ? `Send Direct SMS to ${tx.technicianPhone}` : 'No phone number available'}>
+                <span>
+                  <IconButton
+                    size="small"
+                    onClick={() => handleSendSms(tx)}
+                    disabled={!tx.technicianPhone}
+                    sx={{
+                      bgcolor: '#EFF6FF',
+                      color: '#1D4ED8',
+                      border: '1px solid #BFDBFE',
+                      p: '5px',
+                      borderRadius: '6px',
+                      '&:hover': { bgcolor: '#DBEAFE' },
+                      '&.Mui-disabled': { bgcolor: '#F1F5F9', color: '#94A3B8', borderColor: '#E2E8F0' }
+                    }}
+                  >
+                    <Phone size={14} />
+                  </IconButton>
+                </span>
+              </Tooltip>
+
+              {/* Override if not settled or refunded */}
+              {tx.status !== 'SETTLED' && tx.status !== 'REFUNDED' && (
+                <Button
+                  variant="outlined"
                   size="small"
-                  onClick={() => handleSendSms(tx)}
-                  disabled={!tx.technicianPhone}
-                  sx={{
-                    bgcolor: '#EFF6FF',
-                    color: '#1D4ED8',
-                    border: '1px solid #BFDBFE',
-                    p: '5px',
-                    borderRadius: '6px',
-                    '&:hover': { bgcolor: '#DBEAFE' },
-                    '&.Mui-disabled': { bgcolor: '#F1F5F9', color: '#94A3B8', borderColor: '#E2E8F0' }
+                  color="secondary"
+                  onClick={() => {
+                    navigate(`/admin/settlements/${tx.bookingId}/override`, {
+                      state: {
+                        booking: {
+                          bookingId: tx.bookingId,
+                          amount: tx.grossAmount,
+                          techPayout: tx.techPayout,
+                          customerPhone: tx.customerPhone || '',
+                          technicianPhone: tx.technicianPhone || ''
+                        },
+                        returnTo: location.pathname
+                      }
+                    });
                   }}
+                  sx={{ fontSize: '10.5px', py: 0.3, px: 0.8, minHeight: 28, textTransform: 'none' }}
                 >
-                  <Phone size={14} />
-                </IconButton>
-              </span>
-            </Tooltip>
-
-            {/* Override if not settled or refunded */}
-            {tx.status !== 'SETTLED' && tx.status !== 'REFUNDED' && (
-              <Button
-                variant="outlined"
-                size="small"
-                color="secondary"
-                onClick={() => {
-                  navigate(`/admin/settlements/${tx.bookingId}/override`, {
-                    state: {
-                      booking: {
-                        bookingId: tx.bookingId,
-                        amount: tx.grossAmount,
-                        techPayout: tx.techPayout,
-                        customerPhone: tx.customerPhone || '',
-                        technicianPhone: tx.technicianPhone || ''
-                      },
-                      returnTo: location.pathname
-                    }
-                  });
-                }}
-                sx={{ fontSize: '10.5px', py: 0.3, px: 0.8, minHeight: 28, textTransform: 'none' }}
-              >
-                Override
-              </Button>
-            )}
-          </Box>
-        );
+                  Override
+                </Button>
+              )}
+            </Box>
+          );
+        }
       }
-    }
-  ],
-  [navigate]
-);
+    ],
+    [navigate]
+  );
 
   // QR Verifications Table Columns
   const qrColumns = useMemo(
@@ -1512,7 +1512,7 @@ export default function AdminSettlementsPage() {
         renderCell: (p) => {
           const st = String(p.verification_status || 'pending').toLowerCase();
           if (st === 'verified') {
-            return <Chip label="Verified & Escrowed" size="small" sx={{ bgcolor: '#DCFCE7', color: '#15803D', fontWeight: 800, fontSize: '10px' }} />;
+            return <Chip label="Verified & .ed" size="small" sx={{ bgcolor: '#DCFCE7', color: '#15803D', fontWeight: 800, fontSize: '10px' }} />;
           }
           if (st === 'rejected') {
             return <Chip label="Rejected" size="small" sx={{ bgcolor: '#FEE2E2', color: '#DC2626', fontWeight: 800, fontSize: '10px' }} />;
@@ -1543,7 +1543,7 @@ export default function AdminSettlementsPage() {
                         techPayout: parseFloat(p.tech_payout_amount || 0),
                         technicianTrade: 'Service Partner',
                         locality: p.locality || 'Salem',
-                        payoutUtr: p.customer_utr || 'ESCROW_VERIFIED',
+                        payoutUtr: p.customer_utr || '._VERIFIED',
                         createdAt: p.created_at
                       })}
                       sx={{ bgcolor: '#DCFCE7', color: '#166534', p: '3px', '&:hover': { bgcolor: '#BBF7D0' } }}
@@ -1588,7 +1588,7 @@ export default function AdminSettlementsPage() {
   );
 
   return (
-    <Box sx={{ bgcolor: 'background.default', minHeight: '100dvh', py: { xs: 2.5, sm: 4 } }}>
+    <Box sx={{ bgcolor: 'background.default', minHeight: '100dvh', pt: { xs: 'calc(16px + var(--sat))', sm: 'calc(24px + var(--sat))' }, pb: 'calc(24px + var(--sab))' }}>
       <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3 } }}>
         <PageHeader
           title="Financial Intelligence & Settlement Ledger"
@@ -1625,7 +1625,7 @@ export default function AdminSettlementsPage() {
           badge={
             <Chip
               icon={<Shield size={14} />}
-              label="Escrow Guarantee"
+              label=". Guarantee"
               size="small"
               color="primary"
               variant="outlined"
@@ -1709,10 +1709,10 @@ export default function AdminSettlementsPage() {
             </Typography>
           </Box>
           {summary.totalFailedPaymentsCount > 0 && (
-            <Chip 
-              label={`Failed Attempts Excluded: ₹${summary.totalFailedPaymentsAmount || 0} (${summary.totalFailedPaymentsCount} txns)`} 
-              size="small" 
-              sx={{ bgcolor: '#FEF2F2', color: '#DC2626', border: '1px solid #FCA5A5', fontWeight: 700, fontSize: '10.5px' }} 
+            <Chip
+              label={`Failed Attempts Excluded: ₹${summary.totalFailedPaymentsAmount || 0} (${summary.totalFailedPaymentsCount} txns)`}
+              size="small"
+              sx={{ bgcolor: '#FEF2F2', color: '#DC2626', border: '1px solid #FCA5A5', fontWeight: 700, fontSize: '10.5px' }}
             />
           )}
         </Box>
@@ -2199,29 +2199,29 @@ export default function AdminSettlementsPage() {
                 ledgerStreamFilter === 'payments'
                   ? 'Search customer payments by name, phone, booking ID...'
                   : ledgerStreamFilter === 'refunds'
-                  ? 'Search refunds by customer, booking ID, reason...'
-                  : ledgerStreamFilter === 'tech_payouts'
-                  ? 'Search technician payouts by tech name, booking ID...'
-                  : 'Search all transactions by customer, technician, booking ID...'
+                    ? 'Search refunds by customer, booking ID, reason...'
+                    : ledgerStreamFilter === 'tech_payouts'
+                      ? 'Search technician payouts by tech name, booking ID...'
+                      : 'Search all transactions by customer, technician, booking ID...'
               }
               searchFields={['bookingId', 'customerName', 'technicianName', 'locality', 'payoutUtr']}
               emptyTitle={
                 ledgerStreamFilter === 'payments'
                   ? 'No Customer Payments Found'
                   : ledgerStreamFilter === 'refunds'
-                  ? 'No Customer Refunds Found'
-                  : ledgerStreamFilter === 'tech_payouts'
-                  ? 'No Technician Payouts Found'
-                  : 'No Financial Transactions Found'
+                    ? 'No Customer Refunds Found'
+                    : ledgerStreamFilter === 'tech_payouts'
+                      ? 'No Technician Payouts Found'
+                      : 'No Financial Transactions Found'
               }
               emptyDescription={
                 ledgerStreamFilter === 'payments'
                   ? 'There are no customer payment inflows matching the selected filters.'
                   : ledgerStreamFilter === 'refunds'
-                  ? 'There are no customer cancellation refunds matching the selected filters.'
-                  : ledgerStreamFilter === 'tech_payouts'
-                  ? 'There are no technician payouts matching the selected filters.'
-                  : 'There are no transaction lines matching the selected date or region filter.'
+                    ? 'There are no customer cancellation refunds matching the selected filters.'
+                    : ledgerStreamFilter === 'tech_payouts'
+                      ? 'There are no technician payouts matching the selected filters.'
+                      : 'There are no transaction lines matching the selected date or region filter.'
               }
               initialPageSize={10}
             />
@@ -2286,7 +2286,7 @@ export default function AdminSettlementsPage() {
                     disabled={isProcessingAction}
                     sx={{ bgcolor: '#16A34A', '&:hover': { bgcolor: '#15803D' } }}
                   >
-                    Verify & Confirm Escrow
+                    Verify & Confirm .
                   </Button>
                 )}
               </DialogActions>

@@ -78,7 +78,7 @@ export default function DocumentViewerPage() {
   return (
     <Box sx={{ minHeight: '100dvh', bgcolor: '#0B0F19', color: '#FFFFFF', display: 'flex', flexDirection: 'column' }}>
       {/* Top App Bar */}
-      <Box sx={{ bgcolor: '#0F172A', px: { xs: 2, sm: 3 }, py: 1.5, borderBottom: '1px solid #1E293B', display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 10 }}>
+      <Box sx={{ bgcolor: '#0F172A', px: { xs: 2, sm: 3 }, pt: 'calc(12px + var(--sat))', pb: 1.5, borderBottom: '1px solid #1E293B', display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 10 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <IconButton onClick={handleDismiss} sx={{ color: '#94A3B8', '&:hover': { color: '#FFFFFF', bgcolor: '#1E293B' } }}>
             <ArrowLeft size={20} />

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Paper, Typography, Button, IconButton } from '@mui/material';
 import GetAppIcon from '@mui/icons-material/GetApp';
 import CloseIcon from '@mui/icons-material/Close';
@@ -55,7 +55,7 @@ export default function PwaInstallPrompt() {
     <Box
       sx={{
         position: 'fixed',
-        bottom: { xs: 68, md: 24 },
+        bottom: { xs: 'calc(68px + var(--sab))', md: 24 },
         left: { xs: 12, md: 'auto' },
         right: { xs: 12, md: 24 },
         zIndex: 1300,

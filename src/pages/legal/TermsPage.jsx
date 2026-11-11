@@ -48,7 +48,7 @@ export default function TermsPage() {
         </p>
 
         <p style={{ fontSize: '14px', lineHeight: 1.7, color: '#64748B', margin: 0 }}>
-          Shazu One's responsibilities are limited to operating the digital booking catalog, real-time GPS telemetry routing, automated billing calculations, and acting as an escrow payment collection facilitator.
+          Shazu One's responsibilities are limited to operating the digital booking catalog, real-time GPS telemetry routing, automated billing calculations, and acting as an . payment collection facilitator.
         </p>
 
         <hr style={{ border: 'none', borderTop: '1px solid #E2E8F0', margin: '32px 0 0 0' }} />
@@ -84,7 +84,7 @@ export default function TermsPage() {
               <span style={{ fontSize: '14px', fontWeight: 900, color: '#16A34A' }}>{PARTNER_PAYOUT_PERCENT}%</span>
             </div>
             <p style={{ margin: 0, fontSize: '12.5px', color: '#64748B', lineHeight: 1.6 }}>
-              Independent technician partners receive {PARTNER_PAYOUT_PERCENT}% of billable labor and diagnostic amounts, disbursed directly to their verified UPI/bank account via direct banking escrow settlement.
+              Independent technician partners receive {PARTNER_PAYOUT_PERCENT}% of billable labor and diagnostic amounts, disbursed directly to their verified UPI/bank account via direct banking . settlement.
             </p>
           </div>
         </div>

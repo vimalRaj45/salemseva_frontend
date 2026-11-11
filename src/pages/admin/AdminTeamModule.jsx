@@ -64,14 +64,14 @@ const roleMeta = {
   },
   finance_officer: {
     label: 'Finance Officer',
-    desc: 'Escrow settlements, digital payouts, platform commission splits, coupons & reward budget.',
+    desc: '. settlements, digital payouts, platform commission splits, coupons & reward budget.',
     color: '#059669',
     bg: '#ECFDF5',
     icon: PaymentsIcon
   }
 };
 
-export default function AdminTeamModule({ currentRole = 'super_admin', onToast = () => {} }) {
+export default function AdminTeamModule({ currentRole = 'super_admin', onToast = () => { } }) {
   const navigate = useNavigate();
   const [team, setTeam] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -313,125 +313,125 @@ export default function AdminTeamModule({ currentRole = 'super_admin', onToast =
               Swipe left/right to view full table details
             </Typography>
             <Table size="small" sx={{ minWidth: 680 }}>
-            <TableHead>
-              <TableRow sx={{ bgcolor: '#F8FAFC', '& th': { color: '#475569', fontWeight: 800, fontSize: '12px', py: 1.5 } }}>
-                <TableCell>Member Name</TableCell>
-                <TableCell>Role & Privileges</TableCell>
-                <TableCell>Assigned Hub / Locality</TableCell>
-                <TableCell>Contact Details</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell align="right">Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {team.map((member) => {
-                const meta = roleMeta[member.role] || roleMeta.ops_dispatcher;
-                const RoleIcon = meta.icon;
+              <TableHead>
+                <TableRow sx={{ bgcolor: '#F8FAFC', '& th': { color: '#475569', fontWeight: 800, fontSize: '12px', py: 1.5 } }}>
+                  <TableCell>Member Name</TableCell>
+                  <TableCell>Role & Privileges</TableCell>
+                  <TableCell>Assigned Hub / Locality</TableCell>
+                  <TableCell>Contact Details</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell align="right">Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {team.map((member) => {
+                  const meta = roleMeta[member.role] || roleMeta.ops_dispatcher;
+                  const RoleIcon = meta.icon;
 
-                return (
-                  <TableRow
-                    key={member.id}
-                    sx={{
-                      '&:hover': { bgcolor: '#F8FAFC' },
-                      '& td': { borderColor: '#E2E8F0', py: 1.4 }
-                    }}
-                  >
-                    <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
-                        <Avatar
-                          sx={{
-                            width: 34,
-                            height: 34,
-                            bgcolor: meta.color,
-                            fontSize: '13px',
-                            fontWeight: 900
-                          }}
-                        >
-                          {member.name?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'ST'}
-                        </Avatar>
-                        <Box>
-                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '13px' }}>
-                            {member.name}
-                          </Typography>
-                          <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11px' }}>
-                            ID: {member.id}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    </TableCell>
-
-                    <TableCell>
-                      <Chip
-                        icon={<RoleIcon sx={{ fontSize: '13px !important', color: `${meta.color} !important` }} />}
-                        label={meta.label}
-                        size="small"
-                        sx={{
-                          bgcolor: meta.bg,
-                          color: meta.color,
-                          fontWeight: 900,
-                          fontSize: '11px',
-                          height: 22
-                        }}
-                      />
-                    </TableCell>
-
-                    <TableCell>
-                      <Typography variant="body2" sx={{ fontWeight: 700, color: '#334155', fontSize: '12.5px' }}>
-                        {member.hub_locality || 'Salem Central HQ'}
-                      </Typography>
-                    </TableCell>
-
-                    <TableCell>
-                      <Typography variant="caption" sx={{ fontWeight: 700, color: '#0F172A', display: 'block' }}>
-                        {member.email}
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: '#64748B' }}>
-                        {member.phone || 'Phone not set'}
-                      </Typography>
-                    </TableCell>
-
-                    <TableCell>
-                      <Chip
-                        icon={<CheckCircleIcon sx={{ fontSize: '12px !important', color: '#166534 !important' }} />}
-                        label={member.status?.toUpperCase() || 'ACTIVE'}
-                        size="small"
-                        sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 800, fontSize: '9.5px', height: 20 }}
-                      />
-                    </TableCell>
-
-                    <TableCell align="right">
-                      {canManageTeam ? (
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5 }}>
-                          <IconActionButton
-                            title="Edit Member Role"
-                            onClick={() => handleOpenEdit(member)}
+                  return (
+                    <TableRow
+                      key={member.id}
+                      sx={{
+                        '&:hover': { bgcolor: '#F8FAFC' },
+                        '& td': { borderColor: '#E2E8F0', py: 1.4 }
+                      }}
+                    >
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                          <Avatar
+                            sx={{
+                              width: 34,
+                              height: 34,
+                              bgcolor: meta.color,
+                              fontSize: '13px',
+                              fontWeight: 900
+                            }}
                           >
-                            <EditIcon sx={{ fontSize: 16 }} />
-                          </IconActionButton>
-                          <IconActionButton
-                            title="Remove Member"
-                            color="error"
-                            onClick={() => setMemberToDelete(member)}
-                          >
-                            <DeleteIcon sx={{ fontSize: 16 }} />
-                          </IconActionButton>
+                            {member.name?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'ST'}
+                          </Avatar>
+                          <Box>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '13px' }}>
+                              {member.name}
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: '#64748B', fontSize: '11px' }}>
+                              ID: {member.id}
+                            </Typography>
+                          </Box>
                         </Box>
-                      ) : (
+                      </TableCell>
+
+                      <TableCell>
                         <Chip
-                          icon={<LockIcon sx={{ fontSize: '11px !important' }} />}
-                          label="Locked"
+                          icon={<RoleIcon sx={{ fontSize: '13px !important', color: `${meta.color} !important` }} />}
+                          label={meta.label}
                           size="small"
-                          sx={{ height: 20, fontSize: '9.5px', color: '#94A3B8' }}
+                          sx={{
+                            bgcolor: meta.bg,
+                            color: meta.color,
+                            fontWeight: 900,
+                            fontSize: '11px',
+                            height: 22
+                          }}
                         />
-                      )}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </Box>
-      )}
+                      </TableCell>
+
+                      <TableCell>
+                        <Typography variant="body2" sx={{ fontWeight: 700, color: '#334155', fontSize: '12.5px' }}>
+                          {member.hub_locality || 'Salem Central HQ'}
+                        </Typography>
+                      </TableCell>
+
+                      <TableCell>
+                        <Typography variant="caption" sx={{ fontWeight: 700, color: '#0F172A', display: 'block' }}>
+                          {member.email}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#64748B' }}>
+                          {member.phone || 'Phone not set'}
+                        </Typography>
+                      </TableCell>
+
+                      <TableCell>
+                        <Chip
+                          icon={<CheckCircleIcon sx={{ fontSize: '12px !important', color: '#166534 !important' }} />}
+                          label={member.status?.toUpperCase() || 'ACTIVE'}
+                          size="small"
+                          sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 800, fontSize: '9.5px', height: 20 }}
+                        />
+                      </TableCell>
+
+                      <TableCell align="right">
+                        {canManageTeam ? (
+                          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5 }}>
+                            <IconActionButton
+                              title="Edit Member Role"
+                              onClick={() => handleOpenEdit(member)}
+                            >
+                              <EditIcon sx={{ fontSize: 16 }} />
+                            </IconActionButton>
+                            <IconActionButton
+                              title="Remove Member"
+                              color="error"
+                              onClick={() => setMemberToDelete(member)}
+                            >
+                              <DeleteIcon sx={{ fontSize: 16 }} />
+                            </IconActionButton>
+                          </Box>
+                        ) : (
+                          <Chip
+                            icon={<LockIcon sx={{ fontSize: '11px !important' }} />}
+                            label="Locked"
+                            size="small"
+                            sx={{ height: 20, fontSize: '9.5px', color: '#94A3B8' }}
+                          />
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </Box>
+        )}
       </Card>
 
       {/* Role Permission Matrix (Step 5 item 7) */}
@@ -476,7 +476,7 @@ export default function AdminTeamModule({ currentRole = 'super_admin', onToast =
                 { capability: 'Customer CRM & Direct Contact', super_admin: true, ops_dispatcher: true, support_quality: true, finance_officer: false },
                 { capability: 'Support Tickets & Escalation', super_admin: true, ops_dispatcher: false, support_quality: true, finance_officer: false },
                 { capability: 'Payment Override (Mark Paid)', super_admin: true, ops_dispatcher: false, support_quality: false, finance_officer: true },
-                { capability: 'Escrow & Settlements', super_admin: true, ops_dispatcher: false, support_quality: false, finance_officer: true },
+                { capability: '. & Settlements', super_admin: true, ops_dispatcher: false, support_quality: false, finance_officer: true },
                 { capability: 'Platform Fee & Commission Editing', super_admin: true, ops_dispatcher: false, support_quality: false, finance_officer: true },
                 { capability: 'Promotional Coupons Management', super_admin: true, ops_dispatcher: false, support_quality: false, finance_officer: true },
                 { capability: 'Team Staff & Role Management', super_admin: true, ops_dispatcher: false, support_quality: false, finance_officer: false }

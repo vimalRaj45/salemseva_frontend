@@ -1,80 +1,76 @@
 import { API_V1_URL } from './config';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Box } from '@mui/material';
+import { Box, CircularProgress } from '@mui/material';
 
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import CustomerTabBar from './components/customer/CustomerTabBar';
 
 // Customer & Global Action Pages (Migrated from Modals)
-import LanguageSelectionPage from './pages/customer/LanguageSelectionPage';
-import FeedbackPage from './pages/customer/FeedbackPage';
-import SupportHubPage from './pages/customer/SupportHubPage';
-import AskAiPage from './pages/customer/AskAiPage';
-import LocationPickerPage from './pages/customer/LocationPickerPage';
-import BookingReceiptPage from './pages/customer/BookingReceiptPage';
-import BookingAddressPage from './pages/customer/BookingAddressPage';
-import AdvancePaymentPage from './pages/customer/AdvancePaymentPage';
+const LanguageSelectionPage = lazy(() => import('./pages/customer/LanguageSelectionPage'));
+const FeedbackPage = lazy(() => import('./pages/customer/FeedbackPage'));
+const SupportHubPage = lazy(() => import('./pages/customer/SupportHubPage'));
+const LocationPickerPage = lazy(() => import('./pages/customer/LocationPickerPage'));
+const BookingReceiptPage = lazy(() => import('./pages/customer/BookingReceiptPage'));
+const BookingAddressPage = lazy(() => import('./pages/customer/BookingAddressPage'));
+const AdvancePaymentPage = lazy(() => import('./pages/customer/AdvancePaymentPage'));
 
 // Partner Action Pages (Migrated from Modals)
-import PartnerSettlementSlipPage from './pages/partner/PartnerSettlementSlipPage';
-import PartnerProfilePage from './pages/partner/PartnerProfilePage';
-import PartnerJobReschedulePage from './pages/partner/PartnerJobReschedulePage';
+const PartnerSettlementSlipPage = lazy(() => import('./pages/partner/PartnerSettlementSlipPage'));
+const PartnerProfilePage = lazy(() => import('./pages/partner/PartnerProfilePage'));
+const PartnerJobReschedulePage = lazy(() => import('./pages/partner/PartnerJobReschedulePage'));
 
 // Admin Action Pages (Migrated from Modals)
-import AdminPaymentOverridePage from './pages/admin/AdminPaymentOverridePage';
-import AdminLiveTrackingPage from './pages/admin/AdminLiveTrackingPage';
-import AdminDispatchPage from './pages/admin/AdminDispatchPage';
-import AdminOrderCancelPage from './pages/admin/AdminOrderCancelPage';
-import AdminCouponEditorPage from './pages/admin/AdminCouponEditorPage';
-import AdminServiceEditorPage from './pages/admin/AdminServiceEditorPage';
-import AdminStaffEditorPage from './pages/admin/AdminStaffEditorPage';
-import DocumentViewerPage from './pages/admin/DocumentViewerPage';
-import AuthHelpPage from './pages/auth/AuthHelpPage';
+const AdminPaymentOverridePage = lazy(() => import('./pages/admin/AdminPaymentOverridePage'));
+const AdminLiveTrackingPage = lazy(() => import('./pages/admin/AdminLiveTrackingPage'));
+const AdminDispatchPage = lazy(() => import('./pages/admin/AdminDispatchPage'));
+const AdminOrderCancelPage = lazy(() => import('./pages/admin/AdminOrderCancelPage'));
+const AdminCouponEditorPage = lazy(() => import('./pages/admin/AdminCouponEditorPage'));
+const AdminServiceEditorPage = lazy(() => import('./pages/admin/AdminServiceEditorPage'));
+const AdminStaffEditorPage = lazy(() => import('./pages/admin/AdminStaffEditorPage'));
+const DocumentViewerPage = lazy(() => import('./pages/admin/DocumentViewerPage'));
+const AuthHelpPage = lazy(() => import('./pages/auth/AuthHelpPage'));
 
 // Customer Pages
-import CustomerHomePage from './pages/customer/CustomerHomePage';
-import CustomerOnboardingPage from './pages/customer/CustomerOnboardingPage';
-import ServiceDetailPage from './pages/customer/ServiceDetailPage';
-import MatchingPage from './pages/customer/MatchingPage';
-import TrackingPage from './pages/customer/TrackingPage';
-import QuoteReviewPage from './pages/customer/QuoteReviewPage';
-import CheckoutPage from './pages/customer/CheckoutPage';
-import RatingEscalationPage from './pages/customer/RatingEscalationPage';
-import WalletHubPage from './pages/customer/WalletHubPage';
-import BookingHistoryPage from './pages/customer/BookingHistoryPage';
-import CustomerProfilePage from './pages/customer/CustomerProfilePage';
+const CustomerHomePage = lazy(() => import('./pages/customer/CustomerHomePage'));
+const ServiceDetailPage = lazy(() => import('./pages/customer/ServiceDetailPage'));
+const MatchingPage = lazy(() => import('./pages/customer/MatchingPage'));
+const TrackingPage = lazy(() => import('./pages/customer/TrackingPage'));
+const QuoteReviewPage = lazy(() => import('./pages/customer/QuoteReviewPage'));
+const CheckoutPage = lazy(() => import('./pages/customer/CheckoutPage'));
+const RatingEscalationPage = lazy(() => import('./pages/customer/RatingEscalationPage'));
+const WalletHubPage = lazy(() => import('./pages/customer/WalletHubPage'));
+const BookingHistoryPage = lazy(() => import('./pages/customer/BookingHistoryPage'));
+const CustomerProfilePage = lazy(() => import('./pages/customer/CustomerProfilePage'));
 
 // Legal & Compliance Pages
-import TermsPage from './pages/legal/TermsPage';
-import PrivacyPolicyPage from './pages/legal/PrivacyPolicyPage';
-import RefundPolicyPage from './pages/legal/RefundPolicyPage';
-import HowItWorksPage from './pages/customer/HowItWorksPage';
-import FirstTimeOnboardingPage from './pages/customer/FirstTimeOnboardingPage';
-import BookingChatPage from './pages/customer/BookingChatPage';
-import VoipCallingPage from './pages/customer/VoipCallingPage';
-import BookingCancelPage from './pages/customer/BookingCancelPage';
-import BookingReschedulePage from './pages/customer/BookingReschedulePage';
+const TermsPage = lazy(() => import('./pages/legal/TermsPage'));
+const PrivacyPolicyPage = lazy(() => import('./pages/legal/PrivacyPolicyPage'));
+const RefundPolicyPage = lazy(() => import('./pages/legal/RefundPolicyPage'));
+const HowItWorksPage = lazy(() => import('./pages/customer/HowItWorksPage'));
+const FirstTimeOnboardingPage = lazy(() => import('./pages/customer/FirstTimeOnboardingPage'));
+const BookingChatPage = lazy(() => import('./pages/customer/BookingChatPage'));
+const BookingCancelPage = lazy(() => import('./pages/customer/BookingCancelPage'));
+const BookingReschedulePage = lazy(() => import('./pages/customer/BookingReschedulePage'));
 
 // Partner Pages
-import PartnerOnboardingPage from './pages/partner/PartnerOnboardingPage';
-import PartnerDutyPage from './pages/partner/PartnerDutyPage';
-import PartnerQuoteBuilderPage from './pages/partner/PartnerQuoteBuilderPage';
-import PartnerLoginPage from './pages/partner/PartnerLoginPage';
+const PartnerDutyPage = lazy(() => import('./pages/partner/PartnerDutyPage'));
+const PartnerQuoteBuilderPage = lazy(() => import('./pages/partner/PartnerQuoteBuilderPage'));
+const PartnerLoginPage = lazy(() => import('./pages/partner/PartnerLoginPage'));
 
 // Admin Pages
-import AdminDashboardPage from './pages/admin/AdminDashboardPage';
-import AdminTraceabilityPage from './pages/admin/AdminTraceabilityPage';
-import AdminSettlementsPage from './pages/admin/AdminSettlementsPage';
-import AdminTechnicianDossierPage from './pages/admin/AdminTechnicianDossierPage';
-import AdminCustomerDossierPage from './pages/admin/AdminCustomerDossierPage';
-import AdminOtpLoginView from './components/admin/AdminOtpLoginView';
+const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage'));
+const AdminTraceabilityPage = lazy(() => import('./pages/admin/AdminTraceabilityPage'));
+const AdminSettlementsPage = lazy(() => import('./pages/admin/AdminSettlementsPage'));
+const AdminTechnicianDossierPage = lazy(() => import('./pages/admin/AdminTechnicianDossierPage'));
+const AdminCustomerDossierPage = lazy(() => import('./pages/admin/AdminCustomerDossierPage'));
+const AdminOtpLoginView = lazy(() => import('./components/admin/AdminOtpLoginView'));
 
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CriticalWorkProvider } from './context/CriticalWorkContext';
-import AuthPage from './pages/auth/AuthPage';
+const AuthPage = lazy(() => import('./pages/auth/AuthPage'));
 import { Toaster } from 'react-hot-toast';
 import GlobalNotificationWatcher from './components/GlobalNotificationWatcher';
 import HeadsUpNotificationBanner from './components/HeadsUpNotificationBanner';
@@ -124,7 +120,7 @@ function CustomerActiveJobGuard({ children }) {
     // Only guard customer browsing routes (home, service catalog exploration)
     const isCustomerRoute = !location.pathname.startsWith('/partner') && !location.pathname.startsWith('/admin');
 
-    // Explicit list of all active-job flow screens, VoIP call, masked chat, booking management & utility pages
+    // Explicit list of all active-job flow screens, masked chat, booking management & utility pages
     const isExemptRoute = [
       '/matching',
       '/track',
@@ -133,7 +129,6 @@ function CustomerActiveJobGuard({ children }) {
       '/checkout',
       '/rate',
       '/chat',
-      '/call',
       '/booking',
       '/history',
       '/wallet',
@@ -286,7 +281,6 @@ function MainLayout({ walletBalance, currentBooking, setCurrentBooking }) {
     location.pathname === '/support' ||
     location.pathname === '/location' ||
     location.pathname.startsWith('/receipt/') ||
-    location.pathname.startsWith('/call/') ||
     location.pathname.startsWith('/chat/') ||
     location.pathname.startsWith('/booking/') ||
     location.pathname.startsWith('/partner/settlements/') ||
@@ -301,7 +295,7 @@ function MainLayout({ walletBalance, currentBooking, setCurrentBooking }) {
   // wallet or support while a job is running. Partner and admin surfaces are desktop
   // workstations and have their own shells.
   const isFocusedFlow = ['/matching', '/quote', '/checkout', '/rate', '/onboarding']
-    .some((path) => location.pathname === path);
+    .some((path) => location.pathname === path) || location.pathname.startsWith('/book/');
   const showTabBar = !isFullScreenPage &&
     !isFocusedFlow &&
     !location.pathname.startsWith('/partner') &&
@@ -320,10 +314,11 @@ function MainLayout({ walletBalance, currentBooking, setCurrentBooking }) {
           component="main"
           sx={{
             flex: 1,
-            pt: isFullScreenPage ? 0 : { xs: '56px', lg: '72px' },
-            scrollMarginTop: '84px'
+            pt: isFullScreenPage ? 0 : { xs: 'calc(52px + var(--sat))', lg: 'calc(72px + var(--sat))' },
+            scrollMarginTop: 'calc(84px + var(--sat))'
           }}
         >
+          <Suspense fallback={<Box sx={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><CircularProgress size={28} /></Box>}>
           <Routes>
             {/* Dedicated Action Pages (Migrated from Modals) */}
             <Route path="/language" element={<LanguageSelectionPage />} />
@@ -337,7 +332,6 @@ function MainLayout({ walletBalance, currentBooking, setCurrentBooking }) {
             <Route path="/booking/address" element={<BookingAddressPage />} />
             <Route path="/booking/pay-advance" element={<CustomerRouteGuard><AdvancePaymentPage /></CustomerRouteGuard>} />
             <Route path="/chat/:bookingId" element={<BookingChatPage />} />
-            <Route path="/call/:bookingId" element={<VoipCallingPage />} />
             <Route path="/booking/:bookingId/cancel" element={<BookingCancelPage />} />
             <Route path="/booking/:bookingId/reschedule" element={<BookingReschedulePage />} />
 
@@ -362,7 +356,7 @@ function MainLayout({ walletBalance, currentBooking, setCurrentBooking }) {
             <Route path="/auth/help" element={<Navigate to="/login/help" replace />} />
 
             {/* Customer Routes - Blocked for authenticated technicians */}
-            <Route path="/onboarding" element={<CustomerRouteGuard><CustomerOnboardingPage onLoginSuccess={(u) => console.log('Logged in:', u)} /></CustomerRouteGuard>} />
+            <Route path="/onboarding" element={<CustomerRouteGuard><Navigate to="/register?role=customer" replace /></CustomerRouteGuard>} />
             <Route path="/" element={<CustomerRouteGuard><InitialHomeRoute /></CustomerRouteGuard>} />
             <Route path="/book/:serviceId" element={<CustomerRouteGuard><ServiceDetailPage onStartBooking={(b) => setCurrentBooking(b)} /></CustomerRouteGuard>} />
             <Route path="/matching" element={<CustomerRouteGuard><MatchingPage /></CustomerRouteGuard>} />
@@ -380,7 +374,7 @@ function MainLayout({ walletBalance, currentBooking, setCurrentBooking }) {
             {/* Partner Routes */}
             <Route path="/partner/login" element={<PartnerLoginPage />} />
             <Route path="/technician/login" element={<Navigate to="/partner/login" replace />} />
-            <Route path="/partner/onboarding" element={<PartnerOnboardingPage />} />
+            <Route path="/partner/onboarding" element={<Navigate to="/register?role=partner" replace />} />
             <Route path="/partner" element={<PartnerDutyPage />} />
             <Route path="/partner/duty" element={<PartnerDutyPage />} />
             <Route path="/partner/quote-builder" element={<PartnerQuoteBuilderPage />} />
@@ -410,6 +404,7 @@ function MainLayout({ walletBalance, currentBooking, setCurrentBooking }) {
             {/* Fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+          </Suspense>
         </Box>
 
         {/* Professional Enterprise Footer */}
@@ -419,7 +414,7 @@ function MainLayout({ walletBalance, currentBooking, setCurrentBooking }) {
         {showTabBar && (
           <Box
             aria-hidden="true"
-            sx={{ height: 'calc(62px + env(safe-area-inset-bottom, 0px))', display: { xs: 'block', md: 'none' } }}
+            sx={{ height: 'var(--cz-tabbar-space)', display: { xs: 'block', md: 'none' } }}
           />
         )}
         {showTabBar && <CustomerTabBar />}

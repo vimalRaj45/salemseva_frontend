@@ -74,70 +74,70 @@ const typographyConfig = {
   h1: {
     fontFamily: displayFont,
     fontWeight: 800,
-    fontSize: 'clamp(2rem, 1.45rem + 2.4vw, 3.25rem)',
-    letterSpacing: '-0.035em',
-    lineHeight: 1.06
+    fontSize: 'clamp(1.65rem, 1.3rem + 1.8vw, 2.75rem)',
+    letterSpacing: '-0.03em',
+    lineHeight: 1.08
   },
   h2: {
     fontFamily: displayFont,
     fontWeight: 800,
-    fontSize: 'clamp(1.6rem, 1.25rem + 1.5vw, 2.25rem)',
-    letterSpacing: '-0.03em',
-    lineHeight: 1.12
+    fontSize: 'clamp(1.35rem, 1.1rem + 1.2vw, 2rem)',
+    letterSpacing: '-0.025em',
+    lineHeight: 1.15
   },
   h3: {
     fontFamily: displayFont,
     fontWeight: 800,
-    fontSize: 'clamp(1.3rem, 1.1rem + 0.85vw, 1.7rem)',
+    fontSize: 'clamp(1.125rem, 1rem + 0.65vw, 1.5rem)',
     letterSpacing: '-0.02em',
-    lineHeight: 1.2
+    lineHeight: 1.22
   },
   h4: {
     fontFamily: displayFont,
     fontWeight: 700,
-    fontSize: 'clamp(1.1rem, 1rem + 0.45vw, 1.3rem)',
+    fontSize: 'clamp(1rem, 0.92rem + 0.35vw, 1.2rem)',
     letterSpacing: '-0.015em',
     lineHeight: 1.3
   },
   h5: {
     fontWeight: 700,
-    fontSize: 'clamp(1rem, 0.95rem + 0.25vw, 1.125rem)',
+    fontSize: 'clamp(0.9rem, 0.86rem + 0.2vw, 1.05rem)',
     letterSpacing: '-0.01em',
-    lineHeight: 1.4
+    lineHeight: 1.38
   },
   h6: {
     fontWeight: 700,
-    fontSize: '0.9375rem',
+    fontSize: '0.875rem',
     letterSpacing: '-0.005em',
-    lineHeight: 1.45
+    lineHeight: 1.4
   },
   subtitle1: {
     fontWeight: 600,
-    fontSize: '1rem',
-    lineHeight: 1.5
-  },
-  subtitle2: {
-    fontWeight: 600,
     fontSize: '0.875rem',
     lineHeight: 1.45
   },
-  body1: {
-    fontSize: '1rem',
-    lineHeight: 1.6
+  subtitle2: {
+    fontWeight: 600,
+    fontSize: '0.8125rem',
+    lineHeight: 1.4
   },
-  body2: {
+  body1: {
     fontSize: '0.875rem',
     lineHeight: 1.55
   },
+  body2: {
+    fontSize: '0.8125rem',
+    lineHeight: 1.5
+  },
   caption: {
-    fontSize: '0.75rem',
-    lineHeight: 1.45,
+    fontSize: '0.7rem',
+    lineHeight: 1.4,
     letterSpacing: '0.01em'
   },
   button: {
     textTransform: 'none',
     fontWeight: 700,
-    fontSize: '0.875rem',
+    fontSize: '0.8125rem',
     letterSpacing: '0.01em'
   }
 };
@@ -172,10 +172,10 @@ const getComponentOverrides = (isDark = false) => {
       styleOverrides: {
         root: {
           borderRadius: 10,
-          padding: '10px 20px',
+          padding: '8px 16px',
           fontWeight: 700,
-          fontSize: '0.875rem',
-          minHeight: '42px',
+          fontSize: '0.8125rem',
+          minHeight: '38px',
           letterSpacing: '-0.005em',
           transition: 'all 150ms cubic-bezier(0.4, 0, 0.2, 1)',
           '&:focus-visible': {
@@ -266,8 +266,8 @@ const getComponentOverrides = (isDark = false) => {
       styleOverrides: {
         root: {
           borderRadius: 10,
-          fontSize: '0.875rem',
-          minHeight: '46px',
+          fontSize: '0.8125rem',
+          minHeight: '42px',
           color: isDark ? '#F8FAFC' : brandColors.slate[900],
           backgroundColor: isDark ? '#111D3B' : '#FFFFFF',
           '& fieldset': {

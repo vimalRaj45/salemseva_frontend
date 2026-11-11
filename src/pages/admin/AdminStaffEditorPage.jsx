@@ -128,7 +128,7 @@ export default function AdminStaffEditorPage() {
 
   return (
     <Box sx={{ minHeight: '100dvh', bgcolor: 'background.default', pb: 10 }}>
-      <Container maxWidth="md" sx={{ pt: 3, px: { xs: 2, sm: 3 } }}>
+      <Container maxWidth="md" sx={{ pt: 'calc(16px + var(--sat))', px: { xs: 2, sm: 3 } }}>
         <PageHeader
           title={isEditMode ? `Edit Staff: ${formData.name}` : 'Add Operations Staff Member'}
           subtitle="Shazu One Operations Control & Team Privileges"
@@ -228,7 +228,7 @@ export default function AdminStaffEditorPage() {
                   <MenuItem value="super_admin">Super Admin (Root Operations)</MenuItem>
                   <MenuItem value="ops_dispatcher">Ops Dispatcher</MenuItem>
                   <MenuItem value="support_quality">Support & Quality Desk</MenuItem>
-                  <MenuItem value="finance_officer">Finance & Escrow Officer</MenuItem>
+                  <MenuItem value="finance_officer">Finance & . Officer</MenuItem>
                 </Select>
               </FormControl>
             </Grid>

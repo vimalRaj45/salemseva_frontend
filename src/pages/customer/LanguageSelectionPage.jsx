@@ -63,16 +63,17 @@ export default function LanguageSelectionPage() {
       {/* Top Header Bar */}
       <Box
         sx={{
-          bgcolor: '#FFFFFF',
-          borderBottom: '1px solid #E2E8F0',
+          bgcolor: 'var(--cz-chrome-bg, #EBF3FE)',
+          borderBottom: '1px solid var(--cz-chrome-border, #C7DBF7)',
           position: 'sticky',
           top: 0,
           zIndex: 10,
-          px: { xs: 2, sm: 3 },
-          py: 1.5,
+          px: { xs: 1.5, sm: 3 },
+          pt: 'calc(10px + var(--sat))',
+          pb: 1.1,
           display: 'flex',
           alignItems: 'center',
-          gap: 1.5
+          gap: 1.25
         }}
       >
         {!isFirstTime && (
@@ -81,22 +82,23 @@ export default function LanguageSelectionPage() {
             aria-label="Go back"
             sx={{
               color: '#0F172A',
-              bgcolor: '#F1F5F9',
-              '&:hover': { bgcolor: '#E2E8F0' },
-              width: 40,
-              height: 40,
+              bgcolor: '#FFFFFF',
+              border: '1px solid var(--cz-chrome-border, #C7DBF7)',
+              '&:hover': { bgcolor: '#F8FAFC' },
+              width: 36,
+              height: 36,
               borderRadius: '10px'
             }}
           >
-            <ArrowLeft size={20} />
+            <ArrowLeft size={18} />
           </IconButton>
         )}
 
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography sx={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>
+          <Typography sx={{ fontSize: { xs: '14.5px', sm: '16px' }, fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>
             {isFirstTime ? 'Choose preferred language' : 'Select language'}
           </Typography>
-          <Typography sx={{ fontSize: '12px', color: '#64748B', lineHeight: 1.3 }}>
+          <Typography sx={{ fontSize: { xs: '11px', sm: '12px' }, color: '#475569', lineHeight: 1.3 }}>
             {isFirstTime
               ? 'உங்கள் விருப்ப மொழியைத் தேர்ந்தெடுக்கவும்'
               : 'Automatic translation powered by Google Translate'}
@@ -105,23 +107,24 @@ export default function LanguageSelectionPage() {
 
         <Box
           sx={{
-            width: 38,
-            height: 38,
+            width: 34,
+            height: 34,
             borderRadius: '10px',
-            bgcolor: '#EFF6FF',
+            bgcolor: '#FFFFFF',
+            border: '1px solid var(--cz-chrome-border, #C7DBF7)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#0284C7',
+            color: '#0A5CC4',
             flexShrink: 0
           }}
         >
-          <Globe size={20} />
+          <Globe size={18} />
         </Box>
       </Box>
 
       {/* Main Content Area */}
-      <Container maxWidth="sm" sx={{ flex: 1, py: { xs: 2.5, sm: 3.5 }, display: 'flex', flexDirection: 'column' }}>
+      <Container maxWidth="sm" sx={{ flex: 1, py: { xs: 1.75, sm: 3 }, display: 'flex', flexDirection: 'column' }}>
         {isFirstTime && (
           <Paper
             elevation={0}
@@ -286,20 +289,33 @@ export default function LanguageSelectionPage() {
             );
           })}
         </Box>
+      </Container>
 
-        {/* First-time Bottom Confirmation Sticky Buttons */}
-        {isFirstTime && (
-          <Box sx={{ mt: 3, pt: 2, display: 'flex', flexDirection: 'column', gap: 1.2 }}>
+      {/* First-time Bottom Confirmation Sticky Footer Dock */}
+      {isFirstTime && (
+        <Box
+          sx={{
+            position: 'sticky',
+            bottom: 0,
+            zIndex: 20,
+            bgcolor: 'var(--cz-chrome-bg, #EBF3FE)',
+            borderTop: '1px solid var(--cz-chrome-border, #C7DBF7)',
+            px: { xs: 1.5, sm: 3 },
+            pt: 1.25,
+            pb: 'calc(12px + var(--sab))'
+          }}
+        >
+          <Container maxWidth="sm" disableGutters sx={{ display: 'flex', flexDirection: 'column', gap: 0.8 }}>
             <Button
               variant="contained"
               fullWidth
               onClick={handleConfirmFirstTime}
               sx={{
-                minHeight: 50,
-                borderRadius: '12px',
+                minHeight: 44,
+                borderRadius: '10px',
                 bgcolor: '#0284C7',
                 fontWeight: 800,
-                fontSize: '15px',
+                fontSize: { xs: '13.5px', sm: '14.5px' },
                 textTransform: 'none',
                 boxShadow: '0 4px 14px rgba(2, 132, 199, 0.25)',
                 '&:hover': { bgcolor: '#0369A1' }
@@ -315,20 +331,20 @@ export default function LanguageSelectionPage() {
               fullWidth
               onClick={handleSkip}
               sx={{
-                minHeight: 42,
-                borderRadius: '10px',
-                color: '#64748B',
+                minHeight: 36,
+                borderRadius: '8px',
+                color: '#334155',
                 fontWeight: 600,
-                fontSize: '13px',
+                fontSize: { xs: '12px', sm: '13px' },
                 textTransform: 'none',
-                '&:hover': { bgcolor: '#F1F5F9', color: '#0F172A' }
+                '&:hover': { bgcolor: '#FFFFFF', color: '#0F172A' }
               }}
             >
               Skip for now / ஆங்கிலத்தில் தொடரவும் (English)
             </Button>
-          </Box>
-        )}
-      </Container>
+          </Container>
+        </Box>
+      )}
     </Box>
   );
 }
